@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card luxury-card">
+            <div class="card-header luxury-card-header">
+                <h3 class="card-title luxury-title"><i class="fas fa-plus-circle mr-2"></i> {{ _('إنشاء عصابة جديدة') }}</h3>
+            </div>
+            <div class="card-body p-4">
+                <div class="alert alert-warning border-gold bg-gold-alpha-10">
+                    <h5><i class="icon fas fa-exclamation-triangle text-warning"></i> {{ _('تنبيه!') }}</h5>
+                    {{ _('تكلفة إنشاء عصابة هي') }} <strong class="text-gold">{{ cost }}$</strong>
+                </div>
+
+                <form method="POST">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                    <div class="form-group mb-3">
+                        <label for="name" class="text-light">{{ _('اسم العصابة') }}</label>
+                        <input type="text" class="form-control form-control-luxury" id="name" name="name" required placeholder="{{ _('أدخل اسم العصابة') }}">
+                    </div>
+                    <div class="form-group mb-4">
+                        <label for="description" class="text-light">{{ _('وصف العصابة') }}</label>
+                        <textarea class="form-control form-control-luxury" id="description" name="description" rows="3" placeholder="{{ _('أدخل وصفاً مختصراً') }}"></textarea>
+                    </div>
+
+                    <div class="form-group mb-3">
+                        <label class="text-warning"><i class="fas fa-filter"></i> {{ _('شروط الانضمام (اختياري)') }}</label>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <label for="min_level_req" class="text-muted small">{{ _('الحد الأدنى للمستوى') }}</label>
+                                <input type="number" class="form-control form-control-luxury" id="min_level_req" name="min_level_req" value="1" min="1">
+                            </div>
+                            <div class="col-md-6">
+                                <label for="recruitment_status" class="text-muted small">{{ _('حالة التجنيد') }}</label>
+                                <select class="form-control form-control-luxury" id="recruitment_status" name="recruitment_status">
+                                    <option value="open">{{ _('مفتوح للجميع') }}</option>
+                                    <option value="invite_only">{{ _('دعوات فقط') }}</option>
+                                    <option value="closed">{{ _('مغلق') }}</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-12">
+                            <button type="submit" class="btn btn-create btn-block mb-2">{{ _('إنشاء العصابة') }}</button>
+                            <a href="{{ url_for('gang.index') }}" class="btn btn-cancel btn-block">{{ _('إلغاء') }}</a>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

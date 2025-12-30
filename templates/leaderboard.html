@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+
+{% block title %}{{ _('لوحة المتصدرين') }}{% endblock %}
+
+{% block content %}
+<div class="container fade-in">
+    <div class="leaderboard-header">
+        <div class="leaderboard-icon">
+            <i class="fas fa-trophy"></i>
+        </div>
+        <h2 class="text-white font-weight-bold">{{ _('أسياد الشوارع') }}</h2>
+        <p class="text-white-50 mb-0">{{ _('القائمة الذهبية لأقوى اللاعبين في المدينة') }}</p>
+    </div>
+
+    <div class="leaderboard-tabs">
+        <a href="{{ url_for('main.leaderboard', sort='level') }}" class="leaderboard-tab {% if sort_by == 'level' %}active{% endif %}">
+            <i class="fas fa-star"></i> {{ _('الأعلى مستوى') }}
+        </a>
+        <a href="{{ url_for('main.leaderboard', sort='money') }}" class="leaderboard-tab {% if sort_by == 'money' %}active{% endif %}">
+            <i class="fas fa-money-bill-wave"></i> {{ _('الأغنى') }}
+        </a>
+    </div>
+
+    <div class="table-responsive">
+        <table class="table table-leaderboard mb-0">
+            <thead>
+                <tr>
+                    <th class="text-center">#</th>
+                    <th>{{ _('اللاعب') }}</th>
+                    <th class="text-center">{{ _('المستوى') }}</th>
+                    <th class="text-center">{{ _('الرتبة') }}</th>
+                    <th class="text-center">{% if sort_by == 'money' %}{{ _('الثروة') }}{% else %}{{ _('الخبرة') }}{% endif %}</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for user in top_users %}
+                <tr class="rank-{{ loop.index }} anim-delay-{{ loop.index if loop.index <= 20 else 20 }}">
+                    <td class="rank-cell">
+                        {% if loop.index == 1 %}<i class="fas fa-crown text-warning"></i>{% else %}{{ loop.index }}{% endif %}
+                    </td>
+                    <td>
+                        <div class="user-cell">
+                            {% if user.avatar and user.avatar != 'default.png' %}
+                                <img src="{{ url_for('static', filename='avatars/' + user.avatar) }}" class="table-avatar" alt="{{ user.username }}">
+                            {% else %}
+                                <img src="https://ui-avatars.com/api/?name={{ user.username }}&background=random" class="table-avatar" alt="{{ user.username }}">
+                            {% endif %}
+                            <a href="{{ url_for('main.profile', user_id=user.id) }}" class="user-name-link">{{ user.username }}</a>
+                        </div>
+                    </td>
+                    <td class="text-center">
+                        <span class="level-badge">{{ user.level }}</span>
+                    </td>
+                    <td class="text-center text-muted small">
+                        {{ _(user.rank_title) }}
+                        {% if user.health <= 0 and user.elite_reservation_until %}
+                            <div class="text-warning small">
+                                {{ _('محجوز حتى') }} {{ user.elite_reservation_until.strftime('%Y-%m-%d %H:%M') }}
+                            </div>
+                        {% endif %}
+                    </td>
+                    <td class="text-center font-weight-bold text-warning">
+                        {% if sort_by == 'money' %}
+                            ${{ "{:,}".format(user.money) }}
+                        {% else %}
+                            {{ "{:,}".format(user.exp) }} XP
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    {% if not top_users %}
+    <div class="text-center py-5 text-muted">
+        <i class="fas fa-ghost fa-3x mb-3 opacity-50"></i>
+        <p>{{ _('لا يوجد لاعبين في القائمة حالياً') }}</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,83 @@
+[
+    {
+        "name": "القدس", 
+        "cost": 500, 
+        "cooldown": 60,
+        "description": "زهرة المدائن، وكعك القدس الزاكي.",
+        "specialty": "exp_bonus",
+        "specialty_value": 10,
+        "image": "jerusalem.jpg"
+    },
+    {
+        "name": "غزة", 
+        "cost": 200, 
+        "cooldown": 120,
+        "description": "أحلى سمك وفلفل شطة، وجو بحر ما بزهق.",
+        "specialty": "defense_bonus",
+        "specialty_value": 10,
+        "image": "gaza.jpg"
+    },
+    {
+        "name": "نابلس", 
+        "cost": 180, 
+        "cooldown": 100,
+        "description": "عاصمة الكنافة النابلسية والصابون البلدي.",
+        "specialty": "health_regen",
+        "specialty_value": 5,
+        "image": "nablus.jpg"
+    },
+    {
+        "name": "الخليل", 
+        "cost": 170, 
+        "cooldown": 95,
+        "description": "بلد العنب والقدرة الخليلية، ويا هلا بالضيف.",
+        "specialty": "income_bonus",
+        "specialty_value": 10,
+        "image": "hebron.jpg"
+    },
+    {
+        "name": "رام الله", 
+        "cost": 150, 
+        "cooldown": 90,
+        "description": "بوظة ركب والسهرة للصبح، مدينة الحياة.",
+        "specialty": "jail_reduction",
+        "specialty_value": 10,
+        "image": "ramallah.jpg"
+    },
+    {
+        "name": "جنين", 
+        "cost": 160, 
+        "cooldown": 90,
+        "description": "عروس مرج ابن عامر، وسلة خضار فلسطين.",
+        "specialty": "attack_bonus",
+        "specialty_value": 5,
+        "image": "jenin.jpg"
+    },
+    {
+        "name": "أريحا", 
+        "cost": 100, 
+        "cooldown": 80,
+        "description": "مدينة القمر والموز، والمشتى الدافي.",
+        "specialty": "energy_regen",
+        "specialty_value": 10,
+        "image": "jericho.jpg"
+    },
+    {
+        "name": "بيت لحم", 
+        "cost": 140, 
+        "cooldown": 85,
+        "description": "مدينة السلام، وزينة الميلاد.",
+        "specialty": "luck_bonus",
+        "specialty_value": 5,
+        "image": "bethlehem.jpg"
+    },
+    {
+        "name": "طولكرم", 
+        "cost": 130, 
+        "cooldown": 85,
+        "description": "بلد الأفراح والمسخن الكرمي الأصلي.",
+        "specialty": "training_bonus",
+        "specialty_value": 5,
+        "image": "tulkarm.jpg"
+    }
+]

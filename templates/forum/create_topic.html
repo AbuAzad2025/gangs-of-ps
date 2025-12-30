@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% block title %}{{ _('موضوع جديد') }}{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <h2 class="section-title">
+            <a href="{{ url_for('forum.category', id=category.id) }}" class="text-white text-decoration-none">
+                <i class="fas fa-chevron-right ml-2 small"></i>
+            </a>
+            {{ _('موضوع جديد في') }} {{ _(category.title) }}
+        </h2>
+    </div>
+</div>
+
+<div class="card luxury-card">
+    <div class="card-body">
+        <form method="POST">
+            {{ form.hidden_tag() }}
+            <div class="form-group">
+                <label>{{ _('عنوان الموضوع') }}</label>
+                {{ form.title(class="form-control bg-dark text-white") }}
+                {% for error in form.title.errors %}
+                    <span class="text-danger small">{{ error }}</span>
+                {% endfor %}
+            </div>
+            <div class="form-group">
+                <label>{{ _('المحتوى') }}</label>
+                {{ form.content(class="form-control bg-dark text-white", rows=10) }}
+                {% for error in form.content.errors %}
+                    <span class="text-danger small">{{ error }}</span>
+                {% endfor %}
+            </div>
+            <div class="text-left">
+                <a href="{{ url_for('forum.category', id=category.id) }}" class="btn btn-secondary ml-2">{{ _('إلغاء') }}</a>
+                {{ form.submit(class="btn btn-gold") }}
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

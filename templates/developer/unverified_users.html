@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <div class="card luxury-card">
+        <div class="card-header luxury-header d-flex justify-content-between align-items-center">
+            <h3 class="mb-0 text-gold"><i class="fas fa-users-slash mr-2"></i> {{ title }}</h3>
+            <a href="{{ url_for('main.dev_dashboard') }}" class="btn btn-outline-light btn-sm">
+                <i class="fas fa-arrow-right"></i> {{ _('عودة للوحة المطور') }}
+            </a>
+        </div>
+        <div class="card-body bg-dark text-light">
+            {% if users %}
+            <div class="table-responsive">
+                <table class="table table-dark table-hover mb-0">
+                    <thead>
+                        <tr>
+                            <th class="text-gold">#</th>
+                            <th class="text-gold">{{ _('اسم المستخدم') }}</th>
+                            <th class="text-gold">{{ _('البريد الإلكتروني') }}</th>
+                            <th class="text-gold">{{ _('تاريخ التسجيل') }}</th>
+                            <th class="text-gold">{{ _('الدولة') }}</th>
+                            <th class="text-gold text-center">{{ _('الإجراءات') }}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for user in users %}
+                        <tr>
+                            <td>{{ user.id }}</td>
+                            <td>
+                                <span class="font-weight-bold">{{ user.username }}</span>
+                            </td>
+                            <td>{{ user.email }}</td>
+                            <td>{{ user.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
+                            <td>
+                                <img src="https://flagcdn.com/24x18/{{ user.country|lower }}.png" alt="{{ user.country }}">
+                            </td>
+                            <td class="text-center">
+                                <div class="btn-group" role="group">
+                                    <form action="{{ url_for('main.handle_verification', user_id=user.id, action='confirm') }}" method="POST" class="d-inline">
+                                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                        <button type="submit" class="btn btn-sm btn-success mr-1" onclick="return confirm('{{ _('هل أنت متأكد من تفعيل هذا المستخدم؟') }}')">
+                                            <i class="fas fa-check"></i> {{ _('تفعيل') }}
+                                        </button>
+                                    </form>
+                                    <form action="{{ url_for('main.handle_verification', user_id=user.id, action='reject') }}" method="POST" class="d-inline">
+                                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                        <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('{{ _('هل أنت متأكد من حذف هذا المستخدم؟ لا يمكن التراجع عن هذا الإجراء.') }}')">
+                                            <i class="fas fa-trash"></i> {{ _('حذف') }}
+                                        </button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="text-center py-5">
+                <i class="fas fa-check-circle fa-4x text-muted mb-3"></i>
+                <p class="lead text-muted">{{ _('لا يوجد مستخدمين بانتظار التفعيل.') }}</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

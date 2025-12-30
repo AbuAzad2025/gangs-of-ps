@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container fade-in">
+    <div class="text-center luxury-header luxury-header-red">
+        <h1 class="display-4 text-danger font-kufi text-shadow-red">
+            <i class="fas fa-hospital-alt mr-3"></i>{{ _('المستشفى') }}
+        </h1>
+        <p class="lead text-muted">{{ _('عالج جروحك واستعد طاقتك') }}</p>
+    </div>
+
+    <div class="row justify-content-center">
+        <div class="col-md-10">
+            <div class="luxury-card p-4 mb-4">
+                <div class="health-display">
+                    <i class="fas fa-heartbeat health-icon-large"></i>
+                    <h2 class="mb-3">{{ _('صحتك الحالية') }}</h2>
+                    <div class="health-bar-container position-relative">
+                        <div class="health-bar w-dynamic" style="--width: {{ (user.health / user.max_health) * 100 }}%"></div>
+                        <div class="health-text-overlay">
+                            {{ user.health }} / {{ user.max_health }}
+                        </div>
+                    </div>
+                    {% set needed = user.max_health - user.health %}
+                    {% set cost = needed * 10 %}
+                    <p class="text-muted">{{ _('تكلفة العلاج الكامل:') }} <span class="text-warning">{{ cost }}$</span> {{ _('(10$ لكل نقطة)') }}</p>
+                </div>
+
+                <div class="row g-4">
+                    <div class="col-md-6 fade-in-up anim-delay-1">
+                        <div class="treatment-option text-center">
+                            <i class="fas fa-user-md fa-3x mb-3 text-danger"></i>
+                            <h4>{{ _('علاج الجروح') }}</h4>
+                            <p class="text-muted">{{ _('استعادة الصحة') }}</p>
+                            <h5 class="text-gradient-gold mb-3">{{ cost }}$</h5>
+                            <form action="{{ url_for('hospital.heal') }}" method="POST">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                                <button type="submit" class="btn-heal w-100" {% if user.health >= user.max_health %}disabled{% endif %}>
+                                    {% if user.health >= user.max_health %}{{ _('صحتك تمام') }}{% else %}{{ _('عالج الآن') }}{% endif %}
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-6 fade-in-up anim-delay-2">
+                        <div class="treatment-option energy-option text-center">
+                            <i class="fas fa-bolt fa-3x mb-3 text-warning"></i>
+                            <h4>{{ _('مشروب طاقة') }}</h4>
+                            <p class="text-muted">{{ _('استعادة 50 نقطة طاقة') }}</p>
+                            <h5 class="text-gradient-gold mb-3">500 $</h5>
+                            <form action="{{ url_for('hospital.buy_energy') }}" method="POST">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                                <button type="submit" class="btn-energy w-100" {% if user.energy >= user.max_energy %}disabled{% endif %}>
+                                    {{ _('شراء الآن') }}
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

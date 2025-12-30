@@ -1,0 +1,146 @@
+{% extends "base.html" %}
+
+{% block content %}
+<style>
+    .luxury-card {
+        background: var(--dark-card);
+        border: 1px solid rgba(212, 175, 55, 0.2);
+        box-shadow: 0 0 15px rgba(0, 0, 0, 0.5);
+        border-radius: 15px;
+        overflow: hidden;
+    }
+
+    .luxury-header {
+        background: radial-gradient(circle at center, rgba(212, 175, 55, 0.2) 0%, rgba(0, 0, 0, 0.8) 100%);
+        border-bottom: 1px solid var(--gold-primary);
+        padding: 1.5rem;
+        text-align: center;
+    }
+
+    .luxury-title {
+        color: var(--gold-primary);
+        font-family: 'Reem Kufi', sans-serif;
+        font-weight: 700;
+        margin: 0;
+        text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+    }
+
+    .luxury-table {
+        width: 100%;
+        margin-bottom: 0;
+        background: transparent;
+    }
+
+    .luxury-table thead th {
+        border-top: none;
+        border-bottom: 2px solid var(--gold-primary);
+        color: var(--gold-primary);
+        background: rgba(212, 175, 55, 0.05);
+        font-weight: bold;
+        text-transform: uppercase;
+    }
+
+    .luxury-table td {
+        border-top: 1px solid rgba(255,255,255,0.05);
+        color: #ddd;
+        vertical-align: middle;
+    }
+
+    .invite-row {
+        opacity: 0;
+        animation: fadeInUp 0.5s ease forwards;
+        transition: all 0.3s ease;
+    }
+
+    .invite-row:hover {
+        background: rgba(212, 175, 55, 0.05);
+    }
+
+    .btn-luxury-accept {
+        background: linear-gradient(45deg, #28a745, #218838);
+        border: none;
+        color: #fff;
+        transition: all 0.3s;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+    }
+
+    .btn-luxury-accept:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(40, 167, 69, 0.4);
+        color: #fff;
+    }
+
+    .btn-luxury-reject {
+        background: linear-gradient(45deg, #dc3545, #c82333);
+        border: none;
+        color: #fff;
+        transition: all 0.3s;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+    }
+
+    .btn-luxury-reject:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(220, 53, 69, 0.4);
+        color: #fff;
+    }
+
+    @keyframes fadeInUp {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+</style>
+
+<div class="row mb-3">
+    <div class="col-12">
+        <a href="{{ url_for('gang.index') }}" class="btn btn-secondary"><i class="fas fa-arrow-right"></i> {{ _('عودة للقائمة') }}</a>
+    </div>
+</div>
+
+<div class="luxury-card">
+    <div class="luxury-header">
+        <h3 class="luxury-title"><i class="fas fa-envelope-open-text"></i> {{ _('دعوات الانضمام') }}</h3>
+    </div>
+    <div class="card-body p-0">
+        {% if invites %}
+        <div class="table-responsive">
+            <table class="table luxury-table table-hover">
+                <thead>
+                    <tr>
+                        <th>{{ _('العصابة') }}</th>
+                        <th>{{ _('التاريخ') }}</th>
+                        <th>{{ _('إجراءات') }}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for invite in invites %}
+                    <tr class="invite-row" style="animation-delay: {{ loop.index * 0.1 }}s">
+                        <td>
+                            <strong class="text-gold-secondary">{{ invite.gang.name }}</strong>
+                        </td>
+                        <td>{{ invite.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
+                        <td>
+                            <div class="btn-group">
+                                <form action="{{ url_for('gang.accept_invite', invite_id=invite.id) }}" method="POST" class="d-inline mr-1">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                                    <button type="submit" class="btn btn-luxury-accept btn-sm"><i class="fas fa-check"></i> {{ _('قبول') }}</button>
+                                </form>
+                                <form action="{{ url_for('gang.reject_invite', invite_id=invite.id) }}" method="POST" class="d-inline">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                                    <button type="submit" class="btn btn-luxury-reject btn-sm"><i class="fas fa-times"></i> {{ _('رفض') }}</button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="p-5 text-center">
+            <i class="fas fa-inbox fa-3x mb-3 text-white-alpha-20"></i>
+            <h5 class="text-muted">{{ _('لا توجد دعوات انضمام حالياً.') }}</h5>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

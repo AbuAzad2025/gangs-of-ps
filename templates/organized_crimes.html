@@ -1,0 +1,170 @@
+{% extends "base.html" %}
+
+{% block title %}{{ _('الجرائم المنظمة') }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid fade-in">
+  <div class="org-hero mb-4">
+    <h1 class="display-4 mb-2"><i class="fas fa-users mr-3"></i>{{ _('الجرائم المنظمة') }}</h1>
+    <p class="lead mb-0">{{ _('عمليات فريق… نجاحها يعتمد على التخطيط والأدوار والمخاطرة.') }}</p>
+    <div class="mt-2">
+      <span class="hero-chip"><i class="fas fa-layer-group text-warning"></i> {{ _('حد إنشاء') }}: {{ min_creator_rank_level }}</span>
+      <a class="hero-chip text-decoration-none" href="{{ url_for('main.heist_history') }}">
+        <i class="fas fa-history text-info"></i> {{ _('سجل العمليات') }}
+      </a>
+    </div>
+  </div>
+
+  <div class="luxury-card fade-in-up">
+    <div class="luxury-header">
+      <h3 class="luxury-title"><i class="fas fa-mask mr-2"></i> {{ _('اختر العملية') }}</h3>
+    </div>
+    <div class="card-body">
+
+    {% if not allow_non_gang %}
+      <div class="alert alert-danger">
+        {{ _('الجرائم المنظمة العامة غير مفعلة حالياً من قبل الإدارة.') }}
+      </div>
+    {% endif %}
+
+    {% if active_lobbies %}
+    <div class="mb-4">
+      <h4 class="text-warning"><i class="fas fa-search mr-2"></i> {{ _('مجموعات تبحث عن أعضاء') }}</h4>
+      <div class="row">
+        {% for lobby in active_lobbies %}
+        {% set lobby_access = (crime_access.get(lobby.crime.id) if crime_access else None) %}
+        <div class="col-md-6 mb-3">
+          <div class="heist-card">
+            <div class="heist-body d-flex justify-content-between align-items-center">
+              <div>
+                {% if lobby_access and not lobby_access.unlocked %}
+                  <div class="text-warning font-weight-bold">{{ _('عملية مقفولة') }}</div>
+                  <div class="text-muted small">{{ _('طور نفسك لفتحها…') }}</div>
+                  {% if lobby_access.reason %}
+                    <div class="text-warning small">{{ lobby_access.reason }}</div>
+                  {% endif %}
+                  {% if lobby_access.hint_text %}
+                    <div class="text-info small">
+                      {% if lobby_access.hint_url %}
+                        <a href="{{ lobby_access.hint_url }}" class="text-info">{{ lobby_access.hint_text }}</a>
+                      {% else %}
+                        {{ lobby_access.hint_text }}
+                      {% endif %}
+                    </div>
+                  {% endif %}
+                {% else %}
+                  <div class="text-info font-weight-bold">{{ _(lobby.crime.name) }}</div>
+                {% endif %}
+                <div class="text-muted small">{{ _('القائد') }}: {{ lobby.leader.username }}</div>
+                <div class="mt-2">
+                  <span class="badge badge-secondary">{{ (lobby_counts.get(lobby.id) if lobby_counts else 0) }} / {{ lobby.crime.min_members }} {{ _('أعضاء') }}</span>
+                </div>
+              </div>
+              {% if lobby_access and not lobby_access.unlocked %}
+                <button class="btn btn-secondary btn-sm" disabled>
+                  <i class="fas fa-lock"></i> {{ _('مقفول') }}
+                </button>
+              {% else %}
+                <a href="{{ url_for('main.lobby', lobby_id=lobby.id) }}" class="btn btn-outline-info btn-sm">
+                  {{ _('عرض') }} <i class="fas fa-arrow-left"></i>
+                </a>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+    {% endif %}
+
+    <div class="row">
+      {% for crime in crimes %}
+      {% set access = (crime_access.get(crime.id) if crime_access else None) %}
+      {% set unlocked = (access.unlocked if access else true) %}
+      <div class="col-lg-4 col-md-6 mb-4">
+        <div class="heist-card">
+          <div class="heist-hero">
+            {% if not unlocked %}
+              <div class="heist-lock-overlay">
+                <i class="fas fa-lock fa-3x text-warning"></i>
+              </div>
+            {% else %}
+              <img src="{{ url_for('static', filename=(crime.image or 'crimes/bank_heist.jpg')) }}"
+                   alt="{{ _(crime.name) }}"
+                   onerror="this.onerror=null; this.src='{{ url_for('static', filename='crimes/bank_heist.jpg') }}';">
+            {% endif %}
+          </div>
+          <div class="heist-body">
+            {% if not unlocked %}
+              <div class="heist-title">{{ _('عملية مقفولة') }}</div>
+              <div class="heist-desc">{{ _('طور نفسك لفتحها…') }}</div>
+              {% if access and access.reason %}
+                <div class="mt-2 text-warning small">{{ access.reason }}</div>
+              {% endif %}
+              {% if access and access.hint_text %}
+                <div class="mt-2 text-info small">
+                  {% if access.hint_url %}
+                    <a href="{{ access.hint_url }}" class="text-info">{{ access.hint_text }}</a>
+                  {% else %}
+                    {{ access.hint_text }}
+                  {% endif %}
+                </div>
+              {% endif %}
+            {% else %}
+              <div class="heist-title">{{ _(crime.name) }}</div>
+              <div class="heist-desc">{{ _(crime.description) }}</div>
+            {% endif %}
+
+            <div class="heist-meta">
+              <span class="heist-pill"><i class="fas fa-users mr-1 text-warning"></i> {{ crime.min_members }}–{{ crime.max_members }}</span>
+              <span class="heist-pill"><i class="fas fa-bolt mr-1 text-warning"></i> {{ crime.energy_cost }}</span>
+              <span class="heist-pill"><i class="fas fa-clock mr-1 text-info"></i> {{ crime.duration_minutes }} {{ _('د') }}</span>
+              <span class="heist-pill"><i class="fas fa-hourglass-half mr-1 text-muted"></i> {{ crime.cooldown_hours }} {{ _('س') }}</span>
+              {% if unlocked %}
+                <span class="heist-pill"><i class="fas fa-coins mr-1 text-success"></i> {{ "{:,}".format(crime.money_reward_min) }}–{{ "{:,}".format(crime.money_reward_max) }}</span>
+                <span class="heist-pill"><i class="fas fa-star mr-1 text-info"></i> {{ crime.exp_reward }}</span>
+              {% endif %}
+              <span class="heist-pill"><i class="fas fa-layer-group mr-1 text-secondary"></i> {{ _('Lv') }} {{ crime.min_level }}</span>
+            </div>
+
+            {% set meta = (crime_meta.get(crime.id) if crime_meta else {}) %}
+            {% if meta and meta.required_item %}
+              <div class="mt-3">
+                <span class="heist-pill"><i class="fas fa-toolbox mr-1 text-warning"></i> {{ _('مطلوب:') }} {{ _(meta.required_item) }}</span>
+              </div>
+            {% endif %}
+
+            {% if unlocked and crime.roles_config %}
+              <div class="mt-2">
+                {% for role in crime.roles_config %}
+                  <span class="role-chip" title="{{ _(role.description) }}">
+                    <i class="fas {{ role.icon or 'fa-user' }} text-warning"></i>
+                    {{ _(role.name) }}
+                  </span>
+                {% endfor %}
+              </div>
+            {% endif %}
+
+            <div class="mt-3 d-flex justify-content-between align-items-center">
+              {% if can_create and unlocked %}
+                <a href="{{ url_for('main.create_lobby', crime_id=crime.id) }}" class="btn btn-luxury-action btn-sm">
+                  <i class="fas fa-plus-circle"></i> {{ _('إنشاء مجموعة') }}
+                </a>
+              {% else %}
+                <button class="btn btn-secondary btn-sm" disabled>
+                  <i class="fas fa-lock"></i> {{ _('رتبة غير كافية') }}
+                </button>
+              {% endif %}
+              <a href="{{ url_for('main.heist_history') }}" class="btn btn-outline-light btn-sm">
+                <i class="fas fa-scroll"></i> {{ _('آخر التقارير') }}
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+</div>
+{% endblock %}

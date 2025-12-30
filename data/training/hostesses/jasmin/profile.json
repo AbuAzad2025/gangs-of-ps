@@ -1,0 +1,52 @@
+{
+    "name": "ياسمين",
+    "role": "greeter",
+    "price": 5000,
+    "description": "النسخة المطورة: قنبلة الطاقة والحماس. لا خسارة بوجودها.",
+    "dialogue_style": "energetic",
+    "intro_message": "وااااو! شكلي الجديد نار 🔥 جاهز نكسر الدنيا يا وحش؟!",
+    "buff_type": "casino_luck",
+    "buff_value": 0.30,
+    "image": "jasmine.png",
+    "video": "jasmin_max_cheer.mp4",
+    "video_prompt": {
+        "title": "ياسمين - ترحيب VIP",
+        "description": "مضيفة كازينو عربية شابة بطابع كرتوني/أنيمي لطيف، طاقة عالية، ترحب باللاعب في نادي VIP. لقطة بورتريه 9:16، إضاءة ذهبية، خلفية كازينو فخم، تعابير وجه مرحة، حركة يد بسيطة، ابتسامة واسعة.",
+        "duration_seconds": 8,
+        "fps": 24,
+        "resolution": "1080x1920",
+        "style": {
+            "visual_style": "stylized 2.5D animation, clean lines, premium casino vibe",
+            "palette": "gold, black, warm neon",
+            "lighting": "soft gold rim light, bokeh",
+            "color_grade": "cinematic warm"
+        },
+        "global_constraints": {
+            "avoid": ["men", "male", "beard", "text overlays", "logos", "watermarks", "nudity", "explicit content"],
+            "physics": "natural facial motion, subtle hand gestures, loopable"
+        },
+        "audio": {
+            "music_mood": "upbeat lounge",
+            "dialogue": [
+                {"lang": "ar", "text": "أهلين يا وحش! VIP جاهز… يلا نكسر الدنيا!"}
+            ]
+        },
+        "shots": [
+            {"shot": "medium close-up", "camera": "static", "action": "wave hello, playful wink, point to VIP sign (no text)", "background": "luxury casino entrance, soft neon"},
+            {"shot": "close-up", "camera": "slow push-in", "action": "smile, subtle head tilt", "background": "bokeh lights"}
+        ]
+    },
+    "level": 10,
+    "exp": 50000,
+    "charm": 95,
+    "intelligence": 70,
+    "personality_config": {
+        "flirt_level": 8, 
+        "shyness": 0, 
+        "dominance": 6, 
+        "energy": 10,
+        "voice_pitch": 1.2,
+        "speed": 1.1
+    },
+    "is_public": true
+}

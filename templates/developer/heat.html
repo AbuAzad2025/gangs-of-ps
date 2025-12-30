@@ -1,0 +1,80 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="luxury-card fade-in-up">
+    <div class="card-header border-gold d-flex justify-content-between align-items-center">
+        <h3 class="card-title text-gold"><i class="fas fa-fire mr-2"></i> {{ _('إدارة مستوى المطاردة (Heat)') }}</h3>
+        <div>
+            <form action="{{ url_for('main.dev_heat_clear_all') }}" method="POST" class="d-inline" onsubmit="return confirm('{{ _('هل أنت متأكد من تصفير الحرارة لجميع اللاعبين؟') }}');">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                <button type="submit" class="btn btn-danger btn-sm shadow"><i class="fas fa-fire-extinguisher"></i> {{ _('تصفير للكل') }}</button>
+            </form>
+            <a href="{{ url_for('main.dev_dashboard') }}" class="btn btn-secondary btn-sm ml-2">{{ _('عودة للوحة التحكم') }}</a>
+        </div>
+    </div>
+    <div class="card-body bg-dark text-light p-0">
+        <div class="table-responsive">
+            <table class="table table-hover table-dark mb-0">
+                <thead>
+                    <tr class="text-gold">
+                        <th>{{ _('اللاعب') }}</th>
+                        <th>{{ _('المستوى') }}</th>
+                        <th>{{ _('الحرارة') }}</th>
+                        <th>{{ _('الحالة') }}</th>
+                        <th class="text-right">{{ _('إجراءات') }}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for user in users %}
+                    <tr>
+                        {% set heat = user.heat_value() %}
+                        <td>
+                            <div class="d-flex align-items-center">
+                                <img src="{{ url_for('static', filename='avatars/' + (user.avatar if user.avatar else 'default.png')) }}" class="rounded-circle mr-2" width="30" height="30" onerror="this.onerror=null; this.src='{{ url_for('static', filename='avatars/default.png') }}';">
+                                <a href="{{ url_for('main.dev_user_edit', id=user.id) }}" class="text-light font-weight-bold">{{ user.username }}</a>
+                            </div>
+                        </td>
+                        <td><span class="badge badge-info">{{ user.level }}</span></td>
+                        <td>
+                            <div class="d-flex align-items-center">
+                                <span class="mr-2 font-weight-bold text-danger">{{ heat }}%</span>
+                                <div class="progress flex-grow-1" style="height: 6px; width: 100px;">
+                                    <div class="progress-bar bg-danger" role="progressbar" style="width: {{ heat }}%"></div>
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            {% if heat >= 90 %}
+                                <span class="badge badge-danger">{{ _('مطلوب جداً') }}</span>
+                            {% elif heat >= 50 %}
+                                <span class="badge badge-warning">{{ _('مراقب') }}</span>
+                            {% else %}
+                                <span class="badge badge-secondary">{{ _('آمن') }}</span>
+                            {% endif %}
+                        </td>
+                        <td class="text-right">
+                            <form action="{{ url_for('main.dev_heat_clear_user', user_id=user.id) }}" method="POST" class="d-inline">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                                <button type="submit" class="btn btn-outline-danger btn-sm" title="{{ _('تصفير') }}">
+                                    <i class="fas fa-fire-extinguisher"></i>
+                                </button>
+                            </form>
+                            <a href="{{ url_for('main.dev_user_edit', id=user.id) }}" class="btn btn-outline-primary btn-sm ml-1">
+                                <i class="fas fa-edit"></i>
+                            </a>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="5" class="text-center py-4 text-muted">
+                            <i class="fas fa-check-circle fa-2x mb-2 d-block text-success"></i>
+                            {{ _('لا يوجد لاعبين تحت المطاردة حالياً') }}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

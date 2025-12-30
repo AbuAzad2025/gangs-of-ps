@@ -1,0 +1,106 @@
+{% extends "admin/master.html" %}
+
+{% block title %}{{ _('سجل الجرائم المنظمة') }}{% endblock %}
+
+{% block content %}
+<div class="card shadow mb-4">
+    <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+        <h6 class="m-0 font-weight-bold text-primary">{{ _('سجل الجرائم المنظمة (Heist History)') }}</h6>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
+                <thead>
+                    <tr>
+                        <th>{{ _('المعرف') }}</th>
+                        <th>{{ _('الجريمة') }}</th>
+                        <th>{{ _('القائد') }}</th>
+                        <th>{{ _('النتيجة') }}</th>
+                        <th>{{ _('المكافأة الكلية') }}</th>
+                        <th>{{ _('التاريخ') }}</th>
+                        <th>{{ _('الإجراءات') }}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for heist in heists %}
+                    <tr>
+                        <td>{{ heist.id }}</td>
+                        <td>{{ heist.crime_name }}</td>
+                        <td>{{ heist.leader_name }}</td>
+                        <td>
+                            {% if heist.is_success %}
+                                <span class="badge badge-success">{{ _('نجاح') }}</span>
+                            {% else %}
+                                <span class="badge badge-danger">{{ _('فشل') }}</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ heist.total_reward }}</td>
+                        <td>{{ heist.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
+                        <td>
+                            <button type="button" class="btn btn-info btn-sm" data-toggle="modal" data-target="#logModal{{ heist.id }}">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                        </td>
+                    </tr>
+
+                    <!-- Log Modal -->
+                    <div class="modal fade" id="logModal{{ heist.id }}" tabindex="-1" role="dialog" aria-labelledby="logModalLabel{{ heist.id }}" aria-hidden="true">
+                        <div class="modal-dialog modal-lg" role="document">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title" id="logModalLabel{{ heist.id }}">{{ _('تفاصيل العملية') }} #{{ heist.id }}</h5>
+                                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                        <span aria-hidden="true">&times;</span>
+                                    </button>
+                                </div>
+                                <div class="modal-body">
+                                    <h6>{{ _('المشاركون:') }}</h6>
+                                    <ul>
+                                        {% for p in heist.participants_snapshot %}
+                                            <li>{{ p.name }} - {{ p.role }} ({{ _('مكافأة') }}: {{ p.reward }})</li>
+                                        {% endfor %}
+                                    </ul>
+                                    <hr>
+                                    <h6>{{ _('سجل الأحداث:') }}</h6>
+                                    <div class="bg-dark text-white p-3 rounded" style="max-height: 300px; overflow-y: auto;">
+                                        {% for line in heist.result_log.split('\n') %}
+                                            <p class="mb-1">{{ line }}</p>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary" data-dismiss="modal">{{ _('إغلاق') }}</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        
+        <!-- Pagination -->
+        {% if pagination.pages > 1 %}
+        <nav aria-label="Page navigation" class="mt-4">
+            <ul class="pagination justify-content-center">
+                <li class="page-item {% if not pagination.has_prev %}disabled{% endif %}">
+                    <a class="page-link" href="{{ url_for('main.dev_heist_history', page=pagination.prev_num) if pagination.has_prev else '#' }}" tabindex="-1">{{ _('السابق') }}</a>
+                </li>
+                {% for page_num in pagination.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
+                    {% if page_num %}
+                        <li class="page-item {% if page_num == pagination.page %}active{% endif %}">
+                            <a class="page-link" href="{{ url_for('main.dev_heist_history', page=page_num) }}">{{ page_num }}</a>
+                        </li>
+                    {% else %}
+                        <li class="page-item disabled"><span class="page-link">...</span></li>
+                    {% endif %}
+                {% endfor %}
+                <li class="page-item {% if not pagination.has_next %}disabled{% endif %}">
+                    <a class="page-link" href="{{ url_for('main.dev_heist_history', page=pagination.next_num) if pagination.has_next else '#' }}">{{ _('التالي') }}</a>
+                </li>
+            </ul>
+        </nav>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

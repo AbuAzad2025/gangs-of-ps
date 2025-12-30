@@ -1,0 +1,135 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card bg-dark border-gold">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0 text-gold"><i class="fas fa-envelope mr-2"></i>{{ _('رسائل النظام') }}</h5>
+                    <div class="d-flex">
+                        <form action="{{ url_for('main.admin_messages') }}" method="GET" class="input-group input-group-sm w-250">
+                            <input type="text" name="search" class="form-control bg-dark text-light border-secondary" placeholder="{{ _('بحث...') }}" value="{{ request.args.get('search', '') }}">
+                            <div class="input-group-append">
+                                <button class="btn btn-outline-warning" type="submit"><i class="fas fa-search"></i></button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+                <div class="card-body p-0 table-responsive">
+                    <table class="table table-dark table-hover mb-0 text-center">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>{{ _('المرسل') }}</th>
+                                <th>{{ _('المستقبل') }}</th>
+                                <th>{{ _('الموضوع') }}</th>
+                                <th>{{ _('التاريخ') }}</th>
+                                <th>{{ _('الحالة') }}</th>
+                                <th>{{ _('الإجراءات') }}</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for msg in messages.items %}
+                            <tr>
+                                <td>{{ msg.id }}</td>
+                                <td>
+                                    <a href="{{ url_for('main.profile', user_id=msg.sender_id) }}" class="text-warning font-weight-bold">
+                                        {{ msg.sender.username }}
+                                    </a>
+                                </td>
+                                <td>
+                                    <a href="{{ url_for('main.profile', user_id=msg.receiver_id) }}" class="text-info font-weight-bold">
+                                        {{ msg.receiver.username }}
+                                    </a>
+                                </td>
+                                <td>
+                                    <span class="d-inline-block text-truncate" style="max-width: 200px;" title="{{ msg.subject }}">
+                                        {{ msg.subject }}
+                                    </span>
+                                </td>
+                                <td>{{ msg.timestamp.strftime('%Y-%m-%d %H:%M') }}</td>
+                                <td>
+                                    {% if msg.is_read %}
+                                        <span class="badge badge-success">{{ _('مقرؤة') }}</span>
+                                    {% else %}
+                                        <span class="badge badge-secondary">{{ _('غير مقرؤة') }}</span>
+                                    {% endif %}
+                                    
+                                    {% if msg.deleted_by_sender %}
+                                        <span class="badge badge-danger" title="{{ _('حذفها المرسل') }}">S</span>
+                                    {% endif %}
+                                    {% if msg.deleted_by_receiver %}
+                                        <span class="badge badge-danger" title="{{ _('حذفها المستقبل') }}">R</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <button type="button" class="btn btn-sm btn-info" data-toggle="modal" data-target="#viewMsg{{ msg.id }}">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                    <form action="{{ url_for('main.admin_delete_message', msg_id=msg.id) }}" method="POST" class="d-inline">
+                                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                                        <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('{{ _('هل أنت متأكد من حذف هذه الرسالة نهائياً من قاعدة البيانات؟') }}')">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>
+
+                            <!-- View Message Modal -->
+                            <div class="modal fade" id="viewMsg{{ msg.id }}" tabindex="-1" role="dialog" aria-hidden="true">
+                                <div class="modal-dialog modal-dialog-centered" role="document">
+                                    <div class="modal-content bg-dark border-gold">
+                                        <div class="modal-header border-bottom border-secondary">
+                                            <h5 class="modal-title text-gold">{{ msg.subject }}</h5>
+                                            <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+                                                <span aria-hidden="true">&times;</span>
+                                            </button>
+                                        </div>
+                                        <div class="modal-body text-white">
+                                            <div class="mb-3">
+                                                <strong>{{ _('من:') }}</strong> {{ msg.sender.username }}<br>
+                                                <strong>{{ _('إلى:') }}</strong> {{ msg.receiver.username }}<br>
+                                                <small class="text-muted">{{ msg.timestamp.strftime('%Y-%m-%d %H:%M:%S') }}</small>
+                                            </div>
+                                            <hr class="border-secondary">
+                                            <div class="message-body p-3 bg-secondary rounded text-dark">
+                                                {{ msg.body }}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            {% else %}
+                            <tr>
+                                <td colspan="7" class="text-center py-4 text-muted">
+                                    <i class="fas fa-inbox fa-3x mb-3 d-block"></i>
+                                    {{ _('لا توجد رسائل') }}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                
+                <!-- Pagination -->
+                {% if messages.pages > 1 %}
+                <div class="card-footer bg-dark border-top border-gold py-3">
+                    <ul class="pagination justify-content-center m-0">
+                        {% for page_num in messages.iter_pages() %}
+                            {% if page_num %}
+                                <li class="page-item {% if page_num == messages.page %}active{% endif %}">
+                                    <a class="page-link bg-dark border-gold text-gold" href="{{ url_for('main.admin_messages', page=page_num, search=request.args.get('search', '')) }}">{{ page_num }}</a>
+                                </li>
+                            {% else %}
+                                <li class="page-item disabled"><span class="page-link bg-dark border-gold">...</span></li>
+                            {% endif %}
+                        {% endfor %}
+                    </ul>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

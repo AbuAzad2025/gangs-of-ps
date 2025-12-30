@@ -1,0 +1,111 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container">
+    <div class="row mb-4">
+        <div class="col-12 text-center">
+            <h2 class="text-warning">
+                <i class="fas fa-flag-checkered"></i> {{ _('سباق التحدي') }} #{{ race.id }}
+            </h2>
+            <h4 class="text-success">{{ _('الجائزة الكبرى:') }} ${{ "{:,}".format(race.bet_amount * participants|length) }}</h4>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Participants List -->
+        <div class="col-md-8 mx-auto">
+            <div class="card bg-dark text-white border-warning mb-4">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="m-0">{{ _('المتسابقون') }}</h5>
+                    <span class="badge badge-info">{{ participants|length }} {{ _('لاعبين') }}</span>
+                </div>
+                <div class="list-group list-group-flush bg-dark">
+                    {% for p in participants %}
+                    <div class="list-group-item bg-dark text-white d-flex justify-content-between align-items-center border-secondary">
+                        <div class="d-flex align-items-center">
+                            <div class="mr-3 text-center w-50px">
+                                <i class="fas fa-user-astronaut fa-2x text-muted"></i>
+                            </div>
+                            <div>
+                                <h5 class="mb-0">{{ p.user.username }}</h5>
+                                <small class="text-muted">
+                                    <i class="fas fa-car"></i> {{ p.user_vehicle.vehicle.name }} 
+                                    (Lvl {{ p.user_vehicle.engine_level }})
+                                </small>
+                                
+                                <!-- Spy Report -->
+                                {% if spy_data and spy_data.get(p.user_id) %}
+                                <div class="mt-2 p-2 rounded spy-report-box">
+                                    <strong class="text-danger"><i class="fas fa-user-secret"></i> {{ _('تقرير الجاسوس:') }}</strong>
+                                    <div class="row mt-1">
+                                        <div class="col-6"><i class="fas fa-cog"></i> {{ _('إطارات:') }} {{ spy_data[p.user_id].tires }}</div>
+
+                                        <div class="col-6"><i class="fas fa-shield-alt"></i> {{ _('دروع:') }} {{ spy_data[p.user_id].armor }}</div>
+                                        <div class="col-6"><i class="fas fa-steering-wheel"></i> {{ _('مهارة:') }} {{ spy_data[p.user_id].skill }}</div>
+                                        <div class="col-6 text-{{ 'danger' if spy_data[p.user_id].condition < 50 else 'success' }}">
+                                            <i class="fas fa-wrench"></i> {{ _('حالة:') }} {{ spy_data[p.user_id].condition }}%
+                                        </div>
+                                    </div>
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        <div class="text-right">
+                            {% if race.status == 'finished' %}
+                                <div class="h4 mb-0">
+                                    {% if p.rank == 1 %}
+                                        <span class="text-warning"><i class="fas fa-trophy"></i> #1</span>
+                                    {% elif p.rank == 2 %}
+                                        <span class="text-secondary">#2</span>
+                                    {% elif p.rank == 3 %}
+                                        <span class="text-danger">#3</span>
+                                    {% else %}
+                                        <span class="text-muted">#{{ p.rank }}</span>
+                                    {% endif %}
+                                </div>
+                                <small class="text-muted">{{ _('النقاط:') }} {{ p.score|int }}</small>
+                            {% else %}
+                                <span class="badge badge-secondary">{{ _('جاهز') }}</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="text-center">
+                {% if race.status == 'waiting' %}
+                    {% if race.creator_id == user.id %}
+                        {% if participants|length >= 2 %}
+                            <form action="{{ url_for('racing.start', race_id=race.id) }}" method="POST" class="d-inline">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                                <button class="btn btn-lg btn-success pulse-button">
+                                    <i class="fas fa-play"></i> {{ _('ابدأ السباق!') }}
+                                </button>
+                            </form>
+                        {% else %}
+                            <div class="alert alert-warning d-inline-block">
+                                {{ _('بانتظار انضمام لاعبين آخرين...') }}
+                            </div>
+                        {% endif %}
+                    {% else %}
+                        <div class="alert alert-info d-inline-block">
+                            <i class="fas fa-spinner fa-spin"></i> {{ _('بانتظار المنشئ لبدء السباق...') }}
+                        </div>
+                    {% endif %}
+                {% else %}
+                    <div class="alert alert-success mb-3">
+                        {{ _('انتهى السباق!') }}
+                    </div>
+                    <a href="{{ url_for('racing.index') }}" class="btn btn-primary">
+                        <i class="fas fa-arrow-left"></i> {{ _('عودة للقائمة') }}
+                    </a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

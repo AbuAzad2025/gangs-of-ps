@@ -1,0 +1,45 @@
+{% extends "developer/dashboard.html" %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-10">
+        <div class="luxury-card fade-in-up">
+            <div class="card-header">
+                <h3 class="card-title text-gradient-gold"><i class="fas fa-award mr-2"></i> {{ title }}</h3>
+            </div>
+            <form method="POST">
+                {{ form.hidden_tag() }}
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group mb-3">
+                                <label class="text-gold">{{ form.key.label }}</label>
+                                {{ form.key(class="form-control form-control-luxury") }}
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group mb-3">
+                                <label class="text-gold">{{ form.points.label }}</label>
+                                {{ form.points(class="form-control form-control-luxury") }}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group mb-3">
+                        <label class="text-gold">{{ form.title.label }}</label>
+                        {{ form.title(class="form-control form-control-luxury") }}
+                    </div>
+                    <div class="form-group mb-3">
+                        <label class="text-gold">{{ form.description.label }}</label>
+                        {{ form.description(class="form-control form-control-luxury", rows="4") }}
+                    </div>
+                </div>
+                <div class="card-footer bg-transparent border-top border-secondary">
+                    <button type="submit" class="btn btn-luxury-action">{{ _('حفظ') }}</button>
+                    <a href="{{ url_for('main.dev_achievements') }}" class="btn btn-outline-secondary float-right">{{ _('إلغاء') }}</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

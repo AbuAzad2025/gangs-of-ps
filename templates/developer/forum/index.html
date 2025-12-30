@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row mb-3">
+        <div class="col-md-6">
+            <h1 class="h3">{{ _('إدارة أقسام المنتدى') }}</h1>
+        </div>
+        <div class="col-md-6 text-end">
+            <a href="{{ url_for('main.add_forum_category') }}" class="btn btn-success">
+                <i class="fas fa-plus"></i> {{ _('إضافة قسم جديد') }}
+            </a>
+            <a href="{{ url_for('main.dev_dashboard') }}" class="btn btn-secondary">
+                <i class="fas fa-arrow-right"></i> {{ _('عودة') }}
+            </a>
+        </div>
+    </div>
+
+    <div class="card shadow">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="bg-light">
+                        <tr>
+                            <th>{{ _('الترتيب') }}</th>
+                            <th>{{ _('العنوان') }}</th>
+                            <th>{{ _('الوصف') }}</th>
+                            <th>{{ _('أقل رتبة') }}</th>
+                            <th>{{ _('المواضيع') }}</th>
+                            <th>{{ _('إجراءات') }}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for category in categories %}
+                        <tr>
+                            <td>{{ category.order }}</td>
+                            <td>{{ category.title }}</td>
+                            <td>{{ category.description }}</td>
+                            <td>{{ category.min_rank }}</td>
+                            <td>{{ category.topics.count() }}</td>
+                            <td>
+                                <a href="{{ url_for('main.edit_forum_category', id=category.id) }}" class="btn btn-sm btn-primary">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                <form action="{{ url_for('main.delete_forum_category', id=category.id) }}" method="post" class="d-inline" onsubmit="return confirm('{{ _('هل أنت متأكد من حذف هذا القسم؟') }}');">
+                                    <button type="submit" class="btn btn-sm btn-danger">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="6" class="text-center py-4 text-muted">
+                                {{ _('لا يوجد أقسام حالياً') }}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

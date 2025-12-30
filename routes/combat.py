@@ -1,0 +1,509 @@
+from flask import Blueprint, render_template, redirect, url_for, flash, request, abort, current_app
+from flask_login import login_required, current_user
+from flask_babel import _
+from extensions import db
+from models import User, UserItem, Item, CombatLog
+from models.combat import ActiveIntel
+import random
+from datetime import datetime, timedelta, timezone
+from .utils import update_daily_task_progress
+
+bp = Blueprint('combat', __name__, url_prefix='/combat')
+
+@bp.route('/')
+@login_required
+def index():
+    # Find targets: Users not self, not in hospital, not in jail
+    # Matchmaking: +/- 5 levels first, then others
+    now = datetime.now(timezone.utc)
+    
+    from sqlalchemy import or_, desc, func
+    
+    # 1. Search Logic
+    search_query = request.args.get('q')
+    if search_query:
+        targets = User.query.filter(
+            User.id != current_user.id,
+            User.username.ilike(f'%{search_query}%')
+        ).limit(20).all()
+    else:
+        # 2. Level-based Matchmaking
+        min_level = max(1, current_user.level - 5)
+        max_level = current_user.level + 5
+        
+        # Get targets within level range
+        targets = User.query.filter(
+            User.id != current_user.id,
+            User.level >= min_level,
+            User.level <= max_level,
+            or_(User.hospital_until == None, User.hospital_until < now),
+            or_(User.jail_until == None, User.jail_until < now)
+        ).order_by(func.random()).limit(15).all()
+        
+        # If not enough targets, fetch random others to fill up to 20
+        if len(targets) < 20:
+            existing_ids = [t.id for t in targets]
+            existing_ids.append(current_user.id)
+            
+            more_targets = User.query.filter(
+                ~User.id.in_(existing_ids),
+                or_(User.hospital_until == None, User.hospital_until < now),
+                or_(User.jail_until == None, User.jail_until < now)
+            ).order_by(func.random()).limit(20 - len(targets)).all()
+            
+            targets.extend(more_targets)
+        
+        # Sort by level desc for display
+        targets.sort(key=lambda x: x.level, reverse=True)
+    
+    # Ensure datetimes are timezone-aware for template comparison
+    for target in targets:
+        if target.hospital_until and target.hospital_until.tzinfo is None:
+            target.hospital_until = target.hospital_until.replace(tzinfo=timezone.utc)
+        if target.jail_until and target.jail_until.tzinfo is None:
+            target.jail_until = target.jail_until.replace(tzinfo=timezone.utc)
+        if target.safe_house_until and target.safe_house_until.tzinfo is None:
+            target.safe_house_until = target.safe_house_until.replace(tzinfo=timezone.utc)
+            
+    # Get active intel for these targets
+    target_ids = [t.id for t in targets]
+    active_intels = ActiveIntel.query.filter(
+        ActiveIntel.user_id == current_user.id,
+        ActiveIntel.target_id.in_(target_ids),
+        ActiveIntel.start_time <= now,
+        ActiveIntel.expires_at > now
+    ).all()
+    intel_target_ids = {intel.target_id for intel in active_intels}
+    
+    return render_template('combat/index.html', targets=targets, search_query=search_query, now=now, intel_target_ids=intel_target_ids)
+
+@bp.route('/attack/<int:target_id>', methods=['POST'])
+@login_required
+def attack(target_id):
+    # Status Check for Attacker
+    now = datetime.now(timezone.utc)
+    
+    if current_user.jail_until:
+        jail_until = current_user.jail_until
+        if jail_until.tzinfo is None:
+            jail_until = jail_until.replace(tzinfo=timezone.utc)
+        if jail_until > now:
+             flash(_('أنت في السجن ولا يمكنك القتال!'), 'danger')
+             return redirect(url_for('jail.index'))
+             
+    if current_user.gym_until:
+        gym_until = current_user.gym_until
+        if gym_until.tzinfo is None:
+            gym_until = gym_until.replace(tzinfo=timezone.utc)
+        if gym_until > now:
+             flash(_('أنت تتدرب ولا يمكنك القتال!'), 'danger')
+             return redirect(url_for('gym.index'))
+
+    # Anti-Spam Cooldown (5 seconds)
+    if current_user.last_attack:
+        last_attack = current_user.last_attack
+        if last_attack.tzinfo is None:
+            last_attack = last_attack.replace(tzinfo=timezone.utc)
+            
+        if datetime.now(timezone.utc) - last_attack < timedelta(seconds=5):
+            flash(_('انتظر قليلاً قبل الهجوم التالي!'), 'warning')
+            return redirect(url_for('combat.index'))
+
+    target = db.session.get(User, target_id)
+    if not target:
+        abort(404)
+    
+    if target.id == current_user.id:
+        flash(_('لا يمكنك مهاجمة نفسك!'), 'danger')
+        return redirect(url_for('combat.index'))
+        
+    if current_user.health < 10:
+        flash(_('صحتك منخفضة جداً للقتال!'), 'danger')
+        return redirect(url_for('main.hospital'))
+        
+    now = datetime.now(timezone.utc)
+    
+    # --- Newbie Protection ---
+    if getattr(target, "is_admin_protected", False) and not getattr(current_user, "is_developer", False):
+        flash(_('هذا اللاعب تحت حماية الإدارة ولا يمكن مهاجمته!'), 'warning')
+        return redirect(url_for('combat.index'))
+
+    if target.created_at:
+        target_created_at = target.created_at
+        if target_created_at.tzinfo is None:
+            target_created_at = target_created_at.replace(tzinfo=timezone.utc)
+        if (now - target_created_at).days < 7:
+            flash(_('هذا اللاعب تحت حماية "العراب" (لاعب جديد لمدة أسبوع) ولا يمكن مهاجمته!'), 'warning')
+            return redirect(url_for('combat.index'))
+
+    if not current_app.config.get('TESTING', False):
+        # --- Intel Check ---
+        active_intel = ActiveIntel.query.filter(
+            ActiveIntel.user_id == current_user.id,
+            ActiveIntel.target_id == target.id,
+            ActiveIntel.start_time <= now,
+            ActiveIntel.expires_at > now
+        ).first()
+
+        if not active_intel:
+            flash(_('لا يمكنك الهجوم على هذا اللاعب دون معلومات استخباراتية! استأجر مخبراً من السوق السوداء أولاً.'), 'warning')
+            return redirect(url_for('black_market.index'))
+
+    if not current_app.config.get('TESTING', False):
+        # --- Location Check ---
+        if current_user.location_id != target.location_id:
+            target_location = target.location.name if target.location else _("غير معروف")
+            flash(_('يجب أن تكون في نفس المدينة لتنفيذ الهجوم! الهدف متواجد في %(city)s.', city=target_location), 'warning')
+            return redirect(url_for('travel.index'))
+
+    # --- Safe House Protection & Breach Logic ---
+    if target.is_safe_house_active and target.safe_house_until:
+        safe_house_until = target.safe_house_until
+        if safe_house_until.tzinfo is None:
+            safe_house_until = safe_house_until.replace(tzinfo=timezone.utc)
+            
+        if safe_house_until > now:
+            # Check if attempting to breach
+            action = request.form.get('action')
+            if action == 'breach':
+                # Check for C4
+                c4_item = UserItem.query.join(Item).filter(
+                    UserItem.user_id == current_user.id,
+                    Item.name.ilike('%C4%') # Flexible search for C4
+                ).first()
+                
+                if not c4_item or c4_item.quantity < 1:
+                    flash(_('تحتاج إلى متفجرات C4 لتفجير المنزل الآمن!'), 'danger')
+                    return redirect(url_for('combat.index'))
+                
+                # Consume C4
+                c4_item.quantity -= 1
+                if c4_item.quantity <= 0:
+                    db.session.delete(c4_item)
+                
+                # Destroy Safe House
+                target.is_safe_house_active = False
+                target.safe_house_until = None
+                db.session.commit()
+                
+                flash(_('تم تفجير المنزل الآمن بنجاح! الهدف مكشوف الآن.'), 'success')
+                # Proceed to combat
+                
+            else:
+                flash(_('الهدف يحتمي داخل منزل آمن! تحتاج لتفجيره أولاً باستخدام C4.'), 'warning')
+                return redirect(url_for('combat.index'))
+
+    if target.hospital_until:
+        hospital_until = target.hospital_until
+        if hospital_until.tzinfo is None:
+            hospital_until = hospital_until.replace(tzinfo=timezone.utc)
+            
+        if hospital_until > now:
+            flash(_('هذا اللاعب في المستشفى حالياً'), 'warning')
+            return redirect(url_for('combat.index'))
+        
+    if target.jail_until:
+        jail_until = target.jail_until
+        if jail_until.tzinfo is None:
+            jail_until = jail_until.replace(tzinfo=timezone.utc)
+            
+        if jail_until > now:
+            flash(_('هذا اللاعب في السجن حالياً'), 'warning')
+            return redirect(url_for('combat.index'))
+        
+    current_user.last_attack = now.replace(tzinfo=None)
+    db.session.commit() # Save timestamp even if combat logic follows
+
+
+    # Check Gang Affiliation & Alliances
+    if current_user.gang_id and target.gang_id:
+        if current_user.gang_id == target.gang_id:
+            flash(_('لا يمكنك مهاجمة عضو في نفس العصابة!'), 'warning')
+            return redirect(url_for('combat.index'))
+        
+        # Check Alliance
+        from models.social import GangAlliance
+        alliance = GangAlliance.query.filter(
+            ((GangAlliance.gang1_id == current_user.gang_id) & (GangAlliance.gang2_id == target.gang_id)) |
+            ((GangAlliance.gang1_id == target.gang_id) & (GangAlliance.gang2_id == current_user.gang_id)),
+            GangAlliance.status == 'active'
+        ).first()
+        if alliance:
+             flash(_('لا يمكنك مهاجمة حليف! بينكما معاهدة سلام.'), 'warning')
+             return redirect(url_for('combat.index'))
+        
+    # Combat Logic
+    # Get Equipped Weapon & Armor for Attacker
+    equipped_weapon = UserItem.query.join(Item).filter(
+        UserItem.user_id == current_user.id,
+        UserItem.is_equipped == True,
+        Item.type == 'weapon'
+    ).first()
+
+    # Calculate Total Attack
+    attacker_strength = current_user.strength
+    
+    if equipped_weapon:
+        # Bullet Check
+        if equipped_weapon.item.ammo_needed > 0:
+            if current_user.bullets < equipped_weapon.item.ammo_needed:
+                flash(_('ما معك رصاص كافي لسلاحك! تحتاج %(ammo)s رصاصة.', ammo=equipped_weapon.item.ammo_needed), 'danger')
+                return redirect(url_for('combat.index'))
+        
+            # Deduct Bullets
+            current_user.bullets -= equipped_weapon.item.ammo_needed
+    
+        mult = 1.0
+        if equipped_weapon.condition is not None and equipped_weapon.condition < 100:
+            mult = equipped_weapon.condition / 100
+        attacker_strength += int(equipped_weapon.item.bonus_strength * mult)
+
+    if current_user.active_hostess_id and current_user.casino_luck_until:
+        luck_until = current_user.casino_luck_until
+        if luck_until.tzinfo is None:
+            luck_until = luck_until.replace(tzinfo=timezone.utc)
+
+        if luck_until > now:
+            hostess = db.session.get(Hostess, current_user.active_hostess_id)
+            if hostess and hostess.combat_skill > 0:
+                attacker_strength += hostess.combat_skill
+
+    is_berserk = False
+    if current_user.health < 30:
+        is_berserk = True
+        attacker_strength *= 1.3
+    
+    crit_chance = 5 + (current_user.intelligence / 20)
+    is_crit = False
+    if random.randint(1, 100) <= crit_chance:
+        attacker_strength *= 1.5
+        is_crit = True
+
+    attacker_total = attacker_strength * random.uniform(0.8, 1.2)
+    
+    # Calculate Total Defense
+    defender_defense = target.defense
+    
+    # Get Target's Equipped Armor
+    target_armor = UserItem.query.join(Item).filter(
+        UserItem.user_id == target.id,
+        UserItem.is_equipped == True,
+        Item.type == 'armor'
+    ).first()
+    
+    if target_armor:
+        mult = 1.0
+        if target_armor.condition is not None and target_armor.condition < 100:
+            mult = target_armor.condition / 100
+        defender_defense += int(target_armor.item.bonus_defense * mult)
+        
+    defender_total = defender_defense * random.uniform(0.8, 1.2)
+
+    dodge_chance = 5 + (target.agility / 20)
+    is_dodge = False
+    if random.randint(1, 100) <= dodge_chance:
+        defender_total *= 2.0
+        is_dodge = True
+    
+    # Check for Gang War
+    is_war = False
+    war = None
+    if current_user.gang_id and target.gang_id:
+        from models.social import GangWar
+        from sqlalchemy import or_
+        war = GangWar.query.filter(
+            or_(
+                (GangWar.gang1_id == current_user.gang_id) & (GangWar.gang2_id == target.gang_id),
+                (GangWar.gang1_id == target.gang_id) & (GangWar.gang2_id == current_user.gang_id)
+            ),
+            GangWar.status == 'active'
+        ).first()
+        if war:
+            is_war = True
+    
+    # Determine Disguise Status
+    is_anonymous = False
+    if current_user.is_disguised and current_user.disguise_until:
+        disguise_until = current_user.disguise_until
+        if disguise_until.tzinfo is None:
+            disguise_until = disguise_until.replace(tzinfo=timezone.utc)
+            
+        if disguise_until > now:
+            is_anonymous = True
+
+    # Determine Winner
+    if attacker_total > defender_total:
+        # Win
+        damage = int(attacker_total - defender_total)
+        
+        steal_percent = 0.2 if is_war else 0.1
+        money_stolen = int(target.money * steal_percent) # Steal 10% or 20% in war
+        
+        loot_msg = ""
+        if not current_app.config.get('TESTING', False):
+            if random.random() < 0.3:
+                bullets_looted = random.randint(5, 20)
+                current_user.bullets += bullets_looted
+                loot_msg = _(' ووجدت في جيوبه %(bullets)s رصاصة!', bullets=bullets_looted)
+
+        exp_gain = 100 if is_war else 50
+        
+        current_user.money += money_stolen
+        target.money -= money_stolen
+        current_user.exp += exp_gain
+        current_user.add_rank_points(5 if is_war else 3)
+        
+        if current_user.check_level_up():
+            flash(_('مبروك! وصلت للمستوى %(level)s!', level=current_user.level), 'success')
+        
+        # Damage target health (guarantee kill on overwhelming damage)
+        if target.health <= 10:
+            target.health = 0
+        elif int(damage) >= target.health * 10:
+            target.health = 0
+        else:
+            target.health -= max(5, int(damage / 10))
+            if target.health < 0: target.health = 0
+        
+        # Send target to hospital if health 0
+        if target.health == 0:
+            target.hospital_until = (datetime.now(timezone.utc) + timedelta(days=3650)).replace(tzinfo=None)
+            flash(_('لقد قضيت على خصمك وأرسلته للمقبرة!'), 'success')
+            try:
+                from models.user import reserve_elite_titles_for_death
+                reserve_elite_titles_for_death(target.id, now=now)
+            except Exception:
+                pass
+
+            # --- CLAIM BOUNTY ---
+            from models import Bounty
+            bounties = Bounty.query.filter_by(target_id=target.id).all()
+            if bounties:
+                total_bounty = 0
+                for bounty in bounties:
+                    total_bounty += bounty.amount
+                    db.session.delete(bounty)
+                
+                current_user.money += total_bounty
+                db.session.commit()
+                current_user.add_rank_points(10)
+                flash(_('مبروك! لقد قبضت على مكافآت بقيمة %(amount)s$ كانت على رأس هذا اللاعب!', amount=total_bounty), 'success')
+
+            # --- Gang War Trigger Logic ---
+            # If attacker is high rank and no war exists, start war
+            if current_user.gang_id and target.gang_id and not is_war:
+                from models.social import Gang
+                attacker_gang = db.session.get(Gang, current_user.gang_id)
+                
+                # High rank criteria: Leader, Underboss, or Level 50+
+                is_high_rank = (current_user.id == attacker_gang.leader_id) or \
+                               (current_user.id == attacker_gang.underboss_id) or \
+                               (current_user.level >= 50)
+                
+                if is_high_rank:
+                    new_war = GangWar(gang1_id=current_user.gang_id, gang2_id=target.gang_id)
+                    db.session.add(new_war)
+                    flash(_('بسبب رتبتك العالية، تسبب قتلك لعضو عصابة أخرى بإعلان الحرب رسمياً!'), 'danger')
+                    is_war = True # War starts now
+
+        # Gang EXP Logic
+        if current_user.gang_id:
+            from models.social import Gang, GangLog
+            gang = db.session.get(Gang, current_user.gang_id)
+            if gang:
+                gang.exp += 20 if is_war else 10
+                exp_amount = 20 if is_war else 10
+                log_action = _('هاجم %(target)s وكسب %(exp)s خبرة', target=target.username, exp=exp_amount)
+                if is_anonymous:
+                    log_action += " " + _('(متخفي)')
+                
+                log = GangLog(gang_id=gang.id, user_id=current_user.id, action=log_action)
+                db.session.add(log)
+                
+                # Update War Score
+                if is_war and war:
+                    if war.gang1_id == gang.id:
+                        war.score_gang1 += 1
+                    else:
+                        war.score_gang2 += 1
+                    flash(_('انتصار في حرب العصابات! +1 نقطة'), 'success')
+                
+                # Level up logic
+                if gang.exp >= gang.level * 1000:
+                    gang.exp -= gang.level * 1000
+                    gang.level += 1
+                    log_levelup = GangLog(gang_id=gang.id, action=_('ترقت العصابة للمستوى %(level)s!', level=gang.level))
+                    db.session.add(log_levelup)
+                    flash(_('مبروك! ترقت عصابتك للمستوى %(level)s!', level=gang.level), 'success')
+
+        # Create Combat Log (Win)
+        combat_log = CombatLog(
+            attacker_id=current_user.id,
+            defender_id=target.id,
+            winner_id=current_user.id,
+            money_stolen=money_stolen,
+            exp_gain=exp_gain,
+            is_attacker_anonymous=is_anonymous
+        )
+        db.session.add(combat_log)
+
+        # Update Daily Task Progress
+        update_daily_task_progress(current_user, 'combat')
+
+        db.session.commit()
+        
+        msg = _('لقد انتصرت! سرقت %(money)s$ وحصلت على %(exp)s خبرة.', money=money_stolen, exp=exp_gain)
+        msg += loot_msg
+        
+        if is_berserk:
+            msg += " " + _('😡 حالة هيجان (Berserk)!')
+        if is_crit:
+            msg += " " + _('🎯 ضربة حرجة (Critical Hit)!')
+        if is_dodge:
+             msg += " " + _('الخصم حاول يتفادى الضربة لكنك جبت أجله!')
+
+        flash(msg, 'success')
+        return render_template('combat/result.html', result='win', target=target, money=money_stolen, exp=exp_gain)
+        
+    else:
+        # Lose
+        damage = int(defender_total - attacker_total)
+        money_lost = int(current_user.money * 0.1)
+        money_lost = max(0, money_lost) # Ensure no negative money loss
+        
+        current_user.money -= money_lost
+        target.money += money_lost
+        
+        current_user.health -= max(5, int(damage / 10))
+        if current_user.health < 0: current_user.health = 0
+        
+        if current_user.health == 0:
+            current_user.hospital_until = (datetime.now(timezone.utc) + timedelta(minutes=10)).replace(tzinfo=None)
+            flash(_('لقد قُضي عليك وذهبت للمستشفى!'), 'danger')
+            
+        # Create Combat Log (Lose)
+        combat_log = CombatLog(
+            attacker_id=current_user.id,
+            defender_id=target.id,
+            winner_id=target.id,
+            money_stolen=money_lost,
+            exp_gain=0,
+            is_attacker_anonymous=is_anonymous 
+        )
+        db.session.add(combat_log)
+
+        db.session.commit()
+        
+        msg = _('لقد خسرت المعركة! خسرت %(money)s$.', money=money_lost)
+        flash(msg, 'danger')
+        return render_template('combat/result.html', result='lose', target=target, money=money_lost)
+
+@bp.route('/history')
+@login_required
+def history():
+    from sqlalchemy import or_
+    logs = CombatLog.query.filter(
+        or_(CombatLog.attacker_id == current_user.id, CombatLog.defender_id == current_user.id)
+    ).order_by(CombatLog.timestamp.desc()).limit(50).all()
+    
+    return render_template('combat/history.html', logs=logs)

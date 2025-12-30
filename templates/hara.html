@@ -1,0 +1,394 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<div class="container-fluid fade-in">
+    <!-- Welcome Header -->
+    <div class="hara-header">
+        <div class="position-relative z-2">
+            <h1 class="display-3 font-weight-bold mb-3 text-white hara-header-title">
+                <i class="fas fa-city text-warning mr-3"></i>{{ _('نورت الحارة يا معلم') }} <span class="hara-username">{{ user.username }}</span>
+            </h1>
+            <p class="lead mb-0 text-white-50 hara-lead">{{ _('الشارع إلك، والقرار قرارك.. فرجينا شو طالع بإيدك اليوم.') }}</p>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Sidebar: User Stats -->
+        <div class="col-lg-3 mb-4">
+            <div class="user-sidebar-card">
+                <div class="card-body text-center p-4">
+                    <div class="avatar-circle mb-3 mx-auto d-flex align-items-center justify-content-center hara-avatar-circle">
+                        {{ user.username[0] | upper }}
+                    </div>
+                    <h3 class="font-weight-bold text-white mb-2">{{ user.username }}</h3>
+                    <div class="mb-4">
+                        <span class="badge badge-pill px-3 py-2 mr-1 hara-badge-level">{{ _('المستوى') }} {{ user.level }}</span>
+                        <span class="badge badge-pill px-3 py-2 border border-warning text-warning hara-badge-rank">{{ _(user.rank_title) }}</span>
+                    </div>
+                    
+                    <div class="row text-center mt-3 g-0">
+                        <div class="col-6 border-right border-secondary">
+                            <h5 class="font-weight-bold mb-1 hara-money-text">{{ "{:,}".format(user.money) }} $</h5>
+                            <small class="text-muted text-uppercase">{{ _('كاش') }}</small>
+                        </div>
+                        <div class="col-6">
+                            <h5 class="font-weight-bold mb-1 hara-diamonds-text">{{ "{:,}".format(user.diamonds) }}</h5>
+                            <small class="text-muted text-uppercase">{{ _('ماس') }}</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Stats Bars -->
+            <div class="user-sidebar-card">
+                <div class="card-header bg-transparent border-bottom border-secondary p-3">
+                    <h5 class="mb-0 text-white font-weight-bold"><i class="fas fa-heartbeat text-danger mr-2"></i> {{ _('حالتك الصحية') }}</h5>
+                </div>
+                <div class="card-body p-4">
+                    <!-- HP -->
+                    <div class="mb-4">
+                        <div class="d-flex justify-content-between mb-2">
+                            <small class="text-muted font-weight-bold">{{ _('الصحة') }}</small>
+                            <small class="text-danger font-weight-bold">{{ ((user.health / user.max_health) * 100)|int }}%</small>
+                        </div>
+                        <div class="progress progress-h-10">
+                            <div class="progress-bar bg-danger w-dynamic" role="progressbar" style="--width: {{ (user.health / user.max_health) * 100 }}%"></div>
+                        </div>
+                    </div>
+                    
+                    <!-- Energy -->
+                    <div class="mb-4">
+                        <div class="d-flex justify-content-between mb-2">
+                            <small class="text-muted font-weight-bold">{{ _('الطاقة') }}</small>
+                            <small class="text-warning font-weight-bold">{{ ((user.energy / user.max_energy) * 100)|int }}%</small>
+                        </div>
+                        <div class="progress progress-h-10">
+                            <div class="progress-bar bg-info w-dynamic" role="progressbar" style="--width: {{ (user.energy / user.max_energy) * 100 }}%"></div>
+                        </div>
+                    </div>
+
+                    <!-- Brave -->
+                    <div class="mb-4">
+                        <div class="d-flex justify-content-between mb-2">
+                            <small class="text-muted font-weight-bold">{{ _('الشجاعة') }}</small>
+                            <small class="text-info font-weight-bold">{{ ((user.brave / user.max_brave) * 100)|int }}%</small>
+                        </div>
+                        <div class="progress progress-h-10">
+                            <div class="progress-bar bg-warning w-dynamic" role="progressbar" style="--width: {{ (user.brave / user.max_brave) * 100 }}%"></div>
+                        </div>
+                    </div>
+
+                    <!-- EXP -->
+                    <div class="mb-0">
+                        <div class="d-flex justify-content-between mb-2">
+                            <small class="text-muted font-weight-bold">{{ _('الخبرة') }}</small>
+                            <small class="text-primary font-weight-bold">{{ ((user.exp / (user.level * 100)) * 100)|int }}%</small>
+                        </div>
+                        <div class="progress progress-h-10">
+                            <div class="progress-bar bg-primary w-dynamic" role="progressbar" style="--width: {{ (user.exp / (user.level * 100)) * 100 }}%"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Heat (Police Attention) -->
+            <div class="user-sidebar-card">
+                <div class="card-body p-3">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <h6 class="mb-0 text-white font-weight-bold"><i class="fas fa-taxi text-danger mr-2"></i> {{ _('مستوى المطاردة') }}</h6>
+                        <span class="badge badge-danger">{{ user.heat_points }}%</span>
+                    </div>
+                    <div class="heat-bar-container">
+                        <div class="heat-bar-fill w-dynamic {{ 'high-heat' if user.heat_points > 50 else '' }}" style="--width: {{ user.heat_points }}%"></div>
+                    </div>
+                    {% if user.heat_points > 80 %}
+                        <small class="text-danger d-block mt-2 font-weight-bold text-center blink">{{ _('خطر! الشرطة تبحث عنك!') }}</small>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <!-- Daily Reward CTA -->
+            {% if daily_reward_meta %}
+                <div class="user-sidebar-card">
+                    <div class="card-body p-3 text-center">
+                        <div class="d-flex justify-content-center align-items-center mb-3">
+                            <span class="badge badge-pill px-4 py-2 badge-streak fs-1-1">
+                                <i class="fas fa-fire mr-1"></i> {{ _('ستريك') }}: {{ daily_reward_meta.streak }}
+                            </span>
+                        </div>
+                        <div class="luxury-card p-3 mb-3">
+                            <h6 class="text-gold mb-2 font-weight-bold">{{ _('مكافأة اليوم') }}</h6>
+                            <div class="d-flex justify-content-center align-items-center flex-wrap">
+                                <span class="badge badge-dark mx-1 mb-1 border border-success text-success p-2"><i class="fas fa-money-bill-wave"></i> {{ "{:,}".format(daily_reward_meta.next_money) }}</span>
+                                <span class="badge badge-dark mx-1 mb-1 border border-warning text-warning p-2"><i class="fas fa-bolt"></i> {{ daily_reward_meta.next_energy }}</span>
+                                {% if daily_reward_meta.next_diamonds %}
+                                    <span class="badge badge-dark mx-1 mb-1 border border-info text-info p-2"><i class="fas fa-gem"></i> {{ daily_reward_meta.next_diamonds }}</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                        {% if daily_reward_meta.can_claim %}
+                            <a href="{{ url_for('main.daily_reward') }}" class="btn btn-block btn-luxury shadow-sm py-3 shine-button w-100 fw-bold fs-1-1">
+                                <i class="fas fa-gift mr-2"></i> {{ _('استلم اليومية') }}
+                            </a>
+                        {% else %}
+                            <a href="{{ url_for('main.daily_reward') }}" class="btn btn-block btn-outline-secondary shadow-sm py-3 w-100 disabled fw-bold">
+                                <i class="fas fa-clock mr-2"></i> {{ _('متبقي:') }} {{ daily_reward_meta.remaining_text }}
+                            </a>
+                        {% endif %}
+                    </div>
+                </div>
+            {% else %}
+                <a href="{{ url_for('main.daily_reward') }}" class="btn btn-block btn-luxury shadow-sm mb-3 py-3 shine-button w-100 fw-bold fs-1-1">
+                    <i class="fas fa-gift mr-2"></i> {{ _('استلم اليومية') }}
+                </a>
+            {% endif %}
+            
+            <!-- Share CTA -->
+            <div class="user-sidebar-card">
+                <div class="card-body text-center p-4">
+                    <h6 class="text-white font-weight-bold mb-3"><i class="fas fa-share-alt text-primary mr-2"></i> {{ _('شير واربح') }}</h6>
+                    <p class="small text-muted mb-3">{{ _('ابعث الرابط لصحابك واربح 50 ماسة!') }}</p>
+                    <div class="input-group input-group-sm">
+                        <input type="text" class="form-control bg-dark text-white border-secondary" value="{{ url_for('main.register', ref=user.id, _external=True) }}" readonly id="referralLink">
+                        <div class="input-group-append">
+                            <button class="btn btn-outline-primary" type="button" onclick="copyLink()">{{ _('نسخ') }}</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content: Locations Grid -->
+        <div class="col-lg-9">
+            
+            <!-- Announcements -->
+            {% if announcements %}
+            <div class="mb-4">
+                {% for announcement in announcements %}
+                <div class="alert shadow-sm d-flex align-items-center mb-3 p-3 fade-in hara-alert-gold anim-delay-{{ loop.index }}">
+                    <div class="mr-3 p-2 rounded-circle hara-icon-circle-gold">
+                        <i class="fas fa-bullhorn fa-lg"></i>
+                    </div>
+                    <div>
+                        <h6 class="alert-heading font-weight-bold mb-1 text-white">{{ announcement.title }}</h6>
+                        <p class="mb-0 text-white-50 small">{{ announcement.content }}</p>
+                    </div>
+                    <small class="text-muted mr-auto align-self-start">{{ announcement.created_at.strftime('%Y-%m-%d') }}</small>
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            <!-- Weekly Draw Alert -->
+            <div class="alert weekly-draw-alert shadow-sm d-flex align-items-center mb-4 p-4" role="alert">
+                <div class="mr-3 p-3 rounded-circle hara-icon-circle-gold-2">
+                    <i class="fas fa-trophy fa-2x"></i>
+                </div>
+                <div>
+                    <h5 class="alert-heading font-weight-bold mb-1 text-white">{{ _('سحب الـ 100 دولار الأسبوعي!') }}</h5>
+                    <p class="mb-0 text-white-50">{{ _('خليك نشيط باللعبة لتدخل السحب. كل أسبوع فائز جديد!') }}</p>
+                </div>
+            </div>
+
+            <h4 class="mb-5 font-weight-bold text-white section-divider">
+                <i class="fas fa-map-marker-alt mr-2 text-warning"></i>{{ _('أماكن الحارة') }}
+            </h4>
+            
+            <div class="row">
+                <!-- Crimes -->
+                <div class="col-xl-4 col-md-6 mb-4 fade-in anim-delay-1">
+                    <a href="{{ url_for('main.crimes') }}" class="text-decoration-none">
+                        <div class="location-card p-4 text-center">
+                            <div class="icon-box text-danger">
+                                <i class="fas fa-mask"></i>
+                            </div>
+                            <h5 class="location-title">{{ _('الجرائم') }}</h5>
+                            <p class="location-desc">{{ _('شمر عن ذراعك، نفذ عمليات، وعبي جيبتك.') }}</p>
+                        </div>
+                    </a>
+                </div>
+
+                <!-- Gangs -->
+                <div class="col-xl-4 col-md-6 mb-4 fade-in anim-delay-2">
+                    <a href="{{ url_for('gang.index') }}" class="text-decoration-none">
+                        <div class="location-card p-4 text-center">
+                            <div class="icon-box text-white">
+                                <i class="fas fa-users"></i>
+                            </div>
+                            <h5 class="location-title">{{ _('العصابات') }}</h5>
+                            <p class="location-desc">{{ _('سوي شلة، أو انضم للكبار وسيطروا عالبلد.') }}</p>
+                        </div>
+                    </a>
+                </div>
+
+                <!-- Market -->
+                <div class="col-xl-4 col-md-6 mb-4 fade-in anim-delay-3">
+                    <a href="{{ url_for('market.index') }}" class="text-decoration-none">
+                        <div class="location-card p-4 text-center">
+                            <div class="icon-box text-primary">
+                                <i class="fas fa-shopping-cart"></i>
+                            </div>
+                            <h5 class="location-title">{{ _('سوق البلد') }}</h5>
+                            <p class="location-desc">{{ _('سوق البلد مليان، سلاح وعدة وأكل يقويك.') }}</p>
+                        </div>
+                    </a>
+                </div>
+
+                <!-- Gym -->
+                <div class="col-xl-4 col-md-6 mb-4 fade-in anim-delay-4">
+                    <a href="{{ url_for('gym.index') }}" class="text-decoration-none">
+                        <div class="location-card p-4 text-center">
+                            <div class="icon-box text-warning">
+                                <i class="fas fa-dumbbell"></i>
+                            </div>
+                            <h5 class="location-title">{{ _('نادي الحديد') }}</h5>
+                            <p class="location-desc">{{ _('حديدك يقويك، عشان ما توكل قتلة بالحارة.') }}</p>
+                        </div>
+                    </a>
+                </div>
+
+                <!-- Garage -->
+                <div class="col-xl-4 col-md-6 mb-4 fade-in anim-delay-5">
+                    <a href="{{ url_for('main.garage') }}" class="text-decoration-none">
+                        <div class="location-card p-4 text-center">
+                            <div class="icon-box text-info">
+                                <i class="fas fa-car"></i>
+                            </div>
+                            <h5 class="location-title">{{ _('الكراج') }}</h5>
+                            <p class="location-desc">{{ _('كراجك وسيارتك، دير بالك عليهم.') }}</p>
+                        </div>
+                    </a>
+                </div>
+
+                <!-- Intel Center -->
+                <div class="col-xl-4 col-md-6 mb-4 fade-in anim-delay-6">
+                    <a href="{{ url_for('main.intel_center') }}" class="text-decoration-none">
+                        <div class="location-card p-4 text-center">
+                            <div class="icon-box text-danger">
+                                <i class="fas fa-user-secret"></i>
+                            </div>
+                            <h5 class="location-title">{{ _('مركز الاستخبارات') }}</h5>
+                            <p class="location-desc">{{ _('تجسس على خصومك وقرصن حساباتهم البنكية.') }}</p>
+                        </div>
+                    </a>
+                </div>
+
+                <!-- Bank -->
+                <div class="col-xl-4 col-md-6 mb-4 fade-in anim-delay-6">
+                    <a href="{{ url_for('bank.index') }}" class="text-decoration-none">
+                        <div class="location-card p-4 text-center">
+                            <div class="icon-box text-success">
+                                <i class="fas fa-university"></i>
+                            </div>
+                            <h5 class="location-title">{{ _('البنك') }}</h5>
+                            <p class="location-desc">{{ _('البنك أمان، خبي قروشك واستثمر لليوم الأسود.') }}</p>
+                        </div>
+                    </a>
+                </div>
+
+                <!-- Hospital -->
+                <div class="col-xl-4 col-md-6 mb-4 fade-in anim-delay-7">
+                    <a href="{{ url_for('hospital.index') }}" class="text-decoration-none">
+                        <div class="location-card p-4 text-center">
+                            <div class="icon-box text-danger">
+                                <i class="fas fa-hospital"></i>
+                            </div>
+                            <h5 class="location-title">{{ _('المستشفى') }}</h5>
+                            <p class="location-desc">{{ _('المستشفى للمجاريح، تعالج وارجع أقوى.') }}</p>
+                        </div>
+                    </a>
+                </div>
+
+                <!-- Black Market -->
+                <div class="col-xl-4 col-md-6 mb-4 fade-in anim-delay-8">
+                    <a href="{{ url_for('black_market.index') }}" class="text-decoration-none">
+                        <div class="location-card p-4 text-center">
+                            <div class="icon-box text-secondary">
+                                <i class="fas fa-user-secret"></i>
+                            </div>
+                            <h5 class="location-title">{{ _('السوق السوداء') }}</h5>
+                            <p class="location-desc">{{ _('كلشي ممنوع مرغوب، بس فتح عينك.') }}</p>
+                        </div>
+                    </a>
+                </div>
+
+                 <!-- Jail -->
+                 <div class="col-xl-4 col-md-6 mb-4 fade-in anim-delay-9">
+                    <a href="{{ url_for('jail.index') }}" class="text-decoration-none">
+                        <div class="location-card p-4 text-center">
+                            <div class="icon-box text-light">
+                                <i class="fas fa-bars"></i>
+                            </div>
+                            <h5 class="location-title">{{ _('السجن') }}</h5>
+                            <p class="location-desc">{{ _('السجن للرجال، زور الشباب أو هربهم.') }}</p>
+                        </div>
+                    </a>
+                </div>
+
+                <!-- Blackjack -->
+                <div class="col-xl-4 col-md-6 mb-4 fade-in anim-delay-10">
+                    <a href="{{ url_for('casino.blackjack_index') }}" class="text-decoration-none">
+                        <div class="location-card p-4 text-center">
+                            <div class="icon-box text-danger">
+                                <i class="fas fa-dice"></i>
+                            </div>
+                            <h5 class="location-title">{{ _('بلاك جاك') }}</h5>
+                            <p class="location-desc">{{ _('يا صايب يا خايب، جرب حظك.') }}</p>
+                        </div>
+                    </a>
+                </div>
+
+                <!-- Buy Diamonds -->
+                <div class="col-xl-4 col-md-6 mb-4 fade-in anim-delay-11">
+                    <a href="{{ url_for('main.buy_diamonds') }}" class="text-decoration-none">
+                        <div class="location-card p-4 text-center border-gold-alpha-40">
+                            <div class="icon-box text-info shadow-gold-sm border-gold-primary">
+                                <i class="fas fa-gem text-gold"></i>
+                            </div>
+                            <h5 class="location-title text-gold">{{ _('شراء ماس') }}</h5>
+                            <p class="location-desc">{{ _('ادعمنا واشتري ماس لتصير أقوى.') }}</p>
+                        </div>
+                    </a>
+                </div>
+
+                <!-- Travel -->
+                <div class="col-xl-4 col-md-6 mb-4 fade-in anim-delay-12">
+                    <a href="{{ url_for('travel.index') }}" class="text-decoration-none">
+                        <div class="location-card p-4 text-center">
+                            <div class="icon-box text-primary">
+                                <i class="fas fa-plane"></i>
+                            </div>
+                            <h5 class="location-title">{{ _('السفر') }}</h5>
+                            <p class="location-desc">{{ _('لف البلاد، من القدس لغزة ونابلس.') }}</p>
+                        </div>
+                    </a>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function copyLink() {
+        var copyText = document.getElementById("referralLink");
+        copyText.select();
+        copyText.setSelectionRange(0, 99999);
+        document.execCommand("copy");
+        
+        // Change button text temporarily
+        var btn = event.target;
+        var originalText = btn.innerText;
+        btn.innerText = "{{ _('تم النسخ!') }}";
+        btn.classList.add('btn-success');
+        btn.classList.remove('btn-outline-primary');
+        
+        setTimeout(function() {
+            btn.innerText = originalText;
+            btn.classList.remove('btn-success');
+            btn.classList.add('btn-outline-primary');
+        }, 2000);
+    }
+</script>
+{% endblock %}

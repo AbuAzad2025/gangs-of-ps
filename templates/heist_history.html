@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+
+{% block title %}{{ _('سجل العمليات') }}{% endblock %}
+
+{% block content %}
+<div class="container fade-in-up">
+    <div class="luxury-card mb-4">
+        <div class="luxury-header d-flex justify-content-between align-items-center">
+            <h3 class="luxury-title"><i class="fas fa-history mr-2"></i> {{ _('سجل العمليات السابقة') }}</h3>
+            <a href="{{ url_for('main.organized_crimes') }}" class="btn btn-sm btn-outline-warning">
+                <i class="fas fa-arrow-left"></i> {{ _('عودة') }}
+            </a>
+        </div>
+        <div class="card-body">
+            {% if not history %}
+                <div class="alert alert-info text-center">
+                    {{ _('لا يوجد سجل عمليات حتى الآن.') }}
+                </div>
+            {% else %}
+                <div class="table-responsive">
+                    <table class="table table-hover table-dark">
+                        <thead>
+                            <tr>
+                                <th>{{ _('التاريخ') }}</th>
+                                <th>{{ _('العملية') }}</th>
+                                <th>{{ _('القائد') }}</th>
+                                <th>{{ _('الحالة') }}</th>
+                                <th>{{ _('الغنيمة') }}</th>
+                                <th>{{ _('التفاصيل') }}</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for h in history %}
+                            <tr>
+                                <td>{{ h.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
+                                <td>{{ h.crime_name }}</td>
+                                <td>{{ h.leader_name }}</td>
+                                <td>
+                                    {% if h.success %}
+                                        <span class="badge badge-success">{{ _('ناجحة') }}</span>
+                                    {% else %}
+                                        <span class="badge badge-danger">{{ _('فاشلة') }}</span>
+                                    {% endif %}
+                                </td>
+                                <td class="text-success fw-bold">{{ h.money_earned }}</td>
+                                <td>
+                                    <a href="{{ url_for('main.heist_report', history_id=h.id) }}" class="btn btn-xs btn-info">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

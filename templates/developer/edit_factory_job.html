@@ -1,0 +1,85 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card bg-dark border-gold">
+            <div class="card-header border-gold">
+                <h3 class="card-title text-gold mb-0">{{ title }}</h3>
+            </div>
+            <div class="card-body">
+                <form method="POST">
+                    {{ form.hidden_tag() }}
+                    
+                    <div class="form-group">
+                        {{ form.user_id.label(class="text-light") }}
+                        {{ form.user_id(class="form-control bg-dark text-light border-secondary") }}
+                        {% for error in form.user_id.errors %}
+                            <span class="text-danger">{{ error }}</span>
+                        {% endfor %}
+                    </div>
+
+                    <div class="form-group">
+                        {{ form.job_type.label(class="text-light") }}
+                        {{ form.job_type(class="form-control bg-dark text-light border-secondary") }}
+                        {% for error in form.job_type.errors %}
+                            <span class="text-danger">{{ error }}</span>
+                        {% endfor %}
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                {{ form.metal_used.label(class="text-light") }}
+                                {{ form.metal_used(class="form-control bg-dark text-light border-secondary") }}
+                                {% for error in form.metal_used.errors %}
+                                    <span class="text-danger">{{ error }}</span>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                {{ form.diamonds_used.label(class="text-light") }}
+                                {{ form.diamonds_used(class="form-control bg-dark text-light border-secondary") }}
+                                {% for error in form.diamonds_used.errors %}
+                                    <span class="text-danger">{{ error }}</span>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        {{ form.output_amount.label(class="text-light") }}
+                        {{ form.output_amount(class="form-control bg-dark text-light border-secondary") }}
+                        {% for error in form.output_amount.errors %}
+                            <span class="text-danger">{{ error }}</span>
+                        {% endfor %}
+                    </div>
+
+                    <div class="form-group">
+                        {{ form.status.label(class="text-light") }}
+                        {{ form.status(class="form-control bg-dark text-light border-secondary") }}
+                        {% for error in form.status.errors %}
+                            <span class="text-danger">{{ error }}</span>
+                        {% endfor %}
+                    </div>
+
+                    <div class="form-group">
+                        {{ form.ends_at.label(class="text-light") }}
+                        {{ form.ends_at(class="form-control bg-dark text-light border-secondary", placeholder="YYYY-MM-DD HH:MM:SS") }}
+                        <small class="form-text text-muted">{{ _('الصيغة: YYYY-MM-DD HH:MM:SS') }}</small>
+                        {% for error in form.ends_at.errors %}
+                            <span class="text-danger">{{ error }}</span>
+                        {% endfor %}
+                    </div>
+
+                    <div class="form-group mt-4">
+                        {{ form.submit(class="btn btn-gold btn-block font-weight-bold") }}
+                        <a href="{{ url_for('main.dev_factories') }}" class="btn btn-secondary btn-block">{{ _('إلغاء') }}</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

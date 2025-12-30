@@ -1,0 +1,121 @@
+{% extends "base.html" %}
+{% block title %}{{ topic.title }} - {{ _('المنتدى') }}{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <h2 class="section-title">
+            <a href="{{ url_for('forum.category', id=topic.category_id) }}" class="text-white text-decoration-none">
+                <i class="fas fa-chevron-right ml-2 small"></i>
+            </a>
+            {{ topic.title }}
+        </h2>
+    </div>
+</div>
+
+{% if current_user.is_admin or current_user.is_moderator %}
+<div class="row mb-3">
+    <div class="col-12 text-end">
+        <div class="btn-group">
+            <form action="{{ url_for('forum.lock_topic', id=topic.id) }}" method="post" class="d-inline">
+                <button type="submit" class="btn btn-sm btn-{{ 'warning' if topic.is_locked else 'secondary' }}">
+                    <i class="fas fa-{{ 'lock' if topic.is_locked else 'lock-open' }}"></i> {{ _('إغلاق') if not topic.is_locked else _('فتح') }}
+                </button>
+            </form>
+            <form action="{{ url_for('forum.pin_topic', id=topic.id) }}" method="post" class="d-inline ml-1">
+                <button type="submit" class="btn btn-sm btn-{{ 'info' if topic.is_pinned else 'secondary' }}">
+                    <i class="fas fa-thumbtack"></i> {{ _('تثبيت') if not topic.is_pinned else _('إلغاء التثبيت') }}
+                </button>
+            </form>
+            <form action="{{ url_for('forum.delete_topic', id=topic.id) }}" method="post" class="d-inline ml-1" onsubmit="return confirm('{{ _('هل أنت متأكد من حذف الموضوع؟') }}');">
+                <button type="submit" class="btn btn-sm btn-danger">
+                    <i class="fas fa-trash"></i> {{ _('حذف') }}
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+{% for post in posts.items %}
+<div class="card luxury-card mb-3">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <div>
+            <span class="text-muted small">{{ post.created_at.strftime('%Y-%m-%d %H:%M') }}</span>
+        </div>
+        <div>
+        {% if current_user.id == post.user_id or current_user.is_admin or current_user.is_moderator %}
+        <form action="{{ url_for('forum.delete_post', id=post.id) }}" method="post" class="d-inline ml-2" onsubmit="return confirm('{{ _('حذف الرد؟') }}');">
+            <button type="submit" class="btn btn-sm btn-outline-danger py-0 px-1">
+                <i class="fas fa-trash small"></i>
+            </button>
+        </form>
+        {% endif %}
+        <span class="badge badge-secondary">#{{ loop.index + (posts.page - 1) * posts.per_page }}</span>
+    </div>
+    </div>
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-2 text-center border-left border-secondary">
+                <img src="{{ url_for('static', filename='avatars/' + (post.user.avatar if post.user.avatar else 'default.png')) }}" class="img-fluid rounded-circle mb-2 mw-80px" onerror="this.onerror=null; this.src='{{ url_for('static', filename='avatars/default.png') }}';">
+                <br>
+                <a href="{{ url_for('main.profile', user_id=post.user_id) }}" class="text-gold font-weight-bold">
+                    {{ post.user.username }}
+                </a>
+                <div class="small text-muted mt-1">{{ _(post.user.rank_name) }}</div>
+            </div>
+            <div class="col-md-10">
+                <div class="post-content">
+                    {{ post.content | replace('\n', '<br>') | safe }}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endfor %}
+
+{% if posts.pages > 1 %}
+<nav aria-label="Page navigation" class="mb-4">
+    <ul class="pagination justify-content-center">
+        {% for page_num in posts.iter_pages() %}
+            {% if page_num %}
+                {% if page_num != posts.page %}
+                    <li class="page-item"><a class="page-link" href="{{ url_for('forum.topic', id=topic.id, page=page_num) }}">{{ page_num }}</a></li>
+                {% else %}
+                    <li class="page-item active"><span class="page-link">{{ page_num }}</span></li>
+                {% endif %}
+            {% else %}
+                <li class="page-item disabled"><span class="page-link">...</span></li>
+            {% endif %}
+        {% endfor %}
+    </ul>
+</nav>
+{% endif %}
+
+{% if not topic.is_locked %}
+<div class="card luxury-card mt-4">
+    <div class="card-header">
+        <h5 class="mb-0">{{ _('إضافة رد') }}</h5>
+    </div>
+    <div class="card-body">
+        <form method="POST">
+            {{ form.hidden_tag() }}
+            <div class="form-group">
+                {{ form.content(class="form-control bg-dark text-white", rows=5, placeholder=_('اكتب ردك هنا...')) }}
+                {% for error in form.content.errors %}
+                    <span class="text-danger small">{{ error }}</span>
+                {% endfor %}
+            </div>
+            <div class="text-left">
+                {{ form.submit(class="btn btn-gold") }}
+            </div>
+        </form>
+    </div>
+</div>
+{% else %}
+<div class="alert alert-warning text-center">
+    <i class="fas fa-lock"></i> {{ _('هذا الموضوع مغلق.') }}
+</div>
+{% endif %}
+
+{% endblock %}

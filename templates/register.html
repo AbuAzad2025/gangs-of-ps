@@ -1,0 +1,89 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<div class="container-fluid position-relative min-h-80vh d-flex align-items-center">
+    <div class="auth-bg-pattern"></div>
+    
+    <div class="row justify-content-center w-100">
+        <div class="col-md-6 col-lg-5 col-xl-4">
+            <div class="card luxury-card">
+                <div class="card-header luxury-header text-center">
+                    <h2 class="mb-0 gold-text-gradient font-weight-bold">
+                        <i class="fas fa-user-plus mr-2"></i> {{ title }}
+                    </h2>
+                </div>
+                <div class="card-body p-4 p-md-5">
+                    <form method="POST">
+                        {{ form.hidden_tag() }}
+                        <div class="mb-4">
+                            {{ form.username.label(class="form-label text-gold") }}
+                            <div class="input-group">
+                                <div class="input-group-prepend">
+                                    <span class="input-group-text bg-dark border-secondary text-gold"><i class="fas fa-user"></i></span>
+                                </div>
+                                {{ form.username(class="form-control form-control-luxury", placeholder=_("اسم المستخدم")) }}
+                            </div>
+                            {% for error in form.username.errors %}
+                                <span class="text-danger small mt-1 d-block">{{ error }}</span>
+                            {% endfor %}
+                        </div>
+                        <div class="mb-4">
+                            {{ form.password.label(class="form-label text-gold") }}
+                            <div class="input-group">
+                                <div class="input-group-prepend">
+                                    <span class="input-group-text bg-dark border-secondary text-gold"><i class="fas fa-lock"></i></span>
+                                </div>
+                                {{ form.password(class="form-control form-control-luxury", placeholder=_("كلمة المرور")) }}
+                            </div>
+                            {% for error in form.password.errors %}
+                                <span class="text-danger small mt-1 d-block">{{ error }}</span>
+                            {% endfor %}
+                        </div>
+                        <div class="mb-4">
+                            {{ form.confirm_password.label(class="form-label text-gold") }}
+                            <div class="input-group">
+                                <div class="input-group-prepend">
+                                    <span class="input-group-text bg-dark border-secondary text-gold"><i class="fas fa-lock"></i></span>
+                                </div>
+                                {{ form.confirm_password(class="form-control form-control-luxury", placeholder=_("تأكيد كلمة المرور")) }}
+                            </div>
+                            {% for error in form.confirm_password.errors %}
+                                <span class="text-danger small mt-1 d-block">{{ error }}</span>
+                            {% endfor %}
+                        </div>
+                        <div class="mb-4">
+                            <label class="form-label text-gold">{{ _('رمز التحقق البشري') }}</label>
+                            <div class="d-flex flex-column align-items-center mb-2">
+                                <img src="{{ url_for('main.captcha_image') }}" alt="Captcha" class="img-fluid rounded border border-warning mb-2 max-h-80" id="captchaImage">
+                                <button type="button" class="btn btn-sm btn-outline-light" onclick="document.getElementById('captchaImage').src='{{ url_for('main.captcha_image') }}?' + Math.random();">
+                                    <i class="fas fa-sync-alt"></i> {{ _('تغيير الرمز') }}
+                                </button>
+                            </div>
+                            <div class="input-group">
+                                <div class="input-group-prepend">
+                                    <span class="input-group-text bg-dark border-secondary text-gold"><i class="fas fa-shield-alt"></i></span>
+                                </div>
+                                {{ form.captcha(class="form-control form-control-luxury", placeholder=_("اكتب الرمز الظاهر في الصورة")) }}
+                            </div>
+                            {% for error in form.captcha.errors %}
+                                <span class="text-danger small mt-1 d-block">{{ error }}</span>
+                            {% endfor %}
+                        </div>
+                        <div class="d-grid mb-4">
+                            {{ form.submit(class="btn btn-auth btn-block") }}
+                        </div>
+                        
+                        <div class="text-center mt-3">
+                            <p class="mb-0 text-light">
+                                {{ _('لديك حساب بالفعل؟') }} 
+                                <a href="{{ url_for('main.login') }}" class="auth-link font-weight-bold">{{ _('سجل دخولك') }}</a>
+                            </p>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

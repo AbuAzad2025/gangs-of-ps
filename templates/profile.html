@@ -1,0 +1,271 @@
+{% extends "base.html" %}
+
+{% block title %}{{ _('الملف الشخصي') }}{% endblock %}
+
+{% block extra_css %}
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-3">
+    <div class="row">
+        <!-- Left Column: User Card -->
+        <div class="col-lg-4 mb-4 fade-in-up">
+            <div class="profile-card">
+                <div class="profile-header-bg"></div>
+                
+                <div class="profile-avatar-container">
+                    {% if user.avatar and user.avatar != 'default.png' %}
+                        <img class="profile-avatar" src="{{ url_for('static', filename='avatars/' + user.avatar) }}" alt="{{ user.username }}">
+                    {% else %}
+                        <!-- Fallback to clearer avatar service or local default -->
+                        <img class="profile-avatar" src="https://ui-avatars.com/api/?name={{ user.username }}&background=1e1e24&color=d4af37&size=256&bold=true&font-size=0.4" alt="{{ user.username }}">
+                    {% endif %}
+                    
+                    {% if user.id == current_user.id %}
+                    <a href="{{ url_for('main.edit_profile') }}" class="edit-avatar-btn" title="{{ _('تغيير الصورة') }}">
+                        <i class="fas fa-camera fa-sm"></i>
+                    </a>
+                    {% endif %}
+                </div>
+                
+                <div class="profile-info">
+                    <h1 class="profile-name">{{ user.username }}</h1>
+                    <div class="profile-rank-badge">
+                        <i class="fas fa-crown mr-2"></i> {{ _(user.rank_title) }}
+                    </div>
+                    {% if user.health <= 0 and user.elite_reservation_until %}
+                        <div class="text-warning small">
+                            {{ _('مقعدك محفوظ حتى') }} {{ user.elite_reservation_until.strftime('%Y-%m-%d %H:%M') }}
+                        </div>
+                    {% endif %}
+                </div>
+                
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon-wrapper"><i class="fas fa-layer-group"></i></div>
+                        <div class="stat-details">
+                            <span class="stat-value">{{ user.level }}</span>
+                            <span class="stat-label">{{ _('المستوى') }}</span>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon-wrapper"><i class="fas fa-star"></i></div>
+                        <div class="stat-details">
+                            <span class="stat-value">{{ "{:,}".format(user.exp) }}</span>
+                            <span class="stat-label">{{ _('الخبرة') }}</span>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon-wrapper"><i class="fas fa-fist-raised"></i></div>
+                        <div class="stat-details">
+                            <span class="stat-value">{{ "{:,}".format(user.strength) }}</span>
+                            <span class="stat-label">{{ _('القوة') }}</span>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon-wrapper"><i class="fas fa-shield-alt"></i></div>
+                        <div class="stat-details">
+                            <span class="stat-value">{{ "{:,}".format(user.defense) }}</span>
+                            <span class="stat-label">{{ _('الدفاع') }}</span>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon-wrapper"><i class="fas fa-running"></i></div>
+                        <div class="stat-details">
+                            <span class="stat-value">{{ "{:,}".format(user.agility) }}</span>
+                            <span class="stat-label">{{ _('السرعة') }}</span>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon-wrapper"><i class="fas fa-brain"></i></div>
+                        <div class="stat-details">
+                            <span class="stat-value">{{ "{:,}".format(user.intelligence) }}</span>
+                            <span class="stat-label">{{ _('الذكاء') }}</span>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon-wrapper"><i class="fas fa-dollar-sign"></i></div>
+                        <div class="stat-details">
+                            <span class="stat-value text-success">${{ "{:,}".format(user.money) }}</span>
+                            <span class="stat-label">{{ _('المال') }}</span>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon-wrapper"><i class="fas fa-university"></i></div>
+                        <div class="stat-details">
+                            <span class="stat-value text-info">${{ "{:,}".format(user.bank_balance) }}</span>
+                            <span class="stat-label">{{ _('البنك') }}</span>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon-wrapper"><i class="fas fa-gem"></i></div>
+                        <div class="stat-details">
+                            <span class="stat-value text-danger">{{ "{:,}".format(user.diamonds) }}</span>
+                            <span class="stat-label">{{ _('الماس') }}</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="profile-actions">
+                    {% if user.id != current_user.id %}
+                        <form action="{{ url_for('combat.attack', target_id=user.id) }}" method="POST" class="mb-2">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                            <button type="submit" class="btn-action-primary btn-attack-gradient">
+                                <i class="fas fa-crosshairs mr-2"></i> {{ _('هجوم') }}
+                            </button>
+                        </form>
+                        <a href="{{ url_for('main.send_message', to=user.username) }}" class="btn-action-secondary">
+                            <i class="fas fa-envelope mr-2"></i> {{ _('إرسال رسالة') }}
+                        </a>
+                    {% else %}
+                        <a href="{{ url_for('main.edit_profile') }}" class="btn-action-primary">
+                            <i class="fas fa-cog mr-2"></i> {{ _('تعديل الملف الشخصي') }}
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <!-- Right Column: Details & Activity -->
+        <div class="col-lg-8 mb-4 fade-in-up anim-delay-1">
+            <div class="content-card">
+                <div class="card-header p-0 border-0">
+                    <ul class="nav custom-nav-tabs" role="tablist">
+                        <li class="nav-item">
+                            <a class="nav-link custom-nav-link active" id="activity-tab" data-toggle="tab" href="#activity" role="tab">
+                                <i class="fas fa-history mr-2"></i> {{ _('النشاط الحديث') }}
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link custom-nav-link" id="stats-tab" data-toggle="tab" href="#stats" role="tab">
+                                <i class="fas fa-chart-line mr-2"></i> {{ _('الإحصائيات') }}
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link custom-nav-link" id="gang-tab" data-toggle="tab" href="#gang" role="tab">
+                                <i class="fas fa-users mr-2"></i> {{ _('العصابة') }}
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+                
+                <div class="tab-content">
+                    <!-- Activity Tab -->
+                    <div class="tab-pane fade show active" id="activity" role="tabpanel">
+                        <div class="activity-feed">
+                            {% if combat_logs %}
+                                {% for log in combat_logs %}
+                                    <div class="activity-item">
+                                        <div class="activity-icon"></div>
+                                        <div class="activity-content">
+                                            <span class="activity-time">{{ log.timestamp.strftime('%Y-%m-%d %H:%M') }}</span>
+                                            <p class="mb-0 text-white">
+                                                {% if log.attacker_id == user.id %}
+                                                    {{ _('قام بمهاجمة') }} 
+                                                    <a href="{{ url_for('main.profile', user_id=log.defender_id) }}" class="text-warning font-weight-bold">{{ log.defender.username }}</a>
+                                                    {% if log.winner_id == user.id %}
+                                                        <span class="text-success">({{ _('فاز') }})</span>
+                                                    {% else %}
+                                                        <span class="text-danger">({{ _('خسر') }})</span>
+                                                    {% endif %}
+                                                {% else %}
+                                                    {{ _('تعرض لهجوم من') }}
+                                                    {% if log.is_attacker_anonymous %}
+                                                        <span class="text-muted">{{ _('مجهول') }}</span>
+                                                    {% else %}
+                                                        <a href="{{ url_for('main.profile', user_id=log.attacker_id) }}" class="text-warning font-weight-bold">{{ log.attacker.username }}</a>
+                                                    {% endif %}
+                                                {% endif %}
+                                            </p>
+                                        </div>
+                                    </div>
+                                {% endfor %}
+                            {% else %}
+                                <div class="text-center py-5">
+                                    <i class="fas fa-wind fa-3x text-muted mb-3 opacity-50"></i>
+                                    <h5 class="text-muted">{{ _('لا توجد نشاطات حديثة') }}</h5>
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <!-- Stats Tab -->
+                    <div class="tab-pane fade" id="stats" role="tabpanel">
+                        <div class="row">
+                            <div class="col-md-6 mb-4">
+                                <div class="p-4 rounded stats-box">
+                                    <h5 class="text-gold mb-3">{{ _('أداء المعارك') }}</h5>
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <span class="text-muted">{{ _('معدل الفوز') }}</span>
+                                        <span class="text-white font-weight-bold">{{ win_rate }}%</span>
+                                    </div>
+                                    <div class="progress mb-3 progress-thin-bg">
+                                        <div class="progress-bar bg-warning w-dynamic" role="progressbar" style="--width: {{ win_rate }}%"></div>
+                                    </div>
+                                    <div class="d-flex justify-content-between">
+                                        <span class="text-muted">{{ _('مجموع المعارك') }}</span>
+                                        <span class="text-white">{{ total_fights }}</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6 mb-4">
+                                <div class="p-4 rounded stats-box">
+                                    <h5 class="text-gold mb-3">{{ _('معلومات إضافية') }}</h5>
+                                    <ul class="list-unstyled mb-0">
+                                        <li class="d-flex justify-content-between mb-2">
+                                            <span class="text-muted">{{ _('تاريخ التسجيل') }}</span>
+                                            <span class="text-white">{{ user.created_at.strftime('%Y-%m-%d') }}</span>
+                                        </li>
+                                        <li class="d-flex justify-content-between mb-2">
+                                            <span class="text-muted">{{ _('الدولة') }}</span>
+                                            <span class="text-white">
+                                                <img src="https://flagcdn.com/20x15/{{ user.country|lower }}.png" alt="{{ user.country }}" class="mr-1"> {{ user.country }}
+                                            </span>
+                                        </li>
+                                        <li class="d-flex justify-content-between">
+                                            <span class="text-muted">{{ _('السمعة') }}</span>
+                                            <span class="text-warning">{{ "{:,}".format(user.exp // 100) }}</span>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Gang Tab -->
+                    <div class="tab-pane fade" id="gang" role="tabpanel">
+                        {% if user.gang %}
+                            <div class="text-center py-5">
+                                <div class="mb-3">
+                                    <i class="fas fa-users fa-4x text-gold opacity-75"></i>
+                                </div>
+                                <h3 class="text-white mb-2">{{ user.gang.name }}</h3>
+                                <p class="text-muted mb-4">{{ _('عضو نشط في هذه العصابة') }}</p>
+                                <a href="{{ url_for('gang.view', gang_id=user.gang.id) }}" class="btn btn-outline-warning">{{ _('عرض صفحة العصابة') }}</a>
+                            </div>
+                        {% else %}
+                            <div class="text-center py-5">
+                                <i class="fas fa-user-slash fa-4x text-muted mb-3 opacity-25"></i>
+                                <h5 class="text-muted">{{ _('لا ينتمي لأي عصابة') }}</h5>
+                                <p class="small text-muted">{{ _('هذا اللاعب ذئب وحيد.') }}</p>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    $(document).ready(function(){
+        // Ensure tabs work correctly with Bootstrap 4
+        $('.custom-nav-link').on('click', function (e) {
+            e.preventDefault();
+            $(this).tab('show');
+        });
+    });
+</script>
+{% endblock %}

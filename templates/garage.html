@@ -1,0 +1,191 @@
+{% extends "base.html" %}
+
+{% block content %}
+<!-- Styles moved to palestine_luxury.css -->
+
+<div class="container-fluid fade-in">
+    <div class="garage-header text-center">
+        <h1 class="display-4 font-weight-bold text-uppercase text-white text-shadow-strong">
+            <i class="fas fa-warehouse mr-3"></i>{{ _('كراج السيارات') }}
+        </h1>
+        <p class="lead text-white-50">{{ _('أسطولك الخاص للسيطرة على الشوارع') }}</p>
+        <a href="{{ url_for('main.dealership') }}" class="btn btn-warning shadow-lg mt-3 shine-button">
+            <i class="fas fa-shopping-cart mr-2"></i> {{ _('شراء سيارة جديدة') }}
+        </a>
+    </div>
+
+    {% if vehicles %}
+    <div class="row">
+        {% for car in vehicles %}
+        <div class="col-lg-4 col-md-6 mb-4 fade-in anim-delay-{{ loop.index if loop.index <= 20 else 20 }}">
+            <div class="car-card">
+                <div class="status-badge {{ 'badge-active' if car.is_active else 'badge-inactive' }}">
+                    {% if car.is_active %}
+                        <i class="fas fa-check-circle mr-1"></i> {{ _('مفعلة') }}
+                    {% else %}
+                        <i class="fas fa-parking mr-1"></i> {{ _('في الكراج') }}
+                    {% endif %}
+                </div>
+
+                <div class="car-image-container">
+                    {% if car.vehicle.image %}
+                        <img src="{{ url_for('static', filename=car.vehicle.image) }}" class="car-image" alt="{{ car.vehicle.name }}">
+                    {% else %}
+                        <i class="fas fa-car fa-4x text-muted"></i>
+                    {% endif %}
+                </div>
+
+                <div class="card-body car-details">
+                    <h5 class="car-title h4">{{ _(car.vehicle.name) }}</h5>
+                    
+                    {% set is_repairing = False %}
+                    {% if car.repair_until %}
+                        {% set repair_end = car.repair_until %}
+                        {% if repair_end.tzinfo is none %}
+                            {% set repair_end = repair_end.replace(tzinfo=now.tzinfo) %}
+                        {% endif %}
+                        {% if repair_end > now %}
+                            {% set is_repairing = True %}
+                            {% set remaining = (repair_end - now).total_seconds() %}
+                        {% endif %}
+                    {% endif %}
+
+                    {% if is_repairing %}
+                         <div class="alert alert-warning text-center p-2 mb-3 alert-repair">
+                            <h6 class="text-warning mb-1"><i class="fas fa-tools fa-spin mr-1"></i> {{ _('جاري الإصلاح...') }}</h6>
+                            <div class="repair-timer font-weight-bold h5 text-white font-mono" data-seconds="{{ remaining|int }}"></div>
+                        </div>
+                    {% endif %}
+
+                    <div class="mb-3">
+                        {% if car.vehicle.type == 'mushtuba' %}
+                            <span class="badge badge-danger">{{ _('مشطوبة (خطر)') }}</span>
+                        {% elif car.vehicle.type == 'legal_il' %}
+                            <span class="badge badge-warning text-dark">{{ _('نمرة صفراء') }}</span>
+                        {% else %}
+                            <span class="badge badge-success">{{ _('نمرة فلسطينية') }}</span>
+                        {% endif %}
+                    </div>
+
+                    <div class="stat-row">
+                        <span><i class="fas fa-tachometer-alt text-danger mr-2"></i>{{ _('السرعة') }}</span>
+                        <span class="stat-value">{{ car.vehicle.speed }}</span>
+                    </div>
+                    <div class="stat-row">
+                        <span><i class="fas fa-shield-alt text-info mr-2"></i>{{ _('الدفاع') }}</span>
+                        <span class="stat-value">{{ car.vehicle.defense }}</span>
+                    </div>
+                    
+                    <div class="mt-3">
+                        <div class="d-flex justify-content-between small text-muted mb-1">
+                            <span>{{ _('الحالة') }}</span>
+                            <span>{{ car.condition }}%</span>
+                        </div>
+                        <div class="condition-bar">
+                            <div class="condition-fill w-dynamic {{ 'bg-danger-theme' if car.condition < 30 else ('bg-warning-theme' if car.condition < 70 else 'bg-success-theme') }}" style="--width: {{ car.condition }}%;"></div>
+                        </div>
+                    </div>
+
+                    <div class="mt-4">
+                        {% if is_repairing %}
+                            <button class="btn btn-secondary btn-block disabled mb-2">
+                                <i class="fas fa-clock mr-2"></i> {{ _('يرجى الانتظار...') }}
+                            </button>
+                            <button class="btn btn-dark btn-block disabled mb-2">
+                                <i class="fas fa-lock mr-2"></i> {{ _('السيارة مشغولة') }}
+                            </button>
+                        {% else %}
+                            {% if car.condition < 100 %}
+                                <form action="{{ url_for('main.repair_car', user_vehicle_id=car.id) }}" method="POST" class="mb-2">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                                    <button type="submit" class="btn btn-info btn-block font-weight-bold" data-confirm="{{ _('تكلفة الإصلاح تعتمد على الضرر. هل أنت متأكد؟') }}">
+                                        <i class="fas fa-tools mr-2"></i> {{ _('إصلاح السيارة') }}
+                                    </button>
+                                </form>
+                            {% endif %}
+
+                            {% if car.is_active %}
+                                <button class="btn btn-success btn-block disabled mb-2 opacity-70">
+                                    <i class="fas fa-key mr-2"></i> {{ _('مفعلة حالياً') }}
+                                </button>
+                            {% else %}
+                                <form action="{{ url_for('main.activate_car', user_vehicle_id=car.id) }}" method="POST" class="mb-2">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                                    <button type="submit" class="btn btn-activate btn-block">
+                                        <i class="fas fa-key mr-2"></i> {{ _('قيادة هذه السيارة') }}
+                                    </button>
+                                </form>
+                            {% endif %}
+
+                            {# Tuning Button #}
+                            {% if car.condition < 200 %}
+                                {% if car.condition < 100 %}
+                                    <button class="btn btn-dark btn-block disabled text-muted mb-2" title="{{ _('أصلح السيارة أولاً') }}">
+                                        <i class="fas fa-cogs mr-2"></i> {{ _('بحاجة لإصلاح') }}
+                                    </button>
+                                {% else %}
+                                    <form action="{{ url_for('main.tune_car', user_vehicle_id=car.id) }}" method="POST" class="mb-2">
+                                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                                        <button type="submit" class="btn btn-warning btn-block text-dark font-weight-bold" data-confirm="{{ _('تعديل المحرك سيكلفك 2000$. هل أنت موافق؟') }}">
+                                            <i class="fas fa-cogs mr-2"></i> {{ _('تعديل وتزويد (2000$)') }}
+                                        </button>
+                                    </form>
+                                {% endif %}
+                            {% else %}
+                                <button class="btn btn-dark btn-block disabled text-muted mb-2">
+                                    <i class="fas fa-check mr-2"></i> {{ _('معدلة بالكامل') }}
+                                </button>
+                            {% endif %}
+                            
+                            {# Sell Button #}
+                            <form action="{{ url_for('main.sell_car', user_vehicle_id=car.id) }}" method="POST" class="mt-2">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                                {% if car.condition < 100 %}
+                                    <button type="button" class="btn btn-danger btn-block disabled" title="{{ _('أصلح السيارة أولاً') }}">
+                                        <i class="fas fa-dollar-sign mr-2"></i> {{ _('بيع (معطل)') }}
+                                    </button>
+                                {% else %}
+                                    <button type="submit" class="btn btn-outline-danger btn-block" data-confirm="{{ _('هل أنت متأكد من بيع السيارة بنصف سعرها الأصلي؟') }}">
+                                        <i class="fas fa-dollar-sign mr-2"></i> {{ _('بيع السيارة') }}
+                                    </button>
+                                {% endif %}
+                            </form>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="empty-garage">
+        <i class="fas fa-car-crash fa-4x text-muted mb-3"></i>
+        <h3 class="text-muted">{{ _('الكراج فاضي!') }}</h3>
+        <p class="text-muted mb-4">{{ _('شكلك ماشي ع رجليك يا زعيم. روح اشتريلك سيارة تحفظ هيبتك.') }}</p>
+        <a href="{{ url_for('main.dealership') }}" class="btn btn-primary btn-lg shine-button">
+            {{ _('الذهاب للمعرض') }}
+        </a>
+    </div>
+    {% endif %}
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        document.querySelectorAll('.repair-timer').forEach(function(el) {
+            var seconds = parseInt(el.getAttribute('data-seconds'));
+            function updateTimer() {
+                if (seconds <= 0) {
+                    location.reload();
+                    return;
+                }
+                var m = Math.floor(seconds / 60);
+                var s = seconds % 60;
+                el.innerText = m + ":" + (s < 10 ? "0" : "") + s;
+                seconds--;
+                setTimeout(updateTimer, 1000);
+            }
+            updateTimer();
+        });
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,240 @@
+{% extends 'admin/master.html' %}
+
+{% block head %}
+    {{ super() }}
+{% endblock %}
+
+{% block body %}
+<div class="container-fluid pt-3">
+    <!-- Header -->
+    <div class="row mb-4 align-items-center">
+        <div class="col-md-6">
+            <h1 class="border-bottom pb-3 border-gold-30">
+                <i class="fas fa-tachometer-alt text-gold ml-2 text-gold-primary"></i> {{ _('لوحة القيادة والتحكم') }}
+            </h1>
+        </div>
+        <div class="col-md-6 text-left">
+            <a href="/" class="btn btn-warning btn-lg shadow-sm">
+                <i class="fas fa-home ml-2"></i> {{ _('العودة للحارة') }}
+            </a>
+        </div>
+    </div>
+
+    <!-- Stat Boxes -->
+    <div class="row">
+        <!-- Users -->
+        <div class="col-lg-3 col-6 fade-in-up anim-delay-1">
+            <div class="small-box bg-info">
+                <div class="inner">
+                    <h3>{{ stats.user_count }}</h3>
+                    <p>{{ _('المستخدمين المسجلين') }}</p>
+                </div>
+                <div class="icon">
+                    <i class="fas fa-users"></i>
+                </div>
+                <a href="{{ url_for('user.index_view') }}" class="small-box-footer">{{ _('إدارة المستخدمين') }} <i class="fas fa-arrow-circle-left"></i></a>
+            </div>
+        </div>
+        <!-- Money -->
+        <div class="col-lg-3 col-6 fade-in-up anim-delay-2">
+            <div class="small-box bg-success">
+                <div class="inner">
+                    <h3>${{ "{:,}".format(stats.total_money|int) }}</h3>
+                    <p>{{ _('إجمالي الأموال في اللعبة') }}</p>
+                </div>
+                <div class="icon">
+                    <i class="fas fa-money-bill-wave"></i>
+                </div>
+                <a href="#" class="small-box-footer">{{ _('تفاصيل الاقتصاد') }} <i class="fas fa-arrow-circle-left"></i></a>
+            </div>
+        </div>
+        <!-- Gangs -->
+        <div class="col-lg-3 col-6 fade-in-up anim-delay-3">
+            <div class="small-box bg-warning">
+                <div class="inner">
+                    <h3>{{ stats.gang_count }}</h3>
+                    <p>{{ _('العصابات النشطة') }}</p>
+                </div>
+                <div class="icon">
+                    <i class="fas fa-fist-raised"></i>
+                </div>
+                <a href="{{ url_for('gang_admin.index_view') }}" class="small-box-footer">{{ _('إدارة العصابات') }} <i class="fas fa-arrow-circle-left"></i></a>
+            </div>
+        </div>
+        <!-- Pending Payments -->
+        <div class="col-lg-3 col-6 fade-in-up anim-delay-4">
+            <div class="small-box bg-danger">
+                <div class="inner">
+                    <h3>{{ stats.pending_payments }}</h3>
+                    <p>{{ _('طلبات دفع معلقة') }}</p>
+                </div>
+                <div class="icon">
+                    <i class="fas fa-exclamation-circle"></i>
+                </div>
+                <a href="{{ url_for('paymenttransaction.index_view', flt1_status_equals='pending') }}" class="small-box-footer">{{ _('مراجعة الطلبات') }} <i class="fas fa-arrow-circle-left"></i></a>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Right Column: Recent Activity & Quick Actions -->
+        <div class="col-md-8 fade-in-up anim-delay-5">
+            <!-- Pending Transactions Table -->
+            {% if pending_transactions %}
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title"><i class="fas fa-money-check-alt ml-2"></i> {{ _('طلبات شحن الرصيد المعلقة') }}</h3>
+                </div>
+                <div class="card-body p-0">
+                    <table class="table table-striped table-hover mb-0">
+                        <thead>
+                            <tr>
+                                <th>{{ _('المستخدم') }}</th>
+                                <th>{{ _('المبلغ') }}</th>
+                                <th>{{ _('الماس') }}</th>
+                                <th>{{ _('الطريقة') }}</th>
+                                <th>{{ _('الوقت') }}</th>
+                                <th>{{ _('إجراء') }}</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for trans in pending_transactions %}
+                            <tr>
+                                <td>{{ trans.user.username }}</td>
+                                <td>${{ trans.amount_usd }}</td>
+                                <td>{{ trans.diamonds_amount }} 💎</td>
+                                <td><span class="badge badge-secondary">{{ trans.payment_method }}</span></td>
+                                <td>{{ trans.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
+                                <td>
+                                    <a href="{{ url_for('paymenttransaction.edit_view', id=trans.id) }}" class="btn btn-xs btn-primary">{{ _('مراجعة') }}</a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                <div class="card-footer text-center bg-transparent-dark-20">
+                    <a href="{{ url_for('paymenttransaction.index_view') }}" class="text-gold text-gold-secondary">{{ _('عرض كل المعاملات') }}</a>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Recent Users -->
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title"><i class="fas fa-user-plus ml-2"></i> {{ _('آخر المنضمين') }}</h3>
+                </div>
+                <div class="card-body p-0">
+                    <table class="table table-sm table-hover">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>{{ _('الاسم') }}</th>
+                                <th>{{ _('الرتبة') }}</th>
+                                <th>{{ _('المستوى') }}</th>
+                                <th>{{ _('تاريخ الانضمام') }}</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for user in recent_users %}
+                            <tr>
+                                <td>{{ user.id }}</td>
+                                <td>
+                                    <img src="{{ url_for('static', filename='avatars/' + user.avatar) }}" class="img-circle img-size-32 mr-2 avatar-sm-border">
+                                    {{ user.username }}
+                                </td>
+                                <td><span class="badge badge-gold">{{ _(user.rank_title) }}</span></td>
+                                <td>{{ user.level }}</td>
+                                <td><span class="text-muted text-sm">{{ _('جديد') }}</span></td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            
+            <!-- Quick Actions Grid -->
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title"><i class="fas fa-bolt ml-2"></i> {{ _('إجراءات سريعة') }}</h3>
+                </div>
+                <div class="card-body text-center">
+                    <p class="text-muted mb-3">{{ _('إدارة محتوى اللعبة بسهولة') }}</p>
+                    <a href="{{ url_for('item.create_view') }}" class="btn btn-app">
+                        <i class="fas fa-box"></i> {{ _('إضافة غرض') }}
+                    </a>
+                    <a href="{{ url_for('crime.create_view') }}" class="btn btn-app">
+                        <i class="fas fa-mask"></i> {{ _('إضافة جريمة') }}
+                    </a>
+                    <a href="{{ url_for('location.create_view') }}" class="btn btn-app">
+                        <i class="fas fa-map-marker-alt"></i> {{ _('إضافة منطقة') }}
+                    </a>
+                    <a href="{{ url_for('vehicle.create_view') }}" class="btn btn-app">
+                        <i class="fas fa-car"></i> {{ _('إضافة مركبة') }}
+                    </a>
+                    <a href="{{ url_for('announcement.create_view') }}" class="btn btn-app">
+                        <i class="fas fa-bullhorn"></i> {{ _('إعلان جديد') }}
+                    </a>
+                    <a href="{{ url_for('systemconfig.index_view') }}" class="btn btn-app">
+                        <i class="fas fa-cogs"></i> {{ _('الإعدادات') }}
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Left Column: Logs & System -->
+        <div class="col-md-4 fade-in-up anim-delay-6">
+            <!-- System Stats -->
+            <div class="card">
+                <div class="card-header border-0">
+                    <h3 class="card-title"><i class="fas fa-server ml-2"></i> {{ _('حالة النظام') }}</h3>
+                </div>
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center border-bottom border-secondary pb-2 mb-2">
+                        <span>{{ _('إصدار اللعبة') }}</span>
+                        <span class="badge badge-success">v1.0.2 Beta</span>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center border-bottom border-secondary pb-2 mb-2">
+                        <span>{{ _('عدد الجرائم') }}</span>
+                        <span class="font-weight-bold text-gold-secondary">{{ stats.crime_count }}</span>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center border-bottom border-secondary pb-2 mb-2">
+                        <span>{{ _('عدد الأغراض') }}</span>
+                        <span class="font-weight-bold text-gold-secondary">{{ stats.item_count }}</span>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span>{{ _('حالة السيرفر') }}</span>
+                        <span class="text-success"><i class="fas fa-circle text-xs"></i> {{ _('متصل') }}</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent Logs -->
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title"><i class="fas fa-history ml-2"></i> {{ _('آخر النشاطات') }}</h3>
+                </div>
+                <div class="card-body p-0">
+                    <ul class="list-group list-group-flush bg-transparent">
+                        {% for log in recent_logs %}
+                        <li class="list-group-item p-2 bg-transparent border-white-05">
+                            <div class="d-flex w-100 justify-content-between">
+                                <small class="font-weight-bold text-gold-primary">{{ log.admin.username }}</small>
+                                <small class="text-muted">{{ log.timestamp.strftime('%H:%M') }}</small>
+                            </div>
+                            <p class="mb-1 text-sm">{{ log.action }}</p>
+                            {% if log.details %}
+                            <small class="text-muted d-block text-truncate mw-250px">{{ log.details }}</small>
+                            {% endif %}
+                        </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+                <div class="card-footer text-center bg-dark-20">
+                    <a href="{{ url_for('gamelog.index_view') }}" class="small text-gold-secondary">{{ _('عرض كل السجل') }}</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

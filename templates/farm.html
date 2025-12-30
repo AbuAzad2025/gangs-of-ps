@@ -1,0 +1,200 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container-fluid fade-in">
+  <div class="row">
+    <div class="col-lg-8">
+      <div class="luxury-card p-4 mb-4">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <h2 class="m-0"><i class="fas fa-seedling text-success mr-2"></i>{{ _('المزارع') }}</h2>
+          <div class="text-muted">{{ _('رتبتك الزراعية:') }} <span class="text-success">{{ tier }}</span></div>
+        </div>
+
+        {% if running %}
+          <div class="alert alert-info">
+            <div class="d-flex justify-content-between align-items-center">
+              <div>
+                <strong>{{ _('عملية جارية:') }}</strong>
+                {{ _(running.output_item.name) if running.output_item else _('إنتاج') }}
+                — {{ _('الكمية:') }} {{ running.output_amount }}
+              </div>
+              <div class="text-muted">{{ _('ينتهي:') }} {{ running.ends_at }}</div>
+            </div>
+          </div>
+
+          <form method="POST" action="{{ url_for('farm.boost', job_id=running.id) }}" class="mb-2">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+            <button class="btn btn-outline-warning btn-block">
+              <i class="fas fa-bolt mr-2"></i>{{ _('إنهاء فوري بالماس') }}
+            </button>
+          </form>
+
+          <form method="POST" action="{{ url_for('farm.claim', job_id=running.id) }}">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+            <button class="btn btn-success btn-block" {% if not running.is_ready %}disabled{% endif %}>
+              <i class="fas fa-box-open mr-2"></i>{{ _('استلام الإنتاج') }}
+            </button>
+          </form>
+        {% else %}
+          <div class="row">
+            {% for row in catalog %}
+              <div class="col-md-6 mb-3">
+                <div class="luxury-card p-3 h-100 farm-item-card">
+                  <div class="d-flex align-items-center mb-2">
+                    <div class="mr-3 farm-item-icon-wrapper">
+                      {% if row.unlocked %}
+                        <img src="{{ url_for('static', filename=row.item.image) }}" class="farm-item-img">
+                      {% else %}
+                        <div class="farm-locked-overlay">
+                          <i class="fas fa-lock text-warning"></i>
+                        </div>
+                      {% endif %}
+                    </div>
+                    <div>
+                      {% if row.unlocked %}
+                        <div class="h5 m-0">{{ _(row.item.name) }}</div>
+                        <div class="text-muted small">{{ _(row.item.description) }}</div>
+                      {% else %}
+                        <div class="h5 m-0">{{ _('محتوى مقفول') }}</div>
+                        <div class="text-muted small">{{ _('طور نفسك لفتحها') }}</div>
+                      {% endif %}
+                    </div>
+                  </div>
+
+                  <div class="text-muted small mb-3">
+                    {% if row.unlocked %}
+                      {{ _('التشغيل:') }} {{ row.pricing.diamonds }} 💎
+                    {% else %}
+                      {% if row.min_tier %}{{ _('يتطلب:') }} {{ row.min_tier }}{% endif %}
+                      {% if row.locked_reason %} — {{ _(row.locked_reason) }}{% endif %}
+                      {% if row.hint_text %}
+                        <div class="text-info small mt-2">
+                          {% if row.hint_url %}
+                            <a href="{{ row.hint_url }}" class="text-info">{{ row.hint_text }}</a>
+                          {% else %}
+                            {{ row.hint_text }}
+                          {% endif %}
+                        </div>
+                      {% endif %}
+                    {% endif %}
+                  </div>
+
+                  {% if row.unlocked %}
+                    <form method="POST" action="{{ url_for('farm.start') }}">
+                      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                      <input type="hidden" name="farm_type" value="{{ row.farm_type }}"/>
+                      <button class="btn btn-success btn-block" {% if user.diamonds < row.pricing.diamonds %}disabled{% endif %}>
+                        <i class="fas fa-play mr-2"></i>{{ _('ابدأ تشغيل') }}
+                      </button>
+                    </form>
+                  {% else %}
+                    <button class="btn btn-secondary btn-block" disabled>
+                      <i class="fas fa-lock mr-2"></i>{{ _('مقفول') }}
+                    </button>
+                  {% endif %}
+                </div>
+              </div>
+            {% endfor %}
+          </div>
+        {% endif %}
+      </div>
+
+      <div class="luxury-card p-4 mb-4">
+        <h3 class="mb-3"><i class="fas fa-tools text-warning mr-2"></i>{{ _('المشاريع والمرافق') }}</h3>
+        <div class="text-muted small mb-3">{{ _('ترقيات دائمة بالماس: تقلل وقت الإنتاج وتزيد فرصة الإنتاج النادر.') }}</div>
+
+        <div class="row">
+          {% for f in facilities %}
+            <div class="col-md-6 mb-3">
+              <div class="p-3 bg-dark rounded border facility-card-border">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                  <div class="h5 m-0">{{ _(f.name) }}</div>
+                  <div class="text-muted">{{ _('Lv') }} {{ f.level }} / {{ f.max_level }}</div>
+                </div>
+
+                <div class="text-muted small">
+                  {{ _('زمن الإنتاج:') }} {{ (f.time_mul * 100) | round(0) }}%
+                  — {{ _('فرصة النادر:') }} {{ (f.rare_chance * 100) | round(0) }}%
+                </div>
+
+                {% if f.daily_perk and f.level >= (f.daily_perk.unlock_level or 0) %}
+                  <form method="POST" action="{{ url_for('farm.use_facility_perk', facility_key=f.key) }}" class="mt-2">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                    <button class="btn btn-outline-success btn-block">
+                      <i class="fas fa-gift mr-2"></i>{{ _('ميزة اليوم (مرة كل 24 ساعة)') }}
+                    </button>
+                  </form>
+                {% endif %}
+
+                {% if f.level >= f.max_level %}
+                  <div class="mt-3 text-success">{{ _('مكتمل التطوير.') }}</div>
+                {% else %}
+                  <div class="mt-3 d-flex justify-content-between align-items-center">
+                    <div class="text-muted small">
+                      {{ _('التطوير القادم:') }} {{ f.next_cost }} 💎
+                      {% if f.req_tier %} — {{ _('يتطلب:') }} {{ f.req_tier }}{% endif %}
+                    </div>
+                  </div>
+                  <form method="POST" action="{{ url_for('farm.upgrade_facility', facility_key=f.key) }}" class="mt-2">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                    <button class="btn btn-outline-warning btn-block" {% if (not f.can_upgrade) or (user.diamonds < f.next_cost) %}disabled{% endif %}>
+                      <i class="fas fa-arrow-up mr-2"></i>{{ _('تطوير بالماس') }}
+                    </button>
+                  </form>
+                {% endif %}
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+
+    <div class="col-lg-4">
+      <div class="luxury-card p-4 mb-4">
+        <h4 class="mb-2"><i class="fas fa-file-contract text-info mr-2"></i>{{ _('عقد توريد') }}</h4>
+        {% if active_contract and active_contract.is_active %}
+          <div class="text-muted small mb-2">{{ _('عقد نشط في مدينة:') }} <span class="text-info">{{ _(active_contract_location.name) if active_contract_location else active_contract.location_id }}</span></div>
+          <div class="text-muted small mb-3">{{ _('زيادة البيع:') }} <span class="text-success">{{ (active_contract.bonus_percent * 100) | round(0) }}%</span></div>
+          <div class="text-muted small">{{ _('ينتهي:') }} {{ active_contract.ends_at }}</div>
+        {% else %}
+          {% if contract_offer %}
+            <div class="text-muted small mb-3">
+              {{ _('يفعل زيادة بيع منتجات المزرعة داخل مدينة تختارها لمدة') }} {{ contract_offer.duration_minutes }} {{ _('دقيقة.') }}
+              <br>
+              {{ _('الزيادة:') }} <span class="text-success">{{ (contract_offer.bonus_percent * 100) | round(0) }}%</span>
+              — {{ _('التكلفة:') }} <span class="text-warning">{{ contract_offer.cost_diamonds }}</span> 💎
+            </div>
+            <form method="POST" action="{{ url_for('farm.buy_contract') }}">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+              <div class="form-group">
+                <select name="location_id" class="form-control bg-dark text-white border-secondary" required>
+                  <option value="">{{ _('اختر مدينة') }}</option>
+                  {% for loc in locations %}
+                    <option value="{{ loc.id }}">{{ _(loc.name) }}</option>
+                  {% endfor %}
+                </select>
+              </div>
+              <button class="btn btn-outline-info btn-block" {% if user.diamonds < contract_offer.cost_diamonds %}disabled{% endif %}>
+                <i class="fas fa-bolt mr-2"></i>{{ _('تفعيل عقد بالماس') }}
+              </button>
+            </form>
+          {% else %}
+            <div class="text-muted small">{{ _('طور مرافقك لفتح عقد التوريد.') }}</div>
+          {% endif %}
+        {% endif %}
+      </div>
+
+      <div class="luxury-card p-4 mb-4">
+        <h4 class="mb-2"><i class="fas fa-map-marked-alt text-warning mr-2"></i>{{ _('نصيحة فلسطينية') }}</h4>
+        <div class="text-muted small">
+          {{ _('ازرع… انتج… وسافر بين المدن لتبيع بسعر أعلى. نابلس والخليل وأريحا لكل واحدة طعمها بالسوق.') }}
+        </div>
+        <hr class="border-secondary">
+        <a href="{{ url_for('black_market.index') }}" class="btn btn-outline-warning btn-block">
+          <i class="fas fa-mask mr-2"></i>{{ _('اذهب للسوق السوداء للبيع') }}
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

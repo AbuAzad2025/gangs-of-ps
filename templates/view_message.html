@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+
+{% block title %}{{ message.subject }}{% endblock %}
+
+{% block extra_css %}
+{% endblock %}
+
+
+{% block content %}
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <div class="mb-3">
+                <a href="{{ url_for('main.messages', box='inbox' if message.receiver_id == current_user.id else 'sent') }}" class="btn btn-outline-light">
+                    <i class="fas fa-arrow-right mr-1"></i> {{ _('عودة للبريد') }}
+                </a>
+            </div>
+            
+            <div class="message-view-card fade-in-up">
+                <div class="message-header">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div class="d-flex align-items-center">
+                            <div class="mr-3">
+                                <img src="{{ url_for('static', filename='avatars/' + (message.sender.avatar if message.sender.avatar else 'default.png')) }}" class="sender-avatar" alt="Avatar">
+                            </div>
+                            <div>
+                                <h4 class="mb-1 text-gold">{{ message.subject }}</h4>
+                                <div class="message-meta">
+                                    <span class="mr-3">
+                                        <i class="fas fa-user mr-1"></i> {{ _('من:') }} 
+                                        <a href="{{ url_for('main.profile', user_id=message.sender.id) }}" class="text-white">{{ message.sender.username }}</a>
+                                    </span>
+                                    <span>
+                                        <i class="far fa-clock mr-1"></i> {{ message.timestamp.strftime('%Y-%m-%d %H:%M') }}
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="btn-group">
+                            {% if message.receiver_id == current_user.id %}
+                            <a href="{{ url_for('main.send_message', to=message.sender.username, subject=message.subject) }}" class="btn btn-warning shadow-sm">
+                                <i class="fas fa-reply mr-1"></i> {{ _('رد') }}
+                            </a>
+                            {% endif %}
+                            <button type="button" class="btn btn-danger shadow-sm" onclick="deleteMessage({{ message.id }})">
+                                <i class="fas fa-trash-alt mr-1"></i> {{ _('حذف') }}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="message-body">
+                    {{ message.body | safe }}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<form id="delete-form" action="" method="post" class="d-none">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+</form>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    function deleteMessage(id) {
+        if(confirm('{{ _('هل أنت متأكد من حذف هذه الرسالة؟') }}')) {
+            var form = document.getElementById('delete-form');
+            form.action = "{{ url_for('main.delete_message', msg_id=0) }}".replace('0', id) + "?box={{ 'inbox' if message.receiver_id == current_user.id else 'sent' }}";
+            form.submit();
+        }
+    }
+</script>
+{% endblock %}

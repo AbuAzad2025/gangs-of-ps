@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card bg-dark border-gold">
+            <div class="card-header border-gold">
+                <h3 class="card-title text-gold">{{ title }}</h3>
+            </div>
+            <div class="card-body">
+                <form method="POST" enctype="multipart/form-data">
+                    {{ form.hidden_tag() }}
+                    
+                    <div class="form-group">
+                        {{ form.symbol.label(class="text-light") }}
+                        {{ form.symbol(class="form-control bg-dark text-light border-secondary") }}
+                        {% for error in form.symbol.errors %}
+                            <span class="text-danger">{{ error }}</span>
+                        {% endfor %}
+                    </div>
+
+                    <div class="form-group">
+                        {{ form.name.label(class="text-light") }}
+                        {{ form.name(class="form-control bg-dark text-light border-secondary") }}
+                        {% for error in form.name.errors %}
+                            <span class="text-danger">{{ error }}</span>
+                        {% endfor %}
+                    </div>
+
+                    <div class="form-group">
+                        {{ form.type.label(class="text-light") }}
+                        {{ form.type(class="form-control bg-dark text-light border-secondary") }}
+                        {% for error in form.type.errors %}
+                            <span class="text-danger">{{ error }}</span>
+                        {% endfor %}
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                {{ form.base_price.label(class="text-light") }}
+                                {{ form.base_price(class="form-control bg-dark text-light border-secondary") }}
+                                {% for error in form.base_price.errors %}
+                                    <span class="text-danger">{{ error }}</span>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                {{ form.volatility.label(class="text-light") }}
+                                {{ form.volatility(class="form-control bg-dark text-light border-secondary") }}
+                                <small class="form-text text-muted">{{ _('نسبة التذبذب (مثال: 5 يعني 5%)') }}</small>
+                                {% for error in form.volatility.errors %}
+                                    <span class="text-danger">{{ error }}</span>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        {{ form.description.label(class="text-light") }}
+                        {{ form.description(class="form-control bg-dark text-light border-secondary", rows=3) }}
+                        {% for error in form.description.errors %}
+                            <span class="text-danger">{{ error }}</span>
+                        {% endfor %}
+                    </div>
+
+                    <div class="form-group form-check">
+                        {{ form.is_active(class="form-check-input") }}
+                        {{ form.is_active.label(class="form-check-label text-light") }}
+                    </div>
+
+                    <div class="form-group mt-4">
+                        {{ form.submit(class="btn btn-gold btn-block font-weight-bold") }}
+                        <a href="{{ url_for('main.dev_market') }}" class="btn btn-secondary btn-block">{{ _('إلغاء') }}</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

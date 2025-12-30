@@ -1,0 +1,103 @@
+{% extends "base.html" %}
+
+{% block title %}{{ _('شراء الماس') }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid position-relative">
+    <!-- Background Pattern -->
+    <div class="diamonds-bg-pattern"></div>
+
+    <div class="row justify-content-center position-relative" style="z-index: 1;">
+        <div class="col-md-10 col-lg-8">
+            <div class="card luxury-card overflow-hidden">
+                <div class="card-header luxury-header-gold text-center">
+                    <h1 class="display-4 mb-0 luxury-title">
+                        <i class="fas fa-gem mr-3"></i> {{ _('متجر الماس') }}
+                    </h1>
+                    <p class="lead text-light mt-2 mb-0">{{ _('استثمر في قوتك وسيطر على العالم السفلي') }}</p>
+                </div>
+                <div class="card-body p-4">
+                    <div class="alert alert-dark border-gold text-center mb-5 shadow-sm">
+                        <i class="fas fa-info-circle text-warning mr-2"></i>
+                        <span class="text-light">{{ _('يرجى تحويل المبلغ المطلوب إلى أحد الحسابات التالية، ثم تعبئة النموذج أسفل الصفحة لتأكيد العملية.') }}</span>
+                    </div>
+
+                    <div class="row text-center mb-5">
+                        <div class="col-md-6 mb-4">
+                            <div class="card h-100 bg-dark border-gold payment-card">
+                                <div class="card-header border-bottom border-warning py-3">
+                                    <h4 class="text-warning mb-0"><i class="fas fa-university mr-2"></i> {{ _('البنك الوطني (TNB)') }}</h4>
+                                </div>
+                                <div class="card-body text-light">
+                                    <p class="mb-2"><strong>{{ _('رقم الحساب:') }}</strong> <span class="text-gold font-weight-bold">37408</span></p>
+                                    <p class="text-break mb-2" style="font-family: monospace; font-size: 0.9rem;"><strong>IBAN:</strong> <span class="text-white-50">PS54 TNBC 0204 0037 4080 0320 0000 0</span></p>
+                                    <p class="mb-0"><strong>{{ _('الاسم:') }}</strong> <span class="text-gold">Ahmad Gh</span></p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6 mb-4">
+                            <div class="card h-100 bg-dark border-gold payment-card">
+                                <div class="card-header border-bottom border-success py-3">
+                                    <h4 class="text-success mb-0"><i class="fas fa-mobile-alt mr-2"></i> {{ _('المحافظ الإلكترونية') }}</h4>
+                                </div>
+                                <div class="card-body text-light">
+                                    <p class="mb-2"><strong>{{ _('جوال باي (Jawwal Pay):') }}</strong> <span class="text-success font-weight-bold">0598953362</span></p>
+                                    <p class="mb-0"><strong>{{ _('رقم التواصل:') }}</strong> <span class="text-white-50">0562150193</span></p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="text-center mb-5">
+                         <a href="https://wa.me/972562150193" target="_blank" class="btn btn-success btn-lg btn-block font-weight-bold hover-scale shadow-lg">
+                            <i class="fab fa-whatsapp fa-lg mr-2"></i> {{ _('تواصل وتأكيد عبر واتساب (+972562150193)') }}
+                        </a>
+                    </div>
+
+                    <hr class="border-gold opacity-50 my-5">
+
+                    <h3 class="text-center gold-text-gradient mb-4">{{ _('نموذج تأكيد التحويل') }}</h3>
+                    <form method="POST" action="" class="luxury-form">
+                        {{ form.hidden_tag() }}
+                        
+                        <div class="form-row">
+                            <div class="form-group col-md-6 mb-4">
+                                {{ form.amount_usd.label(class="form-label text-gold font-weight-bold") }}
+                                <div class="input-group">
+                                    <div class="input-group-prepend">
+                                        <span class="input-group-text bg-dark border-gold text-gold"><i class="fas fa-dollar-sign"></i></span>
+                                    </div>
+                                    {{ form.amount_usd(class="form-select form-control bg-dark text-white border-gold") }}
+                                </div>
+                            </div>
+
+                            <div class="form-group col-md-6 mb-4">
+                                {{ form.payment_method.label(class="form-label text-gold font-weight-bold") }}
+                                <div class="input-group">
+                                    <div class="input-group-prepend">
+                                        <span class="input-group-text bg-dark border-gold text-gold"><i class="fas fa-money-check-alt"></i></span>
+                                    </div>
+                                    {{ form.payment_method(class="form-select form-control bg-dark text-white border-gold") }}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-group mb-4">
+                            {{ form.payment_proof.label(class="form-label text-gold font-weight-bold") }}
+                            {{ form.payment_proof(class="form-control bg-dark text-white border-gold", rows=4, placeholder=_("مثال: تم تحويل 50 شيكل من حساب أحمد ... رقم العملية 12345")) }}
+                            {% for error in form.payment_proof.errors %}
+                                <span class="text-danger mt-2 d-block">{{ error }}</span>
+                            {% endfor %}
+                        </div>
+
+                        <div class="text-center">
+                            {{ form.submit(class="btn btn-primary btn-lg px-5 font-weight-bold hover-scale shine-button", style="background: var(--gold-primary); border: none; color: black;") }}
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

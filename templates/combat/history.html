@@ -1,0 +1,87 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<div class="row justify-content-center">
+    <div class="col-lg-10">
+        <div class="card luxury-card-history">
+            <div class="card-header luxury-header-history">
+                <h3 class="card-title luxury-title-history"><i class="fas fa-history mr-2"></i> {{ _('سجل المعارك') }}</h3>
+                <div class="card-tools">
+                    <a href="{{ url_for('combat.index') }}" class="btn btn-back" title="{{ _('عودة للقتال') }}">
+                        <i class="fas fa-arrow-right ml-1"></i> {{ _('عودة') }}
+                    </a>
+                </div>
+            </div>
+            <div class="card-body p-0">
+                {% if logs %}
+                <div class="table-responsive">
+                    <table class="table luxury-table table-hover">
+                        <thead>
+                            <tr>
+                                <th>{{ _('التاريخ') }}</th>
+                                <th>{{ _('المهاجم') }}</th>
+                                <th>{{ _('المدافع') }}</th>
+                                <th>{{ _('النتيجة') }}</th>
+                                <th>{{ _('الغنائم') }}</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for log in logs %}
+                            <tr class="history-row anim-delay-dynamic" style="--delay: {{ loop.index * 0.1 }}s">
+                                <td><i class="far fa-clock text-muted mr-1"></i> {{ log.timestamp.strftime('%Y-%m-%d %H:%M') }}</td>
+                                <td>
+                                    {% if log.attacker_id == current_user.id %}
+                                        <span class="text-gold font-weight-bold">{{ _('أنت') }}</span>
+                                    {% else %}
+                                        <span class="text-light">{{ log.attacker.username }}</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if log.defender_id == current_user.id %}
+                                        <span class="text-gold font-weight-bold">{{ _('أنت') }}</span>
+                                    {% else %}
+                                        <span class="text-light">{{ log.defender.username }}</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if log.winner_id == current_user.id %}
+                                        <span class="badge badge-win"><i class="fas fa-trophy mr-1"></i> {{ _('انتصار') }}</span>
+                                    {% else %}
+                                        <span class="badge badge-loss"><i class="fas fa-skull mr-1"></i> {{ _('هزيمة') }}</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if log.winner_id == current_user.id %}
+                                        <span class="text-success font-weight-bold">+{{ log.money_stolen }}$</span>
+                                        {% if log.exp_gain > 0 %}
+                                            <span class="text-info ml-1 small">+{{ log.exp_gain }} XP</span>
+                                        {% endif %}
+                                    {% else %}
+                                        {% if log.attacker_id == current_user.id %}
+                                            <span class="text-muted">--</span>
+                                        {% else %}
+                                            <span class="text-danger font-weight-bold">-{{ log.money_stolen }}$</span>
+                                        {% endif %}
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="text-center p-5">
+                    <div class="mb-3">
+                        <i class="fas fa-scroll fa-4x text-muted opacity-30"></i>
+                    </div>
+                    <h5 class="text-muted">{{ _('لا يوجد سجلات معارك حتى الآن.') }}</h5>
+                    <p class="text-muted small">{{ _('ابدأ القتال لتسجيل انتصاراتك هنا!') }}</p>
+                    <a href="{{ url_for('combat.index') }}" class="btn btn-outline-warning mt-3">{{ _('ابحث عن خصم') }}</a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

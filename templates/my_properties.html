@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container-fluid fade-in">
+    <div class="my-properties-header">
+        <h1 class="display-4 font-weight-bold text-uppercase text-white text-shadow-heavy">
+            <i class="fas fa-briefcase mr-3"></i>{{ _('محفظة العقارات') }}
+        </h1>
+        <p class="lead text-white-50">{{ _('إمبراطوريتك العقارية') }}</p>
+        <a href="{{ url_for('economy.properties') }}" class="btn btn-warning mt-3 shine-button">
+            <i class="fas fa-plus mr-2"></i> {{ _('شراء عقار جديد') }}
+        </a>
+    </div>
+
+    {% if assets %}
+    <div class="row">
+        {% for asset in assets %}
+        <div class="col-lg-4 col-md-6 mb-4 fade-in anim-delay-{{ loop.index if loop.index <= 20 else 20 }}">
+            <div class="owned-card">
+                <div class="owned-badge">
+                    <i class="fas fa-check mr-1"></i> {{ _('مملوك') }}
+                </div>
+                
+                <div class="owned-image">
+                    {% if asset.image %}
+                        <img src="{{ url_for('static', filename=asset.image) }}" alt="{{ asset.name }}">
+                    {% else %}
+                        <img src="https://images.unsplash.com/photo-1560518883-ce09059eeffa?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60" alt="Property">
+                    {% endif %}
+                </div>
+
+                <div class="owned-body">
+                    <h3 class="owned-title">{{ asset.name }}</h3>
+                    <div class="owned-value">
+                        <i class="fas fa-tag mr-1"></i> {{ _('القيمة السوقية:') }} {{ "{:,}".format(asset.value) }} $
+                    </div>
+                    
+                    <div class="income-stat">
+                        <span class="income-label"><i class="fas fa-chart-line mr-2"></i>{{ _('الدخل اليومي') }}</span>
+                        <span class="income-value">+{{ "{:,}".format(asset.income) }} $</span>
+                    </div>
+                    
+                    {% if asset.can_collect %}
+                    <form action="{{ url_for('economy.collect_income', asset_id=asset.id) }}" method="POST" class="mt-3">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                        <button type="submit" class="btn btn-success btn-block shine-button">
+                            <i class="fas fa-hand-holding-usd mr-2"></i> {{ _('جمع الدخل') }}
+                        </button>
+                    </form>
+                    {% else %}
+                    <button class="btn btn-outline-secondary btn-block mt-3" disabled>
+                        <i class="fas fa-clock mr-2"></i> {{ _('تم الجمع - انتظر للغد') }}
+                    </button>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="empty-portfolio">
+        <i class="fas fa-city fa-4x text-gold mb-3"></i>
+        <h3 class="text-white">{{ _('ما عندك ولا عقار!') }}</h3>
+        <p class="text-muted mb-4">{{ _('الفلوس بتجيب فلوس، روح اشتريلك كم عقار واستثمر.') }}</p>
+        <a href="{{ url_for('economy.properties') }}" class="btn btn-warning btn-lg shine-button text-dark font-weight-bold">
+            {{ _('الذهاب لسوق العقارات') }}
+        </a>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-10">
+        <div class="luxury-card fade-in-up">
+            <div class="card-header">
+                <h3 class="card-title text-gradient-gold"><i class="fas fa-car mr-2"></i> {{ title }}</h3>
+            </div>
+            <form method="POST" enctype="multipart/form-data">
+                {{ form.hidden_tag() }}
+                <div class="card-body">
+                    <div class="form-group mb-3">
+                        <label class="text-gold">{{ form.name.label }}</label>
+                        {{ form.name(class="form-control form-control-luxury") }}
+                    </div>
+                    <div class="form-group mb-3">
+                        <label class="text-gold">{{ form.type.label }}</label>
+                        {{ form.type(class="form-control form-control-luxury") }}
+                    </div>
+                    <div class="form-group mb-3">
+                        <label class="text-gold">{{ form.description.label }}</label>
+                        {{ form.description(class="form-control form-control-luxury", rows=3) }}
+                    </div>
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="form-group mb-3">
+                                <label class="text-gold">{{ form.price.label }}</label>
+                                {{ form.price(class="form-control form-control-luxury") }}
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-group mb-3">
+                                <label class="text-gold">{{ form.speed.label }}</label>
+                                {{ form.speed(class="form-control form-control-luxury") }}
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-group mb-3">
+                                <label class="text-gold">{{ form.defense.label }}</label>
+                                {{ form.defense(class="form-control form-control-luxury") }}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group mb-3">
+                        <label class="text-gold">{{ form.risk.label }}</label>
+                        {{ form.risk(class="form-control form-control-luxury") }}
+                    </div>
+                    <div class="form-group mb-3">
+                        <label class="text-gold">{{ form.image.label }}</label>
+                        <div class="input-group">
+                            <div class="custom-file">
+                                {{ form.image(class="custom-file-input", id="exampleInputFile") }}
+                                <label class="custom-file-label bg-dark text-light border-secondary" for="exampleInputFile">{{ _('اختر ملف') }}</label>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-check mb-3">
+                        {{ form.is_active(class="form-check-input") }}
+                        <label class="form-check-label text-light">{{ form.is_active.label }}</label>
+                    </div>
+                </div>
+                <div class="card-footer bg-transparent border-top border-secondary">
+                    {{ form.submit(class="btn btn-luxury-action") }}
+                    <a href="{{ url_for('main.dev_vehicles') }}" class="btn btn-outline-secondary float-right">{{ _('إلغاء') }}</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,99 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col-12">
+            <h1 class="h3 mb-0 text-gray-800 luxury-title">{{ _('تحالفات العصابة') }}</h1>
+        </div>
+    </div>
+
+    <!-- Incoming Requests -->
+    <div class="card luxury-card mb-4">
+        <div class="card-header luxury-card-header">
+            <h3 class="card-title luxury-title"><i class="fas fa-inbox mr-2"></i> {{ _('طلبات التحالف الواردة') }}</h3>
+        </div>
+        <div class="card-body">
+            {% if incoming %}
+                <div class="table-responsive">
+                    <table class="table table-luxury table-hover">
+                        <thead>
+                            <tr>
+                                <th>{{ _('العصابة') }}</th>
+                                <th>{{ _('التاريخ') }}</th>
+                                <th>{{ _('إجراءات') }}</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for req in incoming %}
+                            <tr class="invite-row anim-delay-dynamic" style="--delay: {{ loop.index * 0.1 }}s">
+                                <td>{{ req.gang1.name }}</td>
+                                <td>{{ req.created_at.strftime('%Y-%m-%d') }}</td>
+                                <td>
+                                    <form action="{{ url_for('gang.accept_alliance', alliance_id=req.id) }}" method="POST" class="d-inline">
+                                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                                        <button type="submit" class="btn btn-luxury-accept btn-sm">
+                                            <i class="fas fa-check"></i> {{ _('قبول') }}
+                                        </button>
+                                    </form>
+                                    <form action="{{ url_for('gang.reject_alliance', alliance_id=req.id) }}" method="POST" class="d-inline">
+                                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                                        <button type="submit" class="btn btn-luxury-reject btn-sm">
+                                            <i class="fas fa-times"></i> {{ _('رفض') }}
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <p class="text-muted">{{ _('لا توجد طلبات واردة حالياً.') }}</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Active Alliances -->
+    <div class="card luxury-card mb-4">
+        <div class="card-header luxury-card-header">
+            <h3 class="card-title luxury-title"><i class="fas fa-handshake mr-2"></i> {{ _('التحالفات القائمة') }}</h3>
+        </div>
+        <div class="card-body">
+            {% if active %}
+                <div class="row">
+                    {% for ally in active %}
+                        {% set other_gang = ally.gang2 if ally.gang1_id == current_user.gang_id else ally.gang1 %}
+                        <div class="col-md-4 mb-3">
+                            <div class="card luxury-card h-100 invite-row anim-delay-dynamic" style="--delay: {{ loop.index * 0.1 }}s">
+                                <div class="card-body">
+                                    <div class="row no-gutters align-items-center">
+                                        <div class="col mr-2">
+                                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                                                {{ _('حليف') }}</div>
+                                            <div class="h5 mb-0 font-weight-bold text-white">{{ other_gang.name }}</div>
+                                            <div class="text-xs text-muted mt-2">
+                                                {{ _('منذ:') }} {{ ally.created_at.strftime('%Y-%m-%d') }}
+                                            </div>
+                                        </div>
+                                        <div class="col-auto">
+                                            <i class="fas fa-handshake fa-2x text-gold"></i>
+                                        </div>
+                                    </div>
+                                    <hr class="border-white-alpha-10">
+                                    <form action="{{ url_for('gang.reject_alliance', alliance_id=ally.id) }}" method="POST" onsubmit="return confirm('{{ _('هل أنت متأكد من إلغاء التحالف؟') }}')">
+                                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                                        <button type="submit" class="btn btn-luxury-reject btn-sm btn-block">{{ _('إلغاء التحالف') }}</button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <p class="text-muted">{{ _('لا توجد تحالفات نشطة حالياً.') }}</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

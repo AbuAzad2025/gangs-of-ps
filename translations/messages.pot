@@ -1,0 +1,8788 @@
+# Translations template for PROJECT.
+# Copyright (C) 2025 ORGANIZATION
+# This file is distributed under the same license as the PROJECT project.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2025.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PROJECT VERSION\n"
+"Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
+"POT-Creation-Date: 2025-12-25 11:10+0200\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.17.0\n"
+
+#: admin_views.py:14
+msgid "يجب عليك تسجيل الدخول بصلاحيات المسؤول للوصول إلى هذه الصفحة."
+msgstr ""
+
+#: admin_views.py:31 admin_views.py:406 admin_views.py:417 admin_views.py:475
+#: templates/developer/announcements.html:17
+#: templates/developer/edit_announcement.html:14
+#: templates/developer/forum/index.html:26
+msgid "العنوان"
+msgstr ""
+
+#: admin_views.py:32 admin_views.py:431 admin_views.py:476
+#: templates/developer/announcements.html:18
+#: templates/developer/edit_announcement.html:18
+#: templates/forum/create_topic.html:28
+msgid "المحتوى"
+msgstr ""
+
+#: admin_views.py:33 admin_views.py:54 admin_views.py:257 admin_views.py:272
+#: admin_views.py:445 routes/black_market.py:387
+#: templates/developer/announcements.html:31 templates/developer/assets.html:47
+#: templates/developer/crimes.html:51
+#: templates/developer/edit_announcement.html:24
+#: templates/developer/hostesses.html:46
+#: templates/developer/organized_crimes.html:78
+#: templates/developer/tasks.html:40 templates/developer/vehicles.html:49
+msgid "نشط"
+msgstr ""
+
+#: admin_views.py:34 admin_views.py:399 admin_views.py:422 admin_views.py:432
+#: templates/developer/active_lobbies.html:20
+#: templates/developer/announcements.html:20
+msgid "تاريخ الإنشاء"
+msgstr ""
+
+#: admin_views.py:47 templates/developer/edit_user.html:16
+#: templates/developer/logs.html:23
+#: templates/developer/unverified_users.html:19 templates/login.html:259
+#: templates/register.html:96 templates/send_message.html:70
+msgid "اسم المستخدم"
+msgstr ""
+
+#: admin_views.py:48 templates/admin/index.html:236
+#: templates/developer/resurrection_requests.html:20
+#: templates/leaderboard.html:213
+msgid "الرتبة"
+msgstr ""
+
+#: admin_views.py:49 admin_views.py:282 templates/admin/index.html:237
+#: templates/combat/index.html:108 templates/developer/edit_user.html:28
+#: templates/developer/users.html:24 templates/fight.html:211
+#: templates/gang/dashboard.html:128 templates/gang/index.html:121
+#: templates/gang/view.html:127 templates/hara.html:185
+#: templates/leaderboard.html:212 templates/login.html:164
+#: templates/login.html:182 templates/profile.html:367 templates/search.html:49
+#: templates/search.html:85
+msgid "المستوى"
+msgstr ""
+
+#: admin_views.py:50 templates/developer/users.html:26
+#: templates/profile.html:409
+msgid "المال"
+msgstr ""
+
+#: admin_views.py:51 admin_views.py:376 templates/admin/index.html:197
+#: templates/developer/edit_user.html:46 templates/profile.html:423
+msgid "الماس"
+msgstr ""
+
+#: admin_views.py:52
+msgid "الموقع"
+msgstr ""
+
+#: admin_views.py:53 admin_views.py:312 templates/combat/index.html:109
+#: templates/gang/alliances.html:22 templates/gang/invites.html:109
+#: templates/profile.html:465 templates/search.html:51
+msgid "العصابة"
+msgstr ""
+
+#: admin_views.py:55
+msgid "محظور حتى"
+msgstr ""
+
+#: admin_views.py:56 templates/developer/edit_user.html:142
+msgid "سبب الحظر"
+msgstr ""
+
+#: admin_views.py:57 templates/base.html:550
+msgid "المخزون"
+msgstr ""
+
+#: admin_views.py:58 factory.py:277
+msgid "المركبات"
+msgstr ""
+
+#: admin_views.py:59
+msgid "الاستثمارات"
+msgstr ""
+
+#: admin_views.py:66 admin_views.py:173 templates/search.html:51
+msgid "لا يوجد"
+msgstr ""
+
+#: admin_views.py:73
+msgid "خطأ"
+msgstr ""
+
+#: admin_views.py:85
+msgid "لا يمكن حذف قائد العصابة. يرجى نقل القيادة أو حذف العصابة أولاً."
+msgstr ""
+
+#: admin_views.py:142
+#, python-format
+msgid "فشل حذف السجل. %(error)s"
+msgstr ""
+
+#: admin_views.py:149
+msgid "اسم الرتبة"
+msgstr ""
+
+#: admin_views.py:150
+msgid "المستوى الأدنى"
+msgstr ""
+
+#: admin_views.py:151
+msgid "تكلفة الإحياء ($)"
+msgstr ""
+
+#: admin_views.py:152
+msgid "عدد اللاعبين"
+msgstr ""
+
+#: admin_views.py:153
+msgid "لاعبين في هذه الرتبة"
+msgstr ""
+
+#: admin_views.py:191 admin_views.py:217 admin_views.py:240 admin_views.py:486
+#: templates/admin/index.html:235 templates/developer/assets.html:19
+#: templates/developer/crimes.html:19 templates/developer/hostesses.html:19
+#: templates/developer/items.html:19
+#: templates/developer/organized_crimes.html:19
+#: templates/developer/users.html:23 templates/developer/vehicles.html:18
+#: templates/heist_report.html:34
+msgid "الاسم"
+msgstr ""
+
+#: admin_views.py:192 admin_views.py:218 admin_views.py:362 admin_views.py:441
+#: admin_views.py:487 templates/developer/tasks.html:19
+#: templates/gang/dashboard.html:164 templates/market/trade.html:240
+#: templates/market/trade.html:278
+msgid "النوع"
+msgstr ""
+
+#: admin_views.py:193 admin_views.py:219 templates/developer/assets.html:21
+#: templates/developer/hostesses.html:21 templates/developer/items.html:21
+#: templates/developer/vehicles.html:20 templates/market/trade.html:241
+msgid "السعر"
+msgstr ""
+
+#: admin_views.py:194
+msgid "قوة إضافية"
+msgstr ""
+
+#: admin_views.py:195
+msgid "دفاع إضافي"
+msgstr ""
+
+#: admin_views.py:196 templates/developer/items.html:49
+msgid "سوق سوداء"
+msgstr ""
+
+#: admin_views.py:205 admin_views.py:231 admin_views.py:374
+#: templates/admin/index.html:195
+msgid "المستخدم"
+msgstr ""
+
+#: admin_views.py:206
+msgid "الغرض"
+msgstr ""
+
+#: admin_views.py:207 admin_views.py:499 templates/black_market.html:229
+#: templates/black_market.html:349 templates/black_market.html:363
+#: templates/gang/dashboard.html:171 templates/gang/dashboard.html:189
+#: templates/market/trade.html:163 templates/market/trade.html:242
+msgid "الكمية"
+msgstr ""
+
+#: admin_views.py:208 templates/inventory.html:235
+msgid "مجهز"
+msgstr ""
+
+#: admin_views.py:220 templates/dealership.html:204
+#: templates/dealership.html:265 templates/developer/edit_user.html:73
+#: templates/garage.html:211 templates/profile.html:395
+msgid "السرعة"
+msgstr ""
+
+#: admin_views.py:221 templates/dealership.html:213
+#: templates/developer/edit_user.html:67 templates/garage.html:215
+#: templates/gym.html:157 templates/intel_report.html:25
+#: templates/profile.html:388
+msgid "الدفاع"
+msgstr ""
+
+#: admin_views.py:222
+msgid "نسبة الخطر"
+msgstr ""
+
+#: admin_views.py:232
+msgid "المركبة"
+msgstr ""
+
+#: admin_views.py:233
+msgid "مستخدمة حالياً"
+msgstr ""
+
+#: admin_views.py:234 admin_views.py:340 admin_views.py:377 admin_views.py:465
+#: templates/casino/racing/index.html:115
+#: templates/developer/active_lobbies.html:19
+#: templates/developer/announcements.html:19 templates/developer/assets.html:23
+#: templates/developer/crimes.html:23 templates/developer/edit_user.html:80
+#: templates/developer/hostesses.html:23 templates/developer/items.html:23
+#: templates/developer/messages.html:28
+#: templates/developer/organized_crimes.html:25
+#: templates/developer/tasks.html:23 templates/developer/vehicles.html:22
+#: templates/garage.html:221 templates/heist_history.html:27
+msgid "الحالة"
+msgstr ""
+
+#: admin_views.py:241
+msgid "تكلفة السفر"
+msgstr ""
+
+#: admin_views.py:242 templates/gang/organized_crimes.html:140
+msgid "وقت الانتظار"
+msgstr ""
+
+#: admin_views.py:243
+msgid "الميزة الخاصة"
+msgstr ""
+
+#: admin_views.py:251
+msgid "اسم الجريمة"
+msgstr ""
+
+#: admin_views.py:252 templates/developer/crimes.html:21
+msgid "المستوى المطلوب"
+msgstr ""
+
+#: admin_views.py:253
+msgid "الطاقة المطلوبة"
+msgstr ""
+
+#: admin_views.py:254
+msgid "وقت الانتظار (ثواني)"
+msgstr ""
+
+#: admin_views.py:255 admin_views.py:268
+msgid "أقل مكافأة"
+msgstr ""
+
+#: admin_views.py:256 admin_views.py:269
+msgid "أعلى مكافأة"
+msgstr ""
+
+#: admin_views.py:265
+msgid "اسم الجريمة المنظمة"
+msgstr ""
+
+#: admin_views.py:266 templates/gang/organized_crimes.html:134
+msgid "عدد الأعضاء المطلوب"
+msgstr ""
+
+#: admin_views.py:267 templates/organized_crimes.html:71
+msgid "تكلفة الطاقة"
+msgstr ""
+
+#: admin_views.py:270
+msgid "مكافأة الخبرة"
+msgstr ""
+
+#: admin_views.py:271 templates/organized_crimes.html:74
+msgid "الهدنة (ساعات)"
+msgstr ""
+
+#: admin_views.py:273
+msgid "إعدادات الأدوار (JSON)"
+msgstr ""
+
+#: admin_views.py:274
+msgid "المتطلبات (JSON)"
+msgstr ""
+
+#: admin_views.py:280 templates/gang/create.html:82
+#: templates/gang/dashboard.html:320 templates/gang/index.html:120
+msgid "اسم العصابة"
+msgstr ""
+
+#: admin_views.py:281 templates/developer/active_lobbies.html:17
+#: templates/developer/heist_history.html:17 templates/heist_history.html:26
+#: templates/organized_crimes.html:33 templates/search.html:87
+msgid "القائد"
+msgstr ""
+
+#: admin_views.py:283
+msgid "النقاط"
+msgstr ""
+
+#: admin_views.py:284
+msgid "خزينة العصابة"
+msgstr ""
+
+#: admin_views.py:295 admin_views.py:311 admin_views.py:352 admin_views.py:478
+#: templates/admin/index.html:199 templates/developer/logs.html:45
+#: templates/market/trade.html:239
+msgid "الوقت"
+msgstr ""
+
+#: admin_views.py:296 templates/combat/history.html:118
+msgid "المهاجم"
+msgstr ""
+
+#: admin_views.py:297 templates/combat/history.html:119
+msgid "المدافع"
+msgstr ""
+
+#: admin_views.py:298 admin_views.py:452 templates/login.html:216
+msgid "الفائز"
+msgstr ""
+
+#: admin_views.py:299
+msgid "المال المسروق"
+msgstr ""
+
+#: admin_views.py:300
+msgid "الخبرة المكتسبة"
+msgstr ""
+
+#: admin_views.py:313
+msgid "العضو"
+msgstr ""
+
+#: admin_views.py:314 admin_views.py:354
+msgid "الحدث"
+msgstr ""
+
+#: admin_views.py:319 routes/gang.py:52
+msgid "انضم للعصابة عبر دعوة"
+msgstr ""
+
+#: admin_views.py:320 routes/gang.py:89
+msgid "غادر العصابة"
+msgstr ""
+
+#: admin_views.py:321
+msgid "أنشأ العصابة"
+msgstr ""
+
+#: admin_views.py:322
+msgid "طُرد من العصابة"
+msgstr ""
+
+#: admin_views.py:323
+msgid "ترقى لزعيم"
+msgstr ""
+
+#: admin_views.py:324
+msgid "تم تنزيل رتبته"
+msgstr ""
+
+#: admin_views.py:336
+msgid "العصابة 1"
+msgstr ""
+
+#: admin_views.py:337
+msgid "العصابة 2"
+msgstr ""
+
+#: admin_views.py:338
+msgid "نقاط 1"
+msgstr ""
+
+#: admin_views.py:339
+msgid "نقاط 2"
+msgstr ""
+
+#: admin_views.py:341
+msgid "وقت البدء"
+msgstr ""
+
+#: admin_views.py:353 templates/developer/logs.html:42
+msgid "المسؤول"
+msgstr ""
+
+#: admin_views.py:355 templates/developer/logs.html:44
+#: templates/heist_history.html:29
+msgid "التفاصيل"
+msgstr ""
+
+#: admin_views.py:361
+msgid "اسم العقار"
+msgstr ""
+
+#: admin_views.py:363
+msgid "السعر الأساسي"
+msgstr ""
+
+#: admin_views.py:364 templates/my_properties.html:170
+msgid "الدخل اليومي"
+msgstr ""
+
+#: admin_views.py:375
+msgid "المبلغ (دولار)"
+msgstr ""
+
+#: admin_views.py:378 templates/developer/resurrection_requests.html:21
+msgid "تاريخ الطلب"
+msgstr ""
+
+#: admin_views.py:379
+msgid "تم التحقق"
+msgstr ""
+
+#: admin_views.py:386
+msgid "المفتاح"
+msgstr ""
+
+#: admin_views.py:387 templates/market/index.html:108
+msgid "القيمة"
+msgstr ""
+
+#: admin_views.py:388 admin_views.py:407 admin_views.py:440
+#: templates/developer/forum/index.html:27 templates/developer/settings.html:36
+#: templates/developer/tasks.html:18 templates/gang/dashboard.html:327
+msgid "الوصف"
+msgstr ""
+
+#: admin_views.py:395
+msgid "واضع المكافأة"
+msgstr ""
+
+#: admin_views.py:396
+msgid "المستهدف"
+msgstr ""
+
+#: admin_views.py:397 admin_views.py:455 templates/admin/index.html:196
+msgid "المبلغ"
+msgstr ""
+
+#: admin_views.py:398 templates/bounties.html:97 templates/profile.html:493
+msgid "مجهول"
+msgstr ""
+
+#: admin_views.py:408 templates/developer/forum/index.html:25
+msgid "الترتيب"
+msgstr ""
+
+#: admin_views.py:409 templates/developer/forum/index.html:28
+msgid "أقل رتبة"
+msgstr ""
+
+#: admin_views.py:418 templates/forum/index.html:20
+msgid "القسم"
+msgstr ""
+
+#: admin_views.py:419 admin_views.py:430 templates/forum/category.html:28
+msgid "الكاتب"
+msgstr ""
+
+#: admin_views.py:420
+msgid "مثبت"
+msgstr ""
+
+#: admin_views.py:421 routes/forum.py:125 templates/forum/category.html:41
+#: templates/gang/create.html:102 templates/gang/dashboard.html:342
+#: templates/gang/view.html:169
+msgid "مغلق"
+msgstr ""
+
+#: admin_views.py:429 templates/developer/messages.html:26
+#: templates/forum/category.html:27
+msgid "الموضوع"
+msgstr ""
+
+#: admin_views.py:442
+msgid "العدد المطلوب"
+msgstr ""
+
+#: admin_views.py:443
+msgid "مكافأة مالية"
+msgstr ""
+
+#: admin_views.py:444
+msgid "مكافأة خبرة"
+msgstr ""
+
+#: admin_views.py:453
+msgid "الأسبوع"
+msgstr ""
+
+#: admin_views.py:454
+msgid "السنة"
+msgstr ""
+
+#: admin_views.py:456
+msgid "تاريخ الفوز"
+msgstr ""
+
+#: admin_views.py:463 admin_views.py:473 templates/developer/messages.html:24
+msgid "المرسل"
+msgstr ""
+
+#: admin_views.py:464 admin_views.py:474
+msgid "المستلم"
+msgstr ""
+
+#: admin_views.py:466
+msgid "تاريخ الدعوة"
+msgstr ""
+
+#: admin_views.py:477 templates/developer/messages.html:54
+msgid "مقرؤة"
+msgstr ""
+
+#: admin_views.py:485
+msgid "الرمز"
+msgstr ""
+
+#: admin_views.py:488
+msgid "السعر الحالي"
+msgstr ""
+
+#: admin_views.py:489
+msgid "التغير (24س)"
+msgstr ""
+
+#: admin_views.py:490
+msgid "آخر تحديث"
+msgstr ""
+
+#: admin_views.py:497
+msgid "المستثمر"
+msgstr ""
+
+#: admin_views.py:498 templates/market/index.html:107
+msgid "الأصل"
+msgstr ""
+
+#: admin_views.py:500
+msgid "متوسط الشراء"
+msgstr ""
+
+#: decorators.py:16
+msgid "ليس لديك صلاحية للوصول إلى هذه الصفحة."
+msgstr ""
+
+#: dummy_translations.py:4
+msgid "توزيع بضاعة في الحارة"
+msgstr ""
+
+#: dummy_translations.py:5
+msgid "صغيرة واقتصادية"
+msgstr ""
+
+#: dummy_translations.py:6
+msgid "درع خفيف"
+msgstr ""
+
+#: dummy_translations.py:7 routes/travel.py:71
+msgid "أريحا"
+msgstr ""
+
+#: dummy_translations.py:8
+msgid "بيت قديم في القدس"
+msgstr ""
+
+#: dummy_translations.py:9
+msgid "سرقة دراجة هوائية"
+msgstr ""
+
+#: dummy_translations.py:10
+msgid "تهريب كراتين دخان عبر المعبر"
+msgstr ""
+
+#: dummy_translations.py:11
+msgid "AK-47"
+msgstr ""
+
+#: dummy_translations.py:12 routes/travel.py:62
+msgid "جنين"
+msgstr ""
+
+#: dummy_translations.py:13 routes/travel.py:83
+msgid "مدينة السلام، وزينة الميلاد."
+msgstr ""
+
+#: dummy_translations.py:14
+msgid "سرقة صراف آلي"
+msgstr ""
+
+#: dummy_translations.py:15
+msgid "سوبارو ليون 88"
+msgstr ""
+
+#: dummy_translations.py:16
+msgid "سكين مطبخ"
+msgstr ""
+
+#: dummy_translations.py:17
+msgid "عملية سريعة ومربحة لكن خطيرة"
+msgstr ""
+
+#: dummy_translations.py:18 routes/travel.py:47
+msgid "بلد العنب والقدرة الخليلية، ويا هلا بالضيف."
+msgstr ""
+
+#: dummy_translations.py:19
+msgid "شفرة"
+msgstr ""
+
+#: dummy_translations.py:20
+msgid "attack_bonus"
+msgstr ""
+
+#: dummy_translations.py:21 routes/travel.py:20
+msgid "زهرة المدائن، وكعك القدس الزاكي."
+msgstr ""
+
+#: dummy_translations.py:22
+msgid "للاجروح الطارئة"
+msgstr ""
+
+#: dummy_translations.py:23
+msgid "مرسيدس G-Class"
+msgstr ""
+
+#: dummy_translations.py:24
+msgid "income_bonus"
+msgstr ""
+
+#: dummy_translations.py:25
+msgid "مسدس حديث ودقيق"
+msgstr ""
+
+#: dummy_translations.py:26
+msgid "هراوة شرطة"
+msgstr ""
+
+#: dummy_translations.py:27
+msgid "توزيع ممنوعات"
+msgstr ""
+
+#: dummy_translations.py:28 templates/hospital.html:175
+msgid "مشروب طاقة"
+msgstr ""
+
+#: dummy_translations.py:29
+msgid "كيا بيكانتو"
+msgstr ""
+
+#: dummy_translations.py:30 routes/travel.py:17
+msgid "القدس"
+msgstr ""
+
+#: dummy_translations.py:31
+msgid "جنزير"
+msgstr ""
+
+#: dummy_translations.py:32
+msgid "وحش الطريق، هيبة وسرعة"
+msgstr ""
+
+#: dummy_translations.py:33
+msgid "خطف جوال من واحد ماشي بالشارع"
+msgstr ""
+
+#: dummy_translations.py:34
+msgid "شقة في رام الله"
+msgstr ""
+
+#: dummy_translations.py:35
+msgid "السيطرة الكاملة على حي منافس"
+msgstr ""
+
+#: dummy_translations.py:36 routes/travel.py:65
+msgid "عروس مرج ابن عامر، وسلة خضار فلسطين."
+msgstr ""
+
+#: dummy_translations.py:37
+msgid "تحميك من الضربات الخفيفة"
+msgstr ""
+
+#: dummy_translations.py:38
+msgid "نفذ 5 جرائم ناجحة"
+msgstr ""
+
+#: dummy_translations.py:39
+msgid "سرقة هاتف"
+msgstr ""
+
+#: dummy_translations.py:40
+msgid "فيلا في أريحا"
+msgstr ""
+
+#: dummy_translations.py:41
+msgid "jail_reduction"
+msgstr ""
+
+#: dummy_translations.py:42
+msgid "فرض خاوة"
+msgstr ""
+
+#: dummy_translations.py:43
+msgid "سحب الصراف بكامله بواسطة جرافة"
+msgstr ""
+
+#: dummy_translations.py:44
+msgid "بي إم دبليو X6"
+msgstr ""
+
+#: dummy_translations.py:45
+msgid "تكسير وخلع وسرقة كروزات"
+msgstr ""
+
+#: dummy_translations.py:46
+msgid "سلاح محلي الصنع، رخيص ويرش بسرعة"
+msgstr ""
+
+#: dummy_translations.py:47
+msgid "كاسة شاي"
+msgstr ""
+
+#: dummy_translations.py:48
+msgid "M16"
+msgstr ""
+
+#: dummy_translations.py:49
+msgid "شفرة حلاقة حادة، سلاح الفقراء"
+msgstr ""
+
+#: dummy_translations.py:50
+msgid "عدة إسعاف"
+msgstr ""
+
+#: dummy_translations.py:51
+msgid "تويوتا لاند كروزر"
+msgstr ""
+
+#: dummy_translations.py:52
+msgid "defense_bonus"
+msgstr ""
+
+#: dummy_translations.py:53
+msgid "ملك الصحراء والجبال"
+msgstr ""
+
+#: dummy_translations.py:54
+msgid "تعدل المزاج وتعطيك شوية طاقة"
+msgstr ""
+
+#: dummy_translations.py:55 routes/travel.py:80
+msgid "بيت لحم"
+msgstr ""
+
+#: dummy_translations.py:56
+msgid "درع تكتيكي"
+msgstr ""
+
+#: dummy_translations.py:57 routes/travel.py:26
+msgid "غزة"
+msgstr ""
+
+#: dummy_translations.py:58 routes/travel.py:74
+msgid "مدينة القمر والموز، والمشتى الدافي."
+msgstr ""
+
+#: dummy_translations.py:59
+msgid "فز في قتال شوارع"
+msgstr ""
+
+#: dummy_translations.py:60
+msgid "تشغيل سيارة بدون مفتاح وبيعها قطع"
+msgstr ""
+
+#: dummy_translations.py:61
+msgid "سترة جلد"
+msgstr ""
+
+#: dummy_translations.py:62
+msgid "جولف 2"
+msgstr ""
+
+#: dummy_translations.py:63
+msgid "نشل سريع من سائح في البلدة القديمة"
+msgstr ""
+
+#: dummy_translations.py:64
+msgid "سطو على محل مجوهرات"
+msgstr ""
+
+#: dummy_translations.py:65
+msgid "أنت الزعيم، الكل يشتغل عندك"
+msgstr ""
+
+#: dummy_translations.py:66
+msgid "دسمة وتعبي الراس"
+msgstr ""
+
+#: dummy_translations.py:67
+msgid "بيصحصحك بسرعة"
+msgstr ""
+
+#: dummy_translations.py:68
+msgid "تجارة أسلحة"
+msgstr ""
+
+#: dummy_translations.py:69
+msgid "الكلاشنكوف، سلاح الثوار"
+msgstr ""
+
+#: dummy_translations.py:70
+msgid "الدخول بأسلحة وافراغ الخزنة"
+msgstr ""
+
+#: dummy_translations.py:71
+msgid "فلافل"
+msgstr ""
+
+#: dummy_translations.py:72
+msgid "سرقة سيارة مشطوبة"
+msgstr ""
+
+#: dummy_translations.py:73
+msgid "مسدس حلوان"
+msgstr ""
+
+#: dummy_translations.py:74
+msgid "سيارة التكاسي والشركات، قوية"
+msgstr ""
+
+#: dummy_translations.py:75
+msgid "عملية انتحارية ضد قوات الأمن"
+msgstr ""
+
+#: dummy_translations.py:76
+msgid "سرقة كشك سجاير"
+msgstr ""
+
+#: dummy_translations.py:77
+msgid "تهريب دخان"
+msgstr ""
+
+#: dummy_translations.py:78 routes/travel.py:89
+msgid "طولكرم"
+msgstr ""
+
+#: dummy_translations.py:79
+msgid "حمالة الأسية"
+msgstr ""
+
+#: dummy_translations.py:80
+msgid "محل تجاري في نابلس"
+msgstr ""
+
+#: dummy_translations.py:81
+msgid "سترة واقية من الرصاص الخفيف"
+msgstr ""
+
+#: dummy_translations.py:82 routes/travel.py:92
+msgid "بلد الأفراح والمسخن الكرمي الأصلي."
+msgstr ""
+
+#: dummy_translations.py:83
+msgid "سيارة الشباب، سريعة وخفيفة"
+msgstr ""
+
+#: dummy_translations.py:84
+msgid "هيونداي توسان"
+msgstr ""
+
+#: dummy_translations.py:85 routes/travel.py:44
+msgid "الخليل"
+msgstr ""
+
+#: dummy_translations.py:86
+msgid "نقل شحنة عبر الحدود"
+msgstr ""
+
+#: dummy_translations.py:87
+msgid "اختراق أنظمة حكومية"
+msgstr ""
+
+#: dummy_translations.py:88 routes/travel.py:38
+msgid "عاصمة الكنافة النابلسية والصابون البلدي."
+msgstr ""
+
+#: dummy_translations.py:89
+msgid "مازدا 323"
+msgstr ""
+
+#: dummy_translations.py:90
+msgid "كارلو"
+msgstr ""
+
+#: dummy_translations.py:91 routes/travel.py:35
+msgid "نابلس"
+msgstr ""
+
+#: dummy_translations.py:92
+msgid "سطو مسلح على بنك"
+msgstr ""
+
+#: dummy_translations.py:93
+msgid "أفخم ما ركب، دبابة"
+msgstr ""
+
+#: dummy_translations.py:94
+msgid "training_bonus"
+msgstr ""
+
+#: dummy_translations.py:95
+msgid "الأكلة الرسمية، بترجعك وحش"
+msgstr ""
+
+#: dummy_translations.py:96
+msgid "الأسطورة، بتمشي بالصخر"
+msgstr ""
+
+#: dummy_translations.py:97 routes/travel.py:29
+msgid "أحلى سمك وفلفل شطة، وجو بحر ما بزهق."
+msgstr ""
+
+#: dummy_translations.py:98
+msgid "energy_regen"
+msgstr ""
+
+#: dummy_translations.py:99
+msgid "سكودا أوكتافيا"
+msgstr ""
+
+#: dummy_translations.py:100
+msgid "سكين حادة وموجودة في كل بيت"
+msgstr ""
+
+#: dummy_translations.py:101
+msgid "تهريب شحنة مخدرات كبرى"
+msgstr ""
+
+#: dummy_translations.py:102
+msgid "عصا صلبة مسروقة من قمع مظاهرة"
+msgstr ""
+
+#: dummy_translations.py:103
+msgid "تخويف صاحب محل صغير ليدفع المعلوم"
+msgstr ""
+
+#: dummy_translations.py:104
+msgid "اشتر غرض من السوق"
+msgstr ""
+
+#: dummy_translations.py:105
+msgid "نشل محفظة"
+msgstr ""
+
+#: dummy_translations.py:106
+msgid "health_regen"
+msgstr ""
+
+#: dummy_translations.py:107
+msgid "Glock 19"
+msgstr ""
+
+#: dummy_translations.py:108 routes/travel.py:56
+msgid "بوظة ركب والسهرة للصبح، مدينة الحياة."
+msgstr ""
+
+#: dummy_translations.py:109
+msgid "بندقية هجومية قياسية"
+msgstr ""
+
+#: dummy_translations.py:110
+msgid "وجبة شاورما"
+msgstr ""
+
+#: dummy_translations.py:111
+msgid "جنزير حديد للضرب"
+msgstr ""
+
+#: dummy_translations.py:112
+msgid "تدرب 3 مرات في الجيم"
+msgstr ""
+
+#: dummy_translations.py:113
+msgid "سدر منسف"
+msgstr ""
+
+#: dummy_translations.py:114
+msgid "سرقة بيانات حساسة وبيعها"
+msgstr ""
+
+#: dummy_translations.py:115
+msgid "الاستيلاء على حي"
+msgstr ""
+
+#: dummy_translations.py:116
+msgid "قص الجنزير واسحب الدراجة"
+msgstr ""
+
+#: dummy_translations.py:117 routes/travel.py:53
+msgid "رام الله"
+msgstr ""
+
+#: dummy_translations.py:118
+msgid "مسدس قديم لكن فعال"
+msgstr ""
+
+#: dummy_translations.py:119
+msgid "جيب صغير للعيلة"
+msgstr ""
+
+#: dummy_translations.py:120
+msgid "إدارة شبكة دولية"
+msgstr ""
+
+#: dummy_translations.py:121
+msgid "أرض زراعية في جنين"
+msgstr ""
+
+#: dummy_translations.py:122
+msgid "اقتحام المقاطعة"
+msgstr ""
+
+#: dummy_translations.py:123
+msgid "ساندويش فلافل مع طحينية"
+msgstr ""
+
+#: dummy_translations.py:124
+msgid "حماية كاملة للجسم"
+msgstr ""
+
+#: dummy_translations.py:125
+msgid "luck_bonus"
+msgstr ""
+
+#: dummy_translations.py:126
+msgid "بيع قطع سلاح خفيفة للكبار"
+msgstr ""
+
+#: dummy_translations.py:127
+msgid "exp_bonus"
+msgstr ""
+
+#: factory.py:117
+msgid "لقد قُتلت! أنت الآن في المقبرة."
+msgstr ""
+
+#: factory.py:122
+msgid "أنت في المستشفى! عليك العلاج أو الانتظار."
+msgstr ""
+
+#: factory.py:205 templates/admin/index.html:121
+msgid "العودة للحارة"
+msgstr ""
+
+#: factory.py:225
+msgid "تفعيل الجرائم المنظمة"
+msgstr ""
+
+#: factory.py:227
+msgid "السماح لغير الأعضاء في عصابات بالمشاركة"
+msgstr ""
+
+#: factory.py:229
+msgid "أقل مستوى لإنشاء جريمة منظمة"
+msgstr ""
+
+#: factory.py:233 templates/developer/config.html:25
+msgid "تفعيل تداول السبوت"
+msgstr ""
+
+#: factory.py:235 templates/developer/config.html:35
+msgid "تفعيل تداول الفيوتشر"
+msgstr ""
+
+#: factory.py:237 templates/developer/config.html:45
+msgid "تفعيل أوامر الحد (Limit)"
+msgstr ""
+
+#: factory.py:239 templates/developer/config.html:57
+msgid "أقل مبلغ شراء سبوت (USD)"
+msgstr ""
+
+#: factory.py:241 templates/developer/config.html:63
+msgid "الرافعات المسموح بها للفيوتشر"
+msgstr ""
+
+#: factory.py:243 templates/developer/config.html:69
+msgid "فاصل تحديث الأسعار بالثواني"
+msgstr ""
+
+#: factory.py:245 templates/developer/config.html:78
+msgid "تكلفة شراء المعلومة"
+msgstr ""
+
+#: factory.py:249 templates/developer/dashboard.html:139
+msgid "وضع الصيانة"
+msgstr ""
+
+#: factory.py:251
+msgid "رسالة الترحيب"
+msgstr ""
+
+#: factory.py:259
+msgid "العودة للعبة"
+msgstr ""
+
+#: factory.py:260
+msgid "المدفوعات"
+msgstr ""
+
+#: factory.py:260 factory.py:261 factory.py:262 factory.py:263
+msgid "النظام"
+msgstr ""
+
+#: factory.py:261
+msgid "سجل اللعبة"
+msgstr ""
+
+#: factory.py:262 templates/developer/config.html:8
+#: templates/developer/dashboard.html:133 templates/developer/settings.html:8
+msgid "إعدادات النظام"
+msgstr ""
+
+#: factory.py:263
+msgid "الإعلانات"
+msgstr ""
+
+#: factory.py:266 factory.py:267 factory.py:268 factory.py:269
+msgid "المستخدمين"
+msgstr ""
+
+#: factory.py:267
+msgid "رتب اللاعبين"
+msgstr ""
+
+#: factory.py:268 routes/gang.py:21 templates/base.html:601
+#: templates/base.html:717 templates/gang/index.html:103
+#: templates/guide.html:39 templates/hara.html:331 templates/search.html:72
+msgid "العصابات"
+msgstr ""
+
+#: factory.py:269
+msgid "حروب العصابات"
+msgstr ""
+
+#: factory.py:272 templates/base.html:457 templates/base.html:715
+#: templates/hara.html:318
+msgid "الجرائم"
+msgstr ""
+
+#: factory.py:272 factory.py:273 factory.py:274 factory.py:276 factory.py:277
+#: factory.py:278 factory.py:279
+msgid "محتوى اللعبة"
+msgstr ""
+
+#: factory.py:273 templates/base.html:464 templates/gang/dashboard.html:145
+#: templates/gang/organized_crimes.html:114 templates/guide.html:30
+#: templates/organized_crimes.html:3 templates/organized_crimes.html:8
+msgid "الجرائم المنظمة"
+msgstr ""
+
+#: factory.py:274
+msgid "الأغراض"
+msgstr ""
+
+#: factory.py:275
+msgid "مخزون اللاعبين"
+msgstr ""
+
+#: factory.py:275 factory.py:280 factory.py:282 factory.py:283 factory.py:284
+#: factory.py:285 factory.py:286 factory.py:287
+msgid "المراقبة"
+msgstr ""
+
+#: factory.py:276
+msgid "المناطق"
+msgstr ""
+
+#: factory.py:278
+msgid "الممتلكات"
+msgstr ""
+
+#: factory.py:279 templates/base.html:448 templates/daily_tasks.html:84
+msgid "المهام اليومية"
+msgstr ""
+
+#: factory.py:280
+msgid "المكافآت"
+msgstr ""
+
+#: factory.py:282
+msgid "الفائزين"
+msgstr ""
+
+#: factory.py:283
+msgid "سجل القتال"
+msgstr ""
+
+#: factory.py:284
+msgid "سجل العصابات"
+msgstr ""
+
+#: factory.py:285
+msgid "مركبات المستخدمين"
+msgstr ""
+
+#: factory.py:286
+msgid "الإحالات"
+msgstr ""
+
+#: factory.py:287 templates/base.html:573
+msgid "الرسائل"
+msgstr ""
+
+#: factory.py:288
+msgid "الأسهم والعملات"
+msgstr ""
+
+#: factory.py:288 factory.py:289 factory.py:290 factory.py:291
+msgid "الاقتصاد"
+msgstr ""
+
+#: factory.py:289
+msgid "استثمارات اللاعبين"
+msgstr ""
+
+#: factory.py:290
+msgid "أوامر السبوت"
+msgstr ""
+
+#: factory.py:291
+msgid "صفقات الفيوتشر"
+msgstr ""
+
+#: factory.py:294
+msgid "أقسام المنتدى"
+msgstr ""
+
+#: factory.py:294 factory.py:295 factory.py:296 templates/base.html:566
+#: templates/forum/category.html:2 templates/forum/index.html:2
+#: templates/forum/index.html:7 templates/forum/topic.html:2
+msgid "المنتدى"
+msgstr ""
+
+#: factory.py:295 templates/developer/forum/index.html:29
+#: templates/forum/index.html:21
+msgid "المواضيع"
+msgstr ""
+
+#: factory.py:296
+msgid "الردود"
+msgstr ""
+
+#: hostess_data.py:11
+msgid "فاتنة الكازينو. وجودها بجانبك يزيد من حظك في البلاك جاك والروليت."
+msgstr ""
+
+#: hostess_data.py:13
+msgid "أهلاً يا بطل. جاهز نكسر الكازينو اليوم؟"
+msgstr ""
+
+#: hostess_data.py:21
+msgid ""
+"عميلة سابقة. تملك شبكة علاقات تمكنها من معرفة تفاصيل سيارات خصومك في "
+"السباق."
+msgstr ""
+
+#: hostess_data.py:23
+msgid "المعلومات هي القوة. وأنا عندي كل المعلومات."
+msgstr ""
+
+#: hostess_data.py:31
+msgid "خبيرة نفسية. حديثها معك يرفع معنوياتك ويجدد طاقتك."
+msgstr ""
+
+#: hostess_data.py:33
+msgid "لا تدع الضغط يؤثر عليك. تنفس بعمق."
+msgstr ""
+
+#: models/gameplay.py:123
+msgid "إجرام"
+msgstr ""
+
+#: models/gameplay.py:124
+msgid "تمرين"
+msgstr ""
+
+#: models/gameplay.py:125
+msgid "قتال"
+msgstr ""
+
+#: models/gameplay.py:126
+msgid "تسوق"
+msgstr ""
+
+#: models/gameplay.py:142 templates/casino/bar.html:36
+#: templates/intel_center.html:25 templates/intel_center.html:88
+msgid "شيكل"
+msgstr ""
+
+#: models/gameplay.py:144 templates/developer/organized_crimes.html:178
+#: templates/travel.html:210
+msgid "خبرة"
+msgstr ""
+
+#: models/user.py:212 templates/guide.html:85
+msgid "متشرد"
+msgstr ""
+
+#: models/user.py:214 templates/guide.html:86
+msgid "نشال"
+msgstr ""
+
+#: models/user.py:216 templates/guide.html:87
+msgid "لص"
+msgstr ""
+
+#: models/user.py:218 templates/guide.html:88
+msgid "بلطجي"
+msgstr ""
+
+#: models/user.py:220 templates/guide.html:89
+msgid "مجرم"
+msgstr ""
+
+#: models/user.py:222 templates/guide.html:90
+msgid "قاتل مأجور"
+msgstr ""
+
+#: models/user.py:224
+msgid "جندي"
+msgstr ""
+
+#: models/user.py:226 templates/guide.html:92
+msgid "كابتن"
+msgstr ""
+
+#: models/user.py:228 templates/guide.html:93
+msgid "محترف"
+msgstr ""
+
+#: models/user.py:230 templates/guide.html:94
+msgid "مستشار"
+msgstr ""
+
+#: models/user.py:232 templates/guide.html:95
+msgid "وكيل"
+msgstr ""
+
+#: models/user.py:234 templates/guide.html:96
+msgid "زعيم"
+msgstr ""
+
+#: models/user.py:236
+msgid "عراب"
+msgstr ""
+
+#: routes/auth.py:53
+msgid "اسم المستخدم أو كلمة المرور غير صحيحة"
+msgstr ""
+
+#: routes/auth.py:60
+msgid ""
+"يجب عليك تفعيل بريدك الإلكتروني أولاً. تفقد صندوق الوارد أو الرسائل "
+"المزعجة (Spam)."
+msgstr ""
+
+#: routes/auth.py:73
+msgid "لا يوجد سبب محدد"
+msgstr ""
+
+#: routes/auth.py:74
+#, python-format
+msgid "هذا الحساب محظور مؤقتاً حتى %(date)s. السبب: %(reason)s"
+msgstr ""
+
+#: routes/auth.py:80 templates/index.html:255
+msgid "تسجيل الدخول"
+msgstr ""
+
+#: routes/auth.py:96
+msgid "رمز التحقق غير صحيح! حاول مرة أخرى."
+msgstr ""
+
+#: routes/auth.py:97 routes/auth.py:147
+msgid "إنشاء حساب"
+msgstr ""
+
+#: routes/auth.py:141 routes/auth.py:184
+msgid "تفعيل حسابك في Gangs of Palestine"
+msgstr ""
+
+#: routes/auth.py:144
+msgid "تم إنشاء الحساب بنجاح! تم إرسال رابط التفعيل إلى بريدك الإلكتروني."
+msgstr ""
+
+#: routes/auth.py:154
+msgid "رابط التفعيل غير صالح أو منتهي الصلاحية."
+msgstr ""
+
+#: routes/auth.py:160
+msgid "الحساب مفعل مسبقاً! قم بتسجيل الدخول."
+msgstr ""
+
+#: routes/auth.py:165
+msgid "تم تفعيل حسابك بنجاح! شكراً لك."
+msgstr ""
+
+#: routes/auth.py:186
+msgid "تم إعادة إرسال رابط التفعيل إلى بريدك الإلكتروني."
+msgstr ""
+
+#: routes/auth.py:189
+msgid "الرجاء تسجيل الدخول أولاً لإعادة إرسال التفعيل."
+msgstr ""
+
+#: routes/bank.py:26 routes/bank.py:73 routes/bank.py:120
+msgid "أنت في السجن ولا يمكنك استخدام البنك!"
+msgstr ""
+
+#: routes/bank.py:34 routes/bank.py:81 routes/bank.py:128
+msgid "أنت في المستشفى ولا يمكنك استخدام البنك!"
+msgstr ""
+
+#: routes/bank.py:42 routes/bank.py:89 routes/bank.py:136
+msgid "أنت تتدرب ولا يمكنك استخدام البنك!"
+msgstr ""
+
+#: routes/bank.py:48 routes/bank.py:95 routes/bank.py:147 routes/gang.py:391
+#: routes/gang.py:446
+msgid "مبلغ غير صالح!"
+msgstr ""
+
+#: routes/bank.py:52
+msgid "لا تملك مالاً كافياً للإيداع!"
+msgstr ""
+
+#: routes/bank.py:59
+#, python-format
+msgid "تم إيداع %(amount)s في البنك."
+msgstr ""
+
+#: routes/bank.py:99 routes/bank.py:151
+msgid "رصيدك في البنك غير كافٍ!"
+msgstr ""
+
+#: routes/bank.py:106
+#, python-format
+msgid "تم سحب %(amount)s من البنك."
+msgstr ""
+
+#: routes/bank.py:143
+msgid "يجب تحديد اسم المستلم!"
+msgstr ""
+
+#: routes/bank.py:157 routes/bounties.py:39 routes/social.py:112
+msgid "المستخدم غير موجود!"
+msgstr ""
+
+#: routes/bank.py:161
+msgid "لا يمكنك التحويل لنفسك!"
+msgstr ""
+
+#: routes/bank.py:169
+#, python-format
+msgid "تم تحويل %(amount)s إلى %(name)s بنجاح."
+msgstr ""
+
+#: routes/black_market.py:104 routes/black_market.py:145
+msgid "أنت في السجن!"
+msgstr ""
+
+#: routes/black_market.py:107 routes/black_market.py:148
+msgid "أنت في المستشفى!"
+msgstr ""
+
+#: routes/black_market.py:116 routes/black_market.py:162
+msgid "كمية غير صحيحة!"
+msgstr ""
+
+#: routes/black_market.py:123
+msgid "ليس لديك مال كافي!"
+msgstr ""
+
+#: routes/black_market.py:136
+#, python-format
+msgid "تم شراء %(qty)s من %(name)s بسعر %(price)s للقطعة."
+msgstr ""
+
+#: routes/black_market.py:157
+msgid "لا تملك هذا الغرض!"
+msgstr ""
+
+#: routes/black_market.py:175
+#, python-format
+msgid "تم بيع %(qty)s من %(name)s بسعر %(price)s للقطعة. الربح: %(val)s"
+msgstr ""
+
+#: routes/black_market.py:189
+msgid "أنت في السجن ولا يمكنك التعامل مع السوق السوداء!"
+msgstr ""
+
+#: routes/black_market.py:197
+msgid "أنت في المستشفى ولا يمكنك التعامل مع السوق السوداء!"
+msgstr ""
+
+#: routes/black_market.py:205
+msgid "أنت تتدرب ولا يمكنك التعامل مع السوق السوداء!"
+msgstr ""
+
+#: routes/black_market.py:213
+msgid "تحتاج إلى 50,000$ لاستئجار منزل آمن!"
+msgstr ""
+
+#: routes/black_market.py:229
+msgid "تم استئجار المنزل الآمن لمدة 24 ساعة! لا يمكن لأحد مهاجمتك الآن."
+msgstr ""
+
+#: routes/black_market.py:236
+msgid "تحتاج إلى 10,000$ لشراء تنكر!"
+msgstr ""
+
+#: routes/black_market.py:247
+msgid "تم تفعيل التخفي لمدة ساعة! سيظهر اسمك كمجهول عند الهجوم."
+msgstr ""
+
+#: routes/black_market.py:250
+msgid "خدمة غير معروفة!"
+msgstr ""
+
+#: routes/black_market.py:265
+msgid "أنت في السجن ولا يمكنك شراء الرصاص!"
+msgstr ""
+
+#: routes/black_market.py:273
+msgid "أنت في المستشفى ولا يمكنك شراء الرصاص!"
+msgstr ""
+
+#: routes/black_market.py:281
+msgid "أنت تتدرب ولا يمكنك شراء الرصاص!"
+msgstr ""
+
+#: routes/black_market.py:286
+msgid "الكمية غير صحيحة!"
+msgstr ""
+
+#: routes/black_market.py:293 routes/racing.py:31
+msgid "معكش مصاري كفاية!"
+msgstr ""
+
+#: routes/black_market.py:301
+#, python-format
+msgid "تم شراء %(qty)s رصاصة بنجاح!"
+msgstr ""
+
+#: routes/black_market.py:314
+msgid "أنت في السجن ولا يمكنك إرسال مخبرين!"
+msgstr ""
+
+#: routes/black_market.py:322
+msgid "أنت في المستشفى ولا يمكنك إرسال مخبرين!"
+msgstr ""
+
+#: routes/black_market.py:330
+msgid "أنت تتدرب ولا يمكنك إرسال مخبرين!"
+msgstr ""
+
+#: routes/black_market.py:335
+msgid "يرجى إدخال اسم اللاعب!"
+msgstr ""
+
+#: routes/black_market.py:340
+msgid "اللاعب غير موجود!"
+msgstr ""
+
+#: routes/black_market.py:344
+msgid "لا يمكنك التجسس على نفسك!"
+msgstr ""
+
+#: routes/black_market.py:365
+#, python-format
+msgid "تحتاج إلى %(cost)s$ لعملية التجسس هذه!"
+msgstr ""
+
+#: routes/black_market.py:386 routes/combat.py:150 templates/travel.html:130
+msgid "غير معروف"
+msgstr ""
+
+#: routes/black_market.py:387 templates/developer/announcements.html:33
+#: templates/developer/assets.html:49 templates/developer/crimes.html:53
+#: templates/developer/hostesses.html:48
+#: templates/developer/organized_crimes.html:80
+#: templates/developer/tasks.html:42 templates/developer/vehicles.html:51
+msgid "غير نشط"
+msgstr ""
+
+#: routes/black_market.py:390
+msgid "تقرير استخباراتي عن الهدف:"
+msgstr ""
+
+#: routes/black_market.py:392
+msgid "الموقع الحالي:"
+msgstr ""
+
+#: routes/black_market.py:393
+msgid "المنزل الآمن:"
+msgstr ""
+
+#: routes/black_market.py:394 templates/guide.html:134
+msgid "المستوى:"
+msgstr ""
+
+#: routes/black_market.py:395
+msgid "الصحة المقدرة:"
+msgstr ""
+
+#: routes/black_market.py:396
+msgid "الدفاع:"
+msgstr ""
+
+#: routes/black_market.py:397
+msgid "رصاصات للقتل (تقريبي):"
+msgstr ""
+
+#: routes/black_market.py:397 templates/black_market.html:222
+msgid "رصاصة"
+msgstr ""
+
+#: routes/black_market.py:398
+msgid "الكاش:"
+msgstr ""
+
+#: routes/black_market.py:401
+msgid "ملاحظة: هذه المعلومات دقيقة وقت طلب التقرير وقد تتغير."
+msgstr ""
+
+#: routes/black_market.py:408
+#, python-format
+msgid "تقرير سري: %(name)s"
+msgstr ""
+
+#: routes/black_market.py:426
+#, python-format
+msgid "بدأ المخبر العمل. التكلفة: %(cost)s$. سيصل التقرير خلال %(time)s دقيقة."
+msgstr ""
+
+#: routes/black_market.py:437
+msgid "هذا الغرض غير متوفر في السوق السوداء!"
+msgstr ""
+
+#: routes/black_market.py:441 routes/economy.py:79
+msgid "معكش مصاري كفاية يا معلم!"
+msgstr ""
+
+#: routes/black_market.py:459
+#, python-format
+msgid "تم شراء %(name)s من السوق السوداء بنجاح!"
+msgstr ""
+
+#: routes/black_market.py:470 routes/black_market.py:529 routes/gameplay.py:373
+#: routes/gameplay.py:400
+msgid "هذا الغرض ليس ملكك!"
+msgstr ""
+
+#: routes/black_market.py:474
+msgid "لا يمكنك بيع هذا الغرض هنا! فقط المسروقات."
+msgstr ""
+
+#: routes/black_market.py:478
+msgid "لا يمكن بيع مسروقات متضررة! قم بإصلاحها أولاً."
+msgstr ""
+
+#: routes/black_market.py:493
+#, python-format
+msgid "تم بيع %(name)s مقابل %(price)s شيكل."
+msgstr ""
+
+#: routes/black_market.py:506
+msgid "أنت في السجن ولا يمكنك إصلاح المسروقات!"
+msgstr ""
+
+#: routes/black_market.py:514
+msgid "أنت في المستشفى ولا يمكنك إصلاح المسروقات!"
+msgstr ""
+
+#: routes/black_market.py:522
+msgid "أنت تتدرب ولا يمكنك إصلاح المسروقات!"
+msgstr ""
+
+#: routes/black_market.py:532
+msgid "فقط المسروقات يمكن إصلاحها هنا."
+msgstr ""
+
+#: routes/black_market.py:536
+msgid "الغرض سليم ولا يحتاج لإصلاح."
+msgstr ""
+
+#: routes/black_market.py:547
+#, python-format
+msgid "تحتاج %(cost)s شيكل لإصلاح المسروقات!"
+msgstr ""
+
+#: routes/black_market.py:554
+msgid "تم إصلاح المسروقات وأصبحت جاهزة للبيع."
+msgstr ""
+
+#: routes/black_market.py:569
+msgid "لا يوجد مسروقات متضررة لإصلاحها."
+msgstr ""
+
+#: routes/black_market.py:579
+#, python-format
+msgid "تحتاج %(cost)s شيكل لإصلاح كل المسروقات! لديك %(money)s فقط."
+msgstr ""
+
+#: routes/black_market.py:589
+#, python-format
+msgid "تم إصلاح كل المسروقات (%(count)d قطعة) بتكلفة %(cost)s شيكل."
+msgstr ""
+
+#: routes/bounties.py:26
+msgid "يرجى ملء جميع الحقول!"
+msgstr ""
+
+#: routes/bounties.py:30
+msgid "يجب أن يكون المبلغ أكبر من صفر!"
+msgstr ""
+
+#: routes/bounties.py:34 routes/casino.py:88 routes/casino.py:284
+#: routes/casino.py:364
+msgid "ليس لديك مال كافٍ!"
+msgstr ""
+
+#: routes/bounties.py:43
+msgid "لا يمكنك وضع مكافأة على نفسك!"
+msgstr ""
+
+#: routes/bounties.py:59
+msgid "تم وضع المكافأة بنجاح!"
+msgstr ""
+
+#: routes/bounties.py:72
+msgid "أنت في السجن ولا يمكنك إزالة المكافآت!"
+msgstr ""
+
+#: routes/bounties.py:80
+msgid "أنت في المستشفى ولا يمكنك إزالة المكافآت!"
+msgstr ""
+
+#: routes/bounties.py:88
+msgid "أنت تتدرب ولا يمكنك إزالة المكافآت!"
+msgstr ""
+
+#: routes/bounties.py:98
+msgid "يمكنك فقط إزالة المكافآت الموضوعة عليك!"
+msgstr ""
+
+#: routes/bounties.py:102
+msgid "ليس لديك مال كافٍ لإزالة المكافأة!"
+msgstr ""
+
+#: routes/bounties.py:109
+msgid "تمت إزالة المكافأة بنجاح!"
+msgstr ""
+
+#: routes/casino.py:63 routes/casino.py:259
+msgid "أنت في السجن ولا يمكنك اللعب!"
+msgstr ""
+
+#: routes/casino.py:71 routes/casino.py:267
+msgid "أنت في المستشفى ولا يمكنك اللعب!"
+msgstr ""
+
+#: routes/casino.py:79 routes/casino.py:275
+msgid "أنت تتدرب ولا يمكنك اللعب!"
+msgstr ""
+
+#: routes/casino.py:84 routes/casino.py:280 routes/casino.py:360
+msgid "أقل رهان هو 10!"
+msgstr ""
+
+#: routes/casino.py:116
+#, python-format
+msgid "بلاك جاك! ربحت %(amount)s!"
+msgstr ""
+
+#: routes/casino.py:141
+msgid "انتهت البطاقات!"
+msgstr ""
+
+#: routes/casino.py:150
+msgid "تجاوزت 21! خسرت الرهان."
+msgstr ""
+
+#: routes/casino.py:203
+#, python-format
+msgid "الموزع تجاوز 21! ربحت %(amount)s!"
+msgstr ""
+
+#: routes/casino.py:206
+msgid "الموزع فاز! حظاً أوفر."
+msgstr ""
+
+#: routes/casino.py:214
+msgid "المضيفة أنقذتك! استرجعت رهانك."
+msgstr ""
+
+#: routes/casino.py:226
+#, python-format
+msgid "مبروك! ربحت %(amount)s!"
+msgstr ""
+
+#: routes/casino.py:231
+msgid "تعادل! استرجعت رهانك."
+msgstr ""
+
+#: routes/casino.py:305
+msgid "JACKPOT!!! 777"
+msgstr ""
+
+#: routes/casino.py:317
+msgid "تطابق رمزين!"
+msgstr ""
+
+#: routes/casino.py:330
+msgid "المضيفة ابتسمت لك! استرجعت نصف رهانك."
+msgstr ""
+
+#: routes/casino.py:335
+#, python-format
+msgid "ربحت %(amount)s!"
+msgstr ""
+
+#: routes/casino.py:337
+msgid "حظاً أوفر!"
+msgstr ""
+
+#: routes/casino.py:381
+msgid "أخضر"
+msgstr ""
+
+#: routes/casino.py:383 routes/casino.py:385 routes/casino.py:395
+#: templates/casino/roulette.html:33
+msgid "أحمر"
+msgstr ""
+
+#: routes/casino.py:383 routes/casino.py:385 routes/casino.py:399
+#: templates/casino/roulette.html:39
+msgid "أسود"
+msgstr ""
+
+#: routes/casino.py:414
+#, python-format
+msgid "الكرة وقفت على %(num)s (%(col)s). مبروك! ربحت %(win)s!"
+msgstr ""
+
+#: routes/casino.py:422
+#, python-format
+msgid "الكرة وقفت على %(num)s. لكن المضيفة عوضتك بـ %(ref)s!"
+msgstr ""
+
+#: routes/casino.py:426
+#, python-format
+msgid "الكرة وقفت على %(num)s (%(col)s). حظاً أوفر!"
+msgstr ""
+
+#: routes/casino.py:436
+msgid "ويسكي رخيص"
+msgstr ""
+
+#: routes/casino.py:436
+msgid "طعم سيء لكن يفي بالغرض"
+msgstr ""
+
+#: routes/casino.py:437
+msgid "بيرة باردة"
+msgstr ""
+
+#: routes/casino.py:437
+msgid "منعشة في هذا الجو الحار"
+msgstr ""
+
+#: routes/casino.py:438
+msgid "فودكا روسي"
+msgstr ""
+
+#: routes/casino.py:438
+msgid "قوية جداً!"
+msgstr ""
+
+#: routes/casino.py:439
+msgid "كوكتيل الزعيم"
+msgstr ""
+
+#: routes/casino.py:439
+msgid "المشروب المفضل للزعماء. يعيد طاقتك بالكامل!"
+msgstr ""
+
+#: routes/casino.py:453
+msgid "أنت في السجن ولا يمكنك الشرب في البار!"
+msgstr ""
+
+#: routes/casino.py:461
+msgid "أنت في المستشفى ولا يمكنك الشرب في البار!"
+msgstr ""
+
+#: routes/casino.py:469
+msgid "أنت تتدرب ولا يمكنك الشرب في البار!"
+msgstr ""
+
+#: routes/casino.py:484
+msgid "طفرنا! ما معك حق المشروب."
+msgstr ""
+
+#: routes/casino.py:493
+msgid "شربت المشروب! صحتين."
+msgstr ""
+
+#: routes/casino.py:518
+msgid "ما معك كاش يكفي لجلوس مع هذه الجميلة!"
+msgstr ""
+
+#: routes/casino.py:544
+#, python-format
+msgid "تم التعاقد مع %(name)s! ستكون بجانبك لمدة %(min)s دقيقة."
+msgstr ""
+
+#: routes/casino.py:552
+msgid "لم اسمعك جيدا؟"
+msgstr ""
+
+#: routes/casino.py:555
+msgid "عذرا، يجب عليك التعاقد معي اولا."
+msgstr ""
+
+#: routes/casino.py:560 routes/casino.py:567
+msgid "انتهى وقتنا يا عزيزي. جدد العقد اذا اردت المزيد."
+msgstr ""
+
+#: routes/casino.py:571
+msgid "من انت؟"
+msgstr ""
+
+#: routes/combat.py:91
+msgid "أنت في السجن ولا يمكنك القتال!"
+msgstr ""
+
+#: routes/combat.py:99
+msgid "أنت تتدرب ولا يمكنك القتال!"
+msgstr ""
+
+#: routes/combat.py:109
+msgid "انتظر قليلاً قبل الهجوم التالي!"
+msgstr ""
+
+#: routes/combat.py:117
+msgid "لا يمكنك مهاجمة نفسك!"
+msgstr ""
+
+#: routes/combat.py:121
+msgid "صحتك منخفضة جداً للقتال!"
+msgstr ""
+
+#: routes/combat.py:132
+msgid "هذا اللاعب تحت حماية \"العراب\" (لاعب جديد لمدة أسبوع) ولا يمكن مهاجمته!"
+msgstr ""
+
+#: routes/combat.py:145
+msgid ""
+"لا يمكنك الهجوم على هذا اللاعب دون معلومات استخباراتية! استأجر مخبراً من "
+"السوق السوداء أولاً."
+msgstr ""
+
+#: routes/combat.py:151
+#, python-format
+msgid "يجب أن تكون في نفس المدينة لتنفيذ الهجوم! الهدف متواجد في %(city)s."
+msgstr ""
+
+#: routes/combat.py:171
+msgid "تحتاج إلى متفجرات C4 لتفجير المنزل الآمن!"
+msgstr ""
+
+#: routes/combat.py:184
+msgid "تم تفجير المنزل الآمن بنجاح! الهدف مكشوف الآن."
+msgstr ""
+
+#: routes/combat.py:188
+msgid "الهدف يحتمي داخل منزل آمن! تحتاج لتفجيره أولاً باستخدام C4."
+msgstr ""
+
+#: routes/combat.py:197
+msgid "هذا اللاعب في المستشفى حالياً"
+msgstr ""
+
+#: routes/combat.py:206
+msgid "هذا اللاعب في السجن حالياً"
+msgstr ""
+
+#: routes/combat.py:216
+msgid "لا يمكنك مهاجمة عضو في نفس العصابة!"
+msgstr ""
+
+#: routes/combat.py:227
+msgid "لا يمكنك مهاجمة حليف! بينكما معاهدة سلام."
+msgstr ""
+
+#: routes/combat.py:245
+#, python-format
+msgid "ما معك رصاص كافي لسلاحك! تحتاج %(ammo)s رصاصة."
+msgstr ""
+
+#: routes/combat.py:312 routes/gameplay.py:336 routes/gym.py:73
+#, python-format
+msgid "مبروك! وصلت للمستوى %(level)s!"
+msgstr ""
+
+#: routes/combat.py:326
+msgid "لقد قضيت على خصمك وأرسلته للمقبرة!"
+msgstr ""
+
+#: routes/combat.py:340
+#, python-format
+msgid "مبروك! لقد قبضت على مكافآت بقيمة %(amount)s$ كانت على رأس هذا اللاعب!"
+msgstr ""
+
+#: routes/combat.py:356
+msgid "بسبب رتبتك العالية، تسبب قتلك لعضو عصابة أخرى بإعلان الحرب رسمياً!"
+msgstr ""
+
+#: routes/combat.py:366
+#, python-format
+msgid "هاجم %(target)s وكسب %(exp)s خبرة"
+msgstr ""
+
+#: routes/combat.py:368
+msgid "(متخفي)"
+msgstr ""
+
+#: routes/combat.py:379
+msgid "انتصار في حرب العصابات! +1 نقطة"
+msgstr ""
+
+#: routes/combat.py:385
+#, python-format
+msgid "ترقت العصابة للمستوى %(level)s!"
+msgstr ""
+
+#: routes/combat.py:387
+#, python-format
+msgid "مبروك! ترقت عصابتك للمستوى %(level)s!"
+msgstr ""
+
+#: routes/combat.py:405
+#, python-format
+msgid "لقد انتصرت! سرقت %(money)s$ وحصلت على %(exp)s خبرة."
+msgstr ""
+
+#: routes/combat.py:423
+msgid "لقد قُضي عليك وذهبت للمستشفى!"
+msgstr ""
+
+#: routes/combat.py:438
+#, python-format
+msgid "لقد خسرت المعركة! خسرت %(money)s$."
+msgstr ""
+
+#: routes/developer.py:36 templates/developer/dashboard.html:136
+#: templates/developer/messages.html:9
+msgid "إدارة الرسائل"
+msgstr ""
+
+#: routes/developer.py:45
+msgid "تم حذف الرسالة نهائياً."
+msgstr ""
+
+#: routes/developer.py:47
+msgid "الرسالة غير موجودة."
+msgstr ""
+
+#: routes/developer.py:88 templates/base.html:623
+msgid "لوحة المطور"
+msgstr ""
+
+#: routes/developer.py:129
+msgid "تم حفظ المركبة"
+msgstr ""
+
+#: routes/developer.py:140
+msgid "تم حذف المركبة"
+msgstr ""
+
+#: routes/developer.py:168
+msgid "تم حفظ العنصر"
+msgstr ""
+
+#: routes/developer.py:179
+msgid "تم حذف العنصر"
+msgstr ""
+
+#: routes/developer.py:201
+msgid "None"
+msgstr ""
+
+#: routes/developer.py:210
+msgid "تم حفظ الجريمة"
+msgstr ""
+
+#: routes/developer.py:221
+msgid "تم حذف الجريمة"
+msgstr ""
+
+#: routes/developer.py:264
+msgid "صيغة JSON لعلاوات الأدوار يجب أن تكون كائن (Object)."
+msgstr ""
+
+#: routes/developer.py:266
+msgid "صيغة JSON لعلاوات الأدوار غير صالحة. لم يتم تعديل الإعداد."
+msgstr ""
+
+#: routes/developer.py:296
+msgid "تم تحديث إعدادات الجريمة المنظمة"
+msgstr ""
+
+#: routes/developer.py:298
+msgid "تعذر حفظ الإعدادات"
+msgstr ""
+
+#: routes/developer.py:332
+msgid "تم حفظ المضيفة"
+msgstr ""
+
+#: routes/developer.py:343
+msgid "تم حذف المضيفة"
+msgstr ""
+
+#: routes/developer.py:362
+msgid "تم إضافة القسم بنجاح"
+msgstr ""
+
+#: routes/developer.py:364 templates/developer/forum/index.html:11
+msgid "إضافة قسم جديد"
+msgstr ""
+
+#: routes/developer.py:376
+msgid "تم تعديل القسم بنجاح"
+msgstr ""
+
+#: routes/developer.py:378
+msgid "تعديل القسم"
+msgstr ""
+
+#: routes/developer.py:387
+msgid "تم حذف القسم بنجاح"
+msgstr ""
+
+#: routes/developer.py:395 templates/developer/dashboard.html:126
+msgid "إدارة الحسابات غير المفعلة"
+msgstr ""
+
+#: routes/developer.py:402
+msgid "المستخدم غير موجود"
+msgstr ""
+
+#: routes/developer.py:409
+msgid "تم تفعيل حساب المستخدم بنجاح"
+msgstr ""
+
+#: routes/developer.py:413
+msgid "تم حذف حساب المستخدم"
+msgstr ""
+
+#: routes/developer.py:415
+msgid "إجراء غير معروف"
+msgstr ""
+
+#: routes/developer.py:443
+#, python-format
+msgid "تم إضافة %(count)d مستخدمين وهميين بنجاح"
+msgstr ""
+
+#: routes/developer.py:451 templates/developer/dashboard.html:127
+#: templates/developer/resurrection_requests.html:6
+msgid "طلبات الإحياء"
+msgstr ""
+
+#: routes/developer.py:458
+msgid "الطلب غير موجود"
+msgstr ""
+
+#: routes/developer.py:472
+msgid "تم قبول طلب الإحياء"
+msgstr ""
+
+#: routes/developer.py:473
+msgid "تم قبول طلب الإحياء الخاص بك. لقد عدت للحياة بصحة كاملة!"
+msgstr ""
+
+#: routes/developer.py:478
+msgid "تم قبول الطلب وإحياء اللاعب"
+msgstr ""
+
+#: routes/developer.py:488
+msgid "تم رفض طلب الإحياء"
+msgstr ""
+
+#: routes/developer.py:489
+msgid "نأسف، تم رفض طلب الإحياء الخاص بك."
+msgstr ""
+
+#: routes/developer.py:494
+msgid "تم رفض الطلب"
+msgstr ""
+
+#: routes/economy.py:27
+msgid "أنت في السجن ولا يمكنك جمع الإيجارات!"
+msgstr ""
+
+#: routes/economy.py:35
+msgid "أنت في المستشفى ولا يمكنك جمع الإيجارات!"
+msgstr ""
+
+#: routes/economy.py:43
+msgid "أنت تتدرب ولا يمكنك جمع الإيجارات!"
+msgstr ""
+
+#: routes/economy.py:51
+msgid "هذا العقار ليس ملكك!"
+msgstr ""
+
+#: routes/economy.py:55
+msgid "لم يحن موعد جمع الدخل بعد!"
+msgstr ""
+
+#: routes/economy.py:63
+#, python-format
+msgid "تم جمع الدخل %(amount)s $ من %(name)s بنجاح!"
+msgstr ""
+
+#: routes/economy.py:75 routes/economy.py:119
+msgid "هذا العقار مملوك بالفعل!"
+msgstr ""
+
+#: routes/economy.py:99
+#, python-format
+msgid "مبروك! اشتريت %(name)s بنجاح."
+msgstr ""
+
+#: routes/economy.py:106
+msgid "أنت لست في عصابة!"
+msgstr ""
+
+#: routes/economy.py:111
+msgid "فقط الزعيم يمكنه شراء ممتلكات للعصابة!"
+msgstr ""
+
+#: routes/economy.py:123
+msgid "خزينة العصابة لا تكفي!"
+msgstr ""
+
+#: routes/economy.py:141
+#, python-format
+msgid "مبروك! تم شراء %(name)s للعصابة."
+msgstr ""
+
+#: routes/forum.py:25
+msgid "عذراً، لا تملك الصلاحية لدخول هذا القسم."
+msgstr ""
+
+#: routes/forum.py:47
+msgid "هذا الموضوع مغلق ولا يمكن الرد عليه."
+msgstr ""
+
+#: routes/forum.py:57
+msgid "تم إضافة ردك بنجاح!"
+msgstr ""
+
+#: routes/forum.py:92
+msgid "تم إنشاء الموضوع بنجاح!"
+msgstr ""
+
+#: routes/forum.py:110
+msgid "تم حذف الموضوع بنجاح"
+msgstr ""
+
+#: routes/forum.py:125 templates/gang/view.html:167
+msgid "مفتوح"
+msgstr ""
+
+#: routes/forum.py:126
+#, python-format
+msgid "تم تغيير حالة الموضوع إلى %(status)s"
+msgstr ""
+
+#: routes/forum.py:141
+msgid "مُثبت"
+msgstr ""
+
+#: routes/forum.py:141
+msgid "غير مُثبت"
+msgstr ""
+
+#: routes/forum.py:142
+#, python-format
+msgid "تم تغيير حالة تثبيت الموضوع إلى %(status)s"
+msgstr ""
+
+#: routes/forum.py:159
+msgid "تم حذف الرد بنجاح"
+msgstr ""
+
+#: routes/gameplay.py:20
+msgid "الجرائم المنظمة غير مفعلة حالياً."
+msgstr ""
+
+#: routes/gameplay.py:75
+msgid "هذه المهمة ليست لك!"
+msgstr ""
+
+#: routes/gameplay.py:79
+msgid "تم استلام المكافأة مسبقاً."
+msgstr ""
+
+#: routes/gameplay.py:83
+msgid "لم تكمل المهمة بعد!"
+msgstr ""
+
+#: routes/gameplay.py:95
+#, python-format
+msgid "مبروك! حصلت على المكافأة: %(money)s شيكل و %(exp)s خبرة."
+msgstr ""
+
+#: routes/gameplay.py:117
+#, python-format
+msgid "لسه بدري يا كبير! ارجع بعد %(hours)s ساعة و %(minutes)s دقيقة."
+msgstr ""
+
+#: routes/gameplay.py:132
+#, python-format
+msgid "أخذت مكافأتك اليومية: %(money)s شيكل و %(energy)s طاقة!"
+msgstr ""
+
+#: routes/gameplay.py:181
+msgid "أنت في السجن ولا يمكنك القيام بجرائم!"
+msgstr ""
+
+#: routes/gameplay.py:189
+msgid "أنت في المستشفى ولا يمكنك القيام بجرائم!"
+msgstr ""
+
+#: routes/gameplay.py:197
+msgid "أنت تتدرب في الجيم ولا يمكنك القيام بجرائم!"
+msgstr ""
+
+#: routes/gameplay.py:206
+msgid "مستواك لا يسمح بتنفيذ هذه الجريمة بعد!"
+msgstr ""
+
+#: routes/gameplay.py:210
+#, python-format
+msgid "عضلاتك ضعيفة! تحتاج قوة %(str)s لتنفيذ هذه الجريمة"
+msgstr ""
+
+#: routes/gameplay.py:214
+#, python-format
+msgid "حركتك بطيئة! تحتاج خفة حركة %(agl)s لتنفيذ هذه الجريمة"
+msgstr ""
+
+#: routes/gameplay.py:219 routes/gameplay.py:465 routes/gameplay.py:544
+msgid "ما عندك طاقة كافية!"
+msgstr ""
+
+#: routes/gameplay.py:232
+#, python-format
+msgid "عليك الانتظار %(time)s ثانية قبل القيام بهذه الجريمة مرة أخرى!"
+msgstr ""
+
+#: routes/gameplay.py:287
+#, python-format
+msgid ""
+"كفو! سرقت %(name)s ولكن حالتها تعبانة (%(cond)s%%). لازم تصلحها قبل ما "
+"تستخدمها."
+msgstr ""
+
+#: routes/gameplay.py:292
+msgid "للأسف لم تجد سيارة مناسبة لسرقتها، لكنك وجدت بعض المال."
+msgstr ""
+
+#: routes/gameplay.py:328
+#, python-format
+msgid "لقيت %(item)s أثناء الجريمة!"
+msgstr ""
+
+#: routes/gameplay.py:342
+#, python-format
+msgid "عملية ناجحة! كسبت %(money)s شيكل و %(exp)s خبرة."
+msgstr ""
+
+#: routes/gameplay.py:354
+msgid "فشلت الجريمة والشرطة تلاحقك! اهرب بسرعة!"
+msgstr ""
+
+#: routes/gameplay.py:389
+#, python-format
+msgid "تم تجهيز %(item)s."
+msgstr ""
+
+#: routes/gameplay.py:404
+msgid "هذا الغرض غير مجهز أصلاً."
+msgstr ""
+
+#: routes/gameplay.py:410
+#, python-format
+msgid "تم خلع %(name)s."
+msgstr ""
+
+#: routes/gameplay.py:430
+msgid "أنت في السجن ولا يمكنك إجراء تحريات!"
+msgstr ""
+
+#: routes/gameplay.py:438
+msgid "أنت في المستشفى ولا يمكنك إجراء تحريات!"
+msgstr ""
+
+#: routes/gameplay.py:446
+msgid "أنت تتدرب ولا يمكنك إجراء تحريات!"
+msgstr ""
+
+#: routes/gameplay.py:453 routes/gameplay.py:533
+msgid "لم يتم العثور على هذا اللاعب!"
+msgstr ""
+
+#: routes/gameplay.py:457
+msgid "بدك تتجسس على حالك يا عبيط؟"
+msgstr ""
+
+#: routes/gameplay.py:469
+msgid "ما معك كاش كافي! العملية بدها 500 شيكل."
+msgstr ""
+
+#: routes/gameplay.py:507
+msgid "تطورت مهاراتك الاستخباراتية! (+1 ذكاء)"
+msgstr ""
+
+#: routes/gameplay.py:510
+msgid "تمت العملية بنجاح! جاري عرض التقرير..."
+msgstr ""
+
+#: routes/gameplay.py:523
+msgid "فشلت العملية! كشفوك وهربت بصعوبة."
+msgstr ""
+
+#: routes/gameplay.py:537
+msgid "بدك تسرق حالك؟"
+msgstr ""
+
+#: routes/gameplay.py:552
+msgid "نظام الحماية عنده قوي جداً! فشلت العملية."
+msgstr ""
+
+#: routes/gameplay.py:578
+msgid "تطورت مهارتك في القرصنة! (+1 ذكاء)"
+msgstr ""
+
+#: routes/gameplay.py:581
+#, python-format
+msgid "تم اختراق الحساب! سرقت %(amount)s شيكل من %(user)s"
+msgstr ""
+
+#: routes/gameplay.py:584
+msgid "فشل الاختراق! الحماية كشفتك."
+msgstr ""
+
+#: routes/gameplay.py:596
+msgid "تحتاج 50 طاقة لقرصنة البنك!"
+msgstr ""
+
+#: routes/gameplay.py:603
+msgid "ذكاؤك لا يكفي لاختراق البنك المركزي! تحتاج 50 ذكاء على الأقل."
+msgstr ""
+
+#: routes/gameplay.py:617
+#, python-format
+msgid "عملية أسطورية! اخترقت البنك وسرقت %(amt)s شيكل!"
+msgstr ""
+
+#: routes/gameplay.py:620
+msgid "نظام الحماية كشفك! هربت بأعجوبة ولم تحصل على شيء."
+msgstr ""
+
+#: routes/gameplay.py:629 routes/gameplay.py:730 routes/gameplay.py:787
+#: routes/gameplay.py:951
+msgid "يجب تفعيل الحساب قبل المشاركة في الجرائم المنظمة."
+msgstr ""
+
+#: routes/gameplay.py:639 routes/gameplay.py:797
+msgid "أنت في السجن ولا يمكنك المشاركة في الجرائم!"
+msgstr ""
+
+#: routes/gameplay.py:647 routes/gameplay.py:805
+msgid "أنت في المستشفى ولا يمكنك المشاركة في الجرائم!"
+msgstr ""
+
+#: routes/gameplay.py:655 routes/gameplay.py:813
+msgid "أنت تتدرب في الجيم ولا يمكنك المشاركة في الجرائم!"
+msgstr ""
+
+#: routes/gameplay.py:664
+#, python-format
+msgid ""
+"عليك الانتظار %(hours)s ساعة و %(minutes)s دقيقة قبل المشاركة في جريمة "
+"منظمة أخرى!"
+msgstr ""
+
+#: routes/gameplay.py:674 routes/gameplay.py:829
+msgid "أنت مشارك بالفعل في جريمة منظمة أخرى!"
+msgstr ""
+
+#: routes/gameplay.py:686
+msgid "رتبتك لا تسمح بإنشاء مجموعة!"
+msgstr ""
+
+#: routes/gameplay.py:690 routes/gang.py:526
+msgid "لا تملك طاقة كافية لبدء العملية."
+msgstr ""
+
+#: routes/gameplay.py:723
+msgid "تم إنشاء المجموعة بنجاح!"
+msgstr ""
+
+#: routes/gameplay.py:819
+msgid "أنت في فترة انتظار (Cooldown)!"
+msgstr ""
+
+#: routes/gameplay.py:834
+msgid "المجموعة غير متاحة!"
+msgstr ""
+
+#: routes/gameplay.py:842
+msgid "المجموعة ممتلئة!"
+msgstr ""
+
+#: routes/gameplay.py:851
+msgid "هذا الدور مأخوذ بالفعل!"
+msgstr ""
+
+#: routes/gameplay.py:863
+msgid "تم الانضمام للمجموعة!"
+msgstr ""
+
+#: routes/gameplay.py:881
+msgid "تم حل المجموعة لأن القائد غادر."
+msgstr ""
+
+#: routes/gameplay.py:944
+#, python-format
+msgid "انسحبت من المجموعة وتكبدت خسائر: -%(m)s$، -%(xp)s XP، -%(en)s طاقة."
+msgstr ""
+
+#: routes/gameplay.py:960
+msgid "العدد غير مكتمل!"
+msgstr ""
+
+#: routes/gameplay.py:964
+msgid "جميع الأعضاء يجب أن يكونوا مستعدين!"
+msgstr ""
+
+#: routes/gameplay.py:978
+#, python-format
+msgid "لا يمكن بدء العملية! العضو %(user)s في السجن."
+msgstr ""
+
+#: routes/gameplay.py:987
+#, python-format
+msgid "لا يمكن بدء العملية! العضو %(user)s في المستشفى."
+msgstr ""
+
+#: routes/gameplay.py:996
+#, python-format
+msgid "لا يمكن بدء العملية! العضو %(user)s يتدرب في الجيم."
+msgstr ""
+
+#: routes/gameplay.py:1007
+#, python-format
+msgid "يجب التخطيط جيداً! انتظروا %(sec)s ثانية للمراجعة قبل البدء."
+msgstr ""
+
+#: routes/gameplay.py:1028
+#, python-format
+msgid ""
+"تحتاجون إلى \"%(item)s\" لتنفيذ هذه العملية! يمكنكم شراؤها من السوق "
+"السوداء."
+msgstr ""
+
+#: routes/gameplay.py:1055
+#, python-brace-format
+msgid "تم استخدام {item} من قبل {user}."
+msgstr ""
+
+#: routes/gameplay.py:1070
+#, python-brace-format
+msgid "استهلك {user} أداة {item} للدور."
+msgstr ""
+
+#: routes/gameplay.py:1075
+#, python-brace-format
+msgid "بدأت عملية {crime} بقيادة {leader}..."
+msgstr ""
+
+#: routes/gameplay.py:1095
+#, python-brace-format
+msgid "✅ {role} ({user}): أدى دوره بذكاء خارق! (+{bonus}%)"
+msgstr ""
+
+#: routes/gameplay.py:1098
+#, python-brace-format
+msgid "⚠️ {role} ({user}): واجه صعوبات تقنية. (-10%)"
+msgstr ""
+
+#: routes/gameplay.py:1106
+#, python-brace-format
+msgid "💪 {role} ({user}): سيطر على الوضع بقوة! (+{bonus}%)"
+msgstr ""
+
+#: routes/gameplay.py:1109
+#, python-brace-format
+msgid "⚠️ {role} ({user}): لم يستطع كسر الدفاعات بسرعة. (-10%)"
+msgstr ""
+
+#: routes/gameplay.py:1117
+#, python-brace-format
+msgid "🚗 {role} ({user}): قاد الفريق ببراعة وسرعة! (+{bonus}%)"
+msgstr ""
+
+#: routes/gameplay.py:1120
+#, python-brace-format
+msgid "⚠️ {role} ({user}): تأخر في الوصول لنقطة الهروب. (-10%)"
+msgstr ""
+
+#: routes/gameplay.py:1130
+msgid "🚨 كارثة! الشرطة نصبت كميناً محكماً! (-15%)"
+msgstr ""
+
+#: routes/gameplay.py:1136
+#, python-brace-format
+msgid "🚑 {user} أصيب بطلق ناري! تم نقله للمستشفى."
+msgstr ""
+
+#: routes/gameplay.py:1140
+msgid "🍀 حظ لا يصدق: وجدتم باباً خلفياً مفتوحاً! (+15%)"
+msgstr ""
+
+#: routes/gameplay.py:1162
+#, python-brace-format
+msgid "🚨 حرارة الساحة مرتفعة: فرص النجاح انخفضت بنسبة {pct}%"
+msgstr ""
+
+#: routes/gameplay.py:1175
+msgid "🚓 دورية مزدوجة في المنطقة! انخفضت فرص النجاح وزادت المخاطر."
+msgstr ""
+
+#: routes/gameplay.py:1181
+#, python-brace-format
+msgid "--- النتيجة النهائية: نسبة النجاح {prob}% (الرقم العشوائي: {roll}) ---"
+msgstr ""
+
+#: routes/gameplay.py:1202
+msgid "🎁 مفاجأة نادرة! حصل الفريق على مكافآت إضافية بفضل فرصة ذهبية."
+msgstr ""
+
+#: routes/gameplay.py:1210
+#, python-brace-format
+msgid "💰 نجحت العملية! الغنيمة الكلية: {money} شيكل."
+msgstr ""
+
+#: routes/gameplay.py:1231
+#, python-format
+msgid "🏅 دور %(role)s منح مكافأة خاصة لعضو: +%(m)s مال، +%(e)s خبرة"
+msgstr ""
+
+#: routes/gameplay.py:1253
+#, python-brace-format
+msgid "🔥 سلسلة انتصارات: مكافآت إضافية بنسبة {pct}% للاعب {user}"
+msgstr ""
+
+#: routes/gameplay.py:1283
+#, python-brace-format
+msgid "👑 القائد {user} حصل على مكافأة إضافية: {bonus} شيكل."
+msgstr ""
+
+#: routes/gameplay.py:1286
+msgid "❌ فشلت العملية! الفوضى عارمة."
+msgstr ""
+
+#: routes/gameplay.py:1321
+#, python-brace-format
+msgid "👮 {user} تم القبض عليه! ({time} دقيقة سجن)"
+msgstr ""
+
+#: routes/gameplay.py:1328
+#, python-brace-format
+msgid "🚔 {user} الشرطة تطاردك! استعد للهروب!"
+msgstr ""
+
+#: routes/gameplay.py:1330
+#, python-brace-format
+msgid "🏃 {user} تمكن من الهروب بأعجوبة."
+msgstr ""
+
+#: routes/gang.py:27 templates/gang/index.html:106
+#: templates/gang/invites.html:101
+msgid "دعوات الانضمام"
+msgstr ""
+
+#: routes/gang.py:36 routes/gang.py:66
+msgid "هذه الدعوة ليست لك!"
+msgstr ""
+
+#: routes/gang.py:40 routes/gang.py:126 routes/gang.py:196
+msgid "أنت بالفعل عضو في عصابة!"
+msgstr ""
+
+#: routes/gang.py:46 routes/gang.py:225
+msgid "العصابة ممتلئة!"
+msgstr ""
+
+#: routes/gang.py:56 routes/gang.py:236
+msgid "تم الانضمام للعصابة بنجاح!"
+msgstr ""
+
+#: routes/gang.py:72
+msgid "تم رفض الدعوة."
+msgstr ""
+
+#: routes/gang.py:84
+msgid "لا يمكنك مغادرة العصابة وأنت الزعيم! يجب عليك نقل الزعامة أو حل العصابة."
+msgstr ""
+
+#: routes/gang.py:93
+msgid "لقد غادرت العصابة."
+msgstr ""
+
+#: routes/gang.py:106
+msgid "أنت في السجن ولا يمكنك إنشاء عصابة!"
+msgstr ""
+
+#: routes/gang.py:114
+msgid "أنت في المستشفى ولا يمكنك إنشاء عصابة!"
+msgstr ""
+
+#: routes/gang.py:122
+msgid "أنت تتدرب ولا يمكنك إنشاء عصابة!"
+msgstr ""
+
+#: routes/gang.py:136
+msgid "اسم العصابة مطلوب"
+msgstr ""
+
+#: routes/gang.py:140
+msgid "هذا الاسم مستخدم من قبل"
+msgstr ""
+
+#: routes/gang.py:144
+#, python-format
+msgid "لا تملك كاش كافي لإنشاء عصابة! المطلوب: %(cost)s"
+msgstr ""
+
+#: routes/gang.py:161
+msgid "تم إنشاء العصابة بنجاح!"
+msgstr ""
+
+#: routes/gang.py:164 templates/gang/index.html:109
+msgid "إنشاء عصابة"
+msgstr ""
+
+#: routes/gang.py:176
+msgid "أنت في السجن ولا يمكنك الانضمام لعصابة!"
+msgstr ""
+
+#: routes/gang.py:184
+msgid "أنت في المستشفى ولا يمكنك الانضمام لعصابة!"
+msgstr ""
+
+#: routes/gang.py:192
+msgid "أنت تتدرب ولا يمكنك الانضمام لعصابة!"
+msgstr ""
+
+#: routes/gang.py:205
+msgid "هذه العصابة لا تقبل أعضاء جدد حالياً."
+msgstr ""
+
+#: routes/gang.py:209
+msgid "الانضمام لهذه العصابة يتطلب دعوة خاصة."
+msgstr ""
+
+#: routes/gang.py:213
+#, python-format
+msgid "مستواك أقل من الحد الأدنى المطلوب للانضمام (مستوى %(level)s)."
+msgstr ""
+
+#: routes/gang.py:219
+msgid "هذه العصابة تقبل أعضاء من دول محددة فقط."
+msgstr ""
+
+#: routes/gang.py:250
+msgid "أنت في السجن ولا يمكنك طرد الأعضاء!"
+msgstr ""
+
+#: routes/gang.py:258
+msgid "أنت في المستشفى ولا يمكنك طرد الأعضاء!"
+msgstr ""
+
+#: routes/gang.py:266
+msgid "أنت تتدرب ولا يمكنك طرد الأعضاء!"
+msgstr ""
+
+#: routes/gang.py:274
+msgid "ليس لديك صلاحية لطرد الأعضاء."
+msgstr ""
+
+#: routes/gang.py:282
+msgid "هذا اللاعب ليس في عصابتك."
+msgstr ""
+
+#: routes/gang.py:286
+msgid "لا يمكنك طرد الزعيم!"
+msgstr ""
+
+#: routes/gang.py:290
+msgid "لا يمكنك طرد النائب!"
+msgstr ""
+
+#: routes/gang.py:300
+#, python-format
+msgid "خزينة العصابة لا تكفي لدفع مستحقات الطرد! (%(cost)s$)"
+msgstr ""
+
+#: routes/gang.py:314
+msgid "تم طرد العضو ودفع المستحقات. خسرت العصابة بعض الخبرة."
+msgstr ""
+
+#: routes/gang.py:321 routes/gang.py:477
+msgid "لست عضواً في أي عصابة!"
+msgstr ""
+
+#: routes/gang.py:359
+msgid "فقط الزعيم يمكنه إعلان الحرب"
+msgstr ""
+
+#: routes/gang.py:372
+msgid "أنتم بالفعل في حرب مع هذه العصابة!"
+msgstr ""
+
+#: routes/gang.py:379
+#, python-format
+msgid "أعلن الحرب على %(gang)s"
+msgstr ""
+
+#: routes/gang.py:383
+#, python-format
+msgid "تم إعلان الحرب على %(name)s!"
+msgstr ""
+
+#: routes/gang.py:395
+msgid "لا تملك هذا المبلغ!"
+msgstr ""
+
+#: routes/gang.py:399
+msgid "لست في عصابة!"
+msgstr ""
+
+#: routes/gang.py:408
+#, python-format
+msgid "تبرع بـ %(amount)s$"
+msgstr ""
+
+#: routes/gang.py:412
+#, python-format
+msgid "تم التبرع بـ %(amount)s$ لخزينة العصابة!"
+msgstr ""
+
+#: routes/gang.py:425
+msgid "أنت في السجن ولا يمكنك سحب الأموال!"
+msgstr ""
+
+#: routes/gang.py:433
+msgid "أنت في المستشفى ولا يمكنك سحب الأموال!"
+msgstr ""
+
+#: routes/gang.py:441
+msgid "أنت تتدرب ولا يمكنك سحب الأموال!"
+msgstr ""
+
+#: routes/gang.py:455
+msgid "فقط الزعيم يمكنه سحب الأموال!"
+msgstr ""
+
+#: routes/gang.py:459
+msgid "لا يوجد مال كافٍ في الخزينة!"
+msgstr ""
+
+#: routes/gang.py:466
+#, python-format
+msgid "سحب %(amount)s$"
+msgstr ""
+
+#: routes/gang.py:470
+#, python-format
+msgid "تم سحب %(amount)s$ من الخزينة!"
+msgstr ""
+
+#: routes/gang.py:498
+msgid "فقط الزعيم أو نائبه يمكنهم بدء عملية منظمة"
+msgstr ""
+
+#: routes/gang.py:504
+#, python-format
+msgid "عدد أعضاء العصابة غير كافي لهذه العملية. المطلوب: %(min)s"
+msgstr ""
+
+#: routes/gang.py:509
+msgid "مستوى العصابة منخفض جداً لهذه العملية."
+msgstr ""
+
+#: routes/gang.py:521
+#, python-format
+msgid "العصابة في فترة راحة. يجب الانتظار %(hours).1f ساعة."
+msgstr ""
+
+#: routes/gang.py:580
+msgid "دعوة للمشاركة في جريمة منظمة"
+msgstr ""
+
+#: routes/gang.py:581
+#, python-format
+msgid "القائد %(leader)s دعاك للمشاركة في \"%(crime)s\". سارع لاختيار دورك!"
+msgstr ""
+
+#: routes/gang.py:589
+#, python-format
+msgid "أنشأ مجموعة لجريمة منظمة: %(crime)s وأرسل دعوات عامة"
+msgstr ""
+
+#: routes/gang.py:593
+msgid "تم إنشاء المجموعة وإرسال الدعوات!"
+msgstr ""
+
+#: routes/gang.py:607
+msgid "فقط الزعيم يمكنه تطوير العصابة!"
+msgstr ""
+
+#: routes/gang.py:614 routes/gang.py:631
+#, python-format
+msgid "لا يوجد مال كافٍ في الخزينة! التكلفة: %(cost)s$"
+msgstr ""
+
+#: routes/gang.py:624
+#, python-format
+msgid "تم زيادة سعة العصابة إلى %(num)s عضو!"
+msgstr ""
+
+#: routes/gang.py:635
+#, python-format
+msgid "لا يوجد خبرة كافية للعصابة! المطلوب: %(cost)s XP"
+msgstr ""
+
+#: routes/gang.py:642
+#, python-format
+msgid "طوّر مستوى العصابة إلى %(num)s"
+msgstr ""
+
+#: routes/gang.py:646
+#, python-format
+msgid "تم تطوير مستوى العصابة إلى المستوى %(num)s!"
+msgstr ""
+
+#: routes/gang.py:659
+msgid "فقط الزعيم يمكنه تعديل إعدادات العصابة!"
+msgstr ""
+
+#: routes/gang.py:685
+msgid "تم تحديث إعدادات العصابة بنجاح!"
+msgstr ""
+
+#: routes/gang.py:698
+msgid "فقط القيادة يمكنها طلب التحالف!"
+msgstr ""
+
+#: routes/gang.py:711
+msgid "يوجد طلب أو تحالف مسبق بينكما."
+msgstr ""
+
+#: routes/gang.py:718
+#, python-format
+msgid "طلب تحالف مع %(gang)s"
+msgstr ""
+
+#: routes/gang.py:722
+msgid "تم إرسال طلب التحالف!"
+msgstr ""
+
+#: routes/gang.py:750 routes/gang.py:776
+msgid "غير مصرح لك!"
+msgstr ""
+
+#: routes/gang.py:755
+msgid "فقط القيادة تملك صلاحية قبول التحالفات!"
+msgstr ""
+
+#: routes/gang.py:765
+msgid "تم تفعيل التحالف!"
+msgstr ""
+
+#: routes/gang.py:781
+msgid "فقط القيادة تملك صلاحية رفض التحالفات!"
+msgstr ""
+
+#: routes/gang.py:787
+msgid "تم رفض التحالف."
+msgstr ""
+
+#: routes/garage.py:26
+#, python-format
+msgid "تم الانتهاء من إصلاح %(name)s!"
+msgstr ""
+
+#: routes/garage.py:47
+msgid "أنت في السجن ولا يمكنك شراء سيارات!"
+msgstr ""
+
+#: routes/garage.py:55
+msgid "أنت في المستشفى ولا يمكنك شراء سيارات!"
+msgstr ""
+
+#: routes/garage.py:63
+msgid "أنت تتدرب ولا يمكنك شراء سيارات!"
+msgstr ""
+
+#: routes/garage.py:69
+msgid "معكش مصاري كفاية يا زعيم!"
+msgstr ""
+
+#: routes/garage.py:84
+#, python-format
+msgid "مبروك! اشتريت %(vehicle_name)s بنجاح."
+msgstr ""
+
+#: routes/garage.py:97
+msgid "أنت في السجن ولا يمكنك إصلاح السيارات!"
+msgstr ""
+
+#: routes/garage.py:105
+msgid "أنت في المستشفى ولا يمكنك إصلاح السيارات!"
+msgstr ""
+
+#: routes/garage.py:113
+msgid "أنت تتدرب ولا يمكنك إصلاح السيارات!"
+msgstr ""
+
+#: routes/garage.py:123
+msgid "السيارة سليمة ولا تحتاج لإصلاح!"
+msgstr ""
+
+#: routes/garage.py:131
+msgid "السيارة قيد الإصلاح بالفعل!"
+msgstr ""
+
+#: routes/garage.py:139
+#, python-format
+msgid "تحتاج %(cost)s شيكل لإصلاح السيارة بالكامل!"
+msgstr ""
+
+#: routes/garage.py:150
+#, python-format
+msgid "بدأت عملية الإصلاح. ستستغرق %(min)s دقيقة."
+msgstr ""
+
+#: routes/garage.py:163
+msgid "أنت في السجن ولا يمكنك بيع السيارات!"
+msgstr ""
+
+#: routes/garage.py:171
+msgid "أنت في المستشفى ولا يمكنك بيع السيارات!"
+msgstr ""
+
+#: routes/garage.py:179
+msgid "أنت تتدرب ولا يمكنك بيع السيارات!"
+msgstr ""
+
+#: routes/garage.py:189
+msgid "لا يمكنك بيع سيارة متضررة! قم بإصلاحها أولاً."
+msgstr ""
+
+#: routes/garage.py:204
+#, python-format
+msgid "تم بيع السيارة %(name)s وحصلت على %(price)s شيكل."
+msgstr ""
+
+#: routes/garage.py:224
+#, python-format
+msgid "تم تفعيل السيارة %(vehicle_name)s!"
+msgstr ""
+
+#: routes/garage.py:239
+msgid "معكش مصاري للتعديل يا كبير!"
+msgstr ""
+
+#: routes/garage.py:243
+msgid "السيارة معدلة عالآخر!"
+msgstr ""
+
+#: routes/garage.py:247
+msgid "لا يمكنك تعديل سيارة متضررة! قم بإصلاحها أولاً."
+msgstr ""
+
+#: routes/garage.py:257
+#, python-format
+msgid "تم تعديل محرك %(vehicle_name)s! السرعة والأداء زادوا."
+msgstr ""
+
+#: routes/graveyard.py:22
+msgid "يرجى التواصل مع الإدارة للدفع"
+msgstr ""
+
+#: routes/graveyard.py:45
+msgid "لديك طلب قيد الانتظار بالفعل!"
+msgstr ""
+
+#: routes/graveyard.py:58
+msgid "طلب إحياء جديد"
+msgstr ""
+
+#: routes/graveyard.py:59
+#, python-format
+msgid "اللاعب %(user)s قدم طلب إحياء."
+msgstr ""
+
+#: routes/graveyard.py:64
+msgid "تم إرسال طلب الإحياء للمطور. سيتم مراجعة طلبك قريباً."
+msgstr ""
+
+#: routes/gym.py:28
+#, python-format
+msgid "أنت تتمرن حالياً! انتظر %(min)s دقيقة و %(sec)s ثانية."
+msgstr ""
+
+#: routes/gym.py:35
+msgid "طاقتك ما بتكفي للتمرين!"
+msgstr ""
+
+#: routes/gym.py:39
+msgid "طفرنا! بدك مصاري عشان تتمرن."
+msgstr ""
+
+#: routes/gym.py:50
+msgid "آخ! شديت على حالك زيادة ومزقت عضلة. ريح شوي بالمستشفى."
+msgstr ""
+
+#: routes/gym.py:56
+msgid "تمرنت وزادت قوتك!"
+msgstr ""
+
+#: routes/gym.py:59
+msgid "تمرنت وزاد دفاعك!"
+msgstr ""
+
+#: routes/gym.py:62
+msgid "تمرنت وزادت رشاقتك!"
+msgstr ""
+
+#: routes/gym.py:65
+msgid "درست وزاد ذكاؤك!"
+msgstr ""
+
+#: routes/gym.py:67
+msgid "تمرين غير معروف!"
+msgstr ""
+
+#: routes/hospital.py:22
+msgid "صحتك ممتازة، شو جاي تعمل هون؟"
+msgstr ""
+
+#: routes/hospital.py:31
+msgid "طفرنا! ارجع لما يكون معك مصاري."
+msgstr ""
+
+#: routes/hospital.py:36
+msgid "تم علاجك جزئياً على قد فلوسك."
+msgstr ""
+
+#: routes/hospital.py:40
+msgid "تم علاجك بالكامل! رجعت حصان."
+msgstr ""
+
+#: routes/hospital.py:55
+msgid "طفرنا! بدك 500$ حق مشروب الطاقة."
+msgstr ""
+
+#: routes/hospital.py:59
+msgid "طاقتك مفولة يا وحش!"
+msgstr ""
+
+#: routes/hospital.py:66
+msgid "شربت مشروب طاقة ورجعتلك الحيوية! (+50 طاقة)"
+msgstr ""
+
+#: routes/inventory.py:21
+msgid "لا يمكن تجهيز هذا العنصر."
+msgstr ""
+
+#: routes/inventory.py:37
+#, python-format
+msgid "تم تجهيز %(name)s بنجاح."
+msgstr ""
+
+#: routes/inventory.py:50
+msgid "أنت في السجن ولا يمكنك تغيير عتادك!"
+msgstr ""
+
+#: routes/inventory.py:58
+msgid "أنت في المستشفى ولا يمكنك تغيير عتادك!"
+msgstr ""
+
+#: routes/inventory.py:66
+msgid "أنت تتدرب ولا يمكنك تغيير عتادك!"
+msgstr ""
+
+#: routes/inventory.py:72
+msgid "هذا العنصر غير مجهز أصلاً."
+msgstr ""
+
+#: routes/inventory.py:78
+#, python-format
+msgid "تم إلغاء تجهيز %(name)s."
+msgstr ""
+
+#: routes/jail.py:26 templates/base.html:615 templates/hara.html:435
+msgid "السجن"
+msgstr ""
+
+#: routes/jail.py:34
+msgid "نظام الرشوة غير مفعل حالياً!"
+msgstr ""
+
+#: routes/jail.py:48
+msgid "تم دفع الرشوة بنجاح! أنت حر الآن."
+msgstr ""
+
+#: routes/jail.py:51
+msgid "ليس لديك مال كافٍ لدفع الرشوة!"
+msgstr ""
+
+#: routes/jail.py:60
+msgid "نظام الرشوة/الكفالة غير مفعل حالياً!"
+msgstr ""
+
+#: routes/jail.py:71 routes/jail.py:138
+msgid "هذا اللاعب ليس في السجن!"
+msgstr ""
+
+#: routes/jail.py:75
+msgid "لا يمكنك دفع كفالة لنفسك بالماس، استخدم خيار الرشوة بالمال!"
+msgstr ""
+
+#: routes/jail.py:90
+#, python-format
+msgid "تم دفع الكفالة بنجاح! تم إخراج %(name)s من السجن."
+msgstr ""
+
+#: routes/jail.py:92
+#, python-format
+msgid "ليس لديك ما يكفي من الماس! تحتاج إلى %(cost)s ماسة."
+msgstr ""
+
+#: routes/jail.py:106
+msgid "أنت في السجن ولا يمكنك تهريب الآخرين!"
+msgstr ""
+
+#: routes/jail.py:114
+msgid "أنت في المستشفى ولا يمكنك تهريب الآخرين!"
+msgstr ""
+
+#: routes/jail.py:122
+msgid "أنت تتدرب ولا يمكنك تهريب الآخرين!"
+msgstr ""
+
+#: routes/jail.py:127
+msgid "نظام الهروب غير مفعل حالياً!"
+msgstr ""
+
+#: routes/jail.py:142
+msgid "لا يمكنك تهريب نفسك بهذه الطريقة!"
+msgstr ""
+
+#: routes/jail.py:148
+msgid "تحتاج إلى 50 طاقة لمحاولة التهريب!"
+msgstr ""
+
+#: routes/jail.py:167
+#, python-format
+msgid "نجحت العملية! تم تهريب %(name)s وحصلت على %(xp)s خبرة."
+msgstr ""
+
+#: routes/jail.py:173
+msgid "فشلت العملية! تم القبض عليك وإيداعك السجن لمدة 5 دقائق."
+msgstr ""
+
+#: routes/market.py:185 templates/guide.html:189
+msgid "بورصة غسيل الأموال"
+msgstr ""
+
+#: routes/market.py:201 routes/market.py:289 routes/market.py:457
+msgid "أنت في السجن ولا يمكنك التداول!"
+msgstr ""
+
+#: routes/market.py:209 routes/market.py:297 routes/market.py:465
+msgid "أنت في المستشفى ولا يمكنك التداول!"
+msgstr ""
+
+#: routes/market.py:217 routes/market.py:305 routes/market.py:473
+msgid "أنت تتدرب ولا يمكنك التداول!"
+msgstr ""
+
+#: routes/market.py:241
+msgid "مبلغ غير صحيح!"
+msgstr ""
+
+#: routes/market.py:245
+msgid "لا تملك كاش كافي للعملية!"
+msgstr ""
+
+#: routes/market.py:276
+msgid "تم شراء (غسيل) الأسهم بنجاح!"
+msgstr ""
+
+#: routes/market.py:314
+msgid "لا تملك أسهم في هذه الشركة!"
+msgstr ""
+
+#: routes/market.py:320
+msgid "نسبة بيع غير صحيحة!"
+msgstr ""
+
+#: routes/market.py:346 routes/market.py:508
+#, python-format
+msgid "ربح ممتاز! اكتسبت %(iq)s نقطة ذكاء."
+msgstr ""
+
+#: routes/market.py:359 routes/market.py:711
+msgid "تم بيع الأسهم بنجاح!"
+msgstr ""
+
+#: routes/market.py:366
+msgid "تم تعطيل تداول الفيوتشر من لوحة المطور"
+msgstr ""
+
+#: routes/market.py:377 routes/market.py:652
+msgid "بيانات غير صحيحة!"
+msgstr ""
+
+#: routes/market.py:385
+#, python-format
+msgid "الحد الأدنى للصفقة %(val)s$"
+msgstr ""
+
+#: routes/market.py:394
+msgid "رافعة مالية غير مدعومة!"
+msgstr ""
+
+#: routes/market.py:398
+msgid "نوع صفقة غير صحيح!"
+msgstr ""
+
+#: routes/market.py:402
+msgid "لا تملك رصيد كافي!"
+msgstr ""
+
+#: routes/market.py:444
+msgid "تم فتح الصفقة بنجاح!"
+msgstr ""
+
+#: routes/market.py:501
+msgid "تم تصفية الصفقة (ليكويديشن)! خسرت كل المبلغ."
+msgstr ""
+
+#: routes/market.py:510
+#, python-format
+msgid "تم إغلاق الصفقة. الربح/الخسارة: %(val).2f$"
+msgstr ""
+
+#: routes/market.py:530
+#, python-format
+msgid "لا تملك كاش كافي لشراء المعلومة! (المطلوب %(c)s$)"
+msgstr ""
+
+#: routes/market.py:536
+msgid "لا يوجد معلومات متاحة حالياً."
+msgstr ""
+
+#: routes/market.py:568
+#, python-brace-format
+msgid ""
+"مصادري في وول ستريت تؤكد: الحيتان يشترون {symbol} بجنون! السعر فوق "
+"المتوسط."
+msgstr ""
+
+#: routes/market.py:569
+#, python-brace-format
+msgid "تسريب سري: تقارير الأرباح لـ {symbol} ستكون خيالية. اشترِ قبل الانفجار!"
+msgstr ""
+
+#: routes/market.py:570
+#, python-brace-format
+msgid "المافيا الروسية تغسل أموالها في {symbol}. السعر سيرتفع حتماً."
+msgstr ""
+
+#: routes/market.py:573
+#, python-brace-format
+msgid "انتبه! المدير التنفيذي لـ {symbol} يبيع أسهمه سراً. الانهيار قادم."
+msgstr ""
+
+#: routes/market.py:574
+#, python-brace-format
+msgid "هناك تلاعب في {symbol} لتخفيض السعر. اهرب فوراً!"
+msgstr ""
+
+#: routes/market.py:575
+#, python-brace-format
+msgid "سمعت أن الحكومة ستحظر {symbol} قريباً. بيع كل شيء!"
+msgstr ""
+
+#: routes/market.py:578
+#, python-brace-format
+msgid "السوق هادئ جداً حول {symbol}. الهدوء الذي يسبق العاصفة؟"
+msgstr ""
+
+#: routes/market.py:579
+#, python-brace-format
+msgid "لا توجد حركة واضحة على {symbol}. وفر فلوسك لفرصة أخرى."
+msgstr ""
+
+#: routes/market.py:596
+#, python-brace-format
+msgid "تقرير استخباراتي: {symbol}"
+msgstr ""
+
+#: routes/market.py:603
+msgid "تم استلام طلبك. سيصلك التقرير في بريدك الوارد خلال 10 دقائق."
+msgstr ""
+
+#: routes/market.py:609
+msgid "حدث خطأ أثناء جلب المعلومات. حاول مرة أخرى لاحقاً."
+msgstr ""
+
+#: routes/market.py:616
+msgid "دليل المتداول المحترف"
+msgstr ""
+
+#: routes/market.py:640
+msgid "تم تعطيل التداول الفوري من لوحة المطور"
+msgstr ""
+
+#: routes/market.py:656
+msgid "الكمية يجب أن تكون أكبر من صفر"
+msgstr ""
+
+#: routes/market.py:664
+msgid "لا تملك كاش كافي!"
+msgstr ""
+
+#: routes/market.py:671
+#, python-format
+msgid "أقل مبلغ شراء سبوت هو %(val)s$"
+msgstr ""
+
+#: routes/market.py:688
+msgid "تم شراء الأسهم بنجاح!"
+msgstr ""
+
+#: routes/market.py:694 routes/market.py:748
+msgid "لا تملك أسهم كافية!"
+msgstr ""
+
+#: routes/market.py:716
+msgid "أوامر الحد (Limit) معطلة من لوحة المطور"
+msgstr ""
+
+#: routes/market.py:719
+msgid "سعر غير صحيح!"
+msgstr ""
+
+#: routes/market.py:727
+#, python-format
+msgid "لا تملك كاش كافي! (المطلوب: %(cost).2f$)"
+msgstr ""
+
+#: routes/market.py:742
+msgid "تم وضع أمر الشراء!"
+msgstr ""
+
+#: routes/market.py:765
+msgid "تم وضع أمر البيع!"
+msgstr ""
+
+#: routes/market.py:798
+msgid "تم إلغاء الأمر."
+msgstr ""
+
+#: routes/payment.py:39
+msgid "تم استلام طلبك! سيتم مراجعة الدفع وإضافة الماسات لحسابك قريباً."
+msgstr ""
+
+#: routes/payment.py:42 templates/buy_diamonds.html:3
+msgid "شراء الماس"
+msgstr ""
+
+#: routes/police_chase.py:45
+msgid "عليك الانتظار قبل المطاردة التالية!"
+msgstr ""
+
+#: routes/police_chase.py:74
+msgid "حاولت الاختباء في الأزقة الضيقة..."
+msgstr ""
+
+#: routes/police_chase.py:80
+msgid "دعست بنزين وحاولت تسبقهم..."
+msgstr ""
+
+#: routes/police_chase.py:86
+msgid "قررت تواجههم وتفتح النار!"
+msgstr ""
+
+#: routes/police_chase.py:99
+#, python-format
+msgid "ونجحت! هربت منهم وكسبت %(money)s شيكل."
+msgstr ""
+
+#: routes/police_chase.py:105
+msgid "لكنهم مسكوك! رايح عالحبس يا معلم."
+msgstr ""
+
+#: routes/racing.py:27
+msgid "أقل رهان هو 100 شيكل!"
+msgstr ""
+
+#: routes/racing.py:36
+msgid "لازم يكون عندك سيارة مفعلة عشان تسابق!"
+msgstr ""
+
+#: routes/racing.py:40
+msgid "سيارتك خربانة! صلحها قبل السباق."
+msgstr ""
+
+#: routes/racing.py:55
+msgid "تم إنشاء السباق! بانتظار المتحدين..."
+msgstr ""
+
+#: routes/racing.py:63
+msgid "السباق غير متاح!"
+msgstr ""
+
+#: routes/racing.py:67
+msgid "معكش مصاري كفاية للانضمام!"
+msgstr ""
+
+#: routes/racing.py:72
+msgid "لازم يكون عندك سيارة مفعلة!"
+msgstr ""
+
+#: routes/racing.py:76
+msgid "سيارتك خربانة! صلحها أول."
+msgstr ""
+
+#: routes/racing.py:90
+msgid "انضممت للسباق!"
+msgstr ""
+
+#: routes/racing.py:129
+msgid "لا يمكن بدء السباق!"
+msgstr ""
+
+#: routes/racing.py:133
+msgid "فقط المنشئ يمكنه بدء السباق!"
+msgstr ""
+
+#: routes/racing.py:138
+msgid "تحتاج لمتسابق واحد على الأقل لتبدأ!"
+msgstr ""
+
+#: routes/racing.py:193
+#, python-format
+msgid "انتهى السباق! الفائز هو %(name)s"
+msgstr ""
+
+#: routes/racing.py:202
+#, python-format
+msgid "بدك %(cost)s للتدريب!"
+msgstr ""
+
+#: routes/racing.py:209
+msgid "تدربت وتحسنت مهاراتك في القيادة!"
+msgstr ""
+
+#: routes/racing.py:235
+msgid "معكش مصاري للتطوير!"
+msgstr ""
+
+#: routes/racing.py:239
+msgid "وصلت للحد الأقصى لهذا التطوير!"
+msgstr ""
+
+#: routes/racing.py:252
+msgid "تم تطوير السيارة بنجاح!"
+msgstr ""
+
+#: routes/search.py:21
+msgid "لم يتم العثور على أي نتائج"
+msgstr ""
+
+#: routes/search.py:23
+msgid "الرجاء إدخال اسم للبحث"
+msgstr ""
+
+#: routes/social.py:42
+msgid "تم تحديد الكل كمقروء."
+msgstr ""
+
+#: routes/social.py:54
+msgid "تم حذف الإشعار."
+msgstr ""
+
+#: routes/social.py:71 templates/messages.html:218
+msgid "البريد الصادر"
+msgstr ""
+
+#: routes/social.py:77 templates/messages.html:215
+msgid "البريد الوارد"
+msgstr ""
+
+#: routes/social.py:116
+msgid "لا يمكنك مراسلة نفسك!"
+msgstr ""
+
+#: routes/social.py:128
+msgid "تم إرسال الرسالة بنجاح!"
+msgstr ""
+
+#: routes/social.py:156
+msgid "تم حذف الرسالة."
+msgstr ""
+
+#: routes/social.py:166
+msgid "لم يتم تحديد أي رسالة!"
+msgstr ""
+
+#: routes/social.py:185
+#, python-format
+msgid "تم حذف %(count)d رسالة."
+msgstr ""
+
+#: routes/social.py:231
+msgid "تم رفع الصورة الشخصية بنجاح"
+msgstr ""
+
+#: routes/social.py:234
+msgid "نوع الملف غير مدعوم (فقط صور)"
+msgstr ""
+
+#: routes/social.py:240
+msgid "تم تحديث الصورة الشخصية بنجاح"
+msgstr ""
+
+#: routes/social.py:243
+msgid "حدث خطأ في اختيار الصورة"
+msgstr ""
+
+#: routes/travel.py:147
+msgid "أنت في السجن ولا يمكنك السفر!"
+msgstr ""
+
+#: routes/travel.py:155
+msgid "أنت في المستشفى ولا يمكنك السفر!"
+msgstr ""
+
+#: routes/travel.py:163
+msgid "أنت تتدرب في الجيم ولا يمكنك السفر!"
+msgstr ""
+
+#: routes/travel.py:168
+msgid "أنت موجود هنا بالفعل!"
+msgstr ""
+
+#: routes/travel.py:177
+msgid "عليك الانتظار قبل السفر مرة أخرى!"
+msgstr ""
+
+#: routes/travel.py:182
+msgid "ليس لديك مال كافٍ للسفر!"
+msgstr ""
+
+#: routes/travel.py:218
+#, python-format
+msgid ""
+"🚔 كبسة! الشرطة فتشت السيارة ولقت المهربات. تمت مصادرة البضاعة وسجنك 30 "
+"دقيقة وغرامة %(fine)s$."
+msgstr ""
+
+#: routes/travel.py:232
+#, python-format
+msgid " 👮 صادفك حاجز ودققت عليك، دفعت %(bribe)s رشوة لتمشي أمورك."
+msgstr ""
+
+#: routes/travel.py:239
+msgid "👮 مسكوك عالمانع! معكش تدفع الرشوة. 15 دقيقة سجن."
+msgstr ""
+
+#: routes/travel.py:245
+msgid " 🚕 طلع الشوفير ابن عمك! التوصيلة ببلاش."
+msgstr ""
+
+#: routes/travel.py:253
+#, python-format
+msgid "وصلت إلى %(name)s بنجاح!"
+msgstr ""
+
+#: services/ai_hostess_service.py:96
+msgid "أهلاً بك يا عزيزي. تبدو أنيقاً اليوم."
+msgstr ""
+
+#: services/ai_hostess_service.py:101
+msgid "لدي معلومات سرية عن المتسابقين. هل تريد معرفة من يمتلك أسرع محرك؟"
+msgstr ""
+
+#: services/ai_hostess_service.py:103
+msgid "أحب السيارات السريعة، لكنني أفضل المراهنة عليها."
+msgstr ""
+
+#: services/ai_hostess_service.py:107
+msgid "المال يجعل العالم يدور... ويجعلني سعيدة أيضاً."
+msgstr ""
+
+#: services/ai_hostess_service.py:111
+msgid "حدثني أكثر عن مغامراتك."
+msgstr ""
+
+#: services/ai_hostess_service.py:112
+msgid "هل ستفوز في اللعبة القادمة؟"
+msgstr ""
+
+#: services/ai_hostess_service.py:113
+msgid "أنت مثير للاهتمام."
+msgstr ""
+
+#: services/ai_hostess_service.py:114
+msgid "هل يمكنني أن أجلب لك مشروباً؟"
+msgstr ""
+
+#: templates/bank.html:117
+msgid "Central Bank"
+msgstr ""
+
+#: templates/bank.html:119
+msgid "A safe place for your savings and wealth"
+msgstr ""
+
+#: templates/bank.html:125
+msgid "Cash Available"
+msgstr ""
+
+#: templates/bank.html:131
+msgid "Bank Balance"
+msgstr ""
+
+#: templates/bank.html:143
+msgid "Deposit"
+msgstr ""
+
+#: templates/bank.html:148
+msgid "Withdraw"
+msgstr ""
+
+#: templates/bank.html:153
+msgid "Transfer"
+msgstr ""
+
+#: templates/bank.html:162
+msgid "Deposit Money"
+msgstr ""
+
+#: templates/bank.html:167
+msgid "Amount to Deposit"
+msgstr ""
+
+#: templates/bank.html:170
+msgid "Confirm Deposit"
+msgstr ""
+
+#: templates/bank.html:179
+msgid "Withdraw Money"
+msgstr ""
+
+#: templates/bank.html:184
+msgid "Amount to Withdraw"
+msgstr ""
+
+#: templates/bank.html:187
+msgid "Confirm Withdrawal"
+msgstr ""
+
+#: templates/bank.html:196
+msgid "Transfer Money"
+msgstr ""
+
+#: templates/bank.html:200
+msgid "Recipient Username"
+msgstr ""
+
+#: templates/bank.html:203
+msgid "Amount to Transfer"
+msgstr ""
+
+#: templates/bank.html:207
+msgid "Send Money"
+msgstr ""
+
+#: templates/base.html:6 templates/base.html:388 templates/base.html:688
+#: templates/index.html:221 templates/index.html:242
+msgid "عصابات فلسطين"
+msgstr ""
+
+#: templates/base.html:314 templates/base.html:704
+msgid "الرئيسية"
+msgstr ""
+
+#: templates/base.html:327
+msgid "العربية"
+msgstr ""
+
+#: templates/base.html:330
+msgid "English"
+msgstr ""
+
+#: templates/base.html:337 templates/developer/edit_user.html:94
+#: templates/hara.html:222
+msgid "الطاقة"
+msgstr ""
+
+#: templates/base.html:369
+msgid "تسجيل الخروج"
+msgstr ""
+
+#: templates/base.html:376 templates/market/trade.html:280
+msgid "دخول"
+msgstr ""
+
+#: templates/base.html:412 templates/base.html:417
+msgid "تقدم المستوى"
+msgstr ""
+
+#: templates/base.html:413 templates/index.html:349
+#: templates/intel_report.html:13
+msgid "مستوى"
+msgstr ""
+
+#: templates/base.html:420
+msgid "تقدم الرتبة"
+msgstr ""
+
+#: templates/base.html:434
+msgid "الحارة"
+msgstr ""
+
+#: templates/base.html:441 templates/base.html:705 templates/guide.html:3
+msgid "دليل اللعبة"
+msgstr ""
+
+#: templates/base.html:452
+msgid "أنشطة"
+msgstr ""
+
+#: templates/base.html:471 templates/police_chase.html:3
+#: templates/police_chase.html:13
+msgid "مطاردة الشرطة"
+msgstr ""
+
+#: templates/base.html:478
+msgid "شبكة المواصلات"
+msgstr ""
+
+#: templates/base.html:485 templates/base.html:718
+msgid "الجيم"
+msgstr ""
+
+#: templates/base.html:492 templates/fight.html:3 templates/fight.html:199
+msgid "ساحة القتال"
+msgstr ""
+
+#: templates/base.html:499 templates/hara.html:383
+#: templates/intel_center.html:8
+msgid "مركز الاستخبارات"
+msgstr ""
+
+#: templates/base.html:506 templates/bounties.html:3
+msgid "قائمة المطلوبين"
+msgstr ""
+
+#: templates/base.html:513
+msgid "الكازينو"
+msgstr ""
+
+#: templates/base.html:517
+msgid "اقتصاد"
+msgstr ""
+
+#: templates/base.html:522 templates/hara.html:396 templates/profile.html:416
+msgid "البنك"
+msgstr ""
+
+#: templates/base.html:529
+msgid "بورصة الغسيل"
+msgstr ""
+
+#: templates/base.html:536 templates/black_market.html:110
+#: templates/hara.html:422 templates/market.html:11
+msgid "السوق السوداء"
+msgstr ""
+
+#: templates/base.html:543 templates/casino/racing/index.html:75
+#: templates/hara.html:370
+msgid "الكراج"
+msgstr ""
+
+#: templates/base.html:554
+msgid "اجتماعي"
+msgstr ""
+
+#: templates/base.html:559
+msgid "الأخبار"
+msgstr ""
+
+#: templates/base.html:580
+msgid "إنشاء رسالة"
+msgstr ""
+
+#: templates/base.html:587 templates/base.html:706
+msgid "المتصدرين"
+msgstr ""
+
+#: templates/base.html:594 templates/search.html:25
+msgid "بحث"
+msgstr ""
+
+#: templates/base.html:608 templates/hara.html:409 templates/hospital.html:135
+msgid "المستشفى"
+msgstr ""
+
+#: templates/base.html:629
+msgid "إدارة"
+msgstr ""
+
+#: templates/base.html:633 templates/lobby.html:96
+msgid "لوحة التحكم"
+msgstr ""
+
+#: templates/base.html:690
+msgid ""
+"عش حياة الجريمة، وسيطر على الشوارع، وكن الزعيم الأقوى في فلسطين. اللعبة "
+"الاستراتيجية الأولى من نوعها التي تجمع بين الإثارة والتحدي."
+msgstr ""
+
+#: templates/base.html:702
+msgid "روابط سريعة"
+msgstr ""
+
+#: templates/base.html:707
+msgid "انضم إلينا"
+msgstr ""
+
+#: templates/base.html:713
+msgid "نشاطات"
+msgstr ""
+
+#: templates/base.html:716
+msgid "البورصة"
+msgstr ""
+
+#: templates/base.html:724
+msgid "تطوير ودعم"
+msgstr ""
+
+#: templates/base.html:726 templates/base.html:739
+msgid "شركة أزاد للأنظمة الذكية"
+msgstr ""
+
+#: templates/base.html:727 templates/base.html:741
+msgid "إدارة: م. أحمد غنام"
+msgstr ""
+
+#: templates/base.html:740
+msgid "جميع الحقوق محفوظة."
+msgstr ""
+
+#: templates/black_market.html:116
+msgid "أهلاً بك في الجانب المظلم. البضاعة هنا مميزة ولكن الأسعار نار!"
+msgstr ""
+
+#: templates/black_market.html:132
+msgid "مخبر خاص (Private Detective)"
+msgstr ""
+
+#: templates/black_market.html:133
+msgid ""
+"استأجر مخبراً للتجسس على لاعب آخر. ستحصل على تقرير يتضمن موقعه، صحته، "
+"والذخيرة اللازمة للقضاء عليه."
+msgstr ""
+
+#: templates/black_market.html:135
+msgid "التكلفة والوقت يعتمدان على مستواك ومستوى الهدف. التكلفة المبدئية: 5,000$."
+msgstr ""
+
+#: templates/black_market.html:141
+msgid "اسم اللاعب الهدف..."
+msgstr ""
+
+#: templates/black_market.html:144
+msgid "إرسال المخبر"
+msgstr ""
+
+#: templates/black_market.html:162
+msgid "منزل آمن (Safe House)"
+msgstr ""
+
+#: templates/black_market.html:163
+msgid "مكان سري للاختباء. يمنع أي هجوم عليك لمدة 24 ساعة."
+msgstr ""
+
+#: templates/black_market.html:168 templates/black_market.html:195
+msgid "نشط حتى:"
+msgstr ""
+
+#: templates/black_market.html:175 templates/black_market.html:202
+msgid "تمديد الفترة"
+msgstr ""
+
+#: templates/black_market.html:175
+msgid "استئجار الآن"
+msgstr ""
+
+#: templates/black_market.html:189
+msgid "قناع التخفي (Disguise)"
+msgstr ""
+
+#: templates/black_market.html:190
+msgid "هاجم أعداءك دون كشف هويتك لمدة ساعة واحدة."
+msgstr ""
+
+#: templates/black_market.html:202
+msgid "شراء قناع"
+msgstr ""
+
+#: templates/black_market.html:220
+msgid "ذخيرة حية"
+msgstr ""
+
+#: templates/black_market.html:221
+msgid "رصاص للمسدسات والرشاشات. السعر: 10$ للرصاصة."
+msgstr ""
+
+#: templates/black_market.html:222
+msgid "لديك حالياً:"
+msgstr ""
+
+#: templates/black_market.html:235
+msgid "شراء ذخيرة"
+msgstr ""
+
+#: templates/black_market.html:247
+msgid "بيع المسروقات"
+msgstr ""
+
+#: templates/black_market.html:251
+msgid "إصلاح الكل"
+msgstr ""
+
+#: templates/black_market.html:268
+msgid "الكمية:"
+msgstr ""
+
+#: templates/black_market.html:274
+msgid "الحالة:"
+msgstr ""
+
+#: templates/black_market.html:280
+msgid "سعر البيع:"
+msgstr ""
+
+#: templates/black_market.html:287
+msgid "بيع قطعة واحدة"
+msgstr ""
+
+#: templates/black_market.html:295
+msgid "إصلاح المسروقات"
+msgstr ""
+
+#: templates/black_market.html:311
+msgid "بضائع التهريب (أسعار متغيرة)"
+msgstr ""
+
+#: templates/black_market.html:314
+msgid "تتغير الأسعار كل ساعة حسب المدينة"
+msgstr ""
+
+#: templates/black_market.html:323
+msgid "متوفر:"
+msgstr ""
+
+#: templates/black_market.html:325
+msgid "مرتفع"
+msgstr ""
+
+#: templates/black_market.html:327
+msgid "منخفض"
+msgstr ""
+
+#: templates/black_market.html:340
+msgid "سعر السوق"
+msgstr ""
+
+#: templates/black_market.html:352 templates/black_market.html:519
+#: templates/casino/bar.html:40 templates/market/trade.html:253
+#: templates/market/trade.html:376 templates/market/trade.html:404
+msgid "شراء"
+msgstr ""
+
+#: templates/black_market.html:366 templates/market/trade.html:253
+#: templates/market/trade.html:379 templates/market/trade.html:419
+msgid "بيع"
+msgstr ""
+
+#: templates/black_market.html:376
+msgid "لا يوجد بضائع مهربة حالياً."
+msgstr ""
+
+#: templates/black_market.html:381
+msgid ""
+"نصيحة: اشترِ عندما يكون السعر منخفضاً (أخضر)، وسافر لمدينة أخرى لبيعها "
+"بسعر أعلى. احذر من الشرطة!"
+msgstr ""
+
+#: templates/black_market.html:389
+msgid "الأسلحة المهربة"
+msgstr ""
+
+#: templates/black_market.html:408 templates/market.html:62
+msgid "قوة"
+msgstr ""
+
+#: templates/black_market.html:419
+msgid "شراء مهرب"
+msgstr ""
+
+#: templates/black_market.html:426
+msgid "لا يوجد أسلحة مهربة متاحة حالياً."
+msgstr ""
+
+#: templates/black_market.html:436
+msgid "دروع ثقيلة"
+msgstr ""
+
+#: templates/black_market.html:455 templates/market.html:107
+#: templates/travel.html:212
+msgid "دفاع"
+msgstr ""
+
+#: templates/black_market.html:466
+msgid "شراء ثقيل"
+msgstr ""
+
+#: templates/black_market.html:473
+msgid "لا يوجد دروع ثقيلة متاحة حالياً."
+msgstr ""
+
+#: templates/black_market.html:483
+msgid "منشطات ممنوعة"
+msgstr ""
+
+#: templates/black_market.html:502 templates/casino/bar.html:31
+#: templates/travel.html:214
+msgid "صحة"
+msgstr ""
+
+#: templates/black_market.html:505 templates/casino/bar.html:24
+#: templates/intel_center.html:24 templates/intel_center.html:52
+#: templates/intel_center.html:83
+msgid "طاقة"
+msgstr ""
+
+#: templates/black_market.html:508 templates/casino/bar.html:27
+msgid "شجاعة"
+msgstr ""
+
+#: templates/black_market.html:526
+msgid "لا توجد منشطات متاحة حالياً."
+msgstr ""
+
+#: templates/blackjack.html:113 templates/casino/blackjack.html:6
+#: templates/casino/index.html:40 templates/hara.html:448
+msgid "بلاك جاك"
+msgstr ""
+
+#: templates/blackjack.html:115
+msgid "تحدى الموزع واكسب الذهب"
+msgstr ""
+
+#: templates/blackjack.html:123
+msgid "كازينو بلاك جاك"
+msgstr ""
+
+#: templates/blackjack.html:134
+msgid "بطاقات الموزع"
+msgstr ""
+
+#: templates/blackjack.html:160
+msgid "بطاقاتك"
+msgstr ""
+
+#: templates/blackjack.html:179
+msgid "سحب (Hit)"
+msgstr ""
+
+#: templates/blackjack.html:185 templates/casino/blackjack.html:98
+msgid "توقف (Stand)"
+msgstr ""
+
+#: templates/blackjack.html:192
+msgid "لعب مرة أخرى"
+msgstr ""
+
+#: templates/blackjack.html:204
+msgid "ابدأ لعبة جديدة"
+msgstr ""
+
+#: templates/blackjack.html:205
+msgid "حاول الوصول إلى 21 دون تجاوزها!"
+msgstr ""
+
+#: templates/blackjack.html:210 templates/casino/racing/index.html:113
+msgid "الرهان"
+msgstr ""
+
+#: templates/blackjack.html:215 templates/casino/racing/index.html:90
+msgid "مبلغ الرهان"
+msgstr ""
+
+#: templates/blackjack.html:219
+msgid "العب الآن"
+msgstr ""
+
+#: templates/bounties.html:16
+msgid "وضع مكافأة"
+msgstr ""
+
+#: templates/bounties.html:23
+msgid "اسم الضحية"
+msgstr ""
+
+#: templates/bounties.html:28
+msgid "أدخل اسم المستخدم"
+msgstr ""
+
+#: templates/bounties.html:32
+msgid "مبلغ المكافأة"
+msgstr ""
+
+#: templates/bounties.html:37
+msgid "أدخل المبلغ"
+msgstr ""
+
+#: templates/bounties.html:43
+msgid "إخفاء هويتك (مجهول)"
+msgstr ""
+
+#: templates/bounties.html:49
+msgid "نشر المكافأة"
+msgstr ""
+
+#: templates/bounties.html:61
+msgid "لائحة المطلوبين"
+msgstr ""
+
+#: templates/bounties.html:69
+msgid "المطلوب"
+msgstr ""
+
+#: templates/bounties.html:70 templates/heist_report.html:36
+msgid "المكافأة"
+msgstr ""
+
+#: templates/bounties.html:71
+msgid "بواسطة"
+msgstr ""
+
+#: templates/bounties.html:72 templates/combat/index.html:110
+#: templates/developer/active_lobbies.html:21
+#: templates/developer/announcements.html:21
+#: templates/developer/forum/index.html:30
+#: templates/developer/hostesses.html:24 templates/developer/settings.html:37
+#: templates/developer/users.html:28 templates/developer/vehicles.html:23
+#: templates/gang/alliances.html:24 templates/gang/index.html:124
+#: templates/gang/invites.html:111
+msgid "إجراءات"
+msgstr ""
+
+#: templates/bounties.html:108
+msgid "دفع الفدية لإزالة المكافأة"
+msgstr ""
+
+#: templates/bounties.html:109
+msgid "دفع الفدية"
+msgstr ""
+
+#: templates/bounties.html:116 templates/combat/index.html:153
+#: templates/profile.html:433 templates/search.html:57 templates/search.html:58
+msgid "هجوم"
+msgstr ""
+
+#: templates/bounties.html:126
+msgid "الشارع هادئ... لا توجد مكافآت حالياً."
+msgstr ""
+
+#: templates/buy_diamonds.html:15
+msgid "متجر الماس"
+msgstr ""
+
+#: templates/buy_diamonds.html:17
+msgid "استثمر في قوتك وسيطر على العالم السفلي"
+msgstr ""
+
+#: templates/buy_diamonds.html:22
+msgid ""
+"يرجى تحويل المبلغ المطلوب إلى أحد الحسابات التالية، ثم تعبئة النموذج أسفل"
+" الصفحة لتأكيد العملية."
+msgstr ""
+
+#: templates/buy_diamonds.html:29
+msgid "البنك الوطني (TNB)"
+msgstr ""
+
+#: templates/buy_diamonds.html:32
+msgid "رقم الحساب:"
+msgstr ""
+
+#: templates/buy_diamonds.html:34
+msgid "الاسم:"
+msgstr ""
+
+#: templates/buy_diamonds.html:41
+msgid "المحافظ الإلكترونية"
+msgstr ""
+
+#: templates/buy_diamonds.html:44
+msgid "جوال باي (Jawwal Pay):"
+msgstr ""
+
+#: templates/buy_diamonds.html:45
+msgid "رقم التواصل:"
+msgstr ""
+
+#: templates/buy_diamonds.html:53
+msgid "تواصل وتأكيد عبر واتساب (+972562150193)"
+msgstr ""
+
+#: templates/buy_diamonds.html:59
+msgid "نموذج تأكيد التحويل"
+msgstr ""
+
+#: templates/buy_diamonds.html:87
+msgid "مثال: تم تحويل 50 شيكل من حساب أحمد ... رقم العملية 12345"
+msgstr ""
+
+#: templates/daily_tasks.html:86
+msgid "أنجز المهام واحصل على مكافآت قيمة"
+msgstr ""
+
+#: templates/daily_tasks.html:100
+msgid "التقدم"
+msgstr ""
+
+#: templates/daily_tasks.html:118
+msgid "استلام المكافأة"
+msgstr ""
+
+#: templates/daily_tasks.html:126
+msgid "لا توجد مهام متاحة حالياً."
+msgstr ""
+
+#: templates/dealership.html:169
+msgid "معرض السيارات"
+msgstr ""
+
+#: templates/dealership.html:170
+msgid "اختر ما يليق بمكانتك في العالم السفلي"
+msgstr ""
+
+#: templates/dealership.html:176
+msgid "سيارات قانونية (أمان وراحة بال)"
+msgstr ""
+
+#: templates/dealership.html:184 templates/garage.html:204
+msgid "نمرة صفراء"
+msgstr ""
+
+#: templates/dealership.html:184 templates/garage.html:206
+msgid "نمرة فلسطينية"
+msgstr ""
+
+#: templates/dealership.html:225
+msgid "شراء آمن"
+msgstr ""
+
+#: templates/dealership.html:237
+msgid "سيارات مشطوبة (رخيص وقوي بس خطر!)"
+msgstr ""
+
+#: templates/dealership.html:245
+msgid "مشطوبة"
+msgstr ""
+
+#: templates/dealership.html:274
+msgid "الخطر"
+msgstr ""
+
+#: templates/dealership.html:286
+msgid "شراء (على مسؤوليتك)"
+msgstr ""
+
+#: templates/edit_profile.html:86
+msgid "تغيير الصورة الشخصية"
+msgstr ""
+
+#: templates/edit_profile.html:91
+msgid "رفع صورة جديدة"
+msgstr ""
+
+#: templates/edit_profile.html:97
+msgid "اختر صورة..."
+msgstr ""
+
+#: templates/edit_profile.html:100
+msgid "رفع"
+msgstr ""
+
+#: templates/edit_profile.html:103
+msgid "الحجم الأقصى 2 ميجابايت. الصيغ المدعومة: PNG, JPG, GIF"
+msgstr ""
+
+#: templates/edit_profile.html:107
+msgid "أو اختر من القائمة"
+msgstr ""
+
+#: templates/edit_profile.html:126
+msgid "لا توجد صور رمزية متاحة حالياً. يرجى مراجعة الإدارة."
+msgstr ""
+
+#: templates/edit_profile.html:131
+msgid "عودة للملف الشخصي"
+msgstr ""
+
+#: templates/fight.html:200
+msgid "البقاء للأقوى... لا مكان للضعفاء هنا"
+msgstr ""
+
+#: templates/fight.html:227
+msgid "ذئب وحيد"
+msgstr ""
+
+#: templates/fight.html:233
+msgid "هجوم كاسح"
+msgstr ""
+
+#: templates/fight.html:242
+msgid "الساحة هادئة... بشكل مريب"
+msgstr ""
+
+#: templates/fight.html:243
+msgid "لا يوجد أحد لقتاله حالياً، استغل الوقت في التدريب!"
+msgstr ""
+
+#: templates/fight.html:245
+msgid "الذهاب للنادي"
+msgstr ""
+
+#: templates/garage.html:149
+msgid "كراج السيارات"
+msgstr ""
+
+#: templates/garage.html:151
+msgid "أسطولك الخاص للسيطرة على الشوارع"
+msgstr ""
+
+#: templates/garage.html:153
+msgid "شراء سيارة جديدة"
+msgstr ""
+
+#: templates/garage.html:164
+msgid "مفعلة"
+msgstr ""
+
+#: templates/garage.html:166
+msgid "في الكراج"
+msgstr ""
+
+#: templates/garage.html:195
+msgid "جاري الإصلاح..."
+msgstr ""
+
+#: templates/garage.html:202
+msgid "مشطوبة (خطر)"
+msgstr ""
+
+#: templates/garage.html:232
+msgid "يرجى الانتظار..."
+msgstr ""
+
+#: templates/garage.html:235
+msgid "السيارة مشغولة"
+msgstr ""
+
+#: templates/garage.html:241
+msgid "تكلفة الإصلاح تعتمد على الضرر. هل أنت متأكد؟"
+msgstr ""
+
+#: templates/garage.html:242
+msgid "إصلاح السيارة"
+msgstr ""
+
+#: templates/garage.html:249
+msgid "مفعلة حالياً"
+msgstr ""
+
+#: templates/garage.html:255
+msgid "قيادة هذه السيارة"
+msgstr ""
+
+#: templates/garage.html:263 templates/garage.html:284
+msgid "أصلح السيارة أولاً"
+msgstr ""
+
+#: templates/garage.html:264
+msgid "بحاجة لإصلاح"
+msgstr ""
+
+#: templates/garage.html:269
+msgid "تعديل المحرك سيكلفك 2000$. هل أنت موافق؟"
+msgstr ""
+
+#: templates/garage.html:270
+msgid "تعديل وتزويد (2000$)"
+msgstr ""
+
+#: templates/garage.html:276
+msgid "معدلة بالكامل"
+msgstr ""
+
+#: templates/garage.html:285
+msgid "بيع (معطل)"
+msgstr ""
+
+#: templates/garage.html:288
+msgid "هل أنت متأكد من بيع السيارة بنصف سعرها الأصلي؟"
+msgstr ""
+
+#: templates/garage.html:289
+msgid "بيع السيارة"
+msgstr ""
+
+#: templates/garage.html:303
+msgid "الكراج فاضي!"
+msgstr ""
+
+#: templates/garage.html:304
+msgid "شكلك ماشي ع رجليك يا زعيم. روح اشتريلك سيارة تحفظ هيبتك."
+msgstr ""
+
+#: templates/garage.html:306
+msgid "الذهاب للمعرض"
+msgstr ""
+
+#: templates/graveyard.html:74
+msgid "لقد انتهت رحلتك هنا... لا عودة للحياة إلا بمعجزة (أو تدخل المطور)."
+msgstr ""
+
+#: templates/graveyard.html:78
+msgid "تكلفة الإحياء:"
+msgstr ""
+
+#: templates/graveyard.html:80
+msgid "طرق الدفع والتواصل:"
+msgstr ""
+
+#: templates/graveyard.html:88
+msgid "طلبك قيد المراجعة... يرجى الانتظار."
+msgstr ""
+
+#: templates/graveyard.html:94
+msgid "تقديم طلب إحياء"
+msgstr ""
+
+#: templates/graveyard.html:96
+msgid "بضغطك على الزر أنت تؤكد أنك قمت بالدفع أو التواصل مع الإدارة."
+msgstr ""
+
+#: templates/guide.html:11
+msgid "دليل عصابات فلسطين"
+msgstr ""
+
+#: templates/guide.html:13
+msgid "كل ما تحتاج معرفته لتصبح العراب"
+msgstr ""
+
+#: templates/guide.html:24
+msgid "مقدمة"
+msgstr ""
+
+#: templates/guide.html:27
+msgid "نظام الجرائم"
+msgstr ""
+
+#: templates/guide.html:33
+msgid "الرتب"
+msgstr ""
+
+#: templates/guide.html:36
+msgid "الإحصائيات والطاقة"
+msgstr ""
+
+#: templates/guide.html:42 templates/guide.html:206
+msgid "أسئلة شائعة"
+msgstr ""
+
+#: templates/guide.html:54
+msgid "عن اللعبة"
+msgstr ""
+
+#: templates/guide.html:57
+msgid ""
+"عصابات فلسطين هي لعبة استراتيجية نصية تتيح لك عيش حياة الجريمة المنظمة. "
+"تبدأ كلص صغير وتشق طريقك لتصبح \"العراب\" من خلال تنفيذ الجرائم، تكوين "
+"العصابات، والسيطرة على المناطق."
+msgstr ""
+
+#: templates/guide.html:60
+msgid "ملاحظة: اللعبة للمتعة فقط ولا تشجع على العنف الحقيقي."
+msgstr ""
+
+#: templates/guide.html:67
+msgid "كيف تعمل الجرائم؟"
+msgstr ""
+
+#: templates/guide.html:69
+msgid ""
+"الجرائم هي المصدر الرئيسي للمال والخبرة. تعتمد نسبة نجاح الجريمة على عدة "
+"عوامل:"
+msgstr ""
+
+#: templates/guide.html:71
+msgid "المستوى (Level):"
+msgstr ""
+
+#: templates/guide.html:71
+msgid "كلما زاد مستواك مقارنة بمستوى الجريمة، زادت فرصتك في النجاح."
+msgstr ""
+
+#: templates/guide.html:72
+msgid "المعادلة:"
+msgstr ""
+
+#: templates/guide.html:72
+#, python-format
+msgid ""
+"نسبة النجاح تبدأ من 50%% وتزيد بنسبة 5%% لكل مستوى أعلى من المطلوب "
+"للجريمة، بحد أقصى 95%%."
+msgstr ""
+
+#: templates/guide.html:73
+msgid "الحظ:"
+msgstr ""
+
+#: templates/guide.html:73
+msgid "دائماً هناك عنصر الحظ العشوائي، حتى المحترفين قد يفشلون أحياناً!"
+msgstr ""
+
+#: templates/guide.html:75
+msgid "في حال الفشل، قد تخسر الطاقة فقط، أو قد ينتهي بك المطاف في السجن!"
+msgstr ""
+
+#: templates/guide.html:81
+msgid "نظام الرتب"
+msgstr ""
+
+#: templates/guide.html:83
+msgid "كلما زاد مستواك، حصلت على لقب جديد يعكس هيبتك في الحارة:"
+msgstr ""
+
+#: templates/guide.html:91
+msgid "جندي عصابة"
+msgstr ""
+
+#: templates/guide.html:97
+msgid "العراب"
+msgstr ""
+
+#: templates/guide.html:104
+msgid "الطاقة والصحة"
+msgstr ""
+
+#: templates/guide.html:108
+msgid "الطاقة (Energy)"
+msgstr ""
+
+#: templates/guide.html:109
+msgid "تحتاجها لتنفيذ الجرائم. يمكنك استعادة الطاقة عبر:"
+msgstr ""
+
+#: templates/guide.html:111
+msgid "انتظار الوقت (قريباً)"
+msgstr ""
+
+#: templates/guide.html:112
+msgid "المكافآت اليومية"
+msgstr ""
+
+#: templates/guide.html:113
+msgid "شراء منشطات من المستشفى (قريباً)"
+msgstr ""
+
+#: templates/guide.html:114
+msgid "ترقية مستواك (تعبئة كاملة)"
+msgstr ""
+
+#: templates/guide.html:118
+msgid "الصحة (Health)"
+msgstr ""
+
+#: templates/guide.html:119
+msgid ""
+"تتناقص عند التعرض للهجوم أو الفشل في الجرائم الخطرة. إذا وصلت للصفر تدخل "
+"المستشفى."
+msgstr ""
+
+#: templates/guide.html:127
+msgid "نظام العصابات والحروب"
+msgstr ""
+
+#: templates/guide.html:129
+msgid "اللعب الجماعي هو مفتاح السيطرة. يمكنك إنشاء عصابة أو الانضمام لواحدة."
+msgstr ""
+
+#: templates/gang/dashboard.html:334 templates/guide.html:131
+msgid "سياسات التجنيد"
+msgstr ""
+
+#: templates/guide.html:132
+msgid "يمكن لزعماء العصابات تحديد شروط خاصة للانضمام:"
+msgstr ""
+
+#: templates/guide.html:134
+msgid "تحديد حد أدنى للمستوى."
+msgstr ""
+
+#: templates/guide.html:135
+msgid "الجنسية:"
+msgstr ""
+
+#: templates/guide.html:135
+msgid "يمكن حصر العصابة على دول معينة."
+msgstr ""
+
+#: templates/guide.html:136
+msgid "طريقة الانضمام:"
+msgstr ""
+
+#: templates/guide.html:136
+msgid "مفتوح، دعوات فقط، أو مغلق."
+msgstr ""
+
+#: templates/guide.html:139
+msgid "نظام الطرد الصارم"
+msgstr ""
+
+#: templates/guide.html:140
+msgid ""
+"طرد الأعضاء ليس سهلاً! يكلف خزينة العصابة مبلغاً من المال كـ \"مكافأة "
+"نهاية خدمة\"، وتخسر العصابة جزءاً من خبرتها. فكر جيداً قبل الضم أو الطرد!"
+msgstr ""
+
+#: templates/guide.html:142
+msgid "التحالفات"
+msgstr ""
+
+#: templates/guide.html:143
+msgid "يمكن للعصابات توقيع معاهدات سلام تمنع الهجوم المتبادل بين أعضائها."
+msgstr ""
+
+#: templates/guide.html:145
+msgid "الحروب الحديثة"
+msgstr ""
+
+#: templates/guide.html:146
+msgid "الحرب ليست مجرد قتال شوارع. هناك عدة أنواع:"
+msgstr ""
+
+#: templates/guide.html:148
+msgid "حرب الشوارع:"
+msgstr ""
+
+#: templates/guide.html:148
+msgid "القتال التقليدي بالأسلحة."
+msgstr ""
+
+#: templates/guide.html:149
+msgid "الحرب الإلكترونية:"
+msgstr ""
+
+#: templates/guide.html:149
+msgid "هجمات سيبرانية لتجميد أموال العدو (قريباً)."
+msgstr ""
+
+#: templates/guide.html:150
+msgid "الحرب الاقتصادية:"
+msgstr ""
+
+#: templates/guide.html:150
+msgid "تدمير استثمارات العدو في البورصة وانهيار أسهمهم."
+msgstr ""
+
+#: templates/guide.html:153
+msgid "تنبيه: قتل الأعضاء الكبار (زعماء أو مستوى 50+) يشعل الحرب تلقائياً!"
+msgstr ""
+
+#: templates/guide.html:160
+msgid "نظام البحث"
+msgstr ""
+
+#: templates/guide.html:162
+msgid "يمكنك الآن البحث عن أي شيء داخل اللعبة:"
+msgstr ""
+
+#: templates/guide.html:164
+msgid "بحث اللاعبين:"
+msgstr ""
+
+#: templates/guide.html:164
+msgid "ابحث عن أصدقائك أو أعدائك بالاسم."
+msgstr ""
+
+#: templates/guide.html:165
+msgid "بحث العصابات:"
+msgstr ""
+
+#: templates/guide.html:165
+msgid ""
+"ابحث عن العصابات للانضمام إليها أو استهدافها. النتائج تشمل اسم العصابة، "
+"قائدها، ومستواها."
+msgstr ""
+
+#: templates/guide.html:172
+msgid "الجرائم المنظمة العامة"
+msgstr ""
+
+#: templates/guide.html:174
+msgid ""
+"يمكن تنفيذ الجرائم المنظمة دون الحاجة لعضوية عصابة عبر مجموعات مؤقتة يتم "
+"إنشاؤها من اللاعبين المؤهلين."
+msgstr ""
+
+#: templates/guide.html:176
+msgid "الإنشاء:"
+msgstr ""
+
+#: templates/guide.html:176
+msgid "إنشاء مجموعة يتطلب رتبة دنيا يتم تحديدها من الإدارة."
+msgstr ""
+
+#: templates/guide.html:177
+msgid "الأدوار:"
+msgstr ""
+
+#: templates/guide.html:177
+msgid "توزيع الأدوار بين المشاركين (قريباً): قائد، سائق، مخترق، مراقب..."
+msgstr ""
+
+#: templates/guide.html:178
+msgid "المكافآت:"
+msgstr ""
+
+#: templates/guide.html:178
+msgid "توزع المكافآت والخبرة وفق المساهمة والنجاح الجماعي."
+msgstr ""
+
+#: templates/guide.html:179
+msgid "الهدنة:"
+msgstr ""
+
+#: templates/guide.html:179
+msgid "كل جريمة منظمة لها وقت هدنة (Cooldown) بالساعات."
+msgstr ""
+
+#: templates/guide.html:182
+msgid "ميزة إنشاء/الانضمام للمجموعات ستتوفر قريباً على صفحة الجرائم المنظمة."
+msgstr ""
+
+#: templates/guide.html:191
+msgid ""
+"السوق المالي هو المكان الأمثل لغسيل أموالك غير الشرعية واستثمارها في "
+"شركات عالمية حقيقية."
+msgstr ""
+
+#: templates/guide.html:193
+msgid "الأسعار الحقيقية:"
+msgstr ""
+
+#: templates/guide.html:193
+msgid "نستخدم بيانات حية من البورصات العالمية (Bitcoin, Apple, Tesla)."
+msgstr ""
+
+#: templates/guide.html:194 templates/intel_center.html:53
+#: templates/intel_center.html:87
+msgid "المخاطرة:"
+msgstr ""
+
+#: templates/guide.html:194
+msgid "السوق يرتفع وينخفض. اشترِ عند الانخفاض وبع عند الارتفاع."
+msgstr ""
+
+#: templates/guide.html:195
+msgid "تسييل المحفظة:"
+msgstr ""
+
+#: templates/guide.html:195
+msgid "يمكنك بيع أسهمك في أي وقت للحصول على الكاش."
+msgstr ""
+
+#: templates/guide.html:199
+msgid ""
+"فوائد العصابة تشمل الحماية من الهجمات الفردية، المشاركة في الجرائم "
+"المنظمة (Organized Crimes) للحصول على مكافآت ضخمة، والسيطرة على "
+"الممتلكات."
+msgstr ""
+
+#: templates/guide.html:210
+msgid "س: هل ألعب ضد ذكاء اصطناعي؟"
+msgstr ""
+
+#: templates/guide.html:211
+msgid ""
+"ج: اللاعبون الآخرون هم أشخاص حقيقيون. أما الشرطة وحراس الأمن في الجرائم "
+"فهم نظام اللعبة."
+msgstr ""
+
+#: templates/guide.html:215
+msgid "س: كيف أحمي نفسي من الهجمات؟"
+msgstr ""
+
+#: templates/guide.html:216
+msgid "ج: قم بإيداع أموالك في البنك، اشتري أسلحة ودروع قوية، وانضم لعصابة قوية."
+msgstr ""
+
+#: templates/guide.html:220
+msgid "س: هل يمكنني شراء طاقة؟"
+msgstr ""
+
+#: templates/guide.html:221
+msgid "ج: نعم، يمكنك استخدام الماس أو زيارة المستشفى لشراء منشطات (ميزة قادمة)."
+msgstr ""
+
+#: templates/gym.html:95
+msgid "النادي الرياضي"
+msgstr ""
+
+#: templates/gym.html:97
+msgid "طور مهاراتك القتالية والجسدية"
+msgstr ""
+
+#: templates/gym.html:104
+msgid "تمرين جاري..."
+msgstr ""
+
+#: templates/gym.html:106
+msgid "عليك الانتظار حتى انتهاء التمرين الحالي لتتمكن من التدريب مجدداً"
+msgstr ""
+
+#: templates/developer/edit_user.html:61 templates/gym.html:139
+#: templates/intel_report.html:21 templates/profile.html:381
+msgid "القوة"
+msgstr ""
+
+#: templates/gym.html:141
+msgid "تزيد من ضرر هجماتك"
+msgstr ""
+
+#: templates/gym.html:145 templates/gym.html:163 templates/gym.html:181
+msgid "تدريب (10E | 100$)"
+msgstr ""
+
+#: templates/gym.html:159
+msgid "تقلل من الضرر المتلقى"
+msgstr ""
+
+#: templates/gym.html:175
+msgid "الرشاقة"
+msgstr ""
+
+#: templates/gym.html:177
+msgid "تزيد فرصة المراوغة والهروب"
+msgstr ""
+
+#: templates/gym.html:193 templates/intel_report.html:39
+#: templates/profile.html:402
+msgid "الذكاء"
+msgstr ""
+
+#: templates/gym.html:195
+msgid "يزيد نجاح التجسس والقرصنة"
+msgstr ""
+
+#: templates/gym.html:199
+msgid "دراسة (10E | 100$)"
+msgstr ""
+
+#: templates/hara.html:169
+msgid "نورت الحارة يا معلم"
+msgstr ""
+
+#: templates/hara.html:171
+msgid "الشارع إلك، والقرار قرارك.. فرجينا شو طالع بإيدك اليوم."
+msgstr ""
+
+#: templates/gang/dashboard.html:166 templates/hara.html:192
+msgid "كاش"
+msgstr ""
+
+#: templates/hara.html:196
+msgid "ماس"
+msgstr ""
+
+#: templates/hara.html:205
+msgid "حالتك الصحية"
+msgstr ""
+
+#: templates/developer/edit_user.html:84 templates/hara.html:211
+#: templates/intel_report.html:47
+msgid "الصحة"
+msgstr ""
+
+#: templates/developer/edit_user.html:104 templates/hara.html:233
+msgid "الشجاعة"
+msgstr ""
+
+#: templates/combat/result.html:136 templates/gang/dashboard.html:131
+#: templates/gang/index.html:122 templates/gang/view.html:147
+#: templates/hara.html:244 templates/heist_report.html:37
+#: templates/leaderboard.html:214 templates/lobby.html:29
+#: templates/organized_crimes.html:73 templates/profile.html:374
+msgid "الخبرة"
+msgstr ""
+
+#: templates/hara.html:256
+msgid "استلم اليومية"
+msgstr ""
+
+#: templates/hara.html:262
+msgid "شير واربح"
+msgstr ""
+
+#: templates/hara.html:263
+msgid "ابعث الرابط لصحابك واربح 50 ماسة!"
+msgstr ""
+
+#: templates/hara.html:267 templates/login.html:390
+msgid "نسخ"
+msgstr ""
+
+#: templates/hara.html:301
+msgid "سحب الـ 100 دولار الأسبوعي!"
+msgstr ""
+
+#: templates/hara.html:302
+msgid "خليك نشيط باللعبة لتدخل السحب. كل أسبوع فائز جديد!"
+msgstr ""
+
+#: templates/hara.html:307
+msgid "أماكن الحارة"
+msgstr ""
+
+#: templates/hara.html:319
+msgid "شمر عن ذراعك، نفذ عمليات، وعبي جيبتك."
+msgstr ""
+
+#: templates/hara.html:332
+msgid "سوي شلة، أو انضم للكبار وسيطروا عالبلد."
+msgstr ""
+
+#: templates/hara.html:344
+msgid "سوق البلد"
+msgstr ""
+
+#: templates/hara.html:345
+msgid "سوق البلد مليان، سلاح وعدة وأكل يقويك."
+msgstr ""
+
+#: templates/hara.html:357
+msgid "نادي الحديد"
+msgstr ""
+
+#: templates/hara.html:358
+msgid "حديدك يقويك، عشان ما توكل قتلة بالحارة."
+msgstr ""
+
+#: templates/hara.html:371
+msgid "كراجك وسيارتك، دير بالك عليهم."
+msgstr ""
+
+#: templates/hara.html:384
+msgid "تجسس على خصومك وقرصن حساباتهم البنكية."
+msgstr ""
+
+#: templates/hara.html:397
+msgid "البنك أمان، خبي قروشك واستثمر لليوم الأسود."
+msgstr ""
+
+#: templates/hara.html:410
+msgid "المستشفى للمجاريح، تعالج وارجع أقوى."
+msgstr ""
+
+#: templates/hara.html:423
+msgid "كلشي ممنوع مرغوب، بس فتح عينك."
+msgstr ""
+
+#: templates/hara.html:436
+msgid "السجن للرجال، زور الشباب أو هربهم."
+msgstr ""
+
+#: templates/hara.html:449
+msgid "يا صايب يا خايب، جرب حظك."
+msgstr ""
+
+#: templates/hara.html:461
+msgid "شراء ماس"
+msgstr ""
+
+#: templates/hara.html:462
+msgid "ادعمنا واشتري ماس لتصير أقوى."
+msgstr ""
+
+#: templates/hara.html:474
+msgid "السفر"
+msgstr ""
+
+#: templates/hara.html:475
+msgid "لف البلاد، من القدس لغزة ونابلس."
+msgstr ""
+
+#: templates/hara.html:495
+msgid "تم النسخ!"
+msgstr ""
+
+#: templates/heist_history.html:3 templates/organized_crimes.html:55
+msgid "سجل العمليات"
+msgstr ""
+
+#: templates/heist_history.html:9
+msgid "سجل العمليات السابقة"
+msgstr ""
+
+#: templates/combat/history.html:107 templates/developer/config.html:9
+#: templates/developer/forum/index.html:14 templates/developer/settings.html:26
+#: templates/heist_history.html:11
+msgid "عودة"
+msgstr ""
+
+#: templates/heist_history.html:17
+msgid "لا يوجد سجل عمليات حتى الآن."
+msgstr ""
+
+#: templates/combat/history.html:117 templates/developer/heist_history.html:20
+#: templates/developer/messages.html:27 templates/gang/alliances.html:23
+#: templates/gang/invites.html:110 templates/heist_history.html:24
+msgid "التاريخ"
+msgstr ""
+
+#: templates/heist_history.html:25
+msgid "العملية"
+msgstr ""
+
+#: templates/heist_history.html:28
+msgid "الغنيمة"
+msgstr ""
+
+#: templates/heist_history.html:40
+msgid "ناجحة"
+msgstr ""
+
+#: templates/heist_history.html:42
+msgid "فاشلة"
+msgstr ""
+
+#: templates/heist_report.html:3
+msgid "تقرير العملية"
+msgstr ""
+
+#: templates/heist_report.html:11
+msgid "عملية ناجحة!"
+msgstr ""
+
+#: templates/heist_report.html:13
+msgid "عملية فاشلة!"
+msgstr ""
+
+#: templates/heist_report.html:21
+msgid "سجل الأحداث"
+msgstr ""
+
+#: templates/heist_report.html:29
+msgid "المشاركون"
+msgstr ""
+
+#: templates/developer/edit_user.html:20 templates/developer/hostesses.html:20
+#: templates/developer/users.html:25 templates/heist_report.html:35
+msgid "الدور"
+msgstr ""
+
+#: templates/casino/racing/room.html:102 templates/gang/invites.html:95
+#: templates/gang/view.html:209 templates/heist_report.html:57
+msgid "عودة للقائمة"
+msgstr ""
+
+#: templates/hospital.html:137
+msgid "عالج جروحك واستعد طاقتك"
+msgstr ""
+
+#: templates/hospital.html:145
+msgid "صحتك الحالية"
+msgstr ""
+
+#: templates/hospital.html:153
+msgid "تكلفة العلاج الكامل:"
+msgstr ""
+
+#: templates/hospital.html:153
+msgid "(10$ لكل نقطة)"
+msgstr ""
+
+#: templates/hospital.html:160
+msgid "علاج الجروح"
+msgstr ""
+
+#: templates/hospital.html:161
+msgid "استعادة الصحة"
+msgstr ""
+
+#: templates/hospital.html:166
+msgid "صحتك تمام"
+msgstr ""
+
+#: templates/hospital.html:166
+msgid "عالج الآن"
+msgstr ""
+
+#: templates/hospital.html:176
+msgid "استعادة 50 نقطة طاقة"
+msgstr ""
+
+#: templates/hospital.html:181 templates/market.html:72
+#: templates/market.html:117 templates/market.html:171
+msgid "شراء الآن"
+msgstr ""
+
+#: templates/index.html:209
+msgid "فلسطين..."
+msgstr ""
+
+#: templates/index.html:210
+msgid "أرض الأبطال"
+msgstr ""
+
+#: templates/index.html:213
+msgid "في الظل..."
+msgstr ""
+
+#: templates/index.html:214
+msgid "تحكم العصابات"
+msgstr ""
+
+#: templates/index.html:222
+msgid "الشارع لا يرحم الضعفاء"
+msgstr ""
+
+#: templates/index.html:224
+msgid "ادخل العالم"
+msgstr ""
+
+#: templates/index.html:229
+msgid "تخطي المقدمة"
+msgstr ""
+
+#: templates/index.html:232 templates/login.html:297
+msgid "إخلاء مسؤولية"
+msgstr ""
+
+#: templates/index.html:233
+msgid ""
+"هذه لعبة إلكترونية للتسلية فقط. السيناريوهات داخل اللعبة خيالية ولا يجوز "
+"تطبيقها في الحياة الواقعية بأي شكل. أي محاولات واقعية قد تؤدي إلى مخالفة "
+"القانون أو السجن الحقيقي. العب بمسؤولية واستمتع بالتجربة بأمان."
+msgstr ""
+
+#: templates/index.html:245
+msgid ""
+"لعبة العصابات الفلسطينية الأولى - سيطر على الحارة، جمع الشواكل، وكن "
+"الزعيم!"
+msgstr ""
+
+#: templates/index.html:249
+msgid "اربح 100$ كاش أسبوعياً!"
+msgstr ""
+
+#: templates/index.html:250
+msgid "يتم توزيع جوائز نقدية حقيقية لأقوى اللاعبين كل أسبوع."
+msgstr ""
+
+#: templates/index.html:258
+msgid "إنشاء حساب جديد"
+msgstr ""
+
+#: templates/index.html:261
+msgid "شاهد العرض"
+msgstr ""
+
+#: templates/index.html:266
+msgid "تنويه"
+msgstr ""
+
+#: templates/index.html:267
+msgid ""
+"اللعبة مُصممة للترفيه فقط ولا تشجع على أي سلوك غير قانوني. يُحظر تطبيق "
+"محتواها في الواقع."
+msgstr ""
+
+#: templates/developer/dashboard.html:159 templates/index.html:284
+msgid "إجمالي اللاعبين"
+msgstr ""
+
+#: templates/index.html:288
+msgid "نشط (24س)"
+msgstr ""
+
+#: templates/index.html:292
+msgid "جديد (24س)"
+msgstr ""
+
+#: templates/index.html:296
+msgid "معارك (24س)"
+msgstr ""
+
+#: templates/index.html:300
+msgid "الأموال المتداولة"
+msgstr ""
+
+#: templates/index.html:314
+msgid "القصة: صراع البقاء"
+msgstr ""
+
+#: templates/index.html:317
+msgid "في أزقة المخيمات وشوارع المدن القديمة، حيث القانون هو قانون القوة..."
+msgstr ""
+
+#: templates/index.html:319
+msgid ""
+"بدأت رحلتك كشاب طموح يبحث عن لقمة العيش، لكن الظروف قادتك إلى عالم "
+"الجريمة المظلم."
+msgstr ""
+
+#: templates/index.html:322
+msgid ""
+"من رام الله إلى نابلس، ومن الخليل إلى جنين، تتصارع العائلات والعصابات "
+"للسيطرة على الموارد والنفوذ."
+msgstr ""
+
+#: templates/index.html:323
+msgid "المال، السلاح، والاحترام"
+msgstr ""
+
+#: templates/index.html:323
+msgid "هي العملة الوحيدة هنا."
+msgstr ""
+
+#: templates/index.html:326
+msgid ""
+"هل ستكون مجرد بيدق في يد الكبار، أم ستصنع اسمك بالدم والذكاء لتصبح "
+"\"الزعيم\" الذي يهابه الجميع؟"
+msgstr ""
+
+#: templates/index.html:328
+msgid "الخيار لك.. والموت يتربص بك عند كل زاوية."
+msgstr ""
+
+#: templates/index.html:336
+msgid "أقوى الزعماء"
+msgstr ""
+
+#: templates/index.html:369
+msgid "سيطر"
+msgstr ""
+
+#: templates/index.html:370
+msgid "قم بالجرائم، وسيطر على مناطق جديدة في القدس ورام الله ونابلس."
+msgstr ""
+
+#: templates/index.html:378
+msgid "اجمع الثروة"
+msgstr ""
+
+#: templates/index.html:379
+msgid "تاجر، اشتري عقارات، واجمع الشواكل والماس لتصبح الأغنى."
+msgstr ""
+
+#: templates/index.html:387
+msgid "كوّن عصابتك"
+msgstr ""
+
+#: templates/index.html:388
+msgid "تحالف مع أصدقائك وادخل في حروب عصابات طاحنة."
+msgstr ""
+
+#: templates/index.html:478
+msgid "اصنع مجدك... أو مُت وأنت تحاول."
+msgstr ""
+
+#: templates/intel_center.html:10
+msgid "المعلومات هي القوة. تجسس على أعدائك أو اخترق حساباتهم."
+msgstr ""
+
+#: templates/intel_center.html:19
+msgid "تجسس (Investigation)"
+msgstr ""
+
+#: templates/intel_center.html:22
+msgid "اجمع معلومات سرية عن لاعب آخر. اعرف قوته، فلوسه، ومستواه."
+msgstr ""
+
+#: templates/intel_center.html:24 templates/intel_center.html:52
+#: templates/intel_center.html:83
+msgid "التكلفة:"
+msgstr ""
+
+#: templates/intel_center.html:25
+msgid "التكلفة المالية:"
+msgstr ""
+
+#: templates/intel_center.html:26 templates/intel_center.html:54
+msgid "تعتمد على:"
+msgstr ""
+
+#: templates/intel_center.html:26 templates/intel_center.html:54
+msgid "ذكائك vs ذكاء الهدف"
+msgstr ""
+
+#: templates/intel_center.html:32 templates/intel_center.html:60
+msgid "اسم اللاعب"
+msgstr ""
+
+#: templates/intel_center.html:33
+msgid "أدخل اسم الهدف..."
+msgstr ""
+
+#: templates/intel_center.html:36
+msgid "ابدأ المراقبة"
+msgstr ""
+
+#: templates/intel_center.html:47
+msgid "قرصنة (Hacking)"
+msgstr ""
+
+#: templates/intel_center.html:50
+msgid "اخترق حساب بنكي للاعب واسرق نسبة من أمواله."
+msgstr ""
+
+#: templates/intel_center.html:53
+msgid "عالية (قد يتم كشفك)"
+msgstr ""
+
+#: templates/intel_center.html:61
+msgid "أدخل اسم الضحية..."
+msgstr ""
+
+#: templates/intel_center.html:64
+msgid "بدء الهجوم السيبراني"
+msgstr ""
+
+#: templates/intel_center.html:77
+msgid "قرصنة البنك المركزي (Bank Heist)"
+msgstr ""
+
+#: templates/intel_center.html:80
+msgid "عملية كبرى ضد البنك المركزي. المخاطرة جنونية ولكن المكسب خيالي."
+msgstr ""
+
+#: templates/intel_center.html:84
+msgid "الذكاء المطلوب:"
+msgstr ""
+
+#: templates/intel_center.html:87
+msgid "عالية جداً"
+msgstr ""
+
+#: templates/intel_center.html:88
+msgid "الجائزة:"
+msgstr ""
+
+#: templates/intel_center.html:95
+msgid "اختراق نظام البنك"
+msgstr ""
+
+#: templates/intel_center.html:106
+msgid ""
+"نصيحة: طور مستوى ذكائك عبر الدراسة في النادي الرياضي أو القيام بعمليات "
+"التجسس والقرصنة الناجحة."
+msgstr ""
+
+#: templates/intel_center.html:108 templates/intel_report.html:70
+msgid "عودة للحارة"
+msgstr ""
+
+#: templates/intel_report.html:7
+msgid "تقرير استخباراتي سري"
+msgstr ""
+
+#: templates/intel_report.html:18
+msgid "القدرات القتالية"
+msgstr ""
+
+#: templates/intel_report.html:29
+msgid "الخفة"
+msgstr ""
+
+#: templates/intel_report.html:36
+msgid "المعلومات الحساسة"
+msgstr ""
+
+#: templates/developer/edit_user.html:38 templates/intel_report.html:43
+msgid "الكاش"
+msgstr ""
+
+#: templates/intel_report.html:55
+msgid "تم حرق هذا التقرير بعد القراءة. المعلومات قد تتغير في أي لحظة."
+msgstr ""
+
+#: templates/intel_report.html:59
+msgid "عودة لمركز الاستخبارات"
+msgstr ""
+
+#: templates/intel_report.html:65
+msgid "هجوم الآن!"
+msgstr ""
+
+#: templates/inventory.html:187
+msgid "حقيبة الأغراض"
+msgstr ""
+
+#: templates/inventory.html:189
+msgid "عدتك وسلاحك، جاهز للطوشة؟"
+msgstr ""
+
+#: templates/inventory.html:191
+msgid "الذهاب للسوق"
+msgstr ""
+
+#: templates/inventory.html:211
+msgid "العدد"
+msgstr ""
+
+#: templates/inventory.html:219
+msgid "رصاص:"
+msgstr ""
+
+#: templates/inventory.html:225
+msgid "عنصر استهلاكي"
+msgstr ""
+
+#: templates/inventory.html:242
+msgid "تجهيز"
+msgstr ""
+
+#: templates/inventory.html:258
+msgid "الحقيبة فاضية!"
+msgstr ""
+
+#: templates/inventory.html:259
+msgid "لا تطلع عالحارة وإيديك فاضية، الناس بتوكل وجهك."
+msgstr ""
+
+#: templates/inventory.html:261
+msgid "اشتري عدة"
+msgstr ""
+
+#: templates/jail.html:3 templates/jail.html:197
+msgid "السجن المركزي"
+msgstr ""
+
+#: templates/jail.html:198
+msgid "مكان من يدفع ثمن جرائمه... أو ينتظر من يخرجه"
+msgstr ""
+
+#: templates/jail.html:212
+msgid "أنت مسجون!"
+msgstr ""
+
+#: templates/jail.html:213
+msgid "لقد تم القبض عليك أثناء قيامك بعمل غير قانوني."
+msgstr ""
+
+#: templates/jail.html:220
+msgid "الوقت المتبقي"
+msgstr ""
+
+#: templates/jail.html:221
+msgid "حتى الحرية"
+msgstr ""
+
+#: templates/jail.html:230
+msgid "دفع رشوة"
+msgstr ""
+
+#: templates/jail.html:243
+msgid "أنت حر طليق"
+msgstr ""
+
+#: templates/jail.html:244
+msgid "حاول أن تبقى بعيداً عن المشاكل... أو لا، الخيار لك!"
+msgstr ""
+
+#: templates/jail.html:254
+msgid "قائمة المساجين"
+msgstr ""
+
+#: templates/jail.html:255
+msgid "سجين"
+msgstr ""
+
+#: templates/jail.html:269
+msgid "مخالفة قانونية"
+msgstr ""
+
+#: templates/jail.html:283
+msgid "لا تملك ألماس كافٍ"
+msgstr ""
+
+#: templates/jail.html:285
+msgid "كفالة"
+msgstr ""
+
+#: templates/jail.html:301 templates/jail.html:310
+msgid "النظام معطل"
+msgstr ""
+
+#: templates/jail.html:301
+msgid "لا تملك طاقة كافية (50)"
+msgstr ""
+
+#: templates/jail.html:303
+msgid "تهريب"
+msgstr ""
+
+#: templates/jail.html:310
+#, python-format
+msgid "طاقتك: %(eng)s"
+msgstr ""
+
+#: templates/jail.html:323
+msgid "السجن فارغ تماماً"
+msgstr ""
+
+#: templates/jail.html:324
+msgid "الشرطة تقوم بعمل سيء، أو أن المجرمين أصبحوا أذكياء!"
+msgstr ""
+
+#: templates/leaderboard.html:3
+msgid "لوحة المتصدرين"
+msgstr ""
+
+#: templates/leaderboard.html:193
+msgid "أسياد الشوارع"
+msgstr ""
+
+#: templates/leaderboard.html:194
+msgid "القائمة الذهبية لأقوى اللاعبين في المدينة"
+msgstr ""
+
+#: templates/leaderboard.html:199
+msgid "الأعلى مستوى"
+msgstr ""
+
+#: templates/leaderboard.html:202
+msgid "الأغنى"
+msgstr ""
+
+#: templates/developer/resurrection_requests.html:19
+#: templates/leaderboard.html:211
+msgid "اللاعب"
+msgstr ""
+
+#: templates/leaderboard.html:214
+msgid "الثروة"
+msgstr ""
+
+#: templates/leaderboard.html:255
+msgid "لا يوجد لاعبين في القائمة حالياً"
+msgstr ""
+
+#: templates/lobby.html:3 templates/lobby.html:10
+msgid "غرفة التخطيط"
+msgstr ""
+
+#: templates/lobby.html:20
+msgid "المهمة"
+msgstr ""
+
+#: templates/lobby.html:25
+msgid "المكافأة المتوقعة"
+msgstr ""
+
+#: templates/developer/active_lobbies.html:18 templates/gang/dashboard.html:140
+#: templates/gang/dashboard.html:204 templates/gang/view.html:141
+#: templates/lobby.html:33 templates/search.html:89
+msgid "الأعضاء"
+msgstr ""
+
+#: templates/lobby.html:39
+msgid "توزيع الأدوار"
+msgstr ""
+
+#: templates/casino/racing/room.html:68 templates/lobby.html:52
+#: templates/lobby.html:103
+msgid "جاهز"
+msgstr ""
+
+#: templates/lobby.html:54 templates/lobby.html:105
+msgid "غير جاهز"
+msgstr ""
+
+#: templates/lobby.html:73
+msgid "طرد"
+msgstr ""
+
+#: templates/lobby.html:81
+msgid "استلام الدور"
+msgstr ""
+
+#: templates/lobby.html:84
+msgid "شاغر"
+msgstr ""
+
+#: templates/lobby.html:101
+msgid "حالتك"
+msgstr ""
+
+#: templates/lobby.html:110
+msgid "إلغاء الجاهزية"
+msgstr ""
+
+#: templates/lobby.html:112
+msgid "أنا جاهز"
+msgstr ""
+
+#: templates/lobby.html:116
+msgid "هل أنت متأكد من الانسحاب؟"
+msgstr ""
+
+#: templates/lobby.html:117
+msgid "انسحاب"
+msgstr ""
+
+#: templates/lobby.html:120
+#, python-format
+msgid "الانسحاب يسبب خسائر: -%(m)s$، -%(xp)s XP، -%(en)s طاقة."
+msgstr ""
+
+#: templates/lobby.html:125
+msgid "اختر دوراً للانضمام للفريق"
+msgstr ""
+
+#: templates/lobby.html:133
+msgid "تحكم القائد"
+msgstr ""
+
+#: templates/lobby.html:137
+msgid "العدد غير مكتمل"
+msgstr ""
+
+#: templates/lobby.html:147
+msgid "بدء العملية"
+msgstr ""
+
+#: templates/lobby.html:150
+msgid "يجب أن يكون الجميع جاهزاً"
+msgstr ""
+
+#: templates/login.html:150
+msgid "أخبار الساحة"
+msgstr ""
+
+#: templates/login.html:156
+msgid "أقوى لاعب"
+msgstr ""
+
+#: templates/login.html:174
+msgid "أخطر عصابة"
+msgstr ""
+
+#: templates/login.html:195
+msgid "إحصائيات اللعبة"
+msgstr ""
+
+#: templates/login.html:198
+msgid "لاعب نشط"
+msgstr ""
+
+#: templates/login.html:209
+msgid "آخر معركة"
+msgstr ""
+
+#: templates/login.html:212
+msgid "ضد"
+msgstr ""
+
+#: templates/login.html:222
+msgid "نبذات سريعة"
+msgstr ""
+
+#: templates/login.html:224
+msgid "نظام قتال متطور وحماية خاصة للمبتدئين."
+msgstr ""
+
+#: templates/login.html:225
+msgid "تجارة المخدرات والأسلحة للسيطرة على السوق السوداء."
+msgstr ""
+
+#: templates/login.html:226
+msgid "كون تحالفات وسيطر على المناطق لتصبح الزعيم."
+msgstr ""
+
+#: templates/login.html:231
+msgid "ساعدنا في تطوير اللعبة لتبقى الأفضل!"
+msgstr ""
+
+#: templates/login.html:234 templates/login.html:371
+msgid "تبرع للمشروع"
+msgstr ""
+
+#: templates/login.html:237
+msgid "ابدأ مشروعك الخاص"
+msgstr ""
+
+#: templates/login.html:269 templates/register.html:120
+msgid "كلمة المرور"
+msgstr ""
+
+#: templates/login.html:285
+msgid "ليس لديك حساب؟"
+msgstr ""
+
+#: templates/login.html:286
+msgid "سجل الآن"
+msgstr ""
+
+#: templates/login.html:290
+msgid "دليل اللعبة والاستخدام"
+msgstr ""
+
+#: templates/login.html:298
+msgid ""
+"هذه لعبة للتسلية فقط. المحتوى خيالي ولا يجوز تطبيقه في الحياة الواقعية "
+"حتى لا تقع تحت طائلة القانون أو المساءلة. العب بمسؤولية."
+msgstr ""
+
+#: templates/login.html:317 templates/login.html:320
+msgid "تم نسخ الـ IBAN بنجاح!"
+msgstr ""
+
+#: templates/login.html:333
+msgid "امتلك المشروع بالكامل"
+msgstr ""
+
+#: templates/login.html:341
+msgid "عصابات فلسطين - منصة SaaS متكاملة"
+msgstr ""
+
+#: templates/login.html:346
+msgid "رخصة تشغيل تجارية شاملة"
+msgstr ""
+
+#: templates/login.html:350
+msgid "منصة ألعاب متكاملة (حل تقني جاهز)"
+msgstr ""
+
+#: templates/login.html:351
+msgid "لوحة تحكم إدارية شاملة"
+msgstr ""
+
+#: templates/login.html:352
+msgid "نظام مدفوعات واشتراكات جاهز للربح"
+msgstr ""
+
+#: templates/login.html:353
+msgid "حقوق الاستخدام والتعديل (يمنع إعادة بيع النظام)"
+msgstr ""
+
+#: templates/login.html:356
+msgid "استثمر في مشروع تقني جاهز وابدأ بجني الأرباح من اليوم الأول."
+msgstr ""
+
+#: templates/login.html:358
+msgid "مرحباً، أنا مستثمر ومهتم بشراء منصة عصابات فلسطين كنظام SaaS"
+msgstr ""
+
+#: templates/login.html:359
+msgid "تواصل لامتلاك المنصة"
+msgstr ""
+
+#: templates/login.html:379
+msgid "شكراً لدعمك!"
+msgstr ""
+
+#: templates/login.html:382
+msgid "مساهمتك تساعدنا في تطوير اللعبة وإضافة ميزات جديدة."
+msgstr ""
+
+#: templates/login.html:385
+msgid "رقم المحفظة / IBAN (USDT - TRC20)"
+msgstr ""
+
+#: templates/login.html:387
+msgid "سيتم توفيره قريباً - تواصل معنا"
+msgstr ""
+
+#: templates/login.html:394
+msgid "يرجى التأكد من الشبكة (TRC20) قبل التحويل."
+msgstr ""
+
+#: templates/login.html:398
+msgid "يمكنك أيضاً التواصل معنا لطرق تبرع أخرى:"
+msgstr ""
+
+#: templates/login.html:399
+msgid "مرحباً، أرغب في التبرع للمشروع"
+msgstr ""
+
+#: templates/login.html:400
+msgid "تواصل معنا"
+msgstr ""
+
+#: templates/market.html:13
+msgid "كل ما تحتاجه للسيطرة على الشارع، متوفر هنا... بالسعر المناسب."
+msgstr ""
+
+#: templates/market.html:24
+msgid "الأسلحة"
+msgstr ""
+
+#: templates/casino/racing/index.html:48 templates/market.html:29
+msgid "الدروع"
+msgstr ""
+
+#: templates/market.html:34
+msgid "المواد"
+msgstr ""
+
+#: templates/market.html:70 templates/market.html:115 templates/market.html:169
+msgid "مفلس"
+msgstr ""
+
+#: templates/market.html:81 templates/market.html:126 templates/market.html:180
+msgid "المخزون فارغ حالياً."
+msgstr ""
+
+#: templates/messages.html:204
+msgid "رسالة جديدة"
+msgstr ""
+
+#: templates/messages.html:235
+msgid "تحديد الكل"
+msgstr ""
+
+#: templates/messages.html:239
+msgid "حذف المحدد"
+msgstr ""
+
+#: templates/messages.html:239
+msgid "هل أنت متأكد من حذف الرسائل المحددة؟"
+msgstr ""
+
+#: templates/messages.html:242
+msgid "تحديث"
+msgstr ""
+
+#: templates/messages.html:285 templates/view_message.html:78
+msgid "رد"
+msgstr ""
+
+#: templates/developer/announcements.html:44
+#: templates/developer/settings.html:54
+#: templates/developer/unverified_users.html:49 templates/forum/topic.html:32
+#: templates/messages.html:289 templates/notifications.html:136
+#: templates/view_message.html:82
+msgid "حذف"
+msgstr ""
+
+#: templates/messages.html:298
+msgid "لا يوجد رسائل"
+msgstr ""
+
+#: templates/messages.html:300
+msgid "إرسال رسالة جديدة"
+msgstr ""
+
+#: templates/developer/announcements.html:43 templates/messages.html:341
+msgid "هل أنت متأكد؟"
+msgstr ""
+
+#: templates/my_properties.html:138
+msgid "محفظة العقارات"
+msgstr ""
+
+#: templates/my_properties.html:140
+msgid "إمبراطوريتك العقارية"
+msgstr ""
+
+#: templates/my_properties.html:142
+msgid "شراء عقار جديد"
+msgstr ""
+
+#: templates/my_properties.html:152
+msgid "مملوك"
+msgstr ""
+
+#: templates/my_properties.html:166
+msgid "القيمة السوقية:"
+msgstr ""
+
+#: templates/my_properties.html:178
+msgid "جمع الدخل"
+msgstr ""
+
+#: templates/my_properties.html:183
+msgid "تم الجمع - انتظر للغد"
+msgstr ""
+
+#: templates/my_properties.html:194
+msgid "ما عندك ولا عقار!"
+msgstr ""
+
+#: templates/my_properties.html:195
+msgid "الفلوس بتجيب فلوس، روح اشتريلك كم عقار واستثمر."
+msgstr ""
+
+#: templates/my_properties.html:197
+msgid "الذهاب لسوق العقارات"
+msgstr ""
+
+#: templates/news.html:3
+msgid "آخر الأخبار"
+msgstr ""
+
+#: templates/news.html:93
+msgid "مركز الأخبار"
+msgstr ""
+
+#: templates/news.html:94
+msgid "تابع آخر التحديثات والأحداث في المدينة"
+msgstr ""
+
+#: templates/news.html:113
+msgid "اقرأ المزيد"
+msgstr ""
+
+#: templates/news.html:121
+msgid "لا توجد أخبار حالياً"
+msgstr ""
+
+#: templates/news_detail.html:56
+msgid "عودة للأخبار"
+msgstr ""
+
+#: templates/notifications.html:3 templates/notifications.html:95
+msgid "الإشعارات"
+msgstr ""
+
+#: templates/notifications.html:99
+msgid "تحديد الكل كمقروء"
+msgstr ""
+
+#: templates/developer/heist_history.html:87 templates/notifications.html:151
+msgid "السابق"
+msgstr ""
+
+#: templates/developer/heist_history.html:99 templates/notifications.html:157
+msgid "التالي"
+msgstr ""
+
+#: templates/notifications.html:166
+msgid "لا يوجد إشعارات جديدة"
+msgstr ""
+
+#: templates/gang/organized_crimes.html:118 templates/organized_crimes.html:12
+msgid "معلومات"
+msgstr ""
+
+#: templates/organized_crimes.html:13
+msgid ""
+"الجرائم المنظمة العامة لا تتطلب عضوية عصابة. يتم إنشاء مجموعات مؤقتة "
+"لتنفيذ المهمة، وتوزَّع المكافآت والخبرة على المشاركين حسب المساهمة."
+msgstr ""
+
+#: templates/organized_crimes.html:18
+msgid "الجرائم المنظمة العامة غير مفعلة حالياً من قبل الإدارة."
+msgstr ""
+
+#: templates/organized_crimes.html:25
+msgid "مجموعات تبحث عن أعضاء"
+msgstr ""
+
+#: templates/developer/organized_crimes.html:44
+#: templates/organized_crimes.html:35
+msgid "أعضاء"
+msgstr ""
+
+#: templates/organized_crimes.html:39
+msgid "عرض التفاصيل"
+msgstr ""
+
+#: templates/organized_crimes.html:51
+msgid "الحد الأدنى لإنشاء جريمة منظمة"
+msgstr ""
+
+#: templates/organized_crimes.html:66
+msgid "الحد الأدنى للأعضاء"
+msgstr ""
+
+#: templates/developer/tasks.html:21 templates/gang/organized_crimes.html:143
+#: templates/organized_crimes.html:72
+msgid "المكافأة (مال)"
+msgstr ""
+
+#: templates/organized_crimes.html:79
+msgid "الأدوار المطلوبة:"
+msgstr ""
+
+#: templates/organized_crimes.html:90
+msgid "إنشاء مجموعة"
+msgstr ""
+
+#: templates/organized_crimes.html:93
+msgid "تحتاج رتبة أعلى لإنشاء مجموعة"
+msgstr ""
+
+#: templates/organized_crimes.html:94
+msgid "رتبة غير كافية"
+msgstr ""
+
+#: templates/police_chase.html:22
+msgid "هل أنت مستعد للمخاطرة؟"
+msgstr ""
+
+#: templates/police_chase.html:31
+msgid "الشرطة تلاحقك! هل تعتقد أنك سائق محترف وتستطيع الهرب؟"
+msgstr ""
+
+#: templates/police_chase.html:32
+msgid "إذا هربت ستكسب المال والخبرة، ولكن إذا قُبض عليك ستذهب للسجن!"
+msgstr ""
+
+#: templates/police_chase.html:39
+msgid "ابدأ المطاردة!"
+msgstr ""
+
+#: templates/police_chase.html:44
+msgid "الشرطة خلفك! ماذا ستفعل؟"
+msgstr ""
+
+#: templates/police_chase.html:45
+msgid "اختر وسيلة الهرب بسرعة قبل أن يمسكوا بك!"
+msgstr ""
+
+#: templates/police_chase.html:55
+msgid "الاختباء"
+msgstr ""
+
+#: templates/police_chase.html:56
+msgid "يعتمد على الذكاء"
+msgstr ""
+
+#: templates/police_chase.html:66
+msgid "الهروب"
+msgstr ""
+
+#: templates/police_chase.html:67
+msgid "يعتمد على الرشاقة"
+msgstr ""
+
+#: templates/police_chase.html:77
+msgid "المواجهة"
+msgstr ""
+
+#: templates/police_chase.html:78
+msgid "يعتمد على القوة (خطر!)"
+msgstr ""
+
+#: templates/police_chase.html:86
+msgid "الشرطة تبحث عنك!"
+msgstr ""
+
+#: templates/police_chase.html:88
+msgid "يجب أن تختبئ قليلاً. عد بعد:"
+msgstr ""
+
+#: templates/police_chase.html:88 templates/travel.html:228
+msgid "ثانية"
+msgstr ""
+
+#: templates/profile.html:3 templates/search.html:61
+msgid "الملف الشخصي"
+msgstr ""
+
+#: templates/profile.html:349
+msgid "تغيير الصورة"
+msgstr ""
+
+#: templates/profile.html:437 templates/send_message.html:61
+msgid "إرسال رسالة"
+msgstr ""
+
+#: templates/profile.html:441
+msgid "تعديل الملف الشخصي"
+msgstr ""
+
+#: templates/profile.html:455
+msgid "النشاط الحديث"
+msgstr ""
+
+#: templates/profile.html:460
+msgid "الإحصائيات"
+msgstr ""
+
+#: templates/profile.html:483
+msgid "قام بمهاجمة"
+msgstr ""
+
+#: templates/profile.html:486
+msgid "فاز"
+msgstr ""
+
+#: templates/profile.html:488
+msgid "خسر"
+msgstr ""
+
+#: templates/profile.html:491
+msgid "تعرض لهجوم من"
+msgstr ""
+
+#: templates/profile.html:505
+msgid "لا توجد نشاطات حديثة"
+msgstr ""
+
+#: templates/profile.html:516
+msgid "أداء المعارك"
+msgstr ""
+
+#: templates/profile.html:518
+msgid "معدل الفوز"
+msgstr ""
+
+#: templates/profile.html:525
+msgid "مجموع المعارك"
+msgstr ""
+
+#: templates/profile.html:532
+msgid "معلومات إضافية"
+msgstr ""
+
+#: templates/developer/unverified_users.html:21 templates/profile.html:535
+msgid "تاريخ التسجيل"
+msgstr ""
+
+#: templates/developer/unverified_users.html:22 templates/profile.html:539
+msgid "الدولة"
+msgstr ""
+
+#: templates/profile.html:545
+msgid "السمعة"
+msgstr ""
+
+#: templates/profile.html:562
+msgid "عضو نشط في هذه العصابة"
+msgstr ""
+
+#: templates/profile.html:563
+msgid "عرض صفحة العصابة"
+msgstr ""
+
+#: templates/profile.html:568
+msgid "لا ينتمي لأي عصابة"
+msgstr ""
+
+#: templates/profile.html:569
+msgid "هذا اللاعب ذئب وحيد."
+msgstr ""
+
+#: templates/properties.html:124
+msgid "سوق العقارات"
+msgstr ""
+
+#: templates/properties.html:126
+msgid "استثمر أموالك وسيطر على المدينة"
+msgstr ""
+
+#: templates/properties.html:128
+msgid "عقاراتي المملوكة"
+msgstr ""
+
+#: templates/properties.html:151
+msgid "الدخل اليومي:"
+msgstr ""
+
+#: templates/properties.html:160
+msgid "شراء شخصي"
+msgstr ""
+
+#: templates/properties.html:164
+msgid "لا تملك المال الكافي"
+msgstr ""
+
+#: templates/properties.html:174
+msgid "شراء للعصابة"
+msgstr ""
+
+#: templates/properties.html:178
+msgid "خزينة العصابة لا تكفي"
+msgstr ""
+
+#: templates/properties.html:190
+msgid "لا توجد عقارات متاحة حالياً"
+msgstr ""
+
+#: templates/properties.html:191
+msgid "السوق نايم اليوم، ارجع بعدين."
+msgstr ""
+
+#: templates/developer/unverified_users.html:20 templates/register.html:108
+msgid "البريد الإلكتروني"
+msgstr ""
+
+#: templates/register.html:132
+msgid "تأكيد كلمة المرور"
+msgstr ""
+
+#: templates/register.html:139
+msgid "رمز التحقق البشري"
+msgstr ""
+
+#: templates/register.html:143
+msgid "تغيير الرمز"
+msgstr ""
+
+#: templates/register.html:150
+msgid "اكتب الرمز الظاهر في الصورة"
+msgstr ""
+
+#: templates/register.html:162
+msgid "لديك حساب بالفعل؟"
+msgstr ""
+
+#: templates/register.html:163
+msgid "سجل دخولك"
+msgstr ""
+
+#: templates/search.html:3 templates/search.html:15
+msgid "البحث عن لاعبين"
+msgstr ""
+
+#: templates/search.html:22
+msgid "اكتب اسم اللاعب هنا..."
+msgstr ""
+
+#: templates/search.html:33
+msgid "نتائج البحث"
+msgstr ""
+
+#: templates/search.html:36
+msgid "اللاعبين"
+msgstr ""
+
+#: templates/search.html:62
+msgid "بروفايل"
+msgstr ""
+
+#: templates/gang/index.html:136 templates/search.html:93
+#: templates/search.html:94
+msgid "عرض"
+msgstr ""
+
+#: templates/search.html:106
+msgid "لم يتم العثور على نتائج لـ"
+msgstr ""
+
+#: templates/send_message.html:69
+msgid "إلى اللاعب:"
+msgstr ""
+
+#: templates/send_message.html:74
+msgid "الموضوع:"
+msgstr ""
+
+#: templates/send_message.html:75
+msgid "عنوان الرسالة"
+msgstr ""
+
+#: templates/send_message.html:79
+msgid "نص الرسالة:"
+msgstr ""
+
+#: templates/send_message.html:80
+msgid "اكتب رسالتك هنا..."
+msgstr ""
+
+#: templates/send_message.html:85
+msgid "إرسال"
+msgstr ""
+
+#: templates/developer/edit_announcement.html:30
+#: templates/developer/edit_asset.html:54
+#: templates/developer/edit_crime.html:89
+#: templates/developer/edit_hostess.html:78
+#: templates/developer/edit_item.html:96
+#: templates/developer/edit_organized_crime.html:87
+#: templates/developer/edit_setting.html:58
+#: templates/developer/edit_task.html:49 templates/developer/edit_user.html:166
+#: templates/developer/edit_vehicle.html:65
+#: templates/developer/forum/category_form.html:42
+#: templates/forum/create_topic.html:35 templates/gang/create.html:111
+#: templates/market/trade.html:244 templates/send_message.html:88
+msgid "إلغاء"
+msgstr ""
+
+#: templates/travel.html:3
+msgid "التنقل بين المدن"
+msgstr ""
+
+#: templates/travel.html:118
+msgid "شبكة المواصلات الفلسطينية"
+msgstr ""
+
+#: templates/travel.html:128
+msgid "موقعك الحالي"
+msgstr ""
+
+#: templates/travel.html:143
+msgid "ميزة المدينة:"
+msgstr ""
+
+#: templates/travel.html:146
+msgid "زيادة الخبرة"
+msgstr ""
+
+#: templates/travel.html:148
+msgid "زيادة الدفاع"
+msgstr ""
+
+#: templates/travel.html:150
+msgid "تجديد صحة أسرع"
+msgstr ""
+
+#: templates/travel.html:152
+msgid "زيادة الدخل"
+msgstr ""
+
+#: templates/travel.html:154
+msgid "تخفيض محكومية السجن"
+msgstr ""
+
+#: templates/travel.html:156
+msgid "زيادة قوة الهجوم"
+msgstr ""
+
+#: templates/travel.html:158
+msgid "تجديد طاقة أسرع"
+msgstr ""
+
+#: templates/travel.html:169
+msgid "استراحة سفر"
+msgstr ""
+
+#: templates/travel.html:171
+msgid "يجب عليك الانتظار"
+msgstr ""
+
+#: templates/travel.html:171
+msgid "ثانية."
+msgstr ""
+
+#: templates/travel.html:175
+msgid "جاهز للسفر"
+msgstr ""
+
+#: templates/travel.html:176
+msgid "يمكنك الانتقال لمدينة أخرى الآن!"
+msgstr ""
+
+#: templates/travel.html:216
+msgid "دخل"
+msgstr ""
+
+#: templates/travel.html:218
+msgid "سجن"
+msgstr ""
+
+#: templates/travel.html:228
+msgid "زمن الرحلة:"
+msgstr ""
+
+#: templates/gang/organized_crimes.html:230 templates/travel.html:232
+msgid "انتظر..."
+msgstr ""
+
+#: templates/travel.html:237
+msgid "هل تريد السفر إلى"
+msgstr ""
+
+#: templates/travel.html:237
+msgid "مقابل"
+msgstr ""
+
+#: templates/travel.html:238
+msgid "سافر الآن"
+msgstr ""
+
+#: templates/unconfirmed.html:6
+msgid "الحساب غير مفعل"
+msgstr ""
+
+#: templates/unconfirmed.html:8
+msgid ""
+"لم تقم بتفعيل حسابك بعد. يرجى تفقد بريدك الإلكتروني والنقر على رابط "
+"التفعيل."
+msgstr ""
+
+#: templates/unconfirmed.html:11
+msgid "إذا لم تجد الرسالة، تحقق من مجلد الرسائل المزعجة (Spam)."
+msgstr ""
+
+#: templates/unconfirmed.html:15
+msgid "إعادة إرسال رابط التفعيل"
+msgstr ""
+
+#: templates/unconfirmed.html:18
+msgid "العودة لتسجيل الدخول"
+msgstr ""
+
+#: templates/unconfirmed.html:25
+msgid "تواجه مشكلة في التفعيل؟ يمكنك التواصل مع المطور لتفعيل حسابك يدوياً."
+msgstr ""
+
+#: templates/unconfirmed.html:27
+msgid "تواصل عبر واتساب"
+msgstr ""
+
+#: templates/view_message.html:51
+msgid "عودة للبريد"
+msgstr ""
+
+#: templates/developer/messages.html:91 templates/view_message.html:66
+msgid "من:"
+msgstr ""
+
+#: templates/view_message.html:104
+msgid "هل أنت متأكد من حذف هذه الرسالة؟"
+msgstr ""
+
+#: templates/admin/index.html:116
+msgid "لوحة القيادة والتحكم"
+msgstr ""
+
+#: templates/admin/index.html:133
+msgid "المستخدمين المسجلين"
+msgstr ""
+
+#: templates/admin/index.html:138
+msgid "إدارة المستخدمين"
+msgstr ""
+
+#: templates/admin/index.html:146
+msgid "إجمالي الأموال في اللعبة"
+msgstr ""
+
+#: templates/admin/index.html:151
+msgid "تفاصيل الاقتصاد"
+msgstr ""
+
+#: templates/admin/index.html:159
+msgid "العصابات النشطة"
+msgstr ""
+
+#: templates/admin/index.html:164
+msgid "إدارة العصابات"
+msgstr ""
+
+#: templates/admin/index.html:172
+msgid "طلبات دفع معلقة"
+msgstr ""
+
+#: templates/admin/index.html:177
+msgid "مراجعة الطلبات"
+msgstr ""
+
+#: templates/admin/index.html:189
+msgid "طلبات شحن الرصيد المعلقة"
+msgstr ""
+
+#: templates/admin/index.html:198
+msgid "الطريقة"
+msgstr ""
+
+#: templates/admin/index.html:200 templates/casino/racing/index.html:116
+msgid "إجراء"
+msgstr ""
+
+#: templates/admin/index.html:212
+msgid "مراجعة"
+msgstr ""
+
+#: templates/admin/index.html:220
+msgid "عرض كل المعاملات"
+msgstr ""
+
+#: templates/admin/index.html:228
+msgid "آخر المنضمين"
+msgstr ""
+
+#: templates/admin/index.html:238
+msgid "تاريخ الانضمام"
+msgstr ""
+
+#: templates/admin/index.html:251
+msgid "جديد"
+msgstr ""
+
+#: templates/admin/index.html:262 templates/developer/dashboard.html:122
+msgid "إجراءات سريعة"
+msgstr ""
+
+#: templates/admin/index.html:265
+msgid "إدارة محتوى اللعبة بسهولة"
+msgstr ""
+
+#: templates/admin/index.html:267
+msgid "إضافة غرض"
+msgstr ""
+
+#: templates/admin/index.html:270
+msgid "إضافة جريمة"
+msgstr ""
+
+#: templates/admin/index.html:273
+msgid "إضافة منطقة"
+msgstr ""
+
+#: templates/admin/index.html:276
+msgid "إضافة مركبة"
+msgstr ""
+
+#: templates/admin/index.html:279
+msgid "إعلان جديد"
+msgstr ""
+
+#: templates/admin/index.html:282
+msgid "الإعدادات"
+msgstr ""
+
+#: templates/admin/index.html:293
+msgid "حالة النظام"
+msgstr ""
+
+#: templates/admin/index.html:297
+msgid "إصدار اللعبة"
+msgstr ""
+
+#: templates/admin/index.html:301
+msgid "عدد الجرائم"
+msgstr ""
+
+#: templates/admin/index.html:305
+msgid "عدد الأغراض"
+msgstr ""
+
+#: templates/admin/index.html:309
+msgid "حالة السيرفر"
+msgstr ""
+
+#: templates/admin/index.html:310
+msgid "متصل"
+msgstr ""
+
+#: templates/admin/index.html:318
+msgid "آخر النشاطات"
+msgstr ""
+
+#: templates/admin/index.html:337
+msgid "عرض كل السجل"
+msgstr ""
+
+#: templates/casino/bar.html:6 templates/casino/index.html:76
+msgid "البار"
+msgstr ""
+
+#: templates/casino/bar.html:7
+msgid "استرخِ قليلاً واستعد طاقتك."
+msgstr ""
+
+#: templates/casino/bar.html:9 templates/casino/blackjack.html:8
+#: templates/casino/roulette.html:8 templates/casino/slots.html:8
+msgid "عودة للكازينو"
+msgstr ""
+
+#: templates/casino/blackjack.html:18
+msgid "الموزع"
+msgstr ""
+
+#: templates/casino/blackjack.html:41
+msgid "انتظار الرهان..."
+msgstr ""
+
+#: templates/casino/blackjack.html:55 templates/combat/history.html:130
+#: templates/combat/history.html:137
+msgid "أنت"
+msgstr ""
+
+#: templates/casino/blackjack.html:71
+msgid "ضع رهانك لتبدأ"
+msgstr ""
+
+#: templates/casino/blackjack.html:84
+msgid "توزيع"
+msgstr ""
+
+#: templates/casino/blackjack.html:88
+msgid "لعب جديد"
+msgstr ""
+
+#: templates/casino/blackjack.html:94
+msgid "اسحب (Hit)"
+msgstr ""
+
+#: templates/casino/hostess.html:130
+msgid "نادي كبار الزوار (VIP Club)"
+msgstr ""
+
+#: templates/casino/hostess.html:131
+msgid "اختر رفيقتك في عالم الجريمة. كل واحدة تملك مهارات خاصة تساعدك."
+msgstr ""
+
+#: templates/casino/hostess.html:148
+msgid "معك الآن"
+msgstr ""
+
+#: templates/casino/hostess.html:151
+msgid "ينتهي:"
+msgstr ""
+
+#: templates/casino/hostess.html:156
+msgid "تحدث معها"
+msgstr ""
+
+#: templates/casino/hostess.html:175
+msgid "حظ"
+msgstr ""
+
+#: templates/casino/hostess.html:176
+msgid "تجسس"
+msgstr ""
+
+#: templates/casino/hostess.html:177
+msgid "دعم"
+msgstr ""
+
+#: templates/casino/hostess.html:185
+msgid "دقيقة"
+msgstr ""
+
+#: templates/casino/hostess.html:188
+msgid "نشطة حالياً"
+msgstr ""
+
+#: templates/casino/hostess.html:193
+msgid "تعاقد الآن"
+msgstr ""
+
+#: templates/casino/hostess.html:209
+msgid "محادثة خاصة"
+msgstr ""
+
+#: templates/casino/hostess.html:217
+msgid "أهلاً يا عزيزي. كيف يمكنني مساعدتك؟"
+msgstr ""
+
+#: templates/casino/hostess.html:221
+msgid "اكتب رسالتك..."
+msgstr ""
+
+#: templates/casino/index.html:6
+msgid "كازينو الزعيم"
+msgstr ""
+
+#: templates/casino/index.html:7
+msgid "المكان الذي تصنع فيه الثروات... أو تخسرها!"
+msgstr ""
+
+#: templates/casino/index.html:11
+msgid "حظ المضيفة مفعل!"
+msgstr ""
+
+#: templates/casino/index.html:11 templates/gang/dashboard.html:260
+msgid "ينتهي في"
+msgstr ""
+
+#: templates/casino/index.html:26
+msgid "حلبة سباق السيارات"
+msgstr ""
+
+#: templates/casino/index.html:26
+msgid "جديد!"
+msgstr ""
+
+#: templates/casino/index.html:27
+msgid "سابق لاعبين حقيقين بسيارتك المعدلة! طور محركك، درب سائقك، واربح الملايين."
+msgstr ""
+
+#: templates/casino/index.html:28
+msgid "دخول الحلبة"
+msgstr ""
+
+#: templates/casino/index.html:41
+msgid "تحدى الموزع وحاول الوصول لرقم 21."
+msgstr ""
+
+#: templates/casino/index.html:42 templates/casino/index.html:54
+#: templates/casino/index.html:66
+msgid "لعب الآن"
+msgstr ""
+
+#: templates/casino/index.html:52 templates/casino/slots.html:6
+msgid "ماكينات الحظ"
+msgstr ""
+
+#: templates/casino/index.html:53
+msgid "جرب حظك مع السلوتس واربح الجاكبوت!"
+msgstr ""
+
+#: templates/casino/index.html:64 templates/casino/roulette.html:6
+msgid "الروليت"
+msgstr ""
+
+#: templates/casino/index.html:65
+msgid "راهن على الأرقام والألوان."
+msgstr ""
+
+#: templates/casino/index.html:77
+msgid "اشرب وارتاح واسترجع طاقتك."
+msgstr ""
+
+#: templates/casino/index.html:78
+msgid "دخول البار"
+msgstr ""
+
+#: templates/casino/index.html:88
+msgid "المضيفات"
+msgstr ""
+
+#: templates/casino/index.html:89
+msgid "استمتع بصحبة جميلة لزيادة حظك."
+msgstr ""
+
+#: templates/casino/index.html:90
+msgid "صالة VIP"
+msgstr ""
+
+#: templates/casino/roulette.html:25
+msgid "قيمة الرهان"
+msgstr ""
+
+#: templates/casino/roulette.html:45
+msgid "صفر"
+msgstr ""
+
+#: templates/casino/roulette.html:56
+msgid "رقم محدد (x35)"
+msgstr ""
+
+#: templates/casino/roulette.html:59
+msgid "اختر رقم (0-36)"
+msgstr ""
+
+#: templates/casino/roulette.html:65
+msgid "دور العجلة!"
+msgstr ""
+
+#: templates/casino/slots.html:26
+msgid "اضغط لتدوير العجلة!"
+msgstr ""
+
+#: templates/casino/slots.html:33
+msgid "رهان"
+msgstr ""
+
+#: templates/casino/slots.html:37
+msgid "تدوير"
+msgstr ""
+
+#: templates/casino/slots.html:45
+msgid "الجوائز:"
+msgstr ""
+
+#: templates/casino/slots.html:46
+msgid "أي 3 متشابهة"
+msgstr ""
+
+#: templates/casino/slots.html:46
+msgid "أي 2 متشابهة"
+msgstr ""
+
+#: templates/casino/racing/index.html:7
+msgid "حلبة السباق"
+msgstr ""
+
+#: templates/casino/racing/index.html:8
+msgid "سابق بسيارتك ضد لاعبين حقيقيين واربح الملايين!"
+msgstr ""
+
+#: templates/casino/racing/index.html:17
+msgid "سيارتي"
+msgstr ""
+
+#: templates/casino/racing/index.html:23
+msgid "السرعة الأساسية:"
+msgstr ""
+
+#: templates/casino/racing/index.html:28
+msgid "المحرك"
+msgstr ""
+
+#: templates/casino/racing/index.html:38
+msgid "العجلات"
+msgstr ""
+
+#: templates/casino/racing/index.html:62
+msgid "مهارة السائق:"
+msgstr ""
+
+#: templates/casino/racing/index.html:68
+msgid "تدريب السائق"
+msgstr ""
+
+#: templates/casino/racing/index.html:74
+msgid "ليس لديك سيارة مفعلة! اذهب للكراج واشترِ واحدة."
+msgstr ""
+
+#: templates/casino/racing/index.html:84
+msgid "إنشاء سباق جديد"
+msgstr ""
+
+#: templates/casino/racing/index.html:94
+msgid "إنشاء التحدي"
+msgstr ""
+
+#: templates/casino/racing/index.html:105
+msgid "السباقات المتاحة"
+msgstr ""
+
+#: templates/casino/racing/index.html:112
+msgid "المنشئ"
+msgstr ""
+
+#: templates/casino/racing/index.html:114
+msgid "المتسابقين"
+msgstr ""
+
+#: templates/casino/racing/index.html:125
+msgid "بانتظار المتحدين"
+msgstr ""
+
+#: templates/casino/racing/index.html:130
+msgid "انضمام"
+msgstr ""
+
+#: templates/casino/racing/index.html:138
+msgid "لا يوجد سباقات حالياً. كن أول من ينشئ واحداً!"
+msgstr ""
+
+#: templates/casino/racing/room.html:8
+msgid "سباق التحدي"
+msgstr ""
+
+#: templates/casino/racing/room.html:10
+msgid "الجائزة الكبرى:"
+msgstr ""
+
+#: templates/casino/racing/room.html:19
+msgid "المتسابقون"
+msgstr ""
+
+#: templates/casino/racing/room.html:20
+msgid "لاعبين"
+msgstr ""
+
+#: templates/casino/racing/room.html:39
+msgid "تقرير الجاسوس:"
+msgstr ""
+
+#: templates/casino/racing/room.html:41
+msgid "إطارات:"
+msgstr ""
+
+#: templates/casino/racing/room.html:42
+msgid "دروع:"
+msgstr ""
+
+#: templates/casino/racing/room.html:43
+msgid "مهارة:"
+msgstr ""
+
+#: templates/casino/racing/room.html:45
+msgid "حالة:"
+msgstr ""
+
+#: templates/casino/racing/room.html:66
+msgid "النقاط:"
+msgstr ""
+
+#: templates/casino/racing/room.html:84
+msgid "ابدأ السباق!"
+msgstr ""
+
+#: templates/casino/racing/room.html:89
+msgid "بانتظار انضمام لاعبين آخرين..."
+msgstr ""
+
+#: templates/casino/racing/room.html:94
+msgid "بانتظار المنشئ لبدء السباق..."
+msgstr ""
+
+#: templates/casino/racing/room.html:99
+msgid "انتهى السباق!"
+msgstr ""
+
+#: templates/combat/history.html:104 templates/combat/index.html:81
+#: templates/combat/index.html:82
+msgid "سجل المعارك"
+msgstr ""
+
+#: templates/combat/history.html:106
+msgid "عودة للقتال"
+msgstr ""
+
+#: templates/combat/history.html:120 templates/developer/heist_history.html:18
+#: templates/gang/dashboard.html:259
+msgid "النتيجة"
+msgstr ""
+
+#: templates/combat/history.html:121
+msgid "الغنائم"
+msgstr ""
+
+#: templates/combat/history.html:144
+msgid "انتصار"
+msgstr ""
+
+#: templates/combat/history.html:146
+msgid "هزيمة"
+msgstr ""
+
+#: templates/combat/history.html:173
+msgid "لا يوجد سجلات معارك حتى الآن."
+msgstr ""
+
+#: templates/combat/history.html:174
+msgid "ابدأ القتال لتسجيل انتصاراتك هنا!"
+msgstr ""
+
+#: templates/combat/history.html:175
+msgid "ابحث عن خصم"
+msgstr ""
+
+#: templates/combat/index.html:76
+msgid "قائمة الأهداف"
+msgstr ""
+
+#: templates/combat/index.html:78
+msgid "التحري عن لاعب"
+msgstr ""
+
+#: templates/combat/index.html:79
+msgid "التحري"
+msgstr ""
+
+#: templates/combat/index.html:90
+msgid "ابحث عن ضحية..."
+msgstr ""
+
+#: templates/combat/index.html:95
+msgid "إلغاء البحث"
+msgstr ""
+
+#: templates/combat/index.html:107 templates/developer/tasks.html:20
+msgid "الهدف"
+msgstr ""
+
+#: templates/combat/index.html:129
+msgid "بدون عصابة"
+msgstr ""
+
+#: templates/combat/index.html:134
+msgid "في المستشفى حتى"
+msgstr ""
+
+#: templates/combat/index.html:135
+msgid "في المستشفى"
+msgstr ""
+
+#: templates/combat/index.html:138
+msgid "في السجن حتى"
+msgstr ""
+
+#: templates/combat/index.html:139
+msgid "في السجن"
+msgstr ""
+
+#: templates/combat/index.html:145
+msgid "تفجير المنزل الآمن (يحتاج C4)"
+msgstr ""
+
+#: templates/combat/index.html:146
+msgid "تفجير (C4)"
+msgstr ""
+
+#: templates/combat/index.html:166
+msgid "لا يوجد أهداف متاحة حالياً. حاول البحث في وقت لاحق."
+msgstr ""
+
+#: templates/combat/index.html:189
+msgid "جاري الهجوم..."
+msgstr ""
+
+#: templates/combat/result.html:115
+msgid "انتصار!"
+msgstr ""
+
+#: templates/combat/result.html:117
+msgid "هزيمة!"
+msgstr ""
+
+#: templates/combat/result.html:130
+msgid "لقد سحقت خصمك!"
+msgstr ""
+
+#: templates/combat/result.html:132
+msgid "المسروقات"
+msgstr ""
+
+#: templates/combat/result.html:140
+msgid "لقد تم سحقك!"
+msgstr ""
+
+#: templates/combat/result.html:142
+msgid "خسرت"
+msgstr ""
+
+#: templates/combat/result.html:145
+msgid "حاول تدريب نفسك في الجيم وشراء أسلحة أفضل!"
+msgstr ""
+
+#: templates/combat/result.html:151
+msgid "بحث عن ضحية أخرى"
+msgstr ""
+
+#: templates/combat/result.html:154
+msgid "الذهاب للمستشفى"
+msgstr ""
+
+#: templates/developer/active_lobbies.html:3
+msgid "المجموعات النشطة"
+msgstr ""
+
+#: templates/developer/active_lobbies.html:8
+msgid "مجموعات الجرائم المنظمة النشطة (Active Lobbies)"
+msgstr ""
+
+#: templates/developer/active_lobbies.html:15
+#: templates/developer/heist_history.html:15
+msgid "المعرف"
+msgstr ""
+
+#: templates/developer/active_lobbies.html:16
+#: templates/developer/heist_history.html:16
+msgid "الجريمة"
+msgstr ""
+
+#: templates/developer/active_lobbies.html:33
+msgid "جاري التنفيذ"
+msgstr ""
+
+#: templates/developer/active_lobbies.html:35
+msgid "انتظار"
+msgstr ""
+
+#: templates/developer/active_lobbies.html:40
+msgid "هل أنت متأكد من حذف هذه المجموعة؟"
+msgstr ""
+
+#: templates/developer/active_lobbies.html:50
+msgid "لا توجد مجموعات نشطة حالياً"
+msgstr ""
+
+#: templates/developer/announcements.html:6
+msgid "إدارة الإعلانات"
+msgstr ""
+
+#: templates/developer/announcements.html:9
+msgid "إضافة إعلان"
+msgstr ""
+
+#: templates/developer/announcements.html:39 templates/developer/assets.html:54
+#: templates/developer/crimes.html:58 templates/developer/items.html:56
+#: templates/developer/settings.html:51 templates/developer/tasks.html:51
+#: templates/developer/users.html:51 templates/developer/vehicles.html:56
+msgid "تعديل"
+msgstr ""
+
+#: templates/developer/assets.html:6
+msgid "إدارة العقارات"
+msgstr ""
+
+#: templates/developer/assets.html:9
+msgid "إضافة عقار جديد"
+msgstr ""
+
+#: templates/developer/assets.html:20 templates/developer/crimes.html:20
+#: templates/developer/hostesses.html:18 templates/developer/items.html:20
+#: templates/developer/organized_crimes.html:20
+msgid "الصورة"
+msgstr ""
+
+#: templates/developer/assets.html:22
+msgid "الدخل / ساعة"
+msgstr ""
+
+#: templates/developer/assets.html:38 templates/developer/crimes.html:38
+#: templates/developer/items.html:40
+#: templates/developer/organized_crimes.html:40
+#: templates/developer/vehicles.html:39
+msgid "لا توجد صورة"
+msgstr ""
+
+#: templates/developer/config.html:17
+msgid "إعدادات السوق"
+msgstr ""
+
+#: templates/developer/config.html:18
+msgid "طي/فتح"
+msgstr ""
+
+#: templates/developer/config.html:59
+msgid "أقل مبلغ شراء فوري لتفادي السبام"
+msgstr ""
+
+#: templates/developer/config.html:65
+msgid "قائمة مفصولة بفواصل، مثال: 1,5,10,20,50,100"
+msgstr ""
+
+#: templates/developer/config.html:71
+msgid "اضبطه حسب الأداء والدقة (افتراضي 60 ثانية)"
+msgstr ""
+
+#: templates/developer/config.html:80
+msgid "تكلفة خدمة المعلومات الداخلية (Insider Intel)"
+msgstr ""
+
+#: templates/developer/config.html:90
+msgid "الإعداد (Key)"
+msgstr ""
+
+#: templates/developer/config.html:91 templates/developer/settings.html:35
+msgid "القيمة (Value)"
+msgstr ""
+
+#: templates/developer/config.html:104
+msgid "لا توجد إعدادات متاحة حالياً"
+msgstr ""
+
+#: templates/developer/config.html:112 templates/developer/edit_user.html:165
+#: templates/gang/dashboard.html:374
+msgid "حفظ التغييرات"
+msgstr ""
+
+#: templates/developer/config.html:119
+msgid "إعادة إعدادات السوق الافتراضية"
+msgstr ""
+
+#: templates/developer/config.html:125 templates/developer/settings.html:24
+msgid "إضافة إعداد جديد"
+msgstr ""
+
+#: templates/developer/config.html:137
+msgid "إضافة"
+msgstr ""
+
+#: templates/developer/config.html:158
+msgid "فاصل التحديث لا يجب أن يكون أقل من 15 ثانية"
+msgstr ""
+
+#: templates/developer/config.html:170
+msgid "قائمة رافعات غير صالحة"
+msgstr ""
+
+#: templates/developer/config.html:189
+msgid "القيم لا يجب أن تكون سالبة"
+msgstr ""
+
+#: templates/developer/crimes.html:6
+msgid "إدارة الجرائم"
+msgstr ""
+
+#: templates/developer/crimes.html:9
+msgid "إضافة جريمة جديدة"
+msgstr ""
+
+#: templates/developer/crimes.html:22
+#: templates/developer/organized_crimes.html:22
+msgid "المكافأة (مال/خبرة)"
+msgstr ""
+
+#: templates/developer/dashboard.html:108
+msgid "لوحة تحكم المطور"
+msgstr ""
+
+#: templates/developer/dashboard.html:110
+msgid "رجوع للحارة"
+msgstr ""
+
+#: templates/developer/dashboard.html:128
+msgid "إدارة قاعدة البيانات"
+msgstr ""
+
+#: templates/developer/dashboard.html:130 templates/developer/hostesses.html:6
+msgid "إدارة المضيفات"
+msgstr ""
+
+#: templates/developer/dashboard.html:143
+msgid "هل أنت متأكد من إضافة لاعبين وهميين؟"
+msgstr ""
+
+#: templates/developer/dashboard.html:144
+msgid "إضافة بوتات"
+msgstr ""
+
+#: templates/developer/dashboard.html:170
+msgid "إجمالي الكاش"
+msgstr ""
+
+#: templates/developer/dashboard.html:181
+msgid "إجمالي الماس"
+msgstr ""
+
+#: templates/developer/dashboard.html:192
+msgid "نشاط اليوم"
+msgstr ""
+
+#: templates/developer/edit_asset.html:40
+#: templates/developer/edit_crime.html:75 templates/developer/edit_item.html:82
+#: templates/developer/edit_organized_crime.html:73
+#: templates/developer/edit_task.html:38
+#: templates/developer/edit_vehicle.html:54
+msgid "اختر ملف"
+msgstr ""
+
+#: templates/developer/edit_crime.html:66
+msgid "فقط إذا كان نوع الجائزة \"غرض محدد\""
+msgstr ""
+
+#: templates/developer/edit_hostess.html:51
+msgid "تدريب الشخصية (AI Training)"
+msgstr ""
+
+#: templates/developer/edit_hostess.html:56
+msgid ""
+"هنا تضع \"عقل\" المضيفة. التعليمات التي تكتبها هنا ستحدد كيف تتصرف، ماذا "
+"تعرف، وكيف ترد على اللاعب. كلما كنت دقيقاً، كانت النتيجة أفضل."
+msgstr ""
+
+#: templates/developer/edit_organized_crime.html:44
+msgid "مدة الانتظار بعد المشاركة (ساعة)"
+msgstr ""
+
+#: templates/developer/edit_setting.html:26
+msgid "اسم الإعداد باللغة الإنجليزية (مثال: OPENAI_API_KEY)"
+msgstr ""
+
+#: templates/developer/edit_user.html:8
+msgid "تعديل اللاعب"
+msgstr ""
+
+#: templates/developer/edit_user.html:32
+msgid "الخبرة (EXP)"
+msgstr ""
+
+#: templates/developer/edit_user.html:42
+msgid "الرصيد البنكي"
+msgstr ""
+
+#: templates/developer/edit_user.html:50
+msgid "الرصاص"
+msgstr ""
+
+#: templates/developer/edit_user.html:57
+msgid "الخصائص القتالية"
+msgstr ""
+
+#: templates/developer/edit_user.html:117
+msgid "إدارة الحساب"
+msgstr ""
+
+#: templates/developer/edit_user.html:123
+msgid "وضع الشبح (Ghost Mode)"
+msgstr ""
+
+#: templates/developer/edit_user.html:125
+msgid "إخفاء المستخدم من قوائم المتصلين والترتيب."
+msgstr ""
+
+#: templates/developer/edit_user.html:132
+msgid "نظام الحظر (Ban System)"
+msgstr ""
+
+#: templates/developer/edit_user.html:136
+msgid "مدة الحظر (ساعات)"
+msgstr ""
+
+#: templates/developer/edit_user.html:143
+msgid "مخالفة القوانين..."
+msgstr ""
+
+#: templates/developer/edit_user.html:149
+msgid "محظور حتى:"
+msgstr ""
+
+#: templates/developer/edit_user.html:154
+msgid "رفع الحظر الآن"
+msgstr ""
+
+#: templates/developer/edit_user.html:158
+msgid "المستخدم غير محظور حالياً."
+msgstr ""
+
+#: templates/developer/heist_history.html:3
+msgid "سجل الجرائم المنظمة"
+msgstr ""
+
+#: templates/developer/heist_history.html:8
+msgid "سجل الجرائم المنظمة (Heist History)"
+msgstr ""
+
+#: templates/developer/heist_history.html:19
+msgid "المكافأة الكلية"
+msgstr ""
+
+#: templates/developer/heist_history.html:21
+#: templates/developer/messages.html:29
+#: templates/developer/resurrection_requests.html:22
+#: templates/developer/unverified_users.html:23
+msgid "الإجراءات"
+msgstr ""
+
+#: templates/developer/heist_history.html:32
+msgid "نجاح"
+msgstr ""
+
+#: templates/developer/heist_history.html:34
+msgid "فشل"
+msgstr ""
+
+#: templates/developer/heist_history.html:51
+msgid "تفاصيل العملية"
+msgstr ""
+
+#: templates/developer/heist_history.html:57
+msgid "المشاركون:"
+msgstr ""
+
+#: templates/developer/heist_history.html:60
+msgid "مكافأة"
+msgstr ""
+
+#: templates/developer/heist_history.html:64
+msgid "سجل الأحداث:"
+msgstr ""
+
+#: templates/developer/heist_history.html:72 templates/forum/topic.html:22
+#: templates/market/trade.html:283 templates/market/trade.html:300
+msgid "إغلاق"
+msgstr ""
+
+#: templates/developer/hostesses.html:8
+msgid "إضافة مضيفة جديدة"
+msgstr ""
+
+#: templates/developer/hostesses.html:22
+msgid "النمط"
+msgstr ""
+
+#: templates/developer/hostesses.html:59
+msgid "لا يوجد مضيفات حالياً"
+msgstr ""
+
+#: templates/developer/items.html:6
+msgid "إدارة الأغراض (الأسلحة والدروع)"
+msgstr ""
+
+#: templates/developer/items.html:9
+msgid "إضافة غرض جديد"
+msgstr ""
+
+#: templates/developer/items.html:22
+msgid "القوة / الدفاع"
+msgstr ""
+
+#: templates/developer/items.html:51
+msgid "عام"
+msgstr ""
+
+#: templates/developer/logs.html:6
+msgid "سجلات النظام"
+msgstr ""
+
+#: templates/developer/logs.html:13
+msgid "نوع الإجراء"
+msgstr ""
+
+#: templates/developer/logs.html:15 templates/market/index.html:176
+msgid "الكل"
+msgstr ""
+
+#: templates/developer/logs.html:22
+msgid "اسم المسؤول"
+msgstr ""
+
+#: templates/developer/logs.html:26
+msgid "بحث في التفاصيل"
+msgstr ""
+
+#: templates/developer/logs.html:27
+msgid "كلمة مفتاحية..."
+msgstr ""
+
+#: templates/developer/logs.html:31
+msgid "تصفية"
+msgstr ""
+
+#: templates/developer/logs.html:43
+msgid "الإجراء"
+msgstr ""
+
+#: templates/developer/messages.html:12
+msgid "بحث (اسم المستخدم أو الموضوع)"
+msgstr ""
+
+#: templates/developer/messages.html:25
+msgid "المستقبل"
+msgstr ""
+
+#: templates/developer/messages.html:56
+msgid "غير مقرؤة"
+msgstr ""
+
+#: templates/developer/messages.html:60
+msgid "حذفها المرسل"
+msgstr ""
+
+#: templates/developer/messages.html:63
+msgid "حذفها المستقبل"
+msgstr ""
+
+#: templates/developer/messages.html:72
+msgid "هل أنت متأكد من حذف هذه الرسالة نهائياً من قاعدة البيانات؟"
+msgstr ""
+
+#: templates/developer/messages.html:92
+msgid "إلى:"
+msgstr ""
+
+#: templates/developer/messages.html:107
+msgid "لا توجد رسائل"
+msgstr ""
+
+#: templates/developer/organized_crimes.html:6
+msgid "إدارة الجرائم المنظمة"
+msgstr ""
+
+#: templates/developer/organized_crimes.html:9
+msgid "إضافة جريمة منظمة جديدة"
+msgstr ""
+
+#: templates/developer/organized_crimes.html:21
+msgid "المتطلبات (أعضاء/مستوى)"
+msgstr ""
+
+#: templates/developer/organized_crimes.html:23
+msgid "الانتظار"
+msgstr ""
+
+#: templates/developer/organized_crimes.html:24
+msgid "سياسة العقوبات عند الانسحاب"
+msgstr ""
+
+#: templates/developer/organized_crimes.html:26
+msgid "إعدادات الإثارة"
+msgstr ""
+
+#: templates/developer/organized_crimes.html:46
+msgid "مستوى عصابة"
+msgstr ""
+
+#: templates/developer/organized_crimes.html:54
+#: templates/developer/organized_crimes.html:188
+#: templates/gang/organized_crimes.html:140
+msgid "ساعة"
+msgstr ""
+
+#: templates/developer/organized_crimes.html:59
+msgid "مال (٪/حد أدنى)"
+msgstr ""
+
+#: templates/developer/organized_crimes.html:61
+#: templates/developer/organized_crimes.html:66
+msgid "٪"
+msgstr ""
+
+#: templates/developer/organized_crimes.html:64
+msgid "خبرة (٪/حد أدنى)"
+msgstr ""
+
+#: templates/developer/organized_crimes.html:69
+msgid "طاقة (حد أدنى/أقصى)"
+msgstr ""
+
+#: templates/developer/organized_crimes.html:85
+msgid "تحرير الإعدادات"
+msgstr ""
+
+#: templates/developer/organized_crimes.html:97
+msgid "نسبة حدث الحظ النادر (٪)"
+msgstr ""
+
+#: templates/developer/organized_crimes.html:99
+msgid "يزيد المال/الخبرة بنسبة محددة عند حدوث الحدث."
+msgstr ""
+
+#: templates/developer/organized_crimes.html:102
+msgid "زيادة المال عند الحدث (٪)"
+msgstr ""
+
+#: templates/developer/organized_crimes.html:104
+msgid "النسبة تُطبّق على مكافأة المال عند الحظ."
+msgstr ""
+
+#: templates/developer/organized_crimes.html:107
+msgid "زيادة الخبرة عند الحدث (٪)"
+msgstr ""
+
+#: templates/developer/organized_crimes.html:109
+msgid "النسبة تُطبّق على مكافأة الخبرة عند الحظ."
+msgstr ""
+
+#: templates/developer/organized_crimes.html:114
+msgid "دورية مزدوجة (نسبة حدوث ٪)"
+msgstr ""
+
+#: templates/developer/organized_crimes.html:116
+msgid "حدث سلبي نادر يُقلّل النجاح ويزيد مخاطر السجن."
+msgstr ""
+
+#: templates/developer/organized_crimes.html:119
+msgid "عقوبة النجاح عند الدورية (٪)"
+msgstr ""
+
+#: templates/developer/organized_crimes.html:121
+msgid "نسبة تُخصم من فرص النجاح عند حدوث الدورية."
+msgstr ""
+
+#: templates/developer/organized_crimes.html:124
+msgid "زيادة احتمال السجن (٪)"
+msgstr ""
+
+#: templates/developer/organized_crimes.html:126
+msgid "نسبة إضافية تُزاد على احتمال السجن عند الفشل."
+msgstr ""
+
+#: templates/developer/organized_crimes.html:131
+msgid "نافذة الحرارة (ساعات)"
+msgstr ""
+
+#: templates/developer/organized_crimes.html:133
+msgid "عدد الساعات التي تُحسب فيها العمليات الحديثة لرفع الحرارة."
+msgstr ""
+
+#: templates/developer/organized_crimes.html:136
+msgid "عقوبة النجاح بسبب الحرارة (٪ لكل مشارك)"
+msgstr ""
+
+#: templates/developer/organized_crimes.html:138
+msgid "تُخصم من فرص النجاح لكل مشارك قام بعملية حديثة."
+msgstr ""
+
+#: templates/developer/organized_crimes.html:141
+msgid "زيادة احتمال السجن بسبب الحرارة (٪)"
+msgstr ""
+
+#: templates/developer/organized_crimes.html:143
+msgid "نسبة إضافية تُزاد على احتمال السجن في حال ارتفاع الحرارة."
+msgstr ""
+
+#: templates/developer/organized_crimes.html:147
+msgid "علاوات حسب الدور (JSON)"
+msgstr ""
+
+#: templates/developer/organized_crimes.html:149
+msgid ""
+"أدخل خريطة بالأدوار وقيم علاواتها. الحقول المدعومة: money_pct، exp_bonus،"
+" rank_points"
+msgstr ""
+
+#: templates/developer/organized_crimes.html:153
+msgid "نسبة مكافأة السلسلة لكل نجاح (٪)"
+msgstr ""
+
+#: templates/developer/organized_crimes.html:155
+msgid "تُضاعف مكافآت اللاعب بنسبة صغيرة لكل نجاح متتالي."
+msgstr ""
+
+#: templates/developer/organized_crimes.html:158
+msgid "الحد الأعلى لمكافأة السلسلة (٪)"
+msgstr ""
+
+#: templates/developer/organized_crimes.html:160
+msgid "لا تتجاوز مكافآت السلسلة هذا الحد."
+msgstr ""
+
+#: templates/developer/organized_crimes.html:165
+msgid "حفظ الإعدادات"
+msgstr ""
+
+#: templates/developer/organized_crimes.html:171
+msgid "ملخص الإعدادات الحالية"
+msgstr ""
+
+#: templates/developer/organized_crimes.html:175
+msgid "حدث نادر"
+msgstr ""
+
+#: templates/developer/organized_crimes.html:176
+#: templates/developer/organized_crimes.html:182
+msgid "نسبة"
+msgstr ""
+
+#: templates/developer/organized_crimes.html:177
+msgid "مال"
+msgstr ""
+
+#: templates/developer/organized_crimes.html:181
+msgid "دورية مزدوجة"
+msgstr ""
+
+#: templates/developer/organized_crimes.html:183
+msgid "خصم نجاح"
+msgstr ""
+
+#: templates/developer/organized_crimes.html:184
+#: templates/developer/organized_crimes.html:190
+msgid "زيادة سجن"
+msgstr ""
+
+#: templates/developer/organized_crimes.html:187
+msgid "الحرارة"
+msgstr ""
+
+#: templates/developer/organized_crimes.html:188
+msgid "نافذة"
+msgstr ""
+
+#: templates/developer/organized_crimes.html:189
+msgid "خصم نجاح/مشارك"
+msgstr ""
+
+#: templates/developer/organized_crimes.html:193
+msgid "سلسلة انتصارات"
+msgstr ""
+
+#: templates/developer/organized_crimes.html:194
+msgid "زيادة/نجاح"
+msgstr ""
+
+#: templates/developer/organized_crimes.html:195
+msgid "حد أقصى"
+msgstr ""
+
+#: templates/developer/organized_crimes.html:198
+msgid "علاوات الأدوار"
+msgstr ""
+
+#: templates/developer/organized_crimes.html:201
+msgid "أدوار مخصصة"
+msgstr ""
+
+#: templates/developer/organized_crimes.html:203
+msgid "لا توجد"
+msgstr ""
+
+#: templates/developer/resurrection_requests.html:8
+#: templates/developer/unverified_users.html:9
+msgid "عودة للوحة المطور"
+msgstr ""
+
+#: templates/developer/resurrection_requests.html:38
+msgid "هل أنت متأكد من قبول الطلب؟"
+msgstr ""
+
+#: templates/developer/resurrection_requests.html:39
+#: templates/gang/alliances.html:36 templates/gang/invites.html:125
+msgid "قبول"
+msgstr ""
+
+#: templates/developer/resurrection_requests.html:44
+msgid "هل أنت متأكد من رفض الطلب؟"
+msgstr ""
+
+#: templates/developer/resurrection_requests.html:45
+#: templates/gang/alliances.html:42 templates/gang/invites.html:129
+msgid "رفض"
+msgstr ""
+
+#: templates/developer/resurrection_requests.html:60
+msgid "لا توجد طلبات إحياء معلقة حالياً."
+msgstr ""
+
+#: templates/developer/settings.html:12
+msgid "إضافة سريعة"
+msgstr ""
+
+#: templates/developer/settings.html:16
+msgid "إضافة مفتاح OpenAI"
+msgstr ""
+
+#: templates/developer/settings.html:19
+msgid "تحديد موديل AI"
+msgstr ""
+
+#: templates/developer/settings.html:34
+msgid "المفتاح (Key)"
+msgstr ""
+
+#: templates/developer/settings.html:54
+msgid "هل أنت متأكد من الحذف؟"
+msgstr ""
+
+#: templates/developer/settings.html:61
+msgid "لا توجد إعدادات مضافة"
+msgstr ""
+
+#: templates/developer/tasks.html:6
+msgid "قائمة المهام اليومية"
+msgstr ""
+
+#: templates/developer/tasks.html:9
+msgid "إضافة مهمة جديدة"
+msgstr ""
+
+#: templates/developer/tasks.html:22
+msgid "المكافأة (خبرة)"
+msgstr ""
+
+#: templates/developer/unverified_users.html:42
+msgid "هل أنت متأكد من تفعيل هذا المستخدم؟"
+msgstr ""
+
+#: templates/developer/unverified_users.html:43
+msgid "تفعيل"
+msgstr ""
+
+#: templates/developer/unverified_users.html:48
+msgid "هل أنت متأكد من حذف هذا المستخدم؟ لا يمكن التراجع عن هذا الإجراء."
+msgstr ""
+
+#: templates/developer/unverified_users.html:62
+msgid "لا يوجد مستخدمين بانتظار التفعيل."
+msgstr ""
+
+#: templates/developer/users.html:6
+msgid "إدارة اللاعبين"
+msgstr ""
+
+#: templates/developer/users.html:10
+msgid "بحث عن لاعب..."
+msgstr ""
+
+#: templates/developer/users.html:27 templates/forum/index.html:22
+msgid "آخر نشاط"
+msgstr ""
+
+#: templates/developer/vehicles.html:6
+msgid "إدارة السيارات"
+msgstr ""
+
+#: templates/developer/vehicles.html:9
+msgid "إضافة سيارة جديدة"
+msgstr ""
+
+#: templates/developer/vehicles.html:19
+msgid "صورة"
+msgstr ""
+
+#: templates/developer/vehicles.html:21
+msgid "السرعة/الدفاع"
+msgstr ""
+
+#: templates/developer/forum/category_form.html:32
+msgid "الأرقام الأقل تظهر أولاً"
+msgstr ""
+
+#: templates/developer/forum/category_form.html:37
+msgid "0 للجميع، 1 للمستخدمين المسجلين، الخ"
+msgstr ""
+
+#: templates/developer/forum/index.html:7
+msgid "إدارة أقسام المنتدى"
+msgstr ""
+
+#: templates/developer/forum/index.html:45
+msgid "هل أنت متأكد من حذف هذا القسم؟"
+msgstr ""
+
+#: templates/developer/forum/index.html:55
+msgid "لا يوجد أقسام حالياً"
+msgstr ""
+
+#: templates/email/activate.html:1
+#, python-format
+msgid "مرحباً %(username)s،"
+msgstr ""
+
+#: templates/email/activate.html:2
+msgid "شكراً لتسجيلك في عصابات فلسطين."
+msgstr ""
+
+#: templates/email/activate.html:3
+msgid "لتفعيل حسابك، الرجاء النقر على الرابط التالي:"
+msgstr ""
+
+#: templates/email/activate.html:7
+msgid "إذا لم تقم بإنشاء هذا الحساب، يرجى تجاهل هذه الرسالة."
+msgstr ""
+
+#: templates/errors/403.html:88
+msgid "منطقة محظورة يا زعيم!"
+msgstr ""
+
+#: templates/errors/403.html:89
+msgid ""
+"شكلك بتحاول تدخل مكان مش من مستواك، أو ما معك تصريح. خليك في الحارة "
+"بتاعتك أحسن لك."
+msgstr ""
+
+#: templates/errors/403.html:93 templates/errors/404.html:103
+msgid "ارجع للحارة"
+msgstr ""
+
+#: templates/errors/403.html:96 templates/errors/404.html:106
+msgid "رجوع للخلف"
+msgstr ""
+
+#: templates/errors/404.html:95
+msgid "دخلت حارة غلط يا كبير!"
+msgstr ""
+
+#: templates/errors/404.html:98
+msgid ""
+"شكلك ضيعت العنوان أو المنطقة هادي محظورة. دير بالك، التجول في المناطق "
+"المجهولة ممكن يعرضك للخطر."
+msgstr ""
+
+#: templates/errors/500.html:92
+msgid "كمين! صار خلل في النظام"
+msgstr ""
+
+#: templates/errors/500.html:95
+msgid ""
+"يبدو إنو في حدا خرب العملية. الميكانيكي تبعنا شغال على تصليح الموضوع "
+"حالاً. خليك رايق وجرب كمان مرة."
+msgstr ""
+
+#: templates/errors/500.html:100
+msgid "جرب كمان مرة"
+msgstr ""
+
+#: templates/errors/500.html:103
+msgid "انسحب للرئيسية"
+msgstr ""
+
+#: templates/forum/category.html:16 templates/forum/create_topic.html:2
+msgid "موضوع جديد"
+msgstr ""
+
+#: templates/forum/category.html:29
+msgid "المشاهدات"
+msgstr ""
+
+#: templates/forum/category.html:30
+msgid "آخر رد"
+msgstr ""
+
+#: templates/forum/category.html:38
+msgid "مُثبّت"
+msgstr ""
+
+#: templates/forum/category.html:59
+msgid "لا توجد مواضيع في هذا القسم."
+msgstr ""
+
+#: templates/forum/create_topic.html:11
+msgid "موضوع جديد في"
+msgstr ""
+
+#: templates/forum/create_topic.html:21
+msgid "عنوان الموضوع"
+msgstr ""
+
+#: templates/forum/index.html:13
+msgid "الأقسام"
+msgstr ""
+
+#: templates/forum/index.html:49
+msgid "لا توجد أقسام حالياً."
+msgstr ""
+
+#: templates/forum/topic.html:22
+msgid "فتح"
+msgstr ""
+
+#: templates/forum/topic.html:27
+msgid "تثبيت"
+msgstr ""
+
+#: templates/forum/topic.html:27
+msgid "إلغاء التثبيت"
+msgstr ""
+
+#: templates/forum/topic.html:30
+msgid "هل أنت متأكد من حذف الموضوع؟"
+msgstr ""
+
+#: templates/forum/topic.html:48
+msgid "حذف الرد؟"
+msgstr ""
+
+#: templates/forum/topic.html:98
+msgid "إضافة رد"
+msgstr ""
+
+#: templates/forum/topic.html:104
+msgid "اكتب ردك هنا..."
+msgstr ""
+
+#: templates/forum/topic.html:117
+msgid "هذا الموضوع مغلق."
+msgstr ""
+
+#: templates/gang/alliances.html:7
+msgid "تحالفات العصابة"
+msgstr ""
+
+#: templates/gang/alliances.html:14
+msgid "طلبات التحالف الواردة"
+msgstr ""
+
+#: templates/gang/alliances.html:52
+msgid "لا توجد طلبات واردة حالياً."
+msgstr ""
+
+#: templates/gang/alliances.html:60
+msgid "التحالفات القائمة"
+msgstr ""
+
+#: templates/gang/alliances.html:73
+msgid "حليف"
+msgstr ""
+
+#: templates/gang/alliances.html:76
+msgid "منذ:"
+msgstr ""
+
+#: templates/gang/alliances.html:84
+msgid "هل أنت متأكد من إلغاء التحالف؟"
+msgstr ""
+
+#: templates/gang/alliances.html:86
+msgid "إلغاء التحالف"
+msgstr ""
+
+#: templates/gang/alliances.html:94
+msgid "لا توجد تحالفات نشطة حالياً."
+msgstr ""
+
+#: templates/gang/create.html:71
+msgid "إنشاء عصابة جديدة"
+msgstr ""
+
+#: templates/gang/create.html:75
+msgid "تنبيه!"
+msgstr ""
+
+#: templates/gang/create.html:76
+msgid "تكلفة إنشاء عصابة هي"
+msgstr ""
+
+#: templates/gang/create.html:83
+msgid "أدخل اسم العصابة"
+msgstr ""
+
+#: templates/gang/create.html:86
+msgid "وصف العصابة"
+msgstr ""
+
+#: templates/gang/create.html:87
+msgid "أدخل وصفاً مختصراً"
+msgstr ""
+
+#: templates/gang/create.html:91
+msgid "شروط الانضمام (اختياري)"
+msgstr ""
+
+#: templates/gang/create.html:94 templates/gang/dashboard.html:347
+msgid "الحد الأدنى للمستوى"
+msgstr ""
+
+#: templates/gang/create.html:98 templates/gang/dashboard.html:337
+msgid "حالة التجنيد"
+msgstr ""
+
+#: templates/gang/create.html:100 templates/gang/dashboard.html:340
+msgid "مفتوح للجميع"
+msgstr ""
+
+#: templates/gang/create.html:101 templates/gang/dashboard.html:341
+#: templates/gang/view.html:168
+msgid "دعوات فقط"
+msgstr ""
+
+#: templates/gang/create.html:110
+msgid "إنشاء العصابة"
+msgstr ""
+
+#: templates/gang/dashboard.html:134
+msgid "الخزينة"
+msgstr ""
+
+#: templates/gang/dashboard.html:137
+msgid "الترسانة"
+msgstr ""
+
+#: templates/gang/dashboard.html:148
+msgid "هل أنت متأكد من المغادرة؟"
+msgstr ""
+
+#: templates/gang/dashboard.html:150
+msgid "مغادرة العصابة"
+msgstr ""
+
+#: templates/gang/dashboard.html:158
+msgid "التبرع للعصابة"
+msgstr ""
+
+#: templates/gang/dashboard.html:167
+msgid "رصاص"
+msgstr ""
+
+#: templates/gang/dashboard.html:174
+msgid "تبرع"
+msgstr ""
+
+#: templates/gang/dashboard.html:183
+msgid "سحب من الخزينة"
+msgstr ""
+
+#: templates/gang/dashboard.html:192
+msgid "سحب"
+msgstr ""
+
+#: templates/gang/dashboard.html:205
+msgid "الحروب"
+msgstr ""
+
+#: templates/gang/dashboard.html:206
+msgid "السجلات"
+msgstr ""
+
+#: templates/gang/dashboard.html:208
+msgid "الإدارة"
+msgstr ""
+
+#: templates/gang/dashboard.html:227
+msgid "الزعيم"
+msgstr ""
+
+#: templates/gang/dashboard.html:229
+msgid "النائب"
+msgstr ""
+
+#: templates/gang/dashboard.html:236
+msgid "هل أنت متأكد؟ سيكلف هذا خزينة العصابة!"
+msgstr ""
+
+#: templates/gang/dashboard.html:238
+msgid "طرد (مع عواقب)"
+msgstr ""
+
+#: templates/gang/dashboard.html:258
+msgid "الخصم"
+msgstr ""
+
+#: templates/gang/dashboard.html:283
+msgid "لا يوجد حروب نشطة حالياً. السلام يعم المكان!"
+msgstr ""
+
+#: templates/gang/dashboard.html:300
+msgid "نظام العصابة"
+msgstr ""
+
+#: templates/gang/dashboard.html:323
+msgid "لا يمكن تغيير الاسم"
+msgstr ""
+
+#: templates/gang/dashboard.html:353
+msgid "الدول المسموحة"
+msgstr ""
+
+#: templates/gang/dashboard.html:356
+msgid "اتركه فارغاً للسماح للجميع. استخدم رموز الدول (ISO) مفصولة بفواصل."
+msgstr ""
+
+#: templates/gang/dashboard.html:363
+msgid "الشعار"
+msgstr ""
+
+#: templates/gang/dashboard.html:367
+msgid "اختر صورة"
+msgstr ""
+
+#: templates/gang/dashboard.html:376
+msgid "فقط الزعيم يمكنه التعديل"
+msgstr ""
+
+#: templates/gang/dashboard.html:384
+msgid "تطوير العصابة"
+msgstr ""
+
+#: templates/gang/dashboard.html:385 templates/gang/dashboard.html:397
+msgid "التكلفة"
+msgstr ""
+
+#: templates/gang/dashboard.html:390
+msgid "ترقية المستوى"
+msgstr ""
+
+#: templates/gang/dashboard.html:395
+msgid "زيادة سعة الأعضاء"
+msgstr ""
+
+#: templates/gang/dashboard.html:396
+msgid "السعة الحالية"
+msgstr ""
+
+#: templates/gang/dashboard.html:402
+msgid "زيادة السعة (+5)"
+msgstr ""
+
+#: templates/gang/index.html:123
+msgid "عدد الأعضاء"
+msgstr ""
+
+#: templates/gang/index.html:142
+msgid "طلب تحالف"
+msgstr ""
+
+#: templates/gang/index.html:142
+msgid "هل تريد طلب التحالف مع هذه العصابة؟"
+msgstr ""
+
+#: templates/gang/index.html:158
+msgid "لا توجد عصابات حالياً."
+msgstr ""
+
+#: templates/gang/index.html:159
+msgid "كن أول من ينشئ عصابة ويسيطر على السوق!"
+msgstr ""
+
+#: templates/gang/index.html:160
+msgid "إنشاء عصابة الآن"
+msgstr ""
+
+#: templates/gang/invites.html:141
+msgid "لا توجد دعوات انضمام حالياً."
+msgstr ""
+
+#: templates/gang/organized_crimes.html:108
+msgid "عودة للوحة التحكم"
+msgstr ""
+
+#: templates/gang/organized_crimes.html:119
+msgid ""
+"الجرائم المنظمة تتطلب تعاون أعضاء العصابة. الأرباح تذهب لخزينة العصابة "
+"والخبرة توزع على جميع الأعضاء!"
+msgstr ""
+
+#: templates/gang/organized_crimes.html:128
+msgid "مستوى العصابة"
+msgstr ""
+
+#: templates/gang/organized_crimes.html:137
+msgid "تكلفة الطاقة (للزعيم)"
+msgstr ""
+
+#: templates/gang/organized_crimes.html:146
+msgid "المكافأة (خبرة لكل عضو)"
+msgstr ""
+
+#: templates/gang/organized_crimes.html:161
+msgid "نطاق الدعوات"
+msgstr ""
+
+#: templates/gang/organized_crimes.html:164
+msgid "أعضاء العصابة فقط"
+msgstr ""
+
+#: templates/gang/organized_crimes.html:168
+msgid "دعوة الجميع"
+msgstr ""
+
+#: templates/gang/organized_crimes.html:172
+msgid "تقييد حسب الدول (اختياري)"
+msgstr ""
+
+#: templates/gang/organized_crimes.html:174
+msgid "استخدم رموز ISO من حرفين مفصولة بفواصل"
+msgstr ""
+
+#: templates/gang/organized_crimes.html:182
+msgid "تنفيذ العملية"
+msgstr ""
+
+#: templates/gang/organized_crimes.html:186
+msgid "مستوى العصابة منخفض"
+msgstr ""
+
+#: templates/gang/organized_crimes.html:189
+msgid "فقط الزعيم يمكنه البدء"
+msgstr ""
+
+#: templates/gang/organized_crimes.html:210
+#: templates/gang/organized_crimes.html:221
+msgid "جاهز!"
+msgstr ""
+
+#: templates/gang/view.html:153
+msgid "التأسيس"
+msgstr ""
+
+#: templates/gang/view.html:161
+msgid "لا يوجد وصف"
+msgstr ""
+
+#: templates/gang/view.html:166
+msgid "حالة التجنيد:"
+msgstr ""
+
+#: templates/gang/view.html:172
+msgid "أقل مستوى:"
+msgstr ""
+
+#: templates/gang/view.html:173
+msgid "الحد الأقصى:"
+msgstr ""
+
+#: templates/gang/view.html:177
+msgid "الدول المسموحة:"
+msgstr ""
+
+#: templates/gang/view.html:190
+msgid "انضم الآن"
+msgstr ""
+
+#: templates/gang/view.html:194
+msgid "يجب أن تتلقى دعوة من الزعيم للانضمام."
+msgstr ""
+
+#: templates/gang/view.html:196
+msgid "باب الانضمام مغلق حالياً."
+msgstr ""
+
+#: templates/gang/view.html:203
+msgid "هل أنت متأكد من إعلان الحرب؟ سيكلفك ذلك 50,000$ من خزينة العصابة."
+msgstr ""
+
+#: templates/gang/view.html:204
+msgid "إعلان الحرب"
+msgstr ""
+
+#: templates/market/_asset_card.html:14
+msgid "تداول / Trade"
+msgstr ""
+
+#: templates/market/guide.html:9
+msgid "أكاديمية التداول"
+msgstr ""
+
+#: templates/market/guide.html:10
+msgid "دليلك الشامل لتصبح ملياردير البورصة في Gangs of Palestine"
+msgstr ""
+
+#: templates/market/guide.html:12
+msgid "العودة للسوق"
+msgstr ""
+
+#: templates/market/guide.html:19
+msgid "نظام الذكاء (Intelligence)"
+msgstr ""
+
+#: templates/market/guide.html:21
+msgid "في عالم العصابات، المال وحده لا يكفي. أنت بحاجة للعقل!"
+msgstr ""
+
+#: templates/market/guide.html:25
+msgid "كل ربح تحققه من التداول يزيد نقاط ذكائك."
+msgstr ""
+
+#: templates/market/guide.html:26
+msgid "معادلة الربح: كل 1,000$ ربح صافي = +1 نقطة ذكاء."
+msgstr ""
+
+#: templates/market/guide.html:27
+msgid "الذكاء يساعدك في الجرائم المنظمة واختراق الحسابات البنكية لاحقاً."
+msgstr ""
+
+#: templates/market/guide.html:38
+msgid "تداول Spot (فوري)"
+msgstr ""
+
+#: templates/market/guide.html:41
+msgid "التداول الكلاسيكي البسيط. تشتري الأصل وتمتلكه فعلياً."
+msgstr ""
+
+#: templates/market/guide.html:43
+msgid "الشراء بسعر منخفض، والبيع بسعر مرتفع."
+msgstr ""
+
+#: templates/market/guide.html:44
+msgid "لا يوجد مخاطرة تصفية (Liquidation)."
+msgstr ""
+
+#: templates/market/guide.html:45
+msgid "مناسب للمستثمرين طويلي الأمد."
+msgstr ""
+
+#: templates/market/guide.html:53
+msgid "تداول Futures (عقود آجلة)"
+msgstr ""
+
+#: templates/market/guide.html:56
+msgid "للمحترفين فقط! تداول على حركة السعر دون امتلاك الأصل."
+msgstr ""
+
+#: templates/market/guide.html:58
+msgid "Long: تراهن على ارتفاع السعر."
+msgstr ""
+
+#: templates/market/guide.html:59
+msgid "Short: تراهن على انخفاض السعر (تربح والسوق ينهار!)."
+msgstr ""
+
+#: templates/market/guide.html:60
+msgid "الرافعة المالية (Leverage): تضاعف أرباحك.. وخسائرك!"
+msgstr ""
+
+#: templates/market/guide.html:70
+msgid "أنواع الأوامر (Order Types)"
+msgstr ""
+
+#: templates/market/guide.html:75
+msgid "أمر السوق (Market Order)"
+msgstr ""
+
+#: templates/market/guide.html:76
+msgid ""
+"يتم التنفيذ فوراً بأفضل سعر متاح حالياً. استخدمه عندما تريد الشراء أو "
+"البيع بسرعة بغض النظر عن السعر الدقيق."
+msgstr ""
+
+#: templates/market/guide.html:79
+msgid "أمر محدد (Limit Order)"
+msgstr ""
+
+#: templates/market/guide.html:80
+msgid ""
+"أنت تحدد السعر الذي تريد الشراء أو البيع به. لن يتم تنفيذ الأمر إلا إذا "
+"وصل السوق لسعرك. يتم حجز أموالك/أسهمك حتى يتم التنفيذ أو تقوم بإلغاء "
+"الأمر."
+msgstr ""
+
+#: templates/market/guide.html:87
+msgid "المؤشرات الفنية (كيف تقرأ السوق؟)"
+msgstr ""
+
+#: templates/market/guide.html:101
+msgid ""
+"الخط الأزرق في الرسم البياني. يمثل متوسط السعر لآخر 20 يوم. إذا كان السعر"
+" فوق الخط، فالاتجاه صاعد (Bullish). إذا كان تحته، فالاتجاه هابط "
+"(Bearish)."
+msgstr ""
+
+#: templates/market/guide.html:117
+msgid ""
+"الخط الأصفر. يعطي وزناً أكبر للأسعار الحديثة. تقاطع خط السعر مع EMA 50 "
+"يعتبر إشارة قوية للدخول أو الخروج."
+msgstr ""
+
+#: templates/market/guide.html:133
+msgid ""
+"السحابة الزرقاء. عندما يضيق النطاق، توقع انفجار سعري قريباً. عندما يلامس "
+"السعر الحد العلوي، قد يكون \"مشبع شرائياً\" (وقت البيع). عندما يلامس الحد"
+" السفلي، قد يكون \"مشبع بيعياً\" (وقت الشراء)."
+msgstr ""
+
+#: templates/market/guide.html:141
+msgid "تذكر: السوق لا يرحم الأغبياء. استثمر بذكاء!"
+msgstr ""
+
+#: templates/market/guide.html:143
+msgid "ابدأ التداول الآن"
+msgstr ""
+
+#: templates/market/index.html:53
+msgid "محفظة الغسيل"
+msgstr ""
+
+#: templates/market/index.html:57
+msgid "القيمة السوقية الحالية"
+msgstr ""
+
+#: templates/market/index.html:64
+msgid "الربح/الخسارة"
+msgstr ""
+
+#: templates/market/index.html:68
+msgid "الكاش المتوفر"
+msgstr ""
+
+#: templates/market/index.html:74
+msgid "تعلم التداول (أكاديمية)"
+msgstr ""
+
+#: templates/market/index.html:85
+msgid "معلومات مسربة"
+msgstr ""
+
+#: templates/market/index.html:86
+msgid "لدينا جواسيس في كل مكان. ادفع واحصل على تسريب مضمون (أو لا)."
+msgstr ""
+
+#: templates/market/index.html:91
+msgid "شراء معلومة (500$)"
+msgstr ""
+
+#: templates/market/index.html:101
+msgid "أصولي"
+msgstr ""
+
+#: templates/market/index.html:109 templates/market/index.html:135
+msgid "تسييل"
+msgstr ""
+
+#: templates/market/index.html:152
+msgid "بيع الآن"
+msgstr ""
+
+#: templates/market/index.html:162
+msgid "لا يوجد استثمارات"
+msgstr ""
+
+#: templates/market/index.html:179
+msgid "Crypto"
+msgstr ""
+
+#: templates/market/index.html:182
+msgid "Stocks"
+msgstr ""
+
+#: templates/market/index.html:206
+msgid "لا توجد عملات رقمية"
+msgstr ""
+
+#: templates/market/index.html:219
+msgid "لا توجد أسهم"
+msgstr ""
+
+#: templates/market/trade.html:136
+msgid "أعلى 24س"
+msgstr ""
+
+#: templates/market/trade.html:140
+msgid "أدنى 24س"
+msgstr ""
+
+#: templates/market/trade.html:144
+msgid "حجم 24س"
+msgstr ""
+
+#: templates/market/trade.html:150
+msgid "السوق"
+msgstr ""
+
+#: templates/market/trade.html:159
+msgid "سجل الطلبات"
+msgstr ""
+
+#: templates/market/trade.html:162
+msgid "السعر(USD)"
+msgstr ""
+
+#: templates/market/trade.html:227
+msgid "طلبات مفتوحة"
+msgstr ""
+
+#: templates/market/trade.html:230
+msgid "صفقات فيوتشر"
+msgstr ""
+
+#: templates/market/trade.html:243
+msgid "مكتمل"
+msgstr ""
+
+#: templates/market/trade.html:267
+msgid "لا توجد طلبات مفتوحة"
+msgstr ""
+
+#: templates/market/trade.html:279
+msgid "رافعة"
+msgstr ""
+
+#: templates/market/trade.html:281
+msgid "هامش"
+msgstr ""
+
+#: templates/market/trade.html:306
+msgid "لا توجد صفقات مفتوحة"
+msgstr ""
+
+#: templates/market/trade.html:321
+msgid "Spot"
+msgstr ""
+
+#: templates/market/trade.html:324
+msgid "Futures"
+msgstr ""
+
+#: templates/market/trade.html:334
+msgid "Limit"
+msgstr ""
+
+#: templates/market/trade.html:337
+msgid "Market"
+msgstr ""
+
+#: templates/market/trade.html:349
+msgid "السعر (Price)"
+msgstr ""
+
+#: templates/market/trade.html:359
+msgid "الكمية (Amount)"
+msgstr ""
+
+#: templates/market/trade.html:370
+msgid "كاش:"
+msgstr ""
+
+#: templates/market/trade.html:371 templates/market/trade.html:420
+msgid "أملك:"
+msgstr ""
+
+#: templates/market/trade.html:388
+msgid "الشراء/البيع بأفضل سعر متاح حالياً في السوق."
+msgstr ""
+
+#: templates/market/trade.html:397
+msgid "شراء (المبلغ بـ USD)"
+msgstr ""
+
+#: templates/market/trade.html:405 templates/market/trade.html:455
+msgid "متاح:"
+msgstr ""
+
+#: templates/market/trade.html:412
+msgid "بيع (الكمية)"
+msgstr ""
+
+#: templates/market/trade.html:433
+msgid "الرافعة (Leverage)"
+msgstr ""
+
+#: templates/market/trade.html:448
+msgid "الهامش (Margin USD)"
+msgstr ""
+
+#: utils/backup_manager.py:60
+msgid ""
+"نظام النسخ الاحتياطي التلقائي غير مدعوم حالياً لقواعد بيانات PostgreSQL. "
+"يرجى استخدام أدوات إدارة السيرفر."
+msgstr ""
+
+#: utils/backup_manager.py:64
+msgid "استعادة النسخ الاحتياطية غير مدعومة حالياً لقواعد بيانات PostgreSQL."
+msgstr ""
+
+#: utils/backup_manager.py:74
+msgid "تم حذف النسخة الاحتياطية بنجاح."
+msgstr ""
+
+#: utils/backup_manager.py:76
+#, python-format
+msgid "حدث خطأ أثناء الحذف: %(error)s"
+msgstr ""
+
+#: utils/backup_manager.py:78
+msgid "الملف غير موجود."
+msgstr ""
+

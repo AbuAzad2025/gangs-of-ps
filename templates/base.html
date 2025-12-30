@@ -1,0 +1,719 @@
+<!DOCTYPE html>
+<html lang="{{ get_locale() }}" dir="{{ 'rtl' if get_locale() == 'ar' else 'ltr' }}">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{% block title %}{{ title if title else _('عصابات فلسطين') }}{% endblock %}</title>
+    <link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}" type="image/x-icon">
+
+    <!-- Google Font: Source Sans Pro -->
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,400i,700&display=fallback">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <!-- Theme style -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='adminlte/css/adminlte.min.css') }}">
+    {% if get_locale() == 'ar' %}
+    <!-- RTL Support -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/rtl.css') }}">
+    {% endif %}
+    <!-- Flag Icons (CDN) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/flag-icon-css/3.5.0/css/flag-icon.min.css">
+    <!-- Cairo Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap" rel="stylesheet">
+    <!-- Reem Kufi Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Reem+Kufi:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- SweetAlert2 -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@sweetalert2/theme-dark@5/dark.min.css">
+    
+    <!-- jQuery (Moved to Head for Stability) -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+    <!-- Custom Luxury CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/palestine_luxury.css') }}">
+</head>
+<body class="hold-transition sidebar-mini layout-fixed">
+<div class="wrapper">
+
+  <!-- Navbar -->
+  <nav class="main-header navbar navbar-expand navbar-dark navbar-luxury">
+    <!-- Left navbar links -->
+    <ul class="navbar-nav">
+      <li class="nav-item">
+        <a class="nav-link" data-widget="pushmenu" href="#" role="button"><i class="fas fa-bars"></i></a>
+      </li>
+      <li class="nav-item d-none d-sm-inline-block">
+        <a href="{{ url_for('main.index') }}" class="nav-link">{{ _('الرئيسية') }}</a>
+      </li>
+    </ul>
+
+    <!-- Right navbar links -->
+    <ul class="navbar-nav ml-auto">
+      <!-- Language Dropdown -->
+      <li class="nav-item dropdown">
+        <a class="nav-link" data-toggle="dropdown" href="#">
+          <i class="flag-icon flag-icon-{{ 'ps' if get_locale() == 'ar' else 'us' }}"></i>
+        </a>
+        <div class="dropdown-menu dropdown-menu-right p-0">
+          <a href="{{ url_for('main.set_language', lang='ar') }}" class="dropdown-item {{ 'active' if get_locale() == 'ar' }}">
+            <i class="flag-icon flag-icon-ps mr-2"></i> {{ _('العربية') }}
+          </a>
+          <a href="{{ url_for('main.set_language', lang='en') }}" class="dropdown-item {{ 'active' if get_locale() == 'en' }}">
+            <i class="flag-icon flag-icon-us mr-2"></i> {{ _('English') }}
+          </a>
+        </div>
+      </li>
+
+      {% if current_user.is_authenticated %}
+      <li class="nav-item nav-stat-item">
+        <a class="nav-link" href="#" role="button" title="{{ _('الطاقة') }}">
+          <i class="fas fa-bolt text-success"></i> <span id="user-energy" class="d-none d-sm-inline">{{ current_user.energy }}</span>
+          <span class="d-inline d-sm-none small">{{ current_user.energy }}</span>
+        </a>
+      </li>
+      <li class="nav-item nav-stat-item">
+        <a class="nav-link" href="#" role="button" title="{{ _('الحرارة') }}">
+          <i class="fas fa-fire text-danger"></i> <span id="user-heat" class="d-none d-sm-inline">{{ current_user.heat_value() }}</span>
+          <span class="d-inline d-sm-none small">{{ current_user.heat_value() }}</span>
+        </a>
+      </li>
+      <li class="nav-item nav-stat-item">
+        <a class="nav-link" href="#" role="button">
+          <i class="fas fa-coins text-warning"></i> <span id="user-money" class="d-none d-sm-inline">{{ current_user.money }}</span>
+          <span class="d-inline d-sm-none small">{{ current_user.money }}</span>
+        </a>
+      </li>
+      <li class="nav-item nav-stat-item">
+        <a class="nav-link" href="#" role="button">
+          <i class="fas fa-bomb text-danger"></i> <span id="user-bullets" class="d-none d-sm-inline">{{ current_user.bullets }}</span>
+          <span class="d-inline d-sm-none small">{{ current_user.bullets }}</span>
+        </a>
+      </li>
+      <li class="nav-item nav-stat-item">
+        <a class="nav-link" href="#" role="button">
+          <i class="fas fa-gem text-info"></i> <span id="user-diamonds" class="d-none d-sm-inline">{{ current_user.diamonds }}</span>
+          <span class="d-inline d-sm-none small">{{ current_user.diamonds }}</span>
+        </a>
+      </li>
+      <li class="nav-item nav-stat-item d-none d-md-block">
+        <a class="nav-link" href="#" role="button">
+          <i class="fas fa-clock text-light"></i> <span id="server-clock" class="font-weight-bold"></span>
+        </a>
+      </li>
+      <li class="nav-item dropdown user-menu">
+        <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" id="userDropdown" role="button" data-toggle="dropdown">
+            {% if current_user.avatar and (current_user.avatar.startswith('http://') or current_user.avatar.startswith('https://')) %}
+            <img src="{{ current_user.avatar }}" class="rounded-circle mr-2 user-avatar-small" onerror="this.onerror=null; this.src='{{ url_for('static', filename='avatars/default.png') }}';">
+            {% else %}
+            <img src="{{ url_for('static', filename='avatars/' + (current_user.avatar if current_user.avatar else 'default.png')) }}" class="rounded-circle mr-2 user-avatar-small" onerror="this.onerror=null; this.src='{{ url_for('static', filename='avatars/default.png') }}';">
+            {% endif %}
+            <span>{{ current_user.username }}</span>
+        </a>
+        <div class="dropdown-menu dropdown-menu-lg dropdown-menu-right">
+            <form action="{{ url_for('main.logout') }}" method="POST" class="m-0">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                <button type="submit" class="dropdown-item">
+                    <i class="fas fa-sign-out-alt mr-2"></i> {{ _('تسجيل الخروج') }}
+                </button>
+            </form>
+        </div>
+      </li>
+      {% else %}
+      <li class="nav-item">
+          <a href="{{ url_for('main.login') }}" class="nav-link">{{ _('دخول') }}</a>
+      </li>
+      {% endif %}
+    </ul>
+  </nav>
+  <!-- /.navbar -->
+
+  <!-- Main Sidebar Container -->
+  <aside class="main-sidebar sidebar-dark-primary elevation-4">
+    <!-- Brand Logo -->
+    <a href="{{ url_for('main.index') }}" class="brand-link text-center pb-3 pt-3">
+      <img src="{{ url_for('static', filename='img/azad_logo_white_on_dark.png') }}" alt="Gangs of Palestine" class="brand-image-xl elevation-3 brand-image-custom">
+      <span class="brand-text font-weight-light d-block mt-2 brand-text-custom">{{ _('عصابات فلسطين') }}</span>
+    </a>
+
+    <!-- Sidebar -->
+    <div class="sidebar">
+      {% if current_user.is_authenticated %}
+      <!-- Sidebar user panel (optional) -->
+      <div class="user-panel mt-3 pb-3 mb-3 d-flex">
+        <div class="image">
+          {% if current_user.avatar and current_user.avatar != 'default.png' %}
+            <img src="{{ url_for('static', filename='avatars/' + current_user.avatar) }}" class="img-circle elevation-2 user-avatar-sidebar" alt="User Image">
+          {% else %}
+            <img src="https://ui-avatars.com/api/?name={{ current_user.username }}&background=random" class="img-circle elevation-2" alt="User Image">
+          {% endif %}
+        </div>
+        <div class="info">
+          <a href="{{ url_for('main.profile', user_id=current_user.id) }}" class="d-block">
+              {% if current_user.country %}
+              <span class="flag-icon flag-icon-{{ current_user.country|lower }} mr-1" title="{{ current_user.country }}"></span>
+              {% endif %}
+              {{ current_user.username }}
+          </a>
+          <small class="text-muted fs-0-8">
+            <i class="fas fa-crown text-warning"></i> <span id="user-rank-title">{{ _(current_user.rank_title) }}</span>
+            <span class="float-right text-light" title="{{ _('تقدم المستوى') }}">
+              {{ _('مستوى') }} <span id="user-level">{{ current_user.level }}</span>
+            </span>
+          </small>
+          <div class="mt-1">
+            <div class="progress progress-h-6" title="{{ _('تقدم المستوى') }}">
+              <div id="user-exp-bar" class="progress-bar bg-success w-dynamic" role="progressbar" style="--width: {{ ((current_user.exp / current_user.max_exp) * 100) | round(0) }}%"></div>
+            </div>
+            <div class="progress mt-1 progress-h-6" title="{{ _('تقدم الرتبة') }}">
+              <div id="user-rank-bar" class="progress-bar bg-warning w-dynamic" role="progressbar" style="--width: {{ current_user.rank_progress_percent }}%"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Sidebar Menu -->
+      <nav class="mt-2">
+        <ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu" data-accordion="false">
+          
+          <li class="nav-header">{{ _('نظرة عامة') }}</li>
+
+          <li class="nav-item">
+            <a href="{{ url_for('main.hara') }}" class="nav-link">
+              <i class="nav-icon fas fa-home"></i>
+              <p>{{ _('الحارة') }}</p>
+            </a>
+          </li>
+
+          <li class="nav-item">
+            <a href="{{ url_for('main.empire') }}" class="nav-link">
+              <i class="nav-icon fas fa-city"></i>
+              <p>{{ _('إمبراطوريتك') }}</p>
+            </a>
+          </li>
+
+          <li class="nav-item">
+            <a href="{{ url_for('main.daily_tasks') }}" class="nav-link">
+              <i class="nav-icon fas fa-tasks"></i>
+              <p>{{ _('المهام اليومية') }}</p>
+            </a>
+          </li>
+
+          <li class="nav-item">
+            <a href="{{ url_for('main.guide') }}" class="nav-link">
+              <i class="nav-icon fas fa-book"></i>
+              <p>{{ _('دليل اللعبة') }}</p>
+            </a>
+          </li>
+
+          <li class="nav-header">{{ _('عمليات') }}</li>
+          
+          <li class="nav-item">
+            <a href="{{ url_for('main.crimes') }}" class="nav-link">
+              <i class="nav-icon fas fa-mask"></i>
+              <p>{{ _('الجرائم') }}</p>
+            </a>
+          </li>
+          
+          <li class="nav-item">
+            <a href="{{ url_for('main.organized_crimes') }}" class="nav-link">
+              <i class="nav-icon fas fa-users"></i>
+              <p>{{ _('الجرائم المنظمة') }}</p>
+            </a>
+          </li>
+
+          <li class="nav-item">
+            <a href="{{ url_for('combat.index') }}" class="nav-link">
+              <i class="nav-icon fas fa-fist-raised"></i>
+              <p>{{ _('ساحة القتال') }}</p>
+            </a>
+          </li>
+
+          <li class="nav-item">
+            <a href="{{ url_for('bounties.index') }}" class="nav-link">
+              <i class="nav-icon fas fa-crosshairs"></i>
+              <p>{{ _('قائمة المطلوبين') }}</p>
+            </a>
+          </li>
+          
+          <li class="nav-item">
+            <a href="{{ url_for('main.intel_center') }}" class="nav-link">
+              <i class="nav-icon fas fa-user-secret"></i>
+              <p>{{ _('مركز الاستخبارات') }}</p>
+            </a>
+          </li>
+
+          <li class="nav-item">
+            <a href="{{ url_for('police_chase.index') }}" class="nav-link">
+              <i class="nav-icon fas fa-shipping-fast"></i>
+              <p>{{ _('مطاردة الشرطة') }}</p>
+            </a>
+          </li>
+
+          <li class="nav-item">
+            <a href="{{ url_for('travel.index') }}" class="nav-link">
+              <i class="nav-icon fas fa-map-marked-alt"></i>
+              <p>{{ _('شبكة المواصلات') }}</p>
+            </a>
+          </li>
+          
+          <li class="nav-item">
+            <a href="{{ url_for('gym.index') }}" class="nav-link">
+              <i class="nav-icon fas fa-dumbbell"></i>
+              <p>{{ _('الجيم') }}</p>
+            </a>
+          </li>
+
+          <li class="nav-item">
+            <a href="{{ url_for('casino.index') }}" class="nav-link">
+              <i class="nav-icon fas fa-dice"></i>
+              <p>{{ _('الكازينو') }}</p>
+            </a>
+          </li>
+
+          <li class="nav-header">{{ _('اقتصاد وأصول') }}</li>
+          
+          <li class="nav-item">
+            <a href="{{ url_for('bank.index') }}" class="nav-link">
+              <i class="nav-icon fas fa-university"></i>
+              <p>{{ _('البنك') }}</p>
+            </a>
+          </li>
+          
+          <li class="nav-item">
+            <a href="{{ url_for('market.index') }}" class="nav-link">
+              <i class="nav-icon fas fa-chart-line"></i>
+              <p>{{ _('بورصة الغسيل') }}</p>
+            </a>
+          </li>
+
+          <li class="nav-item">
+            <a href="{{ url_for('black_market.index') }}" class="nav-link">
+              <i class="nav-icon fas fa-mask"></i>
+              <p>{{ _('السوق السوداء') }}</p>
+            </a>
+          </li>
+
+          <li class="nav-item">
+            <a href="{{ url_for('factory.index') }}" class="nav-link">
+              <i class="nav-icon fas fa-industry"></i>
+              <p>{{ _('المصانع') }}</p>
+            </a>
+          </li>
+
+          <li class="nav-item">
+            <a href="{{ url_for('farm.index') }}" class="nav-link">
+              <i class="nav-icon fas fa-seedling"></i>
+              <p>{{ _('المزارع') }}</p>
+            </a>
+          </li>
+
+          <li class="nav-item">
+            <a href="{{ url_for('main.garage') }}" class="nav-link">
+              <i class="nav-icon fas fa-car"></i>
+              <p>{{ _('الكراج') }}</p>
+            </a>
+          </li>
+          
+          <li class="nav-item">
+            <a href="{{ url_for('main.inventory') }}" class="nav-link">
+              <i class="nav-icon fas fa-box-open"></i>
+              <p>{{ _('المخزون') }}</p>
+            </a>
+          </li>
+
+          <li class="nav-header">{{ _('اجتماعي وحالة') }}</li>
+          
+          <li class="nav-item">
+            <a href="{{ url_for('gang.index') }}" class="nav-link">
+              <i class="nav-icon fas fa-users"></i>
+              <p>{{ _('العصابات') }}</p>
+            </a>
+          </li>
+
+          <li class="nav-item">
+            <a href="{{ url_for('forum.index') }}" class="nav-link">
+              <i class="nav-icon fas fa-comments"></i>
+              <p>{{ _('المنتدى') }}</p>
+            </a>
+          </li>
+
+          <li class="nav-item">
+            <a href="{{ url_for('main.messages') }}" class="nav-link">
+              <i class="nav-icon fas fa-envelope"></i>
+              <p>{{ _('الرسائل') }}</p>
+            </a>
+          </li>
+          
+          <li class="nav-item">
+            <a href="{{ url_for('main.send_message') }}" class="nav-link">
+              <i class="nav-icon fas fa-pen-nib"></i>
+              <p>{{ _('إنشاء رسالة') }}</p>
+            </a>
+          </li>
+
+          <li class="nav-item">
+            <a href="{{ url_for('main.search') }}" class="nav-link">
+              <i class="nav-icon fas fa-search"></i>
+              <p>{{ _('بحث') }}</p>
+            </a>
+          </li>
+
+          <li class="nav-item">
+            <a href="{{ url_for('news.index') }}" class="nav-link">
+              <i class="nav-icon fas fa-newspaper"></i>
+              <p>{{ _('الأخبار') }}</p>
+            </a>
+          </li>
+          
+          <li class="nav-item">
+            <a href="{{ url_for('main.leaderboard') }}" class="nav-link">
+              <i class="nav-icon fas fa-trophy"></i>
+              <p>{{ _('المتصدرين') }}</p>
+            </a>
+          </li>
+          
+          <li class="nav-item">
+            <a href="{{ url_for('hospital.index') }}" class="nav-link">
+              <i class="nav-icon fas fa-hospital"></i>
+              <p>{{ _('المستشفى') }}</p>
+            </a>
+          </li>
+
+          <li class="nav-item">
+            <a href="{{ url_for('jail.index') }}" class="nav-link">
+              <i class="nav-icon fas fa-bars"></i>
+              <p>{{ _('السجن') }}</p>
+            </a>
+          </li>
+
+          {% if current_user.is_developer %}
+          <li class="nav-item">
+            <a href="{{ url_for('main.dev_dashboard') }}" class="nav-link">
+              <i class="nav-icon fas fa-code"></i>
+              <p>{{ _('لوحة المطور') }}</p>
+            </a>
+          </li>
+          {% endif %}
+
+          {% if current_user.is_admin %}
+          <li class="nav-header">{{ _('إدارة') }}</li>
+          <li class="nav-item">
+            <a href="/admin/" class="nav-link">
+              <i class="nav-icon fas fa-cogs"></i>
+              <p>{{ _('لوحة التحكم') }}</p>
+            </a>
+          </li>
+          {% endif %}
+          
+        </ul>
+      </nav>
+      <!-- /.sidebar-menu -->
+      {% endif %}
+    </div>
+    <!-- /.sidebar -->
+  </aside>
+
+  <!-- Content Wrapper. Contains page content -->
+  <div class="content-wrapper">
+    
+    {% if global_announcement %}
+    <div class="announcement-bar" id="global-announcement">
+        <strong><i class="fas fa-bullhorn"></i> {{ global_announcement.title }}:</strong>
+        {{ global_announcement.content }}
+        <span class="announcement-close" onclick="document.getElementById('global-announcement').style.display='none'"><i class="fas fa-times"></i></span>
+    </div>
+    {% endif %}
+
+    <!-- Content Header (Page header) -->
+    <div class="content-header">
+      <div class="container-fluid">
+        <div class="row mb-2">
+          <div class="col-sm-6">
+            <h1 class="m-0">{{ title }}</h1>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- /.content-header -->
+
+    <!-- Main content -->
+    <section class="content">
+      <div class="container-fluid">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }} alert-dismissible fade show">
+                        {{ message }}
+                        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        {% block content %}{% endblock %}
+      </div>
+    </section>
+    <!-- /.content -->
+  </div>
+  <!-- /.content-wrapper -->
+
+  <footer class="main-footer">
+    <div class="container">
+        <div class="row">
+            <!-- Brand Column -->
+            <div class="col-lg-4 col-md-6 mb-4">
+                <h5 class="footer-title">{{ _('عصابات فلسطين') }}</h5>
+                <p class="text-muted mb-4 lh-1-8">
+                    {{ _('عش حياة الجريمة، وسيطر على الشوارع، وكن الزعيم الأقوى في فلسطين. اللعبة الاستراتيجية الأولى من نوعها التي تجمع بين الإثارة والتحدي.') }}
+                </p>
+                <div class="footer-social">
+                    <a href="#"><i class="fab fa-facebook-f"></i></a>
+                    <a href="#"><i class="fab fa-twitter"></i></a>
+                    <a href="#"><i class="fab fa-instagram"></i></a>
+                    <a href="#"><i class="fab fa-discord"></i></a>
+                </div>
+            </div>
+
+            <!-- Quick Links -->
+            <div class="col-lg-2 col-md-6 mb-4">
+                <h5 class="footer-title">{{ _('روابط سريعة') }}</h5>
+                <ul class="footer-links">
+                    <li><a href="{{ url_for('main.index') }}"><i class="fas fa-angle-left ml-2"></i>{{ _('الرئيسية') }}</a></li>
+                    <li><a href="{{ url_for('main.guide') }}"><i class="fas fa-angle-left ml-2"></i>{{ _('دليل اللعبة') }}</a></li>
+                    <li><a href="{{ url_for('main.leaderboard') }}"><i class="fas fa-angle-left ml-2"></i>{{ _('المتصدرين') }}</a></li>
+                    <li><a href="{{ url_for('main.register') }}"><i class="fas fa-angle-left ml-2"></i>{{ _('انضم إلينا') }}</a></li>
+                </ul>
+            </div>
+
+            <!-- Activities -->
+            <div class="col-lg-2 col-md-6 mb-4">
+                <h5 class="footer-title">{{ _('نشاطات') }}</h5>
+                <ul class="footer-links">
+                    <li><a href="{{ url_for('main.crimes') }}"><i class="fas fa-angle-left ml-2"></i>{{ _('الجرائم') }}</a></li>
+                    <li><a href="{{ url_for('market.index') }}"><i class="fas fa-angle-left ml-2"></i>{{ _('البورصة') }}</a></li>
+                    <li><a href="{{ url_for('gang.index') }}"><i class="fas fa-angle-left ml-2"></i>{{ _('العصابات') }}</a></li>
+                    <li><a href="{{ url_for('gym.index') }}"><i class="fas fa-angle-left ml-2"></i>{{ _('الجيم') }}</a></li>
+                </ul>
+            </div>
+
+            <!-- Developer Info -->
+            <div class="col-lg-4 col-md-6 mb-4">
+                <h5 class="footer-title">{{ _('تطوير ودعم') }}</h5>
+                <ul class="list-unstyled text-muted">
+                    <li class="mb-3 d-flex align-items-center"><i class="fas fa-building text-gold mr-3 fa-lg"></i> <div>{{ _('شركة أزاد للأنظمة الذكية') }}</div></li>
+                    <li class="mb-3 d-flex align-items-center"><i class="fas fa-user-tie text-gold mr-3 fa-lg"></i> <div>{{ _('إدارة: م. أحمد غنام') }}</div></li>
+                    <li class="mb-3 d-flex align-items-center"><i class="fas fa-phone text-gold mr-3 fa-lg"></i> <div dir="ltr">0562150193</div></li>
+                    <li class="mb-3 d-flex align-items-center"><i class="fab fa-whatsapp text-success mr-3 fa-lg"></i> <div dir="ltr">00972562150193</div></li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <div class="footer-bottom text-center">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-12 mb-2 mb-md-0">
+                    <strong>Copyright &copy; 2025 <a href="#" class="text-gold">{{ _('شركة أزاد للأنظمة الذكية') }}</a>.</strong>
+                    {{ _('جميع الحقوق محفوظة.') }}
+                    <div class="mt-1 small text-muted">{{ _('إدارة: م. أحمد غنام') }}</div>
+                </div>
+            </div>
+        </div>
+    </div>
+  </footer>
+
+  {% if ticker_news %}
+  <div class="news-ticker-container">
+      <div class="news-ticker-label">
+          <i class="fas fa-bolt mr-2"></i> {{ _('أخبار عاجلة') }}
+      </div>
+      <div class="news-ticker-content">
+          <div class="news-ticker-move">
+              {% for item in ticker_news %}
+                  <div class="news-ticker-item">
+                      {% if item.type == 'announcement' %}
+                          <i class="fas fa-bullhorn text-warning"></i> 
+                      {% elif item.type == 'combat' %}
+                          <i class="fas fa-fist-raised text-danger"></i> 
+                      {% elif item.type == 'tip' %}
+                          <i class="fas fa-lightbulb text-info"></i> 
+                      {% endif %}
+                      {{ item.text }}
+                  </div>
+              {% endfor %}
+          </div>
+      </div>
+  </div>
+  {% endif %}
+
+</div>
+<!-- ./wrapper -->
+
+<!-- jQuery Removed (Moved to Head) -->
+<!-- Bootstrap 4 -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/js/bootstrap.bundle.min.js"></script>
+<!-- AdminLTE App -->
+<script src="{{ url_for('static', filename='adminlte/js/adminlte.min.js') }}"></script>
+<!-- SweetAlert2 -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<script>
+    // Tooltip initialization
+    $(function () {
+        $('[data-toggle="tooltip"]').tooltip()
+    })
+
+    // Global Data Confirm Handler
+    $(document).on('click', '[data-confirm]', function(e) {
+        if (!confirm($(this).data('confirm'))) {
+            e.preventDefault();
+        }
+    });
+
+    // SweetAlert2 Toast Configuration
+    const Toast = Swal.mixin({
+        toast: true,
+        position: 'top-end',
+        showConfirmButton: false,
+        timer: 4000,
+        timerProgressBar: true,
+        background: 'rgba(20, 20, 20, 0.95)',
+        color: '#fff',
+        iconColor: '#d4af37',
+        customClass: {
+            popup: 'luxury-toast',
+            title: 'luxury-toast-title',
+            timerProgressBar: 'bg-gold'
+        },
+        didOpen: (toast) => {
+            toast.addEventListener('mouseenter', Swal.stopTimer)
+            toast.addEventListener('mouseleave', Swal.resumeTimer)
+        }
+    });
+
+    // Hostess Reaction Toast Mixin
+    const HostessToast = Swal.mixin({
+      toast: true,
+      position: 'bottom-right',
+      showConfirmButton: false,
+      timer: 5000,
+      background: 'transparent',
+      padding: 0,
+      didOpen: (toast) => {
+        // Play notification sound if available
+      }
+    });
+
+    // Flask Flash Messages to Toasts
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, message in messages %}
+            {% if category == 'hostess_reaction' %}
+                 var parts = {{ message | tojson }}.split('|');
+                 var hName = parts.length > 1 ? parts[0] : "{{ _('مضيفتك') }}";
+                 var hImg = parts.length > 1 ? parts[1] : "default_hostess.jpg";
+                 var hMsg = parts.length > 1 ? parts[2] : parts[0];
+                 
+                 HostessToast.fire({
+                   html: `
+                     <div class="hostess-reaction-toast fade-in-up">
+                        <img src="/static/images/hostesses/${hImg}" class="hostess-reaction-img">
+                        <div class="hostess-reaction-content">
+                            <div class="hostess-reaction-title">${hName}</div>
+                            <div class="hostess-reaction-msg">${hMsg}</div>
+                        </div>
+                     </div>
+                   `
+                 });
+            {% else %}
+                {% if category == 'message' %}
+                    {% set category = 'info' %}
+                {% endif %}
+                {% if category == 'danger' %}
+                    {% set category = 'error' %}
+                {% endif %}
+                
+                // Custom titles for game feel
+                var titleText = {{ message | tojson }};
+                var iconType = '{{ category }}';
+                
+                {% if category == 'success' %}
+                    // iconType = 'success'; // Keep default or custom
+                {% elif category == 'error' %}
+                   // iconType = 'error';
+                {% endif %}
+
+                Toast.fire({
+                    icon: iconType,
+                    title: titleText
+                });
+            {% endif %}
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+
+    // Live Stats Update
+    function updateStats() {
+        fetch('{{ url_for("main.get_user_stats") }}')
+            .then(response => {
+                if (!response.ok) return;
+                return response.json();
+            })
+            .then(data => {
+                if (data.error) return;
+                
+                const animateValue = (id, newValue) => {
+                    const el = document.getElementById(id);
+                    if (!el) return;
+                    const currentText = el.innerText.replace(/,/g, '');
+                    const current = parseInt(currentText) || 0;
+                    
+                    if (current !== newValue) {
+                        el.innerText = newValue.toLocaleString();
+                        el.classList.add('text-gold');
+                        setTimeout(() => el.classList.remove('text-gold'), 1000);
+                    }
+                };
+
+                animateValue('user-energy', data.energy);
+                animateValue('user-heat', data.heat);
+                animateValue('user-money', data.money);
+                animateValue('user-bullets', data.bullets);
+                animateValue('user-diamonds', data.diamonds);
+                
+                const expBar = document.getElementById('user-exp-bar');
+                if (expBar) {
+                    const pct = Math.round((data.exp / data.max_exp) * 100);
+                    expBar.style.width = pct + '%';
+                }
+                
+                const rankBar = document.getElementById('user-rank-bar');
+                if (rankBar) rankBar.style.width = data.rank_progress + '%';
+                
+                const rankTitle = document.getElementById('user-rank-title');
+                if (rankTitle) rankTitle.innerText = data.rank_title;
+                
+                const level = document.getElementById('user-level');
+                if (level) level.innerText = data.level;
+            })
+            .catch(err => console.log('Stats update error:', err));
+    }
+
+    {% if current_user.is_authenticated %}
+        setInterval(updateStats, 5000);
+    {% endif %}
+
+    // Clock
+    function updateClock() {
+        const now = new Date();
+        const timeString = now.toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' });
+        const el = document.getElementById('server-clock');
+        if (el) el.textContent = timeString;
+    }
+    setInterval(updateClock, 1000);
+    updateClock(); // Initial call
+</script>
+{% block scripts %}{% endblock %}
+</body>
+</html>

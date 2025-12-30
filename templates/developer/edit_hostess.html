@@ -1,0 +1,1162 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <div class="row">
+        <!-- Main Form Column -->
+        <div class="col-lg-8">
+            <div class="card shadow-lg border-0">
+                <div class="card-header bg-dark text-white d-flex justify-content-between align-items-center">
+                    <h4 class="mb-0">{{ title }}</h4>
+                    <span class="badge bg-warning text-dark">{{ _('وضع المطور') }}</span>
+                </div>
+                <div class="card-body bg-light">
+                    <form method="POST" enctype="multipart/form-data" id="hostessForm">
+                        {{ form.hidden_tag() }}
+                        
+                        <!-- Basic Info -->
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                {{ form.name.label(class="form-label fw-bold") }}
+                                {{ form.name(class="form-control border-secondary", oninput="updatePreview()") }}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                {{ form.price.label(class="form-label fw-bold") }}
+                                {{ form.price(class="form-control border-secondary", oninput="updatePreview()") }}
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                {{ form.role.label(class="form-label fw-bold") }}
+                                {{ form.role(class="form-select border-secondary", onchange="updatePreview()") }}
+                                <div class="form-text text-muted">
+                                    Spy: For racing intel. Luck: For gambling. Support: For morale.
+                                </div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                {{ form.dialogue_style.label(class="form-label fw-bold") }}
+                                {{ form.dialogue_style(class="form-select border-secondary") }}
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            {{ form.description.label(class="form-label fw-bold") }}
+                            {{ form.description(class="form-control border-secondary", rows=3) }}
+                        </div>
+
+                        <div class="mb-3">
+                            {{ form.intro_message.label(class="form-label fw-bold") }}
+                            {{ form.intro_message(class="form-control border-secondary", rows=2, oninput="updatePreview()") }}
+                        </div>
+                        
+                        <!-- RPG Stats -->
+                        <div class="row mb-4 p-3 bg-white border rounded shadow-sm mx-1">
+                            <h5 class="text-gold border-bottom pb-2 mb-3"><i class="fas fa-chart-bar me-2"></i> {{ _('إحصائيات RPG') }}</h5>
+                            <div class="col-md-4 mb-3">
+                                {{ form.level.label(class="form-label fw-bold") }}
+                                {{ form.level(class="form-control border-secondary") }}
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                {{ form.exp.label(class="form-label fw-bold") }}
+                                {{ form.exp(class="form-control border-secondary") }}
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                {{ form.loyalty.label(class="form-label fw-bold") }}
+                                {{ form.loyalty(class="form-control border-secondary") }}
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                {{ form.charm.label(class="form-label fw-bold") }}
+                                {{ form.charm(class="form-control border-secondary") }}
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                {{ form.intelligence.label(class="form-label fw-bold") }}
+                                {{ form.intelligence(class="form-control border-secondary") }}
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                {{ form.combat_skill.label(class="form-label fw-bold") }}
+                                {{ form.combat_skill(class="form-control border-secondary") }}
+                            </div>
+                            <div class="col-md-12 mb-3">
+                                <div class="form-check form-switch">
+                                    {{ form.reset_special_cooldown(class="form-check-input") }}
+                                    {{ form.reset_special_cooldown.label(class="form-check-label") }}
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- AI Training Section -->
+                        <div class="mb-4 p-3 bg-dark text-white rounded shadow-sm border border-warning">
+                            <label class="form-label fw-bold text-warning h5 mb-3"><i class="fas fa-brain me-2"></i> {{ _('تدريب الشخصية (AI Training)') }}</label>
+                            
+                            <!-- Training Builder UI -->
+                            <div class="card bg-secondary mb-3 border-0">
+                                <div class="card-header d-flex justify-content-between align-items-center" data-bs-toggle="collapse" data-bs-target="#trainingBuilder" style="cursor: pointer;">
+                                    <span class="text-white fw-bold"><i class="fas fa-dumbbell me-2"></i> {{ _('منشئ التدريب (Interactive Trainer)') }}</span>
+                                    <i class="fas fa-chevron-down text-white"></i>
+                                </div>
+                                <div id="trainingBuilder" class="collapse show card-body bg-dark border-top border-secondary">
+                                    <div class="row g-2">
+                                        <div class="col-md-12 mb-2">
+                                            <label class="text-muted small">{{ _('مدخل المستخدم (User Input):') }}</label>
+                                            <input type="text" id="trainUser" class="form-control bg-dark text-white border-secondary" placeholder="{{ _('مثال: كيف حالك؟') }}">
+                                        </div>
+                                        <div class="col-md-12 mb-2">
+                                            <label class="text-muted small">{{ _('رد المضيفة (Hostess Response):') }}</label>
+                                            <textarea id="trainAssist" class="form-control bg-dark text-white border-secondary" rows="2" placeholder="{{ _('مثال: يا هلا بالزين، نورت المكان!') }}"></textarea>
+                                        </div>
+                                        <div class="col-md-12">
+                                            <button type="button" class="btn btn-success w-100" onclick="addTrainingExample()">
+                                                <i class="fas fa-plus-circle me-1"></i> {{ _('إضافة مثال') }}
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <div id="trainingList" class="mt-3 list-group">
+                                        <!-- Items will be added here -->
+                                    </div>
+                                    <div class="mt-3 border-top border-secondary pt-2 d-flex justify-content-end gap-2">
+                                        <input type="file" id="importTrainingFile" accept=".json" style="display:none" onchange="importTrainingData(this)">
+                                        <button type="button" class="btn btn-sm btn-outline-info" onclick="document.getElementById('importTrainingFile').click()">
+                                            <i class="fas fa-file-import me-1"></i> {{ _('استيراد JSON') }}
+                                        </button>
+                                        <button type="button" class="btn btn-sm btn-outline-warning" onclick="exportTrainingData()">
+                                            <i class="fas fa-file-export me-1"></i> {{ _('تصدير JSON') }}
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                {{ form.system_prompt.label(class="form-label text-white fw-bold") }}
+                                {{ form.system_prompt(class="form-control bg-dark text-white border-secondary", rows=5) }}
+                            </div>
+
+                            <div class="mb-3">
+                                {{ form.knowledge_base.label(class="form-label text-white fw-bold") }}
+                                {{ form.knowledge_base(class="form-control bg-dark text-white border-secondary", rows=10) }}
+                                <div class="form-text text-white-50">
+                                    {{ _('ضع هنا دليل المستخدم أو المعلومات التي يجب أن تعرفها المضيفة عن اللعبة.') }}
+                                </div>
+                            </div>
+                            
+                            <div class="mb-2 mt-3">
+                                {{ form.training_examples.label(class="form-label text-white fw-bold") }}
+                                {{ form.training_examples(class="form-control bg-dark text-white border-secondary", rows=6, id="training_examples_json", readonly=True) }}
+                                <div class="form-text text-white-50">
+                                    {{ _('يتم تحديث هذا الحقل تلقائياً عبر المنشئ أعلاه.') }}
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Personality & Voice Section -->
+                        <div class="mb-4 p-3 bg-dark text-white rounded shadow-sm border border-danger">
+                            <label class="form-label fw-bold text-danger h5 mb-3"><i class="fas fa-heart me-2"></i> {{ _('الشخصية والصوت (Personality & Voice)') }}</label>
+                            
+                            <!-- Voice & Personality Builder -->
+                            <div class="card bg-secondary mb-3 border-0">
+                                <div class="card-header d-flex justify-content-between align-items-center" data-bs-toggle="collapse" data-bs-target="#voiceBuilder" style="cursor: pointer;">
+                                    <span class="text-white fw-bold"><i class="fas fa-microphone-alt me-2"></i> {{ _('إعدادات الصوت والشخصية (Config)') }}</span>
+                                    <i class="fas fa-chevron-down text-white"></i>
+                                </div>
+                                <div id="voiceBuilder" class="collapse card-body bg-dark border-top border-secondary">
+                                    <div class="row g-3">
+                                        <!-- Voice Settings -->
+                                        <div class="col-md-6 border-end border-secondary">
+                                            <h6 class="text-white border-bottom border-secondary pb-2">{{ _('إعدادات الصوت (Voice Settings)') }}</h6>
+                                            <div class="mb-2">
+                                                <label class="text-muted small">{{ _('المزود (Provider):') }}</label>
+                                                <select id="v_provider" class="form-select bg-dark text-white border-secondary">
+                                                    <option value="browser">Browser (Free)</option>
+                                                    <option value="elevenlabs">ElevenLabs</option>
+                                                    <option value="openai">OpenAI TTS</option>
+                                                </select>
+                                            </div>
+                                            <div class="mb-2">
+                                                <label class="text-muted small">{{ _('معرف الصوت / الاسم (Voice ID):') }}</label>
+                                                <input type="text" id="v_id" class="form-control bg-dark text-white border-secondary" placeholder="e.g. Rachel, or Google US English">
+                                            </div>
+                                            <div class="row">
+                                                <div class="col-6">
+                                                    <label class="text-muted small">{{ _('الحدة (Pitch):') }}</label>
+                                                    <input type="number" id="v_pitch" class="form-control bg-dark text-white border-secondary" step="0.1" value="1.0">
+                                                </div>
+                                                <div class="col-6">
+                                                    <label class="text-muted small">{{ _('السرعة (Rate):') }}</label>
+                                                    <input type="number" id="v_rate" class="form-control bg-dark text-white border-secondary" step="0.1" value="1.0">
+                                                </div>
+                                            </div>
+                                            <div class="mt-3">
+                                                <button type="button" class="btn btn-sm btn-outline-light w-100" onclick="testVoice()">
+                                                    <i class="fas fa-play me-1"></i> {{ _('تجربة الصوت (Test Voice)') }}
+                                                </button>
+                                            </div>
+                                        </div>
+                                        
+                                        <!-- Personality Settings -->
+                                        <div class="col-md-6">
+                                            <h6 class="text-white border-bottom border-secondary pb-2">{{ _('سمات الشخصية (Personality Traits)') }}</h6>
+                                            <div class="mb-2">
+                                                <label class="text-muted small">{{ _('مستوى الدلع (Flirtation):') }}</label>
+                                                <input type="range" id="p_flirt" class="form-range" min="1" max="10" value="5" oninput="this.nextElementSibling.value = this.value; updatePreview()">
+                                                <output class="text-white small">5</output>
+                                            </div>
+                                            <div class="mb-2">
+                                                <label class="text-muted small">{{ _('الخجل (Shyness):') }}</label>
+                                                <input type="range" id="p_shy" class="form-range" min="1" max="10" value="2" oninput="this.nextElementSibling.value = this.value; updatePreview()">
+                                                <output class="text-white small">2</output>
+                                            </div>
+                                            <div class="mb-2">
+                                                <label class="text-muted small">{{ _('السيطرة (Dominance):') }}</label>
+                                                <input type="range" id="p_dom" class="form-range" min="1" max="10" value="5" oninput="this.nextElementSibling.value = this.value; updatePreview()">
+                                                <output class="text-white small">5</output>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="p-2 border-top border-secondary text-end mt-3">
+                                        <button type="button" class="btn btn-danger" onclick="generateVoicePersonalityJSON()">
+                                            <i class="fas fa-save me-1"></i> {{ _('حفظ الإعدادات (Save Config)') }}
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="mb-2">
+                                {{ form.voice_config.label(class="form-label text-white fw-bold") }}
+                                {{ form.voice_config(class="form-control bg-dark text-white border-secondary", rows=3, id="voice_config_json") }}
+                            </div>
+                            <div class="mb-2">
+                                {{ form.personality_config.label(class="form-label text-white fw-bold") }}
+                                {{ form.personality_config(class="form-control bg-dark text-white border-secondary", rows=3, id="personality_config_json") }}
+                            </div>
+                        </div>
+
+                        <!-- Appearance & Style Section -->
+                        <div class="mb-4 p-3 bg-dark text-white rounded shadow-sm border border-pink" style="border-color: #e83e8c !important; box-shadow: 0 0 15px rgba(232, 62, 140, 0.1);">
+                            <label class="form-label fw-bold h5 mb-3" style="color: #e83e8c;"><i class="fas fa-female me-2"></i> {{ _('المظهر والستايل (Appearance & Style)') }}</label>
+                            <p class="text-white-50 small mb-3">{{ _('خصصي مظهر المضيفة لتكون أكثر جاذبية وتناسب ذوق اللاعبين.') }}</p>
+                            
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    {{ form.clothing_style.label(class="form-label text-white") }}
+                                    {{ form.clothing_style(class="form-select bg-dark text-white border-secondary", style="color: #e83e8c !important;", onchange="updatePreview()") }}
+                                </div>
+                                <div class="col-md-6">
+                                    {{ form.clothing_custom.label(class="form-label text-white") }}
+                                    {{ form.clothing_custom(class="form-control bg-dark text-white border-secondary") }}
+                                </div>
+                                <div class="col-md-6 mt-3">
+                                    {{ form.hair_style.label(class="form-label text-white") }}
+                                    {{ form.hair_style(class="form-control bg-dark text-white border-secondary") }}
+                                </div>
+                                <div class="col-md-6 mt-3">
+                                    {{ form.body_features.label(class="form-label text-white") }}
+                                    {{ form.body_features(class="form-control bg-dark text-white border-secondary") }}
+                                </div>
+                                
+                                <div class="col-12 mt-3">
+                                    <button type="button" class="btn btn-outline-light btn-sm mb-2" onclick="toggleAppearanceJson()">
+                                        <i class="fas fa-code me-1"></i> {{ _('عرض JSON الخام') }}
+                                    </button>
+                                    <div id="appearanceJsonDiv" style="display: none;">
+                                        {{ form.appearance_config.label(class="form-label text-white") }}
+                                        {{ form.appearance_config(class="form-control bg-dark text-white border-secondary", rows=4) }}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Video Configuration -->
+                        <div class="mb-4 p-3 bg-dark text-white rounded shadow-sm border border-info">
+                            <label class="form-label fw-bold text-info h5 mb-3"><i class="fas fa-video me-2"></i> {{ _('إعدادات الفيديو (Video Configuration)') }}</label>
+                            
+                            <div class="mb-3">
+                                {{ form.video_choice.label(class="form-label text-white fw-bold") }}
+                                {{ form.video_choice(class="form-select bg-dark text-white border-secondary") }}
+                            </div>
+
+                            <div class="mb-3">
+                                {{ form.video.label(class="form-label text-white fw-bold") }}
+                                {{ form.video(class="form-control bg-dark text-white border-secondary") }}
+                                {% if hostess.video %}
+                                <div class="mt-2">
+                                    <p class="text-white">{{ _('الفيديو الحالي:') }} {{ hostess.video }}</p>
+                                    {% if hostess.video.endswith('.gif') %}
+                                      <img src="{{ url_for('static', filename='videos/hostesses/' + hostess.video) }}" width="200" class="rounded border border-secondary">
+                                    {% else %}
+                                      <video src="{{ url_for('static', filename='videos/hostesses/' + hostess.video) }}" width="200" controls class="rounded border border-secondary"></video>
+                                    {% endif %}
+                                </div>
+                                {% endif %}
+                            </div>
+
+                            <!-- Video Prompt Builder UI -->
+                            <div class="card bg-secondary mb-3 border-0">
+                                <div class="card-header d-flex justify-content-between align-items-center" data-bs-toggle="collapse" data-bs-target="#videoBuilder" style="cursor: pointer;">
+                                    <span class="text-white fw-bold"><i class="fas fa-film me-2"></i> {{ _('منشئ سيناريو الفيديو (Video Prompt Builder)') }}</span>
+                                    <i class="fas fa-chevron-down text-white"></i>
+                                </div>
+                                <div id="videoBuilder" class="collapse card-body bg-dark border-top border-secondary p-0">
+                                    <ul class="nav nav-tabs nav-fill bg-secondary border-bottom-0" id="videoTabs" role="tablist">
+                                        <li class="nav-item"><button class="nav-link active text-white rounded-0" data-bs-toggle="tab" data-bs-target="#v-general" type="button">{{ _('عام (General)') }}</button></li>
+                                        <li class="nav-item"><button class="nav-link text-white rounded-0" data-bs-toggle="tab" data-bs-target="#v-style" type="button">{{ _('ستايل (Style)') }}</button></li>
+                                        <li class="nav-item"><button class="nav-link text-white rounded-0" data-bs-toggle="tab" data-bs-target="#v-audio" type="button">{{ _('صوت (Audio)') }}</button></li>
+                                        <li class="nav-item"><button class="nav-link text-white rounded-0" data-bs-toggle="tab" data-bs-target="#v-constraints" type="button">{{ _('قيود (Constraints)') }}</button></li>
+                                        <li class="nav-item"><button class="nav-link text-white rounded-0" data-bs-toggle="tab" data-bs-target="#v-shots" type="button">{{ _('لقطات (Shots)') }}</button></li>
+                                    </ul>
+                                    <div class="tab-content p-3">
+                                        <!-- General -->
+                                        <div class="tab-pane fade show active" id="v-general">
+                                            <input type="text" class="form-control mb-2 bg-dark text-white" id="vp_title" placeholder="{{ _('العنوان (Title)') }}">
+                                            <textarea class="form-control mb-2 bg-dark text-white" id="vp_desc" rows="2" placeholder="{{ _('الوصف (Description)') }}"></textarea>
+                                            <div class="row">
+                                                <div class="col-4"><input type="number" class="form-control bg-dark text-white" id="vp_duration" placeholder="{{ _('المدة (Duration)') }}" value="9"></div>
+                                                <div class="col-4"><input type="number" class="form-control bg-dark text-white" id="vp_fps" placeholder="FPS" value="24"></div>
+                                                <div class="col-4"><input type="text" class="form-control bg-dark text-white" id="vp_res" placeholder="{{ _('الدقة (Resolution)') }}" value="1080p"></div>
+                                            </div>
+                                        </div>
+                                        <!-- Style -->
+                                        <div class="tab-pane fade" id="v-style">
+                                            <input type="text" class="form-control mb-2 bg-dark text-white" id="vp_visual" placeholder="{{ _('نمط بصري (Visual Style)') }}">
+                                            <input type="text" class="form-control mb-2 bg-dark text-white" id="vp_palette" placeholder="{{ _('لوحة الألوان (Palette)') }}">
+                                            <input type="text" class="form-control mb-2 bg-dark text-white" id="vp_lighting" placeholder="{{ _('الإضاءة (Lighting)') }}">
+                                            <input type="text" class="form-control mb-2 bg-dark text-white" id="vp_grade" placeholder="{{ _('تصحيح الألوان (Color Grade)') }}">
+                                        </div>
+                                        <!-- Audio -->
+                                        <div class="tab-pane fade" id="v-audio">
+                                            <input type="text" class="form-control mb-2 bg-dark text-white" id="vp_music" placeholder="{{ _('مزاج الموسيقى (Music Mood)') }}">
+                                            <label class="text-muted small">{{ _('أسطر الحوار (Dialogue Lines):') }}</label>
+                                            <div id="vp_dialogue_list"></div>
+                                            <button type="button" class="btn btn-sm btn-outline-info mt-1" onclick="addDialogueLine()">{{ _('إضافة سطر') }}</button>
+                                        </div>
+                                        <!-- Constraints -->
+                                        <div class="tab-pane fade" id="v-constraints">
+                                            <label class="text-muted small">{{ _('تجنب (Avoid):') }}</label>
+                                            <input type="text" class="form-control mb-2 bg-dark text-white" id="vp_avoid" placeholder="text, logos, blurry...">
+                                            <label class="text-muted small">{{ _('فيزياء (Physics):') }}</label>
+                                            <input type="text" class="form-control mb-2 bg-dark text-white" id="vp_physics" placeholder="Stylized, dreamy...">
+                                            <label class="text-muted small">{{ _('تلقين سلبي (Negative Prompts):') }}</label>
+                                            <textarea class="form-control mb-2 bg-dark text-white" id="vp_negative" rows="2" placeholder="bad quality, distorted..."></textarea>
+                                        </div>
+                                        <!-- Shots -->
+                                        <div class="tab-pane fade" id="v-shots">
+                                            <div id="vp_shots_list" class="accordion mb-2"></div>
+                                            <button type="button" class="btn btn-sm btn-outline-success" onclick="addShot()">{{ _('إضافة لقطة') }}</button>
+                                        </div>
+                                    </div>
+                                    <div class="p-2 border-top border-secondary text-end">
+                                        <input type="file" id="importVideoFile" accept=".json" style="display:none" onchange="importVideoData(this)">
+                                        <button type="button" class="btn btn-sm btn-outline-info me-2" onclick="document.getElementById('importVideoFile').click()">
+                                            <i class="fas fa-file-import"></i> {{ _('استيراد JSON') }}
+                                        </button>
+                                        <button type="button" class="btn btn-warning" onclick="generateVideoJSON()">
+                                            <i class="fas fa-magic"></i> {{ _('توليد JSON') }}
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="mb-2">
+                                {{ form.video_prompt.label(class="form-label text-white") }}
+                                {{ form.video_prompt(class="form-control bg-dark text-white border-secondary", rows=10, id="video_prompt_json") }}
+                            </div>
+                            
+                            <hr class="border-secondary">
+                            
+                            <div class="form-check form-switch mb-3">
+                                {{ form.is_avatar_active(class="form-check-input", role="switch", id="is_avatar_active_switch") }}
+                                {{ form.is_avatar_active.label(class="form-check-label text-warning fw-bold") }}
+                                <div class="form-text text-white-50">
+                                    {{ _('عند التفعيل، سيتم عرض فيديو المضيفة بدلاً من الصورة الثابتة (Loop Video).') }}
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                {{ form.video.label(class="form-label text-white") }}
+                                {{ form.video(class="form-control bg-dark text-white border-secondary") }}
+                                {% if form.video.data and form.video.data is string %}
+                                <div class="mt-2">
+                                    <video width="200" controls class="rounded border border-secondary">
+                                        <source src="{{ url_for('static', filename='videos/hostesses/' + form.video.data) }}" type="video/mp4">
+                                        Your browser does not support the video tag.
+                                    </video>
+                                    <div class="small text-muted">{{ form.video.data }}</div>
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            {{ form.image.label(class="form-label") }}
+                            {{ form.image(class="form-control") }}
+                            {% if form.image.data and form.image.data is string %}
+                            <div class="mt-2">
+                                <img src="{{ url_for('static', filename='images/hostesses/' + form.image.data) }}" width="100" class="rounded">
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="mb-3 form-check">
+                            {{ form.is_active(class="form-check-input") }}
+                            {{ form.is_active.label(class="form-check-label") }}
+                        </div>
+
+                        <div class="d-grid gap-2">
+                            {{ form.submit(class="btn btn-primary") }}
+                            <a href="{{ url_for('main.dev_hostesses') }}" class="btn btn-secondary">{{ _('إلغاء') }}</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Live Preview Column -->
+        <div class="col-lg-4">
+            <div class="sticky-top" style="top: 20px; z-index: 100;">
+                
+                <!-- Style Presets -->
+                <div class="card shadow-sm border-0 mb-3 bg-dark text-white">
+                    <div class="card-header bg-gradient-purple text-white border-bottom border-secondary">
+                        <h5 class="mb-0"><i class="fas fa-magic me-2"></i> {{ _('أنماط جاهزة (Style Presets)') }}</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="d-grid gap-2">
+                            <button type="button" class="btn btn-outline-light btn-sm text-start" onclick="applyStylePreset('casual')">
+                                <i class="fas fa-tshirt me-2 text-info"></i> {{ _('كاجوال شيك (Casual Chic)') }}
+                            </button>
+                            <button type="button" class="btn btn-outline-light btn-sm text-start" onclick="applyStylePreset('evening')">
+                                <i class="fas fa-glass-cheers me-2 text-warning"></i> {{ _('سهرة فاخرة (Elegant Evening)') }}
+                            </button>
+                            <button type="button" class="btn btn-outline-light btn-sm text-start" onclick="applyStylePreset('lingerie')">
+                                <i class="fas fa-heart me-2 text-danger"></i> {{ _('مثير / لانجري (Sexy Lingerie)') }}
+                            </button>
+                            <button type="button" class="btn btn-outline-light btn-sm text-start" onclick="applyStylePreset('street')">
+                                <i class="fas fa-motorcycle me-2 text-success"></i> {{ _('حرب شوارع (Street Fighter)') }}
+                            </button>
+                            <button type="button" class="btn btn-outline-light btn-sm text-start" onclick="applyStylePreset('cyberpunk')">
+                                <i class="fas fa-robot me-2 text-primary"></i> {{ _('سايبر بانك (Cyberpunk)') }}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Preview Card -->
+                <div class="card shadow-lg border-0 overflow-hidden">
+                    <div class="card-header bg-primary text-white text-center py-2">
+                        <small class="fw-bold text-uppercase ls-1">{{ _('معاينة حية (Live Preview)') }}</small>
+                    </div>
+                    <div class="position-relative">
+                        <!-- Image Placeholder -->
+                        <div class="ratio ratio-1x1 bg-secondary d-flex align-items-center justify-content-center overflow-hidden">
+                            {% if hostess.image %}
+                            <img src="{{ url_for('static', filename='images/hostesses/' + hostess.image) }}" id="preview_image" class="w-100 h-100 object-fit-cover" onerror="this.src='{{ url_for('static', filename='images/hostesses/default_hostess.jpg') }}'">
+                            {% else %}
+                            <div id="preview_placeholder" class="text-white text-center p-3">
+                                <i class="fas fa-user-circle fa-4x mb-2 opacity-50"></i>
+                                <p class="small mb-0">{{ _('No Image') }}</p>
+                            </div>
+                            <img id="preview_image" src="" class="w-100 h-100 object-fit-cover d-none">
+                            {% endif %}
+                            
+                            <!-- Video Badge -->
+                            <div id="preview_video_badge" class="position-absolute top-0 end-0 m-2 badge bg-danger rounded-pill shadow-sm {% if not hostess.video %}d-none{% endif %}">
+                                <i class="fas fa-video"></i> {{ _('Video') }}
+                            </div>
+                        </div>
+                        
+                        <!-- Overlay Gradient -->
+                        <div class="position-absolute bottom-0 start-0 w-100 p-3" style="background: linear-gradient(to top, rgba(0,0,0,0.9), transparent);">
+                            <h3 class="text-white fw-bold mb-0 text-shadow" id="preview_name">{{ hostess.name or 'Name' }}</h3>
+                            <div class="d-flex align-items-center mt-1">
+                                <span class="badge bg-warning text-dark me-2" id="preview_role">{{ hostess.role or 'Role' }}</span>
+                                <span class="text-white-50 small" id="preview_style">{{ hostess.clothing_style or 'Style' }}</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-body bg-white">
+                        <p class="card-text text-muted small fst-italic border-start border-3 border-primary ps-2 mb-3" id="preview_intro">
+                            "{{ hostess.intro_message or 'Intro message will appear here...' }}"
+                        </p>
+                        
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span class="text-success fw-bold" id="preview_price">
+                                <i class="fas fa-coins me-1"></i> <span id="preview_price_val">{{ hostess.price or 0 }}</span>
+                            </span>
+                            <button class="btn btn-sm btn-dark rounded-pill px-3">
+                                <i class="fas fa-comments me-1"></i> {{ _('تحدث') }}
+                            </button>
+                        </div>
+                        
+                        <hr class="my-2 text-muted">
+                        
+                        <div class="row g-1 small">
+                            <div class="col-4">
+                                <div class="p-1 bg-light rounded text-center border">
+                                    <div class="text-muted xx-small">{{ _('Flirt') }}</div>
+                                    <div class="fw-bold text-danger" id="preview_flirt">5/10</div>
+                                </div>
+                            </div>
+                            <div class="col-4">
+                                <div class="p-1 bg-light rounded text-center border">
+                                    <div class="text-muted xx-small">{{ _('Shy') }}</div>
+                                    <div class="fw-bold text-primary" id="preview_shy">2/10</div>
+                                </div>
+                            </div>
+                            <div class="col-4">
+                                <div class="p-1 bg-light rounded text-center border">
+                                    <div class="text-muted xx-small">{{ _('Dom') }}</div>
+                                    <div class="fw-bold text-dark" id="preview_dom">5/10</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Helper Text -->
+                <div class="mt-3 text-center text-muted small">
+                    <i class="fas fa-info-circle me-1"></i> {{ _('هذه المعاينة تقريبية لما سيراه اللاعب.') }}
+                </div>
+            </div>
+        </div>
+
+        <!-- Live Preview Column -->
+        <div class="col-lg-4">
+            <div class="sticky-top" style="top: 20px; z-index: 100;">
+                
+                <!-- Style Presets -->
+                <div class="card shadow-sm border-0 mb-3 bg-dark text-white">
+                    <div class="card-header bg-gradient-purple text-white border-bottom border-secondary">
+                        <h5 class="mb-0"><i class="fas fa-magic me-2"></i> {{ _('أنماط جاهزة (Style Presets)') }}</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="d-grid gap-2">
+                            <button type="button" class="btn btn-outline-light btn-sm text-start" onclick="applyStylePreset('casual')">
+                                <i class="fas fa-tshirt me-2 text-info"></i> {{ _('كاجوال شيك (Casual Chic)') }}
+                            </button>
+                            <button type="button" class="btn btn-outline-light btn-sm text-start" onclick="applyStylePreset('evening')">
+                                <i class="fas fa-glass-cheers me-2 text-warning"></i> {{ _('سهرة فاخرة (Elegant Evening)') }}
+                            </button>
+                            <button type="button" class="btn btn-outline-light btn-sm text-start" onclick="applyStylePreset('lingerie')">
+                                <i class="fas fa-heart me-2 text-danger"></i> {{ _('مثير / لانجري (Sexy Lingerie)') }}
+                            </button>
+                            <button type="button" class="btn btn-outline-light btn-sm text-start" onclick="applyStylePreset('street')">
+                                <i class="fas fa-motorcycle me-2 text-success"></i> {{ _('حرب شوارع (Street Fighter)') }}
+                            </button>
+                            <button type="button" class="btn btn-outline-light btn-sm text-start" onclick="applyStylePreset('cyberpunk')">
+                                <i class="fas fa-robot me-2 text-primary"></i> {{ _('سايبر بانك (Cyberpunk)') }}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Preview Card -->
+                <div class="card shadow-lg border-0 overflow-hidden">
+                    <div class="card-header bg-primary text-white text-center py-2">
+                        <small class="fw-bold text-uppercase ls-1">{{ _('معاينة حية (Live Preview)') }}</small>
+                    </div>
+                    <div class="position-relative">
+                        <!-- Image Placeholder -->
+                        <div class="ratio ratio-1x1 bg-secondary d-flex align-items-center justify-content-center overflow-hidden">
+                            {% if hostess.image %}
+                            <img src="{{ url_for('static', filename='images/hostesses/' + hostess.image) }}" id="preview_image" class="w-100 h-100 object-fit-cover">
+                            {% else %}
+                            <div id="preview_placeholder" class="text-white text-center p-3">
+                                <i class="fas fa-user-circle fa-4x mb-2 opacity-50"></i>
+                                <p class="small mb-0">{{ _('No Image') }}</p>
+                            </div>
+                            <img id="preview_image" src="" class="w-100 h-100 object-fit-cover d-none">
+                            {% endif %}
+                            
+                            <!-- Video Badge -->
+                            <div id="preview_video_badge" class="position-absolute top-0 end-0 m-2 badge bg-danger rounded-pill shadow-sm {% if not hostess.video %}d-none{% endif %}">
+                                <i class="fas fa-video"></i> {{ _('Video') }}
+                            </div>
+                        </div>
+                        
+                        <!-- Overlay Gradient -->
+                        <div class="position-absolute bottom-0 start-0 w-100 p-3" style="background: linear-gradient(to top, rgba(0,0,0,0.9), transparent);">
+                            <h3 class="text-white fw-bold mb-0 text-shadow" id="preview_name">{{ hostess.name or 'Name' }}</h3>
+                            <div class="d-flex align-items-center mt-1">
+                                <span class="badge bg-warning text-dark me-2" id="preview_role">{{ hostess.role or 'Role' }}</span>
+                                <span class="text-white-50 small" id="preview_style">{{ hostess.clothing_style or 'Style' }}</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-body bg-white">
+                        <p class="card-text text-muted small fst-italic border-start border-3 border-primary ps-2 mb-3" id="preview_intro">
+                            "{{ hostess.intro_message or 'Intro message will appear here...' }}"
+                        </p>
+                        
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span class="text-success fw-bold" id="preview_price">
+                                <i class="fas fa-coins me-1"></i> <span id="preview_price_val">{{ hostess.price or 0 }}</span>
+                            </span>
+                            <button class="btn btn-sm btn-dark rounded-pill px-3">
+                                <i class="fas fa-comments me-1"></i> {{ _('تحدث') }}
+                            </button>
+                        </div>
+                        
+                        <hr class="my-2 text-muted">
+                        
+                        <div class="row g-1 small">
+                            <div class="col-4">
+                                <div class="p-1 bg-light rounded text-center border">
+                                    <div class="text-muted xx-small">Flirt</div>
+                                    <div class="fw-bold text-danger" id="preview_flirt">5/10</div>
+                                </div>
+                            </div>
+                            <div class="col-4">
+                                <div class="p-1 bg-light rounded text-center border">
+                                    <div class="text-muted xx-small">Shy</div>
+                                    <div class="fw-bold text-primary" id="preview_shy">2/10</div>
+                                </div>
+                            </div>
+                            <div class="col-4">
+                                <div class="p-1 bg-light rounded text-center border">
+                                    <div class="text-muted xx-small">Dom</div>
+                                    <div class="fw-bold text-dark" id="preview_dom">5/10</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Helper Text -->
+                <div class="mt-3 text-center text-muted small">
+                    <i class="fas fa-info-circle me-1"></i> {{ _('هذه المعاينة تقريبية لما سيراه اللاعب.') }}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    initTrainingBuilder();
+    initVideoBuilder();
+    initVoiceBuilder();
+});
+
+// --- Voice & Personality Builder ---
+function initVoiceBuilder() {
+    const vEl = document.getElementById('voice_config_json');
+    const pEl = document.getElementById('personality_config_json');
+    
+    if (vEl && vEl.value) {
+        try {
+            const vData = JSON.parse(vEl.value);
+            document.getElementById('v_provider').value = vData.provider || 'browser';
+            document.getElementById('v_id').value = vData.voice_id || '';
+            document.getElementById('v_pitch').value = vData.pitch || 1.0;
+            document.getElementById('v_rate').value = vData.rate || 1.0;
+        } catch(e) {}
+    }
+    
+    if (pEl && pEl.value) {
+        try {
+            const pData = JSON.parse(pEl.value);
+            document.getElementById('p_flirt').value = pData.flirt_level || 5;
+            document.getElementById('p_flirt').nextElementSibling.value = pData.flirt_level || 5;
+            
+            document.getElementById('p_shy').value = pData.shyness || 2;
+            document.getElementById('p_shy').nextElementSibling.value = pData.shyness || 2;
+            
+            document.getElementById('p_dom').value = pData.dominance || 5;
+            document.getElementById('p_dom').nextElementSibling.value = pData.dominance || 5;
+        } catch(e) {}
+    }
+}
+
+function generateVoicePersonalityJSON() {
+    const voiceData = {
+        provider: document.getElementById('v_provider').value,
+        voice_id: document.getElementById('v_id').value,
+        pitch: parseFloat(document.getElementById('v_pitch').value),
+        rate: parseFloat(document.getElementById('v_rate').value)
+    };
+    
+    const personalityData = {
+        flirt_level: parseInt(document.getElementById('p_flirt').value),
+        shyness: parseInt(document.getElementById('p_shy').value),
+        dominance: parseInt(document.getElementById('p_dom').value)
+    };
+    
+    document.getElementById('voice_config_json').value = JSON.stringify(voiceData, null, 2);
+    document.getElementById('personality_config_json').value = JSON.stringify(personalityData, null, 2);
+}
+
+function testVoice() {
+    const text = {{ _('يا هلا بالزين، كيف حالك اليوم؟ اشتقت لك.')|tojson }};
+    const provider = document.getElementById('v_provider').value;
+    
+    if (provider === 'browser') {
+        const msg = new SpeechSynthesisUtterance(text);
+        msg.pitch = parseFloat(document.getElementById('v_pitch').value);
+        msg.rate = parseFloat(document.getElementById('v_rate').value);
+        msg.lang = 'ar-SA';
+        window.speechSynthesis.speak(msg);
+    } else {
+        alert("Testing external providers requires API integration.");
+    }
+}
+
+// --- Training Builder ---
+let trainingData = [];
+
+function initTrainingBuilder() {
+    const el = document.getElementById('training_examples_json');
+    if (el && el.value) {
+        try {
+            trainingData = JSON.parse(el.value);
+            renderTrainingList();
+        } catch(e) { console.error("Error parsing training JSON", e); }
+    }
+}
+
+function addTrainingExample() {
+    const user = document.getElementById('trainUser').value.trim();
+    const assist = document.getElementById('trainAssist').value.trim();
+    
+    if (user && assist) {
+        trainingData.push({role: "user", content: user});
+        trainingData.push({role: "assistant", content: assist});
+        
+        document.getElementById('trainUser').value = '';
+        document.getElementById('trainAssist').value = '';
+        renderTrainingList();
+        updateTrainingJSON();
+    }
+}
+
+function removeTrainingExample(index) {
+    trainingData.splice(index, 1);
+    renderTrainingList();
+    updateTrainingJSON();
+}
+
+function renderTrainingList() {
+    const list = document.getElementById('trainingList');
+    list.innerHTML = '';
+    trainingData.forEach((item, index) => {
+        const bg = item.role === 'user' ? 'bg-primary' : 'bg-success';
+        const icon = item.role === 'user' ? 'fa-user' : 'fa-robot';
+        
+        const html = `
+            <div class="list-group-item bg-dark text-white border-secondary d-flex justify-content-between align-items-center p-2 mb-1 rounded">
+                <div class="d-flex align-items-center overflow-hidden">
+                    <span class="badge ${bg} me-2" style="min-width: 80px;"><i class="fas ${icon}"></i> ${item.role}</span>
+                    <span class="text-truncate">${item.content}</span>
+                </div>
+                <button type="button" class="btn btn-sm btn-outline-danger ms-2" onclick="removeTrainingExample(${index})">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+        `;
+        list.insertAdjacentHTML('beforeend', html);
+    });
+}
+
+function updateTrainingJSON() {
+    document.getElementById('training_examples_json').value = JSON.stringify(trainingData, null, 2);
+}
+
+function importTrainingData(input) {
+    const file = input.files[0];
+    if (!file) return;
+    
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        try {
+            const json = JSON.parse(e.target.result);
+            if (Array.isArray(json)) {
+                // Merge or Replace? Let's just append for safety and notify
+                const countBefore = trainingData.length;
+                // Filter to ensure structure
+                const validItems = json.filter(item => item.role && item.content);
+                trainingData = trainingData.concat(validItems);
+                renderTrainingList();
+                updateTrainingJSON();
+                alert(`Added ${validItems.length} examples.`);
+            } else {
+                alert("Invalid JSON format. Expected an array of objects.");
+            }
+        } catch(err) {
+            console.error(err);
+            alert("Error parsing JSON file.");
+        }
+    };
+    reader.readAsText(file);
+    input.value = ''; // Reset
+}
+
+function exportTrainingData() {
+    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(trainingData, null, 2));
+    const downloadAnchorNode = document.createElement('a');
+    downloadAnchorNode.setAttribute("href", dataStr);
+    downloadAnchorNode.setAttribute("download", "training_examples.json");
+    document.body.appendChild(downloadAnchorNode); // required for firefox
+    downloadAnchorNode.click();
+    downloadAnchorNode.remove();
+}
+
+// --- Video Builder ---
+let videoData = {
+    title: "", description: "", duration_seconds: 9, fps: 24, resolution: "1080p",
+    style: {}, audio: { dialogue: [] }, shots: []
+};
+
+function initVideoBuilder() {
+    const el = document.getElementById('video_prompt_json');
+    if (el && el.value) {
+        try {
+            const parsed = JSON.parse(el.value);
+            videoData = { ...videoData, ...parsed };
+            populateVideoUI();
+        } catch(e) { console.error("Error parsing video JSON", e); }
+    }
+}
+
+function populateVideoUI() {
+    // General
+    document.getElementById('vp_title').value = videoData.title || '';
+    document.getElementById('vp_desc').value = videoData.description || '';
+    document.getElementById('vp_duration').value = videoData.duration_seconds || 9;
+    document.getElementById('vp_fps').value = videoData.fps || 24;
+    document.getElementById('vp_res').value = videoData.resolution || '1080p';
+    
+    // Style
+    if (videoData.style) {
+        document.getElementById('vp_visual').value = videoData.style.visual_style || '';
+        document.getElementById('vp_palette').value = videoData.style.palette || '';
+        document.getElementById('vp_lighting').value = videoData.style.lighting || '';
+        document.getElementById('vp_grade').value = videoData.style.color_grade || '';
+    }
+    
+    // Constraints
+    if (videoData.global_constraints) {
+        document.getElementById('vp_avoid').value = videoData.global_constraints.avoid ? videoData.global_constraints.avoid.join(', ') : '';
+        document.getElementById('vp_physics').value = videoData.global_constraints.physics || '';
+    }
+    if (videoData.negative_prompts) {
+        document.getElementById('vp_negative').value = videoData.negative_prompts.join(', ');
+    }
+    
+    // Audio
+    if (videoData.audio) {
+        document.getElementById('vp_music').value = videoData.audio.music_mood || '';
+        if (videoData.audio.dialogue) {
+            document.getElementById('vp_dialogue_list').innerHTML = '';
+            videoData.audio.dialogue.forEach(d => addDialogueLineUI(d));
+        }
+    }
+    
+    // Shots
+    if (videoData.shots) {
+        document.getElementById('vp_shots_list').innerHTML = '';
+        videoData.shots.forEach(s => addShotUI(s));
+    }
+}
+
+function addDialogueLine() {
+    addDialogueLineUI({ speaker: '', text: '', emotion: '' });
+}
+
+function addDialogueLineUI(data) {
+    const list = document.getElementById('vp_dialogue_list');
+    const id = Date.now() + Math.random();
+    const html = `
+        <div class="input-group mb-2" id="dlg_${id}">
+            <input type="text" class="form-control bg-dark text-white border-secondary" placeholder="Speaker" value="${data.speaker || ''}">
+            <input type="text" class="form-control bg-dark text-white border-secondary w-50" placeholder="Text" value="${data.text || ''}">
+            <input type="text" class="form-control bg-dark text-white border-secondary" placeholder="Emotion" value="${data.emotion || ''}">
+            <button class="btn btn-outline-danger" type="button" onclick="this.parentElement.remove();"><i class="fas fa-times"></i></button>
+        </div>
+    `;
+    list.insertAdjacentHTML('beforeend', html);
+}
+
+function addShot() {
+    const id = (document.querySelectorAll('.shot-item').length + 1).toString().padStart(2, '0');
+    addShotUI({
+        id: `shot_${id}`, start: 0, end: 3, prompt: '',
+        camera: { type: '', lens: '', movement: '' }
+    });
+}
+
+function addShotUI(data) {
+    const list = document.getElementById('vp_shots_list');
+    const uniqueId = 'shot_ui_' + Date.now() + Math.random().toString(36).substr(2, 9);
+    
+    const html = `
+        <div class="accordion-item bg-dark border-secondary shot-item" id="${uniqueId}">
+            <h2 class="accordion-header">
+                <button class="accordion-button collapsed bg-secondary text-white" type="button" data-bs-toggle="collapse" data-bs-target="#c_${uniqueId}">
+                    Shot: ${data.id || 'New'}
+                </button>
+            </h2>
+            <div id="c_${uniqueId}" class="accordion-collapse collapse show" data-bs-parent="#vp_shots_list">
+                <div class="accordion-body">
+                    <div class="row g-2 mb-2">
+                        <div class="col-md-3"><label>ID</label><input type="text" class="form-control form-control-sm bg-dark text-white shot-id" value="${data.id || ''}"></div>
+                        <div class="col-md-3"><label>Start</label><input type="number" step="0.1" class="form-control form-control-sm bg-dark text-white shot-start" value="${data.start || 0}"></div>
+                        <div class="col-md-3"><label>End</label><input type="number" step="0.1" class="form-control form-control-sm bg-dark text-white shot-end" value="${data.end || 0}"></div>
+                        <div class="col-md-3 d-flex align-items-end"><button type="button" class="btn btn-sm btn-danger w-100" onclick="document.getElementById('${uniqueId}').remove();">Delete</button></div>
+                    </div>
+                    <div class="mb-2">
+                        <label>Prompt</label>
+                        <textarea class="form-control form-control-sm bg-dark text-white shot-prompt" rows="2">${data.prompt || ''}</textarea>
+                    </div>
+                    <div class="row g-2">
+                        <div class="col-md-4"><label>Camera Type</label><input type="text" class="form-control form-control-sm bg-dark text-white shot-cam-type" value="${data.camera?.type || ''}"></div>
+                        <div class="col-md-4"><label>Lens</label><input type="text" class="form-control form-control-sm bg-dark text-white shot-cam-lens" value="${data.camera?.lens || ''}"></div>
+                        <div class="col-md-4"><label>Movement</label><input type="text" class="form-control form-control-sm bg-dark text-white shot-cam-move" value="${data.camera?.movement || ''}"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+    list.insertAdjacentHTML('beforeend', html);
+}
+
+function generateVideoJSON() {
+    updateVideoData(); // Gather all data
+    document.getElementById('video_prompt_json').value = JSON.stringify(videoData, null, 2);
+}
+
+function importVideoData(input) {
+    const file = input.files[0];
+    if (!file) return;
+    
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        try {
+            const json = JSON.parse(e.target.result);
+            if (typeof json === 'object') {
+                videoData = { ...videoData, ...json };
+                populateVideoUI();
+                generateVideoJSON(); // Update the textarea
+                alert("Video scenario loaded successfully.");
+            } else {
+                alert("Invalid JSON format.");
+            }
+        } catch(err) {
+            console.error(err);
+            alert("Error parsing JSON file.");
+        }
+    };
+    reader.readAsText(file);
+    input.value = ''; // Reset
+}
+
+function updateVideoData() {
+    // Gather General
+    videoData.title = document.getElementById('vp_title').value;
+    videoData.description = document.getElementById('vp_desc').value;
+    videoData.duration_seconds = parseFloat(document.getElementById('vp_duration').value) || 0;
+    videoData.fps = parseInt(document.getElementById('vp_fps').value) || 24;
+    videoData.resolution = document.getElementById('vp_res').value;
+    
+    // Gather Style
+    videoData.style = {
+        visual_style: document.getElementById('vp_visual').value,
+        palette: document.getElementById('vp_palette').value,
+        lighting: document.getElementById('vp_lighting').value,
+        color_grade: document.getElementById('vp_grade').value
+    };
+    
+    // Gather Constraints
+    const avoid = document.getElementById('vp_avoid').value.split(',').map(s=>s.trim()).filter(s=>s);
+    const physics = document.getElementById('vp_physics').value;
+    videoData.global_constraints = {
+        avoid: avoid.length ? avoid : undefined,
+        physics: physics || undefined
+    };
+    const neg = document.getElementById('vp_negative').value.split(',').map(s=>s.trim()).filter(s=>s);
+    videoData.negative_prompts = neg.length ? neg : undefined;
+    
+    // Gather Audio
+    const dialogueInputs = document.querySelectorAll('#vp_dialogue_list .input-group');
+    const dialogue = [];
+    dialogueInputs.forEach(div => {
+        const inputs = div.querySelectorAll('input');
+        if (inputs[0].value) {
+            dialogue.push({
+                speaker: inputs[0].value,
+                text: inputs[1].value,
+                emotion: inputs[2].value
+            });
+        }
+    });
+    
+    videoData.audio = {
+        music_mood: document.getElementById('vp_music').value,
+        dialogue: dialogue
+    };
+    
+    // Gather Shots
+    const shotItems = document.querySelectorAll('.shot-item');
+    const shots = [];
+    shotItems.forEach(item => {
+        shots.push({
+            id: item.querySelector('.shot-id').value,
+            start: parseFloat(item.querySelector('.shot-start').value) || 0,
+            end: parseFloat(item.querySelector('.shot-end').value) || 0,
+            prompt: item.querySelector('.shot-prompt').value,
+            camera: {
+                type: item.querySelector('.shot-cam-type').value,
+                lens: item.querySelector('.shot-cam-lens').value,
+                movement: item.querySelector('.shot-cam-move').value
+            }
+        });
+    });
+    videoData.shots = shots;
+}
+        // --- Live Preview Function ---
+        function updatePreview() {
+            // Text Fields
+            const nameEl = document.getElementById('name');
+            if (nameEl) document.getElementById('preview_name').textContent = nameEl.value || 'Name';
+            
+            const priceEl = document.getElementById('price');
+            if (priceEl) document.getElementById('preview_price_val').textContent = priceEl.value || '0';
+            
+            const roleSelect = document.getElementById('role');
+            if (roleSelect) document.getElementById('preview_role').textContent = roleSelect.options[roleSelect.selectedIndex].text;
+            
+            const styleSelect = document.getElementById('clothing_style');
+            if (styleSelect) document.getElementById('preview_style').textContent = styleSelect.options[styleSelect.selectedIndex].text;
+            
+            const introEl = document.getElementById('intro_message');
+            if (introEl) {
+                const intro = introEl.value;
+                document.getElementById('preview_intro').textContent = intro ? `"${intro}"` : '"Intro message..."';
+            }
+            
+            // Personality Stats
+            const flirtEl = document.getElementById('p_flirt');
+            if (flirtEl) document.getElementById('preview_flirt').textContent = (flirtEl.value || 5) + '/10';
+            
+            const shyEl = document.getElementById('p_shy');
+            if (shyEl) document.getElementById('preview_shy').textContent = (shyEl.value || 2) + '/10';
+            
+            const domEl = document.getElementById('p_dom');
+            if (domEl) document.getElementById('preview_dom').textContent = (domEl.value || 5) + '/10';
+        }
+
+        // Image Preview on Upload
+        const imageInput = document.getElementById('image');
+        if (imageInput) {
+            imageInput.addEventListener('change', function(event) {
+                const file = event.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        const img = document.getElementById('preview_image');
+                        const placeholder = document.getElementById('preview_placeholder');
+                        
+                        if (img) {
+                            img.src = e.target.result;
+                            img.classList.remove('d-none');
+                        }
+                        if (placeholder) placeholder.classList.add('d-none');
+                    }
+                    reader.readAsDataURL(file);
+                }
+            });
+        }
+
+        // Style Presets
+        const STYLE_PRESETS = {
+            'casual': {
+                clothing_style: 'casual',
+                clothing_custom: {{ _('جينز ضيق وتيشيرت أبيض بسيط (Tight Jeans & White T-shirt)')|tojson }},
+                hair_style: {{ _('شعر منسدل طبيعي (Natural loose hair)')|tojson }},
+                body_features: {{ _('مكياج خفيف، مظهر طبيعي (Light makeup, natural look)')|tojson }}
+            },
+            'evening': {
+                clothing_style: 'formal',
+                clothing_custom: {{ _('فستان سهرة أحمر طويل بفتحة جانبية (Red Evening Gown with slit)')|tojson }},
+                hair_style: {{ _('شعر مرفوع بأناقة (Elegant Updo)')|tojson }},
+                body_features: {{ _('مكياج سهرة، مجوهرات لامعة (Evening makeup, shiny jewelry)')|tojson }}
+            },
+            'lingerie': {
+                clothing_style: 'lingerie',
+                clothing_custom: {{ _('لانجري دانتيل أسود مثير (Sexy Black Lace Lingerie)')|tojson }},
+                hair_style: {{ _('شعر مموج كثيف (Voluminous Wavy Hair)')|tojson }},
+                body_features: {{ _('بشرة لامعة، أحمر شفاه قوي (Glowing skin, bold lipstick)')|tojson }}
+            },
+            'street': {
+                clothing_style: 'street',
+                clothing_custom: {{ _('شورت جينز قصير وجاكيت جلد (Denim Shorts & Leather Jacket)')|tojson }},
+                hair_style: {{ _('ضفائر أو ذيل حصان (Braids or Ponytail)')|tojson }},
+                body_features: {{ _('تاتو، مظهر رياضي (Tattoos, Athletic build)')|tojson }}
+            },
+            'cyberpunk': {
+                clothing_style: 'cyberpunk',
+                clothing_custom: {{ _('بدلة لاتكس لامعة مع أضواء نيون (Shiny Latex Suit with Neon)')|tojson }},
+                hair_style: {{ _('شعر ملون قصير (Short Colored Hair)')|tojson }},
+                body_features: {{ _('عيون عدسات ملونة، إكسسوارات تقنية (Colored contacts, tech accessories)')|tojson }}
+            }
+        };
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const form = document.getElementById('hostessForm');
+            if (form) {
+                form.addEventListener('submit', function(e) {
+                    // Update hidden JSON fields before submission to ensure they are in sync with the Builders
+                    try {
+                        // 1. Voice & Personality
+                        if (typeof generateVoicePersonalityJSON === 'function') {
+                            generateVoicePersonalityJSON();
+                        }
+                        
+                        // 2. Video Prompt
+                        if (typeof generateVideoJSON === 'function') {
+                            generateVideoJSON();
+                        }
+                        
+                        // 3. Training Data (usually auto-updated, but good to ensure)
+                        if (typeof updateTrainingJSON === 'function') {
+                            updateTrainingJSON();
+                        }
+                    } catch (err) {
+                        console.error("Error generating JSON on submit:", err);
+                        // We don't block submission, but maybe we should alert?
+                        // If we block, we might prevent saving other fields if JS is broken.
+                        // Better to log and let it try.
+                    }
+                });
+            }
+        });
+
+        function applyStylePreset(presetName) {
+            const preset = STYLE_PRESETS[presetName];
+            if (!preset) return;
+            
+            const cStyle = document.getElementById('clothing_style');
+            if (cStyle) cStyle.value = preset.clothing_style;
+            
+            const cCustom = document.getElementById('clothing_custom');
+            if (cCustom) cCustom.value = preset.clothing_custom;
+            
+            const hStyle = document.getElementById('hair_style');
+            if (hStyle) hStyle.value = preset.hair_style;
+            
+            const bFeatures = document.getElementById('body_features');
+            if (bFeatures) bFeatures.value = preset.body_features;
+            
+            // Trigger update
+            updatePreview();
+            
+            // Flash effect to show update
+            const card = document.querySelector('.border-pink');
+            if (card) {
+                card.style.transition = 'box-shadow 0.3s';
+                card.style.boxShadow = '0 0 20px #e83e8c';
+                setTimeout(() => {
+                    card.style.boxShadow = '0 0 15px rgba(232, 62, 140, 0.1)';
+                }, 500);
+            }
+        }
+</script>
+{% endblock %}

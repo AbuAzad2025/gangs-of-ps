@@ -1,0 +1,317 @@
+{% extends "base.html" %}
+
+{% block content %}
+<style>
+    .luxury-card {
+        background: var(--dark-card);
+        border: 1px solid rgba(212, 175, 55, 0.2);
+        box-shadow: 0 0 15px rgba(0, 0, 0, 0.5);
+        border-radius: 15px;
+        overflow: hidden;
+        margin-bottom: 20px;
+        transition: transform 0.3s ease;
+    }
+    .luxury-card:hover {
+        transform: translateY(-5px);
+        border-color: var(--gold-primary);
+    }
+    .luxury-header {
+        background: radial-gradient(circle at center, rgba(212, 175, 55, 0.2) 0%, rgba(0, 0, 0, 0.8) 100%);
+        border-bottom: 1px solid var(--gold-primary);
+        padding: 1.5rem;
+        text-align: center;
+    }
+    .small-box-luxury {
+        border-radius: 15px;
+        position: relative;
+        display: block;
+        margin-bottom: 20px;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        overflow: hidden;
+        color: #fff;
+        background: var(--dark-card);
+        border: 1px solid rgba(255,255,255,0.1);
+        transition: all 0.3s;
+    }
+    .small-box-luxury:hover {
+        transform: scale(1.02);
+        box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+        border-color: var(--gold-primary);
+    }
+    .small-box-luxury .inner {
+        padding: 20px;
+    }
+    .small-box-luxury h3 {
+        font-size: 2.2rem;
+        font-weight: bold;
+        margin: 0 0 10px 0;
+        white-space: nowrap;
+        padding: 0;
+        color: var(--gold-primary);
+        text-shadow: 0 2px 5px rgba(0,0,0,0.5);
+    }
+    .small-box-luxury p {
+        font-size: 1rem;
+        color: #ccc;
+    }
+    .small-box-luxury .icon {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        z-index: 0;
+        font-size: 80px;
+        color: rgba(255, 255, 255, 0.05);
+        transition: transform 0.3s;
+    }
+    .small-box-luxury:hover .icon {
+        transform: scale(1.1) rotate(10deg);
+        color: rgba(212, 175, 55, 0.1);
+    }
+    .small-box-footer {
+        position: relative;
+        text-align: center;
+        padding: 8px 0;
+        color: rgba(255, 255, 255, 0.8);
+        display: block;
+        z-index: 10;
+        background: rgba(0, 0, 0, 0.3);
+        text-decoration: none;
+        border-top: 1px solid rgba(255,255,255,0.05);
+    }
+    .small-box-footer:hover {
+        color: #fff;
+        background: rgba(212, 175, 55, 0.2);
+    }
+    .nav-tabs-luxury {
+        border-bottom: 2px solid var(--gold-primary);
+    }
+    .nav-tabs-luxury .nav-link {
+        color: #aaa;
+        border: none;
+        font-weight: bold;
+        transition: all 0.3s;
+    }
+    .nav-tabs-luxury .nav-link:hover {
+        color: #fff;
+    }
+    .nav-tabs-luxury .nav-link.active {
+        color: var(--gold-primary);
+        background: transparent;
+        border-bottom: 3px solid var(--gold-primary);
+    }
+</style>
+
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="luxury-card">
+            <div class="card-body d-flex justify-content-between align-items-center p-4">
+                <h2 class="m-0 text-white"><i class="fas fa-code text-gold"></i> {{ _('لوحة تحكم المطور') }}</h2>
+                <div>
+                    <a href="{{ url_for('main.hara') }}" class="btn btn-primary font-weight-bold shadow ml-2"><i class="fas fa-home"></i> {{ _('رجوع للحارة') }}</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+    <!-- Quick Actions -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card luxury-card">
+                <div class="card-header luxury-header">
+                    <h4 class="mb-0 text-gold"><i class="fas fa-bolt mr-2"></i> {{ _('إجراءات سريعة') }}</h4>
+                </div>
+                <div class="card-body bg-dark">
+                    <div class="d-flex flex-wrap justify-content-center gap-3">
+                        <a href="{{ url_for('main.dev_users') }}" class="btn btn-outline-info m-2">
+                            <i class="fas fa-users mr-2"></i> {{ _('إدارة اللاعبين') }}
+                        </a>
+                        <a href="{{ url_for('main.dev_factories') }}" class="btn btn-outline-light m-2">
+                            <i class="fas fa-industry mr-2"></i> {{ _('المصانع') }}
+                        </a>
+                        <a href="{{ url_for('main.dev_market') }}" class="btn btn-outline-success m-2">
+                            <i class="fas fa-chart-line mr-2"></i> {{ _('سوق الأسهم') }}
+                        </a>
+                        <a href="{{ url_for('main.dev_locations') }}" class="btn btn-outline-primary m-2">
+                            <i class="fas fa-map-marked-alt mr-2"></i> {{ _('السفر والمواقع') }}
+                        </a>
+                        <a href="{{ url_for('main.dev_heat') }}" class="btn btn-outline-danger m-2">
+                            <i class="fas fa-fire mr-2"></i> {{ _('إدارة المطاردة') }}
+                        </a>
+                        <a href="{{ url_for('main.dev_achievements') }}" class="btn btn-outline-warning m-2">
+                            <i class="fas fa-award mr-2"></i> {{ _('الإنجازات') }}
+                        </a>
+                        <a href="{{ url_for('main.unverified_users') }}" class="btn btn-secondary font-weight-bold shadow m-2"><i class="fas fa-users-slash"></i> {{ _('إدارة الحسابات غير المفعلة') }}</a>
+                        <a href="{{ url_for('main.resurrection_requests') }}" class="btn btn-danger font-weight-bold shadow m-2"><i class="fas fa-heartbeat"></i> {{ _('طلبات الإحياء') }}</a>
+                        <a href="/admin/" class="btn btn-warning font-weight-bold shadow m-2"><i class="fas fa-database"></i> {{ _('إدارة قاعدة البيانات') }}</a>
+                        <a href="{{ url_for('main.dev_hostesses') }}" class="btn btn-outline-danger m-2">
+                            <i class="fas fa-female mr-2"></i> {{ _('إدارة المضيفات') }}
+                        </a>
+                        <a href="{{ url_for('main.dev_settings') }}" class="btn btn-outline-warning m-2">
+                            <i class="fas fa-cogs mr-2"></i> {{ _('إعدادات النظام') }}
+                        </a>
+                        <a href="{{ url_for('main.admin_messages') }}" class="btn btn-outline-light m-2">
+                            <i class="fas fa-envelope-open-text mr-2"></i> {{ _('إدارة الرسائل') }}
+                        </a>
+                        <button type="button" class="btn btn-outline-danger m-2" data-toggle="modal" data-target="#maintenanceModal">
+                            <i class="fas fa-tools mr-2"></i> {{ _('وضع الصيانة') }}
+                        </button>
+                        <form action="{{ url_for('main.generate_test_users') }}" method="POST" class="d-inline m-2">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                            <button type="submit" class="btn btn-info font-weight-bold shadow" onclick="return confirm('{{ _('هل أنت متأكد من إضافة لاعبين وهميين؟') }}')">
+                                <i class="fas fa-robot"></i> {{ _('إضافة بوتات') }}
+                            </button>
+                        </form>
+                        <form action="{{ url_for('main.dev_clear_all_players_protection') }}" method="POST" class="d-inline m-2">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                            <button type="submit" class="btn btn-outline-danger" onclick="return confirm('{{ _('هل أنت متأكد من إخراج جميع اللاعبين الحاليين من الحماية؟') }}')">
+                                <i class="fas fa-shield-alt mr-2"></i> {{ _('إخراج الكل من الحماية') }}
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+<!-- Stats -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="small-box-luxury">
+            <div class="inner">
+                <h3>{{ stats.total_users }}</h3>
+                <p>{{ _('إجمالي اللاعبين') }}</p>
+            </div>
+            <div class="icon">
+                <i class="fas fa-users"></i>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="small-box-luxury">
+            <div class="inner">
+                <h3>${{ "{:,.0f}".format(stats.total_money) }}</h3>
+                <p>{{ _('إجمالي الكاش') }}</p>
+            </div>
+            <div class="icon">
+                <i class="fas fa-money-bill-wave"></i>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="small-box-luxury">
+            <div class="inner">
+                <h3>{{ stats.total_diamonds }} <i class="fas fa-gem" style="font-size: 0.6em;"></i></h3>
+                <p>{{ _('إجمالي الماس') }}</p>
+            </div>
+            <div class="icon">
+                <i class="fas fa-gem"></i>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="small-box-luxury">
+            <div class="inner">
+                <h3>{{ stats.new_users_today }}</h3>
+                <p>{{ _('نشاط اليوم') }}</p>
+            </div>
+            <div class="icon">
+                <i class="fas fa-chart-line"></i>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Backup Management -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card luxury-card">
+            <div class="card-header luxury-header d-flex justify-content-between align-items-center">
+                <h4 class="mb-0 text-gold"><i class="fas fa-save mr-2"></i> {{ _('إدارة النسخ الاحتياطية') }}</h4>
+                <form action="{{ url_for('main.create_backup') }}" method="POST" class="d-inline">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                    <button type="submit" class="btn btn-success font-weight-bold shadow">
+                        <i class="fas fa-plus-circle"></i> {{ _('إنشاء نسخة احتياطية جديدة') }}
+                    </button>
+                </form>
+            </div>
+            <div class="card-body bg-dark">
+                {% if backups %}
+                <div class="table-responsive">
+                    <table class="table table-dark table-hover mb-0">
+                        <thead>
+                            <tr>
+                                <th>{{ _('اسم الملف') }}</th>
+                                <th>{{ _('الحجم') }}</th>
+                                <th>{{ _('تاريخ الإنشاء') }}</th>
+                                <th class="text-center">{{ _('الإجراءات') }}</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for backup in backups %}
+                            <tr>
+                                <td>{{ backup.name }}</td>
+                                <td>{{ "%.2f"|format(backup.size_mb) }} MB</td>
+                                <td>{{ backup.date.strftime('%Y-%m-%d %H:%M:%S') }}</td>
+                                <td class="text-center">
+                                    <form action="{{ url_for('main.restore_backup', filename=backup.name) }}" method="POST" class="d-inline">
+                                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                                        <button type="submit" class="btn btn-sm btn-warning m-1" onclick="return confirm('{{ _('هل أنت متأكد من استعادة هذه النسخة؟ سيتم فقدان البيانات الحالية!') }}')">
+                                            <i class="fas fa-undo"></i> {{ _('استعادة') }}
+                                        </button>
+                                    </form>
+                                    <form action="{{ url_for('main.delete_backup', filename=backup.name) }}" method="POST" class="d-inline">
+                                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                                        <button type="submit" class="btn btn-sm btn-danger m-1" onclick="return confirm('{{ _('هل أنت متأكد من حذف هذه النسخة؟') }}')">
+                                            <i class="fas fa-trash"></i> {{ _('حذف') }}
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <p class="text-center text-muted my-4">{{ _('لا توجد نسخ احتياطية حالياً.') }}</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card luxury-card">
+            <div class="card-header luxury-header">
+                <h4 class="mb-0 text-gold"><i class="fas fa-layer-group mr-2"></i> {{ _('روابط إدارة النظام') }}</h4>
+            </div>
+            <div class="card-body bg-dark">
+                <div class="d-flex flex-wrap justify-content-center gap-3">
+                    <a href="{{ url_for('main.dev_users') }}" class="btn btn-outline-info m-2"><i class="fas fa-users mr-2"></i>{{ _('اللاعبين') }}</a>
+                    <a href="{{ url_for('main.dev_achievements') }}" class="btn btn-outline-warning m-2"><i class="fas fa-award mr-2"></i>{{ _('الإنجازات') }}</a>
+                    <a href="{{ url_for('main.dev_items') }}" class="btn btn-outline-light m-2"><i class="fas fa-box-open mr-2"></i>{{ _('الأغراض') }}</a>
+                    <a href="{{ url_for('main.dev_vehicles') }}" class="btn btn-outline-light m-2"><i class="fas fa-car mr-2"></i>{{ _('المركبات') }}</a>
+                    <a href="{{ url_for('main.dev_assets') }}" class="btn btn-outline-light m-2"><i class="fas fa-building mr-2"></i>{{ _('العقارات') }}</a>
+                    <a href="{{ url_for('main.dev_factories') }}" class="btn btn-outline-light m-2"><i class="fas fa-industry mr-2"></i>{{ _('المصانع') }}</a>
+                    <a href="{{ url_for('main.dev_market') }}" class="btn btn-outline-light m-2"><i class="fas fa-chart-line mr-2"></i>{{ _('سوق الأسهم') }}</a>
+                    <a href="{{ url_for('main.dev_locations') }}" class="btn btn-outline-light m-2"><i class="fas fa-map-marked-alt mr-2"></i>{{ _('المواقع') }}</a>
+                    <a href="{{ url_for('main.dev_crimes') }}" class="btn btn-outline-light m-2"><i class="fas fa-mask mr-2"></i>{{ _('الجرائم') }}</a>
+                    <a href="{{ url_for('main.dev_organized_crimes') }}" class="btn btn-outline-light m-2"><i class="fas fa-users-cog mr-2"></i>{{ _('الجرائم المنظمة') }}</a>
+                    <a href="{{ url_for('main.dev_gangs') }}" class="btn btn-outline-light m-2"><i class="fas fa-skull-crossbones mr-2"></i>{{ _('العصابات') }}</a>
+                    <a href="{{ url_for('main.dev_bounties') }}" class="btn btn-outline-light m-2"><i class="fas fa-crosshairs mr-2"></i>{{ _('المكافآت') }}</a>
+                    <a href="{{ url_for('main.dev_tasks') }}" class="btn btn-outline-light m-2"><i class="fas fa-tasks mr-2"></i>{{ _('المهام اليومية') }}</a>
+                    <a href="{{ url_for('main.dev_announcements') }}" class="btn btn-outline-light m-2"><i class="fas fa-bullhorn mr-2"></i>{{ _('الإعلانات') }}</a>
+                    <a href="{{ url_for('main.dev_logs') }}" class="btn btn-outline-light m-2"><i class="fas fa-clipboard-list mr-2"></i>{{ _('السجلات') }}</a>
+                    <a href="{{ url_for('main.dev_heist_history') }}" class="btn btn-outline-light m-2"><i class="fas fa-history mr-2"></i>{{ _('سجل الجرائم المنظمة') }}</a>
+                    <a href="{{ url_for('main.forum_categories') }}" class="btn btn-outline-light m-2"><i class="fas fa-comments mr-2"></i>{{ _('المنتدى') }}</a>
+                    <a href="{{ url_for('main.dev_hostesses') }}" class="btn btn-outline-danger m-2"><i class="fas fa-female mr-2"></i>{{ _('المضيفات') }}</a>
+                    <a href="{{ url_for('main.dev_knowledge') }}" class="btn btn-outline-danger m-2"><i class="fas fa-brain mr-2"></i>{{ _('معرفة المضيفات') }}</a>
+                    <a href="{{ url_for('main.dev_settings') }}" class="btn btn-outline-warning m-2"><i class="fas fa-cogs mr-2"></i>{{ _('الإعدادات') }}</a>
+                    <a href="{{ url_for('main.dev_config') }}" class="btn btn-outline-warning m-2"><i class="fas fa-sliders-h mr-2"></i>{{ _('إعدادات متقدمة') }}</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

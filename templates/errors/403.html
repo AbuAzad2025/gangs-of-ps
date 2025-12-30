@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="error-page-container">
+  <div class="error-card text-center py-5 px-3">
+    <div class="mb-4">
+      <i class="fas fa-hand-paper error-icon"></i>
+    </div>
+    <h1 class="error-title">403</h1>
+    <div class="error-subtitle">{{ _('منطقة محظورة يا زعيم!') }}</div>
+    <p class="error-text">{{ _('شكلك بتحاول تدخل مكان مش من مستواك، أو ما معك تصريح. خليك في الحارة بتاعتك أحسن لك.') }}</p>
+    
+    <div class="d-flex justify-content-center gap-3">
+      <a href="{{ url_for('main.index') }}" class="btn btn-error-action">
+        <i class="fas fa-home mr-2"></i> {{ _('ارجع للحارة') }}
+      </a>
+      <a href="javascript:history.back()" class="btn btn-outline-light rounded-pill px-4 py-2 ml-2" style="border-color: #555;">
+        <i class="fas fa-undo mr-2"></i> {{ _('رجوع للخلف') }}
+      </a>
+    </div>
+    
+    <div class="street-overlay-full"></div>
+  </div>
+</div>
+{% endblock %}

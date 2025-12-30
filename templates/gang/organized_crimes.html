@@ -1,0 +1,240 @@
+{% extends "base.html" %}
+
+{% block content %}
+<style>
+    .luxury-card {
+        background: var(--dark-card);
+        border: 1px solid rgba(212, 175, 55, 0.2);
+        box-shadow: 0 0 15px rgba(0, 0, 0, 0.5);
+        border-radius: 15px;
+        overflow: hidden;
+        margin-bottom: 20px;
+    }
+
+    .luxury-header {
+        background: radial-gradient(circle at center, rgba(212, 175, 55, 0.2) 0%, rgba(0, 0, 0, 0.8) 100%);
+        border-bottom: 1px solid var(--gold-primary);
+        padding: 1.5rem;
+        text-align: center;
+    }
+
+    .luxury-title {
+        color: var(--gold-primary);
+        font-family: 'Reem Kufi', sans-serif;
+        font-weight: 700;
+        margin: 0;
+        text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+    }
+
+    .crime-card {
+        background: rgba(0, 0, 0, 0.6);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 10px;
+        transition: all 0.3s ease;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .crime-card:hover {
+        transform: translateY(-5px);
+        border-color: var(--gold-primary);
+        box-shadow: 0 5px 15px rgba(212, 175, 55, 0.1);
+    }
+
+    .crime-header {
+        background: rgba(212, 175, 55, 0.1);
+        padding: 1rem;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .crime-title {
+        color: #fff;
+        font-weight: bold;
+        margin: 0;
+        font-size: 1.1rem;
+    }
+
+    .list-group-luxury .list-group-item {
+        background: transparent;
+        border: none;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        color: #ddd;
+        padding: 0.75rem 0;
+    }
+
+    .list-group-luxury .list-group-item:last-child {
+        border-bottom: none;
+    }
+
+    .btn-luxury-action {
+        background: linear-gradient(45deg, var(--gold-secondary), var(--gold-primary));
+        border: none;
+        color: #000;
+        font-weight: bold;
+        transition: all 0.3s;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+    }
+
+    .btn-luxury-action:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(212, 175, 55, 0.4);
+        color: #000;
+    }
+
+    .btn-luxury-disabled {
+        background: rgba(255, 255, 255, 0.1);
+        color: rgba(255, 255, 255, 0.5);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        cursor: not-allowed;
+    }
+
+    .crime-col {
+        opacity: 0;
+        animation: fadeInUp 0.5s ease forwards;
+    }
+
+    @keyframes fadeInUp {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+</style>
+
+<div class="row mb-3">
+    <div class="col-12">
+        <a href="{{ url_for('gang.dashboard') }}" class="btn btn-secondary"><i class="fas fa-arrow-right"></i> {{ _('عودة للوحة التحكم') }}</a>
+    </div>
+</div>
+
+<div class="luxury-card">
+    <div class="luxury-header">
+        <h3 class="luxury-title"><i class="fas fa-mask"></i> {{ _('الجرائم المنظمة') }}</h3>
+    </div>
+    <div class="card-body">
+        <div class="alert alert-dark border border-warning" style="background: rgba(0,0,0,0.5);">
+            <h5 class="text-warning"><i class="icon fas fa-info-circle"></i> {{ _('معلومات') }}</h5>
+            {{ _('الجرائم المنظمة تتطلب تعاون أعضاء العصابة. الأرباح تذهب لخزينة العصابة والخبرة توزع على جميع الأعضاء!') }}
+        </div>
+
+        <div class="row">
+            {% for crime in crimes %}
+            <div class="col-md-4 mb-4 crime-col anim-delay-dynamic" style="--delay: {{ loop.index * 0.1 }}s">
+                <div class="crime-card">
+                    <div class="crime-header">
+                        <h3 class="crime-title">{{ _(crime.name) }}</h3>
+                        <span class="badge badge-warning">{{ _('مستوى العصابة') }}: {{ crime.min_gang_level }}</span>
+                    </div>
+                    <div class="card-body flex-grow-1">
+                        <p class="text-muted">{{ _(crime.description) }}</p>
+                        <ul class="list-group list-group-luxury mb-3">
+                            <li class="list-group-item">
+                                <b>{{ _('عدد الأعضاء المطلوب') }}</b> <span class="float-right badge badge-info">{{ crime.min_members }}</span>
+                            </li>
+                            <li class="list-group-item">
+                                <b>{{ _('تكلفة الطاقة (للزعيم)') }}</b> <span class="float-right text-danger">{{ crime.energy_cost }}</span>
+                            </li>
+                            <li class="list-group-item">
+                                <b>{{ _('وقت الانتظار') }}</b> <span class="float-right">{{ crime.cooldown_hours }} {{ _('ساعة') }}</span>
+                            </li>
+                            <li class="list-group-item">
+                                <b>{{ _('المكافأة (مال)') }}</b> <span class="float-right text-success">${{ "{:,}".format(crime.money_reward_min) }} - ${{ "{:,}".format(crime.money_reward_max) }}</span>
+                            </li>
+                            <li class="list-group-item">
+                                <b>{{ _('المكافأة (خبرة لكل عضو)') }}</b> <span class="float-right text-primary">+{{ crime.exp_reward }} XP</span>
+                            </li>
+                        </ul>
+                    </div>
+                    <div class="card-footer bg-transparent border-top-0 pt-0">
+                        {% if current_user.id == gang.leader_id or current_user.id == gang.underboss_id %}
+                            {% if gang.level >= crime.min_gang_level %}
+                                <div class="mb-2">
+                                    <span class="badge badge-secondary" id="crime-status-{{ crime.id }}"></span>
+                                </div>
+                                <form action="{{ url_for('gang.do_organized_crime', crime_id=crime.id) }}" method="POST">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                                    
+                                    <div class="form-row align-items-center mb-2">
+                                        <div class="col-sm-6">
+                                            <label class="text-muted mb-1">{{ _('نطاق الدعوات') }}</label>
+                                            <div class="custom-control custom-radio">
+                                                <input type="radio" id="scopeGang{{ crime.id }}" name="invite_scope" value="gang" class="custom-control-input" checked>
+                                                <label class="custom-control-label" for="scopeGang{{ crime.id }}">{{ _('أعضاء العصابة فقط') }}</label>
+                                            </div>
+                                            <div class="custom-control custom-radio">
+                                                <input type="radio" id="scopeAll{{ crime.id }}" name="invite_scope" value="all" class="custom-control-input">
+                                                <label class="custom-control-label" for="scopeAll{{ crime.id }}">{{ _('دعوة الجميع') }}</label>
+                                            </div>
+                                        </div>
+                                        <div class="col-sm-6">
+                                            <label class="text-muted mb-1">{{ _('تقييد حسب الدول (اختياري)') }}</label>
+                                            <input type="text" name="invite_countries" class="form-control form-control-sm" placeholder="PS,JO,EG" value="{{ gang.allowed_countries or '' }}">
+                                            <small class="text-muted">{{ _('استخدم رموز ISO من حرفين مفصولة بفواصل') }}</small>
+                                        </div>
+                                    </div>
+                                    
+                                    <button type="submit" class="btn btn-luxury-action btn-block crime-start-btn"
+                                            data-crime-id="{{ crime.id }}"
+                                            data-last="{{ gang.last_organized_crime_at.isoformat() if gang.last_organized_crime_at else '' }}"
+                                            data-cooldown="{{ crime.cooldown_hours }}">
+                                        <b>{{ _('تنفيذ العملية') }}</b>
+                                    </button>
+                                </form>
+                            {% else %}
+                                <button class="btn btn-luxury-disabled btn-block" disabled>{{ _('مستوى العصابة منخفض') }}</button>
+                            {% endif %}
+                        {% else %}
+                            <button class="btn btn-luxury-disabled btn-block" disabled>{{ _('فقط الزعيم يمكنه البدء') }}</button>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+<script>
+    function pad(n) { return n < 10 ? '0' + n : n }
+    function updateCrimeTimers() {
+        var now = new Date().getTime()
+        var buttons = document.querySelectorAll('.crime-start-btn')
+        buttons.forEach(function(btn) {
+            var last = btn.getAttribute('data-last')
+            var cdHours = parseFloat(btn.getAttribute('data-cooldown') || '0')
+            var statusEl = document.getElementById('crime-status-' + btn.getAttribute('data-crime-id'))
+            if (!statusEl) return
+            if (!last || !cdHours || cdHours <= 0) {
+                statusEl.className = 'badge badge-success'
+                statusEl.textContent = '{{ _("جاهز!") }}'
+                btn.disabled = false
+                btn.classList.remove('btn-luxury-disabled')
+                btn.classList.add('btn-luxury-action')
+                return
+            }
+            var lastTs = Date.parse(last)
+            var cooldownMs = cdHours * 3600 * 1000
+            var diff = (lastTs + cooldownMs) - now
+            if (diff <= 0) {
+                statusEl.className = 'badge badge-success'
+                statusEl.textContent = '{{ _("جاهز!") }}'
+                btn.disabled = false
+                btn.classList.remove('btn-luxury-disabled')
+                btn.classList.add('btn-luxury-action')
+            } else {
+                var h = Math.floor(diff / 3600000)
+                var m = Math.floor((diff % 3600000) / 60000)
+                var s = Math.floor((diff % 60000) / 1000)
+                statusEl.className = 'badge badge-warning'
+                statusEl.textContent = '{{ _("انتظر...") }} ' + pad(h) + ':' + pad(m) + ':' + pad(s)
+                btn.disabled = true
+                btn.classList.add('btn-luxury-disabled')
+                btn.classList.remove('btn-luxury-action')
+            }
+        })
+    }
+    updateCrimeTimers()
+    setInterval(updateCrimeTimers, 1000)
+</script>
+{% endblock %}

@@ -1,0 +1,86 @@
+{% extends "base.html" %}
+{% block title %}{{ category.title }} - {{ _('المنتدى') }}{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-8">
+        <h2 class="section-title">
+            <a href="{{ url_for('forum.index') }}" class="text-white text-decoration-none">
+                <i class="fas fa-chevron-right ml-2 small"></i>
+            </a>
+            {{ _(category.title) }}
+        </h2>
+    </div>
+    <div class="col-md-4 text-left">
+        <a href="{{ url_for('forum.create_topic', category_id=category.id) }}" class="btn btn-gold">
+            <i class="fas fa-plus"></i> {{ _('موضوع جديد') }}
+        </a>
+    </div>
+</div>
+
+<div class="card luxury-card">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover table-dark mb-0">
+                <thead>
+                    <tr>
+                        <th width="60%">{{ _('الموضوع') }}</th>
+                        <th class="text-center">{{ _('الكاتب') }}</th>
+                        <th class="text-center">{{ _('المشاهدات') }}</th>
+                        <th class="text-center">{{ _('آخر رد') }}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for topic in topics.items %}
+                    <tr>
+                        <td>
+                            {% if topic.is_pinned %}
+                                <i class="fas fa-thumbtack text-warning ml-1" title="{{ _('مُثبّت') }}"></i>
+                            {% endif %}
+                            {% if topic.is_locked %}
+                                <i class="fas fa-lock text-danger ml-1" title="{{ _('مغلق') }}"></i>
+                            {% endif %}
+                            <a href="{{ url_for('forum.topic', id=topic.id) }}" class="text-white font-weight-bold">
+                                {{ topic.title }}
+                            </a>
+                        </td>
+                        <td class="text-center">
+                            <a href="{{ url_for('main.profile', user_id=topic.user_id) }}" class="text-gold">
+                                {{ topic.user.username }}
+                            </a>
+                        </td>
+                        <td class="text-center">{{ topic.views }}</td>
+                        <td class="text-center small text-muted">
+                            {{ topic.last_post_at.strftime('%Y-%m-%d %H:%M') }}
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="4" class="text-center py-4">{{ _('لا توجد مواضيع في هذا القسم.') }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% if topics.pages > 1 %}
+    <div class="card-footer">
+        <nav aria-label="Page navigation">
+            <ul class="pagination justify-content-center mb-0">
+                {% for page_num in topics.iter_pages() %}
+                    {% if page_num %}
+                        {% if page_num != topics.page %}
+                            <li class="page-item"><a class="page-link" href="{{ url_for('forum.category', id=category.id, page=page_num) }}">{{ page_num }}</a></li>
+                        {% else %}
+                            <li class="page-item active"><span class="page-link">{{ page_num }}</span></li>
+                        {% endif %}
+                    {% else %}
+                        <li class="page-item disabled"><span class="page-link">...</span></li>
+                    {% endif %}
+                {% endfor %}
+            </ul>
+        </nav>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

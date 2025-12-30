@@ -1,0 +1,137 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <div>
+      <h2 class="mb-1">{{ _('تدريب المضيفة') }}: {{ hostess.name }}</h2>
+      <div class="text-muted small">
+        {{ _('الدور') }}: {{ hostess.role }} • {{ _('الأسلوب') }}: {{ hostess.dialogue_style }}
+        {% if hostess.last_trained_at %} • {{ _('آخر تدريب') }}: {{ hostess.last_trained_at.strftime('%Y-%m-%d %H:%M') }}{% endif %}
+      </div>
+    </div>
+    <div class="d-flex" style="gap:10px;">
+      <a href="{{ url_for('main.dev_hostesses') }}" class="btn btn-secondary">{{ _('رجوع') }}</a>
+      <a href="{{ url_for('main.dev_hostess_edit', id=hostess.id) }}" class="btn btn-info">{{ _('تعديل كامل') }}</a>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="col-lg-7 mb-3">
+      <div class="card bg-dark text-light border-gold">
+        <div class="card-header d-flex justify-content-between align-items-center">
+          <div class="fw-bold">{{ _('لوحة التدريب') }}</div>
+          <form method="post" class="m-0">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <input type="hidden" name="action" value="train">
+            <div class="d-flex align-items-center" style="gap:12px;">
+              <div class="form-check form-switch m-0">
+                <input class="form-check-input" type="checkbox" id="sl1" name="self_learning_enabled" {{ 'checked' if hostess.self_learning_enabled else '' }}>
+                <label class="form-check-label" for="sl1">{{ _('تعلم ذاتي') }}</label>
+              </div>
+              <div class="form-check form-switch m-0">
+                <input class="form-check-input" type="checkbox" id="mem1" name="memory_enabled" {{ 'checked' if hostess.memory_enabled else '' }}>
+                <label class="form-check-label" for="mem1">{{ _('ذاكرة') }}</label>
+              </div>
+              <button class="btn btn-warning"><i class="fas fa-dumbbell"></i> {{ _('تدريب الآن') }}</button>
+            </div>
+          </form>
+        </div>
+        <div class="card-body">
+          <form method="post">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <input type="hidden" name="action" value="save">
+
+            <div class="row">
+              <div class="col-md-6 mb-3">
+                <div class="form-check form-switch">
+                  <input class="form-check-input" type="checkbox" id="sl2" name="self_learning_enabled" {{ 'checked' if hostess.self_learning_enabled else '' }}>
+                  <label class="form-check-label" for="sl2">{{ _('تعلم ذاتي (Self Learning)') }}</label>
+                </div>
+              </div>
+              <div class="col-md-6 mb-3">
+                <div class="form-check form-switch">
+                  <input class="form-check-input" type="checkbox" id="mem2" name="memory_enabled" {{ 'checked' if hostess.memory_enabled else '' }}>
+                  <label class="form-check-label" for="mem2">{{ _('تذكر المحتوى (Memory)') }}</label>
+                </div>
+              </div>
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label text-gold">{{ _('System Prompt (احترافي)') }}</label>
+              <textarea name="system_prompt" class="form-control bg-dark text-light border-secondary" rows="10" style="font-family: monospace;">{{ hostess.system_prompt or '' }}</textarea>
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label text-gold">{{ _('قاعدة المعرفة') }}</label>
+              <textarea name="knowledge_base" class="form-control bg-dark text-light border-secondary" rows="8">{{ hostess.knowledge_base or '' }}</textarea>
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label text-gold">{{ _('Training Examples (JSON)') }}</label>
+              <textarea name="training_examples" class="form-control bg-dark text-light border-secondary" rows="10" style="font-family: monospace;">{{ hostess.training_examples or '' }}</textarea>
+            </div>
+
+            <div class="d-flex justify-content-end" style="gap:10px;">
+              <button class="btn btn-success"><i class="fas fa-save"></i> {{ _('حفظ') }}</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-lg-5 mb-3">
+      <div class="card bg-dark text-light border-gold mb-3">
+        <div class="card-header d-flex justify-content-between align-items-center">
+          <div class="fw-bold">{{ _('الذاكرة') }}</div>
+          <form method="post" class="m-0" onsubmit="return confirm('{{ _('مسح الذاكرة بالكامل؟') }}')">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <input type="hidden" name="action" value="clear_memory">
+            <button class="btn btn-sm btn-danger"><i class="fas fa-trash"></i> {{ _('مسح') }}</button>
+          </form>
+        </div>
+        <div class="card-body" style="max-height: 340px; overflow:auto;">
+          {% if memories %}
+            {% for m in memories %}
+              <div class="p-2 mb-2 rounded border border-secondary" style="background: rgba(0,0,0,0.25);">
+                <div class="d-flex justify-content-between align-items-center">
+                  <div class="text-gold small">{{ m.key }} <span class="text-muted">#{{ m.user_id }}</span></div>
+                  <form method="post" class="m-0">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <input type="hidden" name="action" value="delete_memory">
+                    <input type="hidden" name="memory_id" value="{{ m.id }}">
+                    <button class="btn btn-sm btn-outline-danger"><i class="fas fa-times"></i></button>
+                  </form>
+                </div>
+                <div class="text-light small mt-1">{{ m.value }}</div>
+                <div class="text-muted" style="font-size: 0.75rem;">{{ m.updated_at.strftime('%Y-%m-%d %H:%M') if m.updated_at else '' }}</div>
+              </div>
+            {% endfor %}
+          {% else %}
+            <div class="text-muted">{{ _('لا توجد ذاكرة بعد.') }}</div>
+          {% endif %}
+        </div>
+      </div>
+
+      <div class="card bg-dark text-light border-gold">
+        <div class="card-header fw-bold">{{ _('آخر المحادثات') }}</div>
+        <div class="card-body" style="max-height: 340px; overflow:auto;">
+          {% if chats %}
+            {% for c in chats %}
+              <div class="mb-2">
+                <div class="small {% if c.role == 'user' %}text-info{% else %}text-warning{% endif %}">
+                  {{ c.role }} <span class="text-muted">#{{ c.user_id or 'guest' }}</span>
+                </div>
+                <div class="p-2 rounded border border-secondary" style="background: rgba(0,0,0,0.22);">{{ c.content }}</div>
+              </div>
+            {% endfor %}
+          {% else %}
+            <div class="text-muted">{{ _('لا توجد محادثات محفوظة بعد.') }}</div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+

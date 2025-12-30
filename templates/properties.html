@@ -1,0 +1,80 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container-fluid fade-in">
+    <div class="properties-header">
+        <h1 class="display-4 font-weight-bold text-uppercase text-white">
+            <i class="fas fa-city mr-3"></i>{{ _('سوق العقارات') }}
+        </h1>
+        <p class="lead text-white-50">{{ _('استثمر أموالك وسيطر على المدينة') }}</p>
+        <a href="{{ url_for('economy.my_properties') }}" class="btn btn-outline-light mt-3">
+            <i class="fas fa-key mr-2"></i> {{ _('عقاراتي المملوكة') }}
+        </a>
+    </div>
+
+    <div class="row">
+        {% for asset in assets %}
+        <div class="col-lg-4 col-md-6 mb-4 fade-in-up anim-delay-{{ loop.index if loop.index <= 20 else 20 }}">
+            <div class="property-card">
+                <div class="property-image">
+                    {% if asset.image %}
+                        <img src="{{ url_for('static', filename=asset.image) }}" alt="{{ asset.name }}">
+                    {% else %}
+                        <img src="https://images.unsplash.com/photo-1560518883-ce09059eeffa?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60" alt="Property">
+                    {% endif %}
+                    <div class="property-overlay">
+                        <div class="property-price">{{ "{:,}".format(asset.value) }} $</div>
+                    </div>
+                </div>
+
+                <div class="property-body">
+                    <h3 class="property-title">{{ asset.name }}</h3>
+                    <div class="income-badge">
+                        <i class="fas fa-chart-line mr-2"></i>
+                        <span>{{ _('الدخل اليومي:') }} +{{ "{:,}".format(asset.income) }} $</span>
+                    </div>
+                    
+                    <p class="text-muted small mb-4">{{ asset.description }}</p>
+                    
+                    <form action="{{ url_for('economy.buy_property', asset_id=asset.id) }}" method="POST">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                        {% if user.money >= asset.value %}
+                            <button type="submit" class="btn btn-buy-property btn-block shine-effect">
+                                <i class="fas fa-shopping-cart mr-2"></i> {{ _('شراء شخصي') }}
+                            </button>
+                        {% else %}
+                            <button type="button" class="btn btn-dark btn-block disabled btn-disabled-property">
+                                <i class="fas fa-lock mr-2"></i> {{ _('لا تملك المال الكافي') }}
+                            </button>
+                        {% endif %}
+                    </form>
+
+                    {% if user.gang and user.id == user.gang.leader_id %}
+                    <form action="{{ url_for('economy.buy_gang_property', asset_id=asset.id) }}" method="POST">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                        {% if user.gang.money >= asset.value %}
+                            <button type="submit" class="btn btn-buy-gang btn-block shine-effect">
+                                <i class="fas fa-users mr-2"></i> {{ _('شراء للعصابة') }}
+                            </button>
+                        {% else %}
+                            <button type="button" class="btn btn-dark btn-block mt-2 disabled btn-disabled-property">
+                                <i class="fas fa-users-slash mr-2"></i> {{ _('خزينة العصابة لا تكفي') }}
+                            </button>
+                        {% endif %}
+                    </form>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        {% else %}
+        <div class="col-12 text-center py-5">
+            <div class="empty-properties-state">
+                <i class="fas fa-building fa-4x text-gold mb-3"></i>
+                <h3 class="text-white">{{ _('لا توجد عقارات متاحة حالياً') }}</h3>
+                <p class="text-muted">{{ _('السوق نايم اليوم، ارجع بعدين.') }}</p>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

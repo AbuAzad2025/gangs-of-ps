@@ -1,0 +1,87 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="luxury-card fade-in-up">
+    <div class="card-header">
+        <h3 class="card-title text-gradient-gold"><i class="fas fa-brain mr-2"></i> {{ _('قاعدة معرفة المضيفات') }}</h3>
+        <div class="card-tools">
+            <a href="{{ url_for('main.dev_knowledge_edit', id=None) }}" class="btn btn-luxury-action btn-sm">
+                <i class="fas fa-plus"></i> {{ _('إضافة معرفة') }}
+            </a>
+            <a href="{{ url_for('main.dev_dashboard') }}" class="btn btn-outline-secondary btn-sm ml-2">
+                <i class="fas fa-arrow-right"></i> {{ _('عودة') }}
+            </a>
+        </div>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table luxury-table luxury-table-striped projects">
+                <thead>
+                    <tr>
+                        <th style="width: 5%">#</th>
+                        <th style="width: 25%">{{ _('السؤال / الموضوع') }}</th>
+                        <th style="width: 15%">{{ _('التصنيف') }}</th>
+                        <th style="width: 15%">{{ _('اللغة') }}</th>
+                        <th style="width: 15%">{{ _('مخصص لـ') }}</th>
+                        <th style="width: 10%"></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for k in knowledge %}
+                    <tr style="animation: fadeInUp 0.5s ease backwards; animation-delay: {{ loop.index0 * 0.03 }}s;">
+                        <td><span class="text-muted">{{ k.id }}</span></td>
+                        <td>
+                            <div class="font-weight-bold text-gold">{{ k.question }}</div>
+                            <small class="text-muted">{{ k.answer|truncate(50) }}</small>
+                        </td>
+                        <td><span class="badge badge-secondary">{{ k.category }}</span></td>
+                        <td><span class="badge badge-dark">{{ k.language }}</span></td>
+                        <td>
+                            {% if k.hostess_id %}
+                            <span class="badge badge-info">{{ k.hostess_id }}</span>
+                            {% else %}
+                            <span class="badge badge-success">{{ _('عام') }}</span>
+                            {% endif %}
+                        </td>
+                        <td class="project-actions text-right">
+                            <a class="btn btn-luxury-action btn-sm" href="{{ url_for('main.dev_knowledge_edit', id=k.id) }}">
+                                <i class="fas fa-pencil-alt"></i>
+                            </a>
+                            <form method="post" action="{{ url_for('main.dev_knowledge_delete', id=k.id) }}" style="display:inline;">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                                <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('{{ _('هل أنت متأكد من الحذف؟') }}')">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="6" class="text-center py-4 text-muted">{{ _('لا توجد بيانات') }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <div class="card-footer clearfix">
+        <ul class="pagination pagination-sm m-0 float-right">
+            {% if pagination.has_prev %}
+            <li class="page-item"><a class="page-link bg-dark border-secondary text-gold" href="{{ url_for('main.dev_knowledge', page=pagination.prev_num) }}">&laquo;</a></li>
+            {% endif %}
+            {% for page_num in pagination.iter_pages() %}
+                {% if page_num %}
+                    <li class="page-item {% if page_num == pagination.page %}active{% endif %}">
+                        <a class="page-link bg-dark border-secondary text-gold" href="{{ url_for('main.dev_knowledge', page=page_num) }}">{{ page_num }}</a>
+                    </li>
+                {% else %}
+                    <li class="page-item disabled"><span class="page-link bg-dark border-secondary text-muted">...</span></li>
+                {% endif %}
+            {% endfor %}
+            {% if pagination.has_next %}
+            <li class="page-item"><a class="page-link bg-dark border-secondary text-gold" href="{{ url_for('main.dev_knowledge', page=pagination.next_num) }}">&raquo;</a></li>
+            {% endif %}
+        </ul>
+    </div>
+</div>
+{% endblock %}

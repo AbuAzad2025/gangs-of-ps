@@ -1,0 +1,109 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container fade-in">
+    <div class="text-center mb-4">
+        <h2 class="text-warning display-5 fw-bold">♠️ {{ _('بلاك جاك') }} ♠️</h2>
+        <a href="{{ url_for('casino.index') }}" class="btn btn-outline-light btn-sm mb-3">
+            <i class="fas fa-arrow-right"></i> {{ _('عودة للكازينو') }}
+        </a>
+    </div>
+
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="game-area">
+                
+                <!-- Dealer Area -->
+                <div class="dealer-area">
+                    <h4 class="text-muted mb-3">{{ _('الموزع') }} {% if game_state and game_state.status != 'playing' %}<span class="score-badge">{{ game_state.dealer_hand | length }}</span>{% endif %}</h4>
+                    <div class="cards-container">
+                        {% if game_state %}
+                            {% for card in game_state.dealer_hand %}
+                                {% if loop.index == 2 and game_state.status == 'playing' %}
+                                    <!-- Hidden Card -->
+                                    <div class="playing-card back">
+                                        <div class="pattern">?</div>
+                                    </div>
+                                {% else %}
+                                    <div class="playing-card {{ 'red' if card.suit in ['H', 'D'] else 'black' }}">
+                                        <div class="rank">{{ card.rank }}</div>
+                                        <div class="suit">
+                                            {% if card.suit == 'H' %}♥
+                                            {% elif card.suit == 'D' %}♦
+                                            {% elif card.suit == 'S' %}♠
+                                            {% elif card.suit == 'C' %}♣
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                {% endif %}
+                            {% endfor %}
+                        {% else %}
+                            <div class="text-muted p-4">{{ _('انتظار الرهان...') }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Message Area -->
+                <div class="status-message text-warning">
+                    {% if game_state and game_state.message %}
+                        {{ game_state.message }}
+                    {% endif %}
+                </div>
+
+                <!-- Player Area -->
+                <div class="player-area">
+                    <h4 class="text-muted mb-3">{{ _('أنت') }} <span class="badge bg-warning text-dark">{{ current_user.username }}</span></h4>
+                    <div class="cards-container">
+                        {% if game_state %}
+                            {% for card in game_state.player_hand %}
+                                <div class="playing-card {{ 'red' if card.suit in ['H', 'D'] else 'black' }}">
+                                    <div class="rank">{{ card.rank }}</div>
+                                    <div class="suit">
+                                        {% if card.suit == 'H' %}♥
+                                        {% elif card.suit == 'D' %}♦
+                                        {% elif card.suit == 'S' %}♠
+                                        {% elif card.suit == 'C' %}♣
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        {% else %}
+                            <div class="text-muted p-4">{{ _('ضع رهانك لتبدأ') }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Controls -->
+                <div class="action-buttons">
+                    {% if not game_state or game_state.status != 'playing' %}
+                        <form action="{{ url_for('casino.blackjack_deal') }}" method="post" class="d-inline-block">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                            <div class="input-group mb-3 justify-content-center">
+                                <span class="input-group-text bg-dark text-warning border-warning">$</span>
+                                <input type="number" name="bet" class="form-control bg-dark text-white border-warning text-center mw-150px" value="100" min="10" max="{{ current_user.money }}">
+                                <button type="submit" class="btn btn-warning fw-bold">{{ _('توزيع') }} <i class="fas fa-play"></i></button>
+                            </div>
+                        </form>
+                        {% if game_state %}
+                            <a href="{{ url_for('casino.blackjack_reset') }}" class="btn btn-outline-secondary btn-sm mt-2">{{ _('لعب جديد') }}</a>
+                        {% endif %}
+                    {% else %}
+                        <div class="d-flex gap-3 justify-content-center">
+                            <form action="{{ url_for('casino.blackjack_hit') }}" method="post">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                <button type="submit" class="btn btn-success btn-lg px-4">{{ _('اسحب (Hit)') }}</button>
+                            </form>
+                            <form action="{{ url_for('casino.blackjack_stand') }}" method="post">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                <button type="submit" class="btn btn-danger btn-lg px-4">{{ _('توقف (Stand)') }}</button>
+                            </form>
+                        </div>
+                    {% endif %}
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

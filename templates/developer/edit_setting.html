@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card bg-dark text-white border-gold shadow-lg">
+            <div class="card-header border-bottom border-gold">
+                <h3 class="card-title m-0"><i class="fas fa-edit text-gold mr-2"></i> {{ title }}</h3>
+            </div>
+            <div class="card-body">
+                <form method="POST" enctype="multipart/form-data">
+                    {{ form.hidden_tag() }}
+                    
+                    <div class="form-group">
+                        {{ form.key.label(class="form-control-label text-gold") }}
+                        {% if form.key.errors %}
+                            {{ form.key(class="form-control is-invalid bg-dark text-white border-secondary") }}
+                            <div class="invalid-feedback">
+                                {% for error in form.key.errors %}
+                                    <span>{{ error }}</span>
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            {{ form.key(class="form-control bg-dark text-white border-secondary") }}
+                        {% endif %}
+                        <small class="form-text text-muted">{{ _('اسم الإعداد باللغة الإنجليزية (مثال: OPENAI_API_KEY)') }}</small>
+                    </div>
+
+                    <div class="form-group">
+                        {{ form.value.label(class="form-control-label text-gold") }}
+                        {% if form.value.errors %}
+                            {{ form.value(class="form-control is-invalid bg-dark text-white border-secondary", rows="3") }}
+                            <div class="invalid-feedback">
+                                {% for error in form.value.errors %}
+                                    <span>{{ error }}</span>
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            {{ form.value(class="form-control bg-dark text-white border-secondary", rows="3") }}
+                        {% endif %}
+                    </div>
+
+                    <div class="form-group">
+                        {{ form.description.label(class="form-control-label text-gold") }}
+                        {% if form.description.errors %}
+                            {{ form.description(class="form-control is-invalid bg-dark text-white border-secondary") }}
+                            <div class="invalid-feedback">
+                                {% for error in form.description.errors %}
+                                    <span>{{ error }}</span>
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            {{ form.description(class="form-control bg-dark text-white border-secondary") }}
+                        {% endif %}
+                    </div>
+
+                    <div class="mt-4 d-flex justify-content-between">
+                        <a href="{{ url_for('main.dev_settings') }}" class="btn btn-secondary font-weight-bold">{{ _('إلغاء') }}</a>
+                        {{ form.submit(class="btn btn-gold font-weight-bold px-5") }}
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

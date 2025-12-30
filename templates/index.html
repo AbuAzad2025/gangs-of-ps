@@ -1,0 +1,316 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<div class="container-fluid p-0">
+    <!-- Intro Overlay -->
+    <div id="intro-overlay">
+        <div id="intro-content">
+            <div id="intro-slide-1" class="intro-slide">
+                <h1 class="intro-h1">{{ _('فلسطين...') }}</h1>
+                <h2 class="intro-h2-white">{{ _('أرض الأبطال') }}</h2>
+            </div>
+            <div id="intro-slide-2" class="intro-slide">
+                <h1 class="intro-h1">{{ _('في الظل...') }}</h1>
+                <h2 class="intro-h2-gold">{{ _('تحكم العصابات') }}</h2>
+            </div>
+            <div id="intro-slide-3" class="intro-slide">
+                <h2 id="typing-text" class="typing-text-style"></h2>
+            </div>
+            <div id="intro-slide-4" class="intro-slide">
+                <i class="fas fa-khanda intro-icon-large"></i>
+                <h1 class="intro-title-large">{{ _('عصابات فلسطين') }}</h1>
+                <p class="intro-subtitle">{{ _('الشارع لا يرحم الضعفاء') }}</p>
+                <button id="enter-game-btn" class="btn btn-hero btn-hero-primary btn-enter-game">
+                    {{ _('ادخل العالم') }} <i class="fas fa-arrow-right ml-2"></i>
+                </button>
+            </div>
+        </div>
+        <button id="skip-intro-btn" class="btn-skip-intro">
+            {{ _('تخطي المقدمة') }}
+        </button>
+        <div class="intro-legal">
+            <span class="text-gold font-weight-bold">{{ _('إخلاء مسؤولية') }}:</span>
+            {{ _('هذه لعبة إلكترونية للتسلية فقط. السيناريوهات داخل اللعبة خيالية ولا يجوز تطبيقها في الحياة الواقعية بأي شكل. أي محاولات واقعية قد تؤدي إلى مخالفة القانون أو السجن الحقيقي. العب بمسؤولية واستمتع بالتجربة بأمان.') }}
+        </div>
+    </div>
+
+    <!-- Hero Section -->
+    <div class="landing-hero text-center">
+        <div class="hero-bg-pattern"></div>
+        <div class="hero-content container">
+            <h1 class="hero-title gold-text-gradient">
+                <i class="fas fa-khanda mr-3"></i> {{ _('عصابات فلسطين') }}
+            </h1>
+            <p class="hero-subtitle">
+                {{ _('لعبة العصابات الفلسطينية الأولى - سيطر على الحارة، جمع الشواكل، وكن الزعيم!') }}
+            </p>
+
+            <div class="cash-prize-box">
+                <h4 class="gold-text-gradient mb-2"><i class="fas fa-money-bill-wave mr-2"></i> {{ _('اربح 100$ كاش أسبوعياً!') }}</h4>
+                <p class="text-light mb-0">{{ _('يتم توزيع جوائز نقدية حقيقية لأقوى اللاعبين كل أسبوع.') }}</p>
+            </div>
+
+            <div class="d-flex justify-content-center flex-wrap">
+                <a class="btn btn-hero btn-hero-primary m-2" href="{{ url_for('main.login') }}" role="button">
+                    <i class="fas fa-sign-in-alt mr-2"></i> {{ _('تسجيل الدخول') }}
+                </a>
+                <a class="btn btn-hero btn-hero-secondary m-2" href="{{ url_for('main.register') }}" role="button">
+                    <i class="fas fa-user-plus mr-2"></i> {{ _('إنشاء حساب جديد') }}
+                </a>
+                <button onclick="playIntro()" class="btn btn-hero btn-hero-secondary m-2 btn-play-intro">
+                    <i class="fas fa-play mr-2"></i> {{ _('شاهد العرض') }}
+                </button>
+            </div>
+            <div class="mt-3">
+                <div class="alert alert-dark border border-warning py-2 px-3 alert-disclaimer">
+                    <span class="text-gold font-weight-bold mr-1">{{ _('تنويه') }}:</span>
+                    {{ _('اللعبة مُصممة للترفيه فقط ولا تشجع على أي سلوك غير قانوني. يُحظر تطبيق محتواها في الواقع.') }}
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+
+
+    <!-- Live Stats Bar -->
+    <div class="container mb-5 stats-bar-container">
+        <div class="row justify-content-center">
+            <div class="col-md-10">
+                <div class="card bg-dark border-gold shadow-lg">
+                    <div class="card-body p-2">
+                        <div class="row text-center text-gold">
+                            <div class="col-6 col-md-2 border-right border-secondary">
+                                <div class="text-xs text-muted">{{ _('إجمالي اللاعبين') }}</div>
+                                <div class="font-weight-bold h5 mb-0">{{ total_users }}</div>
+                            </div>
+                            <div class="col-6 col-md-2 border-right border-secondary">
+                                <div class="text-xs text-muted">{{ _('نشط (24س)') }}</div>
+                                <div class="font-weight-bold h5 mb-0">{{ active_users }}</div>
+                            </div>
+                            <div class="col-6 col-md-2 border-right border-secondary">
+                                <div class="text-xs text-muted">{{ _('جديد (24س)') }}</div>
+                                <div class="font-weight-bold h5 mb-0">{{ new_users }}</div>
+                            </div>
+                            <div class="col-6 col-md-2 border-right border-secondary">
+                                <div class="text-xs text-muted">{{ _('معارك (24س)') }}</div>
+                                <div class="font-weight-bold h5 mb-0">{{ battles_24h }}</div>
+                            </div>
+                            <div class="col-12 col-md-4">
+                                <div class="text-xs text-muted">{{ _('الأموال المتداولة') }}</div>
+                                <div class="font-weight-bold h5 mb-0 text-success">${{ total_money }}</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Story Section -->
+    <div class="container mb-5">
+        <div class="row align-items-center">
+            <div class="col-md-6 mb-4 mb-md-0">
+                <h2 class="text-gold font-weight-bold mb-3">{{ _('القصة: صراع البقاء') }}</h2>
+                <div class="text-light lead lead-story">
+                    <p>
+                        {{ _('في أزقة المخيمات وشوارع المدن القديمة، حيث القانون هو قانون القوة...') }}
+                        <br>
+                        {{ _('بدأت رحلتك كشاب طموح يبحث عن لقمة العيش، لكن الظروف قادتك إلى عالم الجريمة المظلم.') }}
+                    </p>
+                    <p>
+                        {{ _('من رام الله إلى نابلس، ومن الخليل إلى جنين، تتصارع العائلات والعصابات للسيطرة على الموارد والنفوذ.') }}
+                        <span class="text-gold font-weight-bold">{{ _('المال، السلاح، والاحترام') }}</span> {{ _('هي العملة الوحيدة هنا.') }}
+                    </p>
+                    <p class="mb-0">
+                        {{ _('هل ستكون مجرد بيدق في يد الكبار، أم ستصنع اسمك بالدم والذكاء لتصبح "الزعيم" الذي يهابه الجميع؟') }}
+                        <br>
+                        <i class="fas fa-skull text-danger mt-2"></i> {{ _('الخيار لك.. والموت يتربص بك عند كل زاوية.') }}
+                    </p>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <!-- Top Players Leaderboard Preview -->
+                <div class="card bg-dark border-gold">
+                    <div class="card-header border-bottom border-secondary bg-transparent">
+                        <h5 class="mb-0 text-gold"><i class="fas fa-crown mr-2"></i> {{ _('أقوى الزعماء') }}</h5>
+                    </div>
+                    <div class="card-body p-0">
+                        <table class="table table-dark table-striped mb-0">
+                            <tbody>
+                                {% for player in top_players %}
+                                <tr>
+                                    <td class="pl-4">
+                                        <span class="badge badge-warning mr-2">{{ loop.index }}</span>
+                                        <img src="{{ url_for('static', filename='avatars/' + (player.avatar if player.avatar else 'default.png')) }}" class="img-circle elevation-1 avatar-30" alt="User" onerror="this.src='{{ url_for('static', filename='avatars/default.png') }}'">
+                                        <span class="font-weight-bold ml-2">{{ player.username }}</span>
+                                    </td>
+                                    <td class="text-right pr-4">
+                                        <span class="badge badge-light">{{ _('مستوى') }} {{ player.level }}</span>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Features Section -->
+    <div class="container mb-5">
+        <div class="row">
+            <div class="col-md-4 mb-4">
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-fist-raised"></i>
+                    </div>
+                    <h3 class="feature-title">{{ _('سيطر') }}</h3>
+                    <p class="feature-text">{{ _('قم بالجرائم، وسيطر على مناطق جديدة في القدس ورام الله ونابلس.') }}</p>
+                </div>
+            </div>
+            <div class="col-md-4 mb-4">
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-money-bill-wave"></i>
+                    </div>
+                    <h3 class="feature-title">{{ _('اجمع الثروة') }}</h3>
+                    <p class="feature-text">{{ _('تاجر، اشتري عقارات، واجمع الشواكل والماس لتصبح الأغنى.') }}</p>
+                </div>
+            </div>
+            <div class="col-md-4 mb-4">
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-users"></i>
+                    </div>
+                    <h3 class="feature-title">{{ _('كوّن عصابتك') }}</h3>
+                    <p class="feature-text">{{ _('تحالف مع أصدقائك وادخل في حروب عصابات طاحنة.') }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    function playIntro() {
+        console.log('Starting playIntro with CSS transitions...');
+        
+        const overlay = document.getElementById('intro-overlay');
+        const slide1 = document.getElementById('intro-slide-1');
+        const slide2 = document.getElementById('intro-slide-2');
+        const slide3 = document.getElementById('intro-slide-3');
+        const slide4 = document.getElementById('intro-slide-4');
+        const typingText = document.getElementById('typing-text');
+        const skipBtn = document.getElementById('skip-intro-btn');
+
+        if (!overlay || !slide1) {
+            console.error('Intro elements not found!');
+            return;
+        }
+
+        // Helper to show/hide slides
+        function showSlide(slide) {
+            if(slide) {
+                slide.classList.add('active');
+                slide.classList.remove('fade-out');
+            }
+        }
+        function hideSlide(slide) {
+            if(slide) {
+                slide.classList.remove('active');
+                slide.classList.add('fade-out');
+                setTimeout(() => {
+                   if(slide.classList.contains('fade-out')) {
+                       slide.style.display = 'none'; // Ensure it's gone
+                   }
+                }, 1000); // Match CSS transition
+            }
+        }
+
+        // Initial State
+        overlay.style.display = 'flex';
+        [slide1, slide2, slide3, slide4].forEach(s => {
+            if(s) {
+                s.classList.remove('active');
+                s.style.display = 'none';
+            }
+        });
+        if(typingText) typingText.innerHTML = '';
+        
+        // Sequence
+        console.log('Intro sequence starting...');
+        
+        // Slide 1
+        setTimeout(() => {
+            if(slide1) {
+                slide1.style.display = 'block';
+                // Small delay to allow display:block to render before opacity transition
+                setTimeout(() => showSlide(slide1), 50);
+            }
+        }, 100);
+
+        setTimeout(() => {
+            hideSlide(slide1);
+        }, 3000);
+
+        // Slide 2
+        setTimeout(() => {
+            if(slide2) {
+                slide2.style.display = 'block';
+                setTimeout(() => showSlide(slide2), 50);
+            }
+        }, 4000);
+
+        setTimeout(() => {
+            hideSlide(slide2);
+        }, 7000);
+
+        // Slide 3 (Typing)
+        let typingInterval;
+        setTimeout(() => {
+            if(slide3) {
+                slide3.style.display = 'block';
+                setTimeout(() => showSlide(slide3), 50);
+                
+                const text = "{{ _('اصنع مجدك... أو مُت وأنت تحاول.') }}";
+                let i = 0;
+                typingInterval = setInterval(function() {
+                    if (i < text.length) {
+                        typingText.innerHTML += text.charAt(i);
+                        i++;
+                    } else {
+                        clearInterval(typingInterval);
+                    }
+                }, 100); 
+            }
+        }, 8000);
+
+        // Slide 4
+        setTimeout(() => {
+            hideSlide(slide3);
+            clearInterval(typingInterval);
+        }, 12000);
+
+        setTimeout(() => {
+            if(slide4) {
+                slide4.style.display = 'block';
+                setTimeout(() => showSlide(slide4), 50);
+            }
+        }, 13000);
+        
+        // Skip Button Logic
+        if(skipBtn) {
+            skipBtn.onclick = function() {
+                 overlay.style.display = 'none';
+                 // Stop any ongoing intervals/timeouts if possible, 
+                 // but for simplicity we just hide the overlay.
+                 // Ideally we'd clear timeouts here.
+            };
+        }
+    }
+</script>
+{% endblock %}

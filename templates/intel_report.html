@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="card bg-dark text-white border-success shadow-lg animate__animated animate__zoomIn">
+        <div class="card-header bg-success text-white">
+            <h3 class="card-title text-center mb-0"><i class="fas fa-file-secret"></i> {{ _('تقرير استخباراتي سري') }}</h3>
+        </div>
+        <div class="card-body">
+            <div class="text-center mb-4">
+                <img src="{{ url_for('static', filename='adminlte/img/user2-160x160.jpg') }}" class="img-circle elevation-2 w-100px" alt="User Image">
+                <h2 class="mt-2 text-warning">{{ report.username }}</h2>
+                <span class="badge badge-primary">{{ _('مستوى') }} {{ report.level }}</span>
+            </div>
+            
+            <div class="row">
+                <div class="col-md-6">
+                    <h5 class="text-info border-bottom pb-2">{{ _('القدرات القتالية') }}</h5>
+                    <ul class="list-group list-group-flush bg-transparent">
+                        <li class="list-group-item bg-transparent text-white d-flex justify-content-between">
+                            <span><i class="fas fa-dumbbell text-danger"></i> {{ _('القوة') }}</span>
+                            <span class="font-weight-bold">{{ report.strength }}</span>
+                        </li>
+                        <li class="list-group-item bg-transparent text-white d-flex justify-content-between">
+                            <span><i class="fas fa-shield-alt text-primary"></i> {{ _('الدفاع') }}</span>
+                            <span class="font-weight-bold">{{ report.defense }}</span>
+                        </li>
+                        <li class="list-group-item bg-transparent text-white d-flex justify-content-between">
+                            <span><i class="fas fa-running text-warning"></i> {{ _('الخفة') }}</span>
+                            <span class="font-weight-bold">{{ report.agility }}</span>
+                        </li>
+                    </ul>
+                </div>
+                
+                <div class="col-md-6">
+                    <h5 class="text-info border-bottom pb-2">{{ _('المعلومات الحساسة') }}</h5>
+                    <ul class="list-group list-group-flush bg-transparent">
+                        <li class="list-group-item bg-transparent text-white d-flex justify-content-between">
+                            <span><i class="fas fa-brain text-purple-custom"></i> {{ _('الذكاء') }}</span>
+                            <span class="font-weight-bold">{{ report.intelligence }}</span>
+                        </li>
+                        <li class="list-group-item bg-transparent text-white d-flex justify-content-between">
+                            <span><i class="fas fa-money-bill-wave text-success"></i> {{ _('الكاش') }}</span>
+                            <span class="font-weight-bold text-success">{{ report.money }} ₪</span>
+                        </li>
+                        <li class="list-group-item bg-transparent text-white d-flex justify-content-between">
+                            <span><i class="fas fa-heartbeat text-danger"></i> {{ _('الصحة') }}</span>
+                            <span class="font-weight-bold">{{ report.health }}%</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="alert alert-warning mt-4 text-center small">
+                <i class="fas fa-burn"></i> {{ _('تم حرق هذا التقرير بعد القراءة. المعلومات قد تتغير في أي لحظة.') }}
+            </div>
+        </div>
+        <div class="card-footer text-center">
+            <a href="{{ url_for('main.intel_center') }}" class="btn btn-secondary">{{ _('عودة لمركز الاستخبارات') }}</a>
+            
+            {% if report.user_id %}
+            <form action="{{ url_for('combat.attack', target_id=report.user_id) }}" method="POST" class="d-inline-block">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                <button type="submit" class="btn btn-danger btn-lg ml-2 animate__animated animate__pulse animate__infinite">
+                    <i class="fas fa-crosshairs"></i> {{ _('هجوم الآن!') }}
+                </button>
+            </form>
+            {% endif %}
+            
+            <a href="{{ url_for('main.hara') }}" class="btn btn-outline-light ml-2">{{ _('عودة للحارة') }}</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

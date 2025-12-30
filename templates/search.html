@@ -1,0 +1,115 @@
+{% extends "base.html" %}
+
+{% block title %}{{ _('البحث عن لاعبين') }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid position-relative">
+    <!-- Background Pattern -->
+    <div class="search-bg-pattern"></div>
+
+    <div class="row justify-content-center position-relative z-1">
+        <div class="col-md-8">
+            <div class="card luxury-card">
+                <div class="card-header luxury-header">
+                    <h3 class="card-title mb-0 luxury-title">
+                        <i class="fas fa-search mr-2"></i> {{ _('البحث عن لاعبين') }}
+                    </h3>
+                </div>
+                <div class="card-body p-4">
+                    <form method="POST" class="mb-5">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                        <div class="input-group input-group-lg search-group">
+                            <input type="search" name="query" class="form-control bg-dark text-white border-gold" placeholder="{{ _('اكتب اسم اللاعب هنا...') }}" value="{{ query }}">
+                            <div class="input-group-append">
+                                <button type="submit" class="btn btn-warning font-weight-bold px-4 hover-scale btn-gold">
+                                    <i class="fa fa-search"></i> {{ _('بحث') }}
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+
+                    {% if user_results or gang_results %}
+                    <div class="results-section">
+                        <h4 class="text-white mb-3 border-bottom border-secondary pb-2">{{ _('نتائج البحث') }}</h4>
+                        
+                        {% if user_results %}
+                        <h5 class="text-gold mb-2">{{ _('اللاعبين') }}</h5>
+                        <div class="list-group luxury-list mb-4">
+                            {% for user in user_results %}
+                            <div class="list-group-item bg-transparent border-bottom border-secondary p-3 stagger-animation anim-delay-dynamic" style="--delay: {{ loop.index * 0.1 }}s;">
+                                <div class="row align-items-center">
+                                    <div class="col-auto">
+                                        <div class="avatar-wrapper">
+                                            <img src="https://ui-avatars.com/api/?name={{ user.username }}&background=random" class="img-circle img-size-50 border-gold" alt="User Image">
+                                        </div>
+                                    </div>
+                                    <div class="col">
+                                        <h5 class="mb-1 gold-text-gradient font-weight-bold">{{ user.username }}</h5>
+                                        <p class="mb-1 text-muted">
+                                            <span class="badge badge-dark border border-secondary">{{ _('المستوى') }}: {{ user.level }}</span>
+                                            <span class="text-white-50 mx-2">|</span>
+                                            <span class="text-white-50">{{ _('العصابة') }}: {{ user.gang.name if user.gang else _('لا يوجد') }}</span>
+                                        </p>
+                                    </div>
+                                    <div class="col-auto">
+                                        <form action="{{ url_for('combat.attack', target_id=user.id) }}" method="POST" class="d-inline">
+                                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                                            <button type="submit" class="btn btn-outline-danger btn-sm font-weight-bold hover-scale mr-1" title="{{ _('هجوم') }}">
+                                                <i class="fas fa-fist-raised"></i> {{ _('هجوم') }}
+                                            </button>
+                                        </form>
+                                        <a href="{{ url_for('main.profile', user_id=user.id) }}" class="btn btn-outline-primary btn-sm font-weight-bold hover-scale" title="{{ _('الملف الشخصي') }}">
+                                            <i class="fas fa-user"></i> {{ _('بروفايل') }}
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+
+                        {% if gang_results %}
+                        <h5 class="text-gold mb-2">{{ _('العصابات') }}</h5>
+                        <div class="list-group luxury-list">
+                            {% for gang in gang_results %}
+                            <div class="list-group-item bg-transparent border-bottom border-secondary p-3 stagger-animation" style="animation-delay: {{ loop.index * 0.1 }}s;">
+                                <div class="row align-items-center">
+                                    <div class="col-auto">
+                                        <div class="avatar-wrapper">
+                                            <img src="{{ gang.image if gang.image else 'https://ui-avatars.com/api/?name=' + gang.name + '&background=random' }}" class="img-circle img-size-50 border-gold" alt="Gang Image">
+                                        </div>
+                                    </div>
+                                    <div class="col">
+                                        <h5 class="mb-1 gold-text-gradient font-weight-bold">{{ gang.name }}</h5>
+                                        <p class="mb-1 text-muted">
+                                            <span class="badge badge-dark border border-secondary">{{ _('المستوى') }}: {{ gang.level }}</span>
+                                            <span class="text-white-50 mx-2">|</span>
+                                            <span class="text-white-50">{{ _('القائد') }}: {{ gang.leader.username }}</span>
+                                            <span class="text-white-50 mx-2">|</span>
+                                            <span class="text-white-50">{{ _('الأعضاء') }}: {{ gang.members|length }}/{{ gang.max_members }}</span>
+                                        </p>
+                                    </div>
+                                    <div class="col-auto">
+                                        <a href="{{ url_for('gang.view', gang_id=gang.id) }}" class="btn btn-outline-warning btn-sm font-weight-bold hover-scale" title="{{ _('عرض') }}">
+                                            <i class="fas fa-eye"></i> {{ _('عرض') }}
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+                    </div>
+                    {% elif query %}
+                    <div class="text-center py-5">
+                        <i class="fas fa-search-minus fa-4x text-muted mb-3 opacity-50"></i>
+                        <h4 class="text-muted">{{ _('لم يتم العثور على نتائج لـ') }} "{{ query }}"</h4>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

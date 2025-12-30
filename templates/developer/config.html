@@ -1,0 +1,198 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-10">
+        <div class="card bg-dark text-white border-secondary shadow-lg">
+            <div class="card-header border-bottom border-secondary d-flex justify-content-between align-items-center">
+                <h3 class="card-title m-0"><i class="fas fa-cogs text-warning mr-2"></i> {{ _('إعدادات النظام') }}</h3>
+                <a href="{{ url_for('main.dev_dashboard') }}" class="btn btn-secondary btn-sm">{{ _('عودة') }}</a>
+            </div>
+            <div class="card-body">
+                <form action="{{ url_for('main.dev_config') }}" method="POST" id="devConfigForm">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                    
+                    <div class="card mb-4 bg-dark border_secondary">
+                        <div class="card-header d-flex align-items-center justify-content-between">
+                            <h4 class="m-0 text-gold"><i class="fas fa-chart-line mr-2"></i> {{ _('إعدادات السوق') }}</h4>
+                            <button type="button" class="btn btn-sm btn-outline-info" data-toggle="collapse" data-target="#marketSettingsCollapse">{{ _('طي/فتح') }}</button>
+                        </div>
+                        <div class="card-body collapse show" id="marketSettingsCollapse">
+                            <div class="row">
+                                <div class="col-md-4 mb-3">
+                                    {% set spot_val = (configs|selectattr('key','equalto','market_enable_spot')|map(attribute='value')|list) %}
+                                    {% set spot_enabled = (spot_val and spot_val[0] == 'true') %}
+                                    <label class="font-weight-bold">{{ _('تفعيل تداول السبوت') }}</label>
+                                    <div class="custom-control custom-switch">
+                                        <input type="hidden" name="market_enable_spot" value="false">
+                                        <input type="checkbox" class="custom-control-input" id="market_enable_spot" name="market_enable_spot" value="true" {% if spot_enabled %}checked{% endif %}>
+                                        <label class="custom-control-label" for="market_enable_spot"></label>
+                                    </div>
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                    {% set fut_val = (configs|selectattr('key','equalto','market_enable_futures')|map(attribute='value')|list) %}
+                                    {% set futures_enabled = (fut_val and fut_val[0] == 'true') %}
+                                    <label class="font-weight-bold">{{ _('تفعيل تداول الفيوتشر') }}</label>
+                                    <div class="custom-control custom-switch">
+                                        <input type="hidden" name="market_enable_futures" value="false">
+                                        <input type="checkbox" class="custom-control-input" id="market_enable_futures" name="market_enable_futures" value="true" {% if futures_enabled %}checked{% endif %}>
+                                        <label class="custom-control-label" for="market_enable_futures"></label>
+                                    </div>
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                    {% set lim_val = (configs|selectattr('key','equalto','market_enable_limit_orders')|map(attribute='value')|list) %}
+                                    {% set limit_enabled = (lim_val and lim_val[0] == 'true') %}
+                                    <label class="font-weight-bold">{{ _('تفعيل أوامر الحد (Limit)') }}</label>
+                                    <div class="custom-control custom-switch">
+                                        <input type="hidden" name="market_enable_limit_orders" value="false">
+                                        <input type="checkbox" class="custom-control-input" id="market_enable_limit_orders" name="market_enable_limit_orders" value="true" {% if limit_enabled %}checked{% endif %}>
+                                        <label class="custom-control-label" for="market_enable_limit_orders"></label>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col-md-4 mb-3">
+                                    {% set min_buy_val = (configs|selectattr('key','equalto','market_spot_min_buy_usd')|map(attribute='value')|list) %}
+                                    <label class="font-weight-bold">{{ _('أقل مبلغ شراء سبوت (USD)') }}</label>
+                                    <input type="number" min="0" step="1" class="form-control bg-dark text-white border-secondary" name="market_spot_min_buy_usd" value="{{ min_buy_val[0] if min_buy_val else '10' }}">
+                                    <small class="text-muted">{{ _('أقل مبلغ شراء فوري لتفادي السبام') }}</small>
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                    {% set lev_val = (configs|selectattr('key','equalto','market_futures_leverages')|map(attribute='value')|list) %}
+                                    <label class="font-weight-bold">{{ _('الرافعات المسموح بها للفيوتشر') }}</label>
+                                    <input type="text" class="form-control bg-dark text-white border-secondary" name="market_futures_leverages" value="{{ lev_val[0] if lev_val else '1,5,10,20,50,100' }}">
+                                    <small class="text-muted">{{ _('قائمة مفصولة بفواصل، مثال: 1,5,10,20,50,100') }}</small>
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                    {% set interval_val = (configs|selectattr('key','equalto','market_update_interval_seconds')|map(attribute='value')|list) %}
+                                    <label class="font-weight-bold">{{ _('فاصل تحديث الأسعار بالثواني') }}</label>
+                                    <input type="number" min="15" step="1" class="form-control bg-dark text-white border-secondary" name="market_update_interval_seconds" value="{{ interval_val[0] if interval_val else '60' }}">
+                                    <small class="text-muted">{{ _('اضبطه حسب الأداء والدقة (افتراضي 60 ثانية)') }}</small>
+                                </div>
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col-md-4 mb-3">
+                                    {% set intel_val = (configs|selectattr('key','equalto','market_intel_cost')|map(attribute='value')|list) %}
+                                    <label class="font-weight-bold">{{ _('تكلفة شراء المعلومة') }}</label>
+                                    <input type="number" min="0" step="1" class="form-control bg-dark text-white border-secondary" name="market_intel_cost" value="{{ intel_val[0] if intel_val else '500' }}">
+                                    <small class="text-muted">{{ _('تكلفة خدمة المعلومات الداخلية (Insider Intel)') }}</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="table-responsive">
+                        <table class="table table-dark table-hover border border-secondary">
+                            <thead>
+                                <tr class="bg-secondary text-dark">
+                                    <th style="width: 30%">{{ _('الإعداد (Key)') }}</th>
+                                    <th style="width: 70%">{{ _('القيمة (Value)') }}</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for config in configs %}
+                                <tr>
+                                    <td class="align-middle font-weight-bold">{{ config.key }}</td>
+                                    <td>
+                                        <input type="text" name="{{ config.key }}" value="{{ config.value }}" class="form-control bg-dark text-white border-secondary">
+                                    </td>
+                                </tr>
+                                {% else %}
+                                <tr>
+                                    <td colspan="2" class="text-center">{{ _('لا توجد إعدادات متاحة حالياً') }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <button type="submit" class="btn btn-warning btn-lg btn-block font-weight-bold shadow mt-4">
+                        <i class="fas fa-save mr-2"></i> {{ _('حفظ التغييرات') }}
+                    </button>
+                </form>
+
+                <form action="{{ url_for('main.dev_config_reset_market_defaults') }}" method="POST" class="mt-3">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                    <button type="submit" class="btn btn-outline-info btn-block font-weight-bold">
+                        <i class="fas fa-sync-alt mr-2"></i> {{ _('إعادة إعدادات السوق الافتراضية') }}
+                    </button>
+                </form>
+
+                <div class="card mt-4 bg-secondary border-dark">
+                    <div class="card-header">
+                        <h5 class="m-0 text-dark"><i class="fas fa-plus-circle"></i> {{ _('إضافة إعداد جديد') }}</h5>
+                    </div>
+                    <div class="card-body bg-dark">
+                        <form action="{{ url_for('main.dev_config_add') }}" method="POST" class="form-inline justify-content-between">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                            <div class="form-group flex-grow-1 mr-2">
+                                <input type="text" name="key" class="form-control w-100" placeholder="Key (e.g. xp_multiplier)" required>
+                            </div>
+                            <div class="form-group flex-grow-1 mx-2">
+                                <input type="text" name="value" class="form-control w-100" placeholder="Value (e.g. 1.5)" required>
+                            </div>
+                            <button type="submit" class="btn btn-success font-weight-bold">
+                                <i class="fas fa-plus"></i> {{ _('إضافة') }}
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    var form = document.getElementById('devConfigForm');
+    if (!form) return;
+    form.addEventListener('submit', function(e) {
+        var intervalInput = form.querySelector('input[name="market_update_interval_seconds"]');
+        var leveragesInput = form.querySelector('input[name="market_futures_leverages"]');
+        var minBuyInput = form.querySelector('input[name="market_spot_min_buy_usd"]');
+        var intelCostInput = form.querySelector('input[name="market_intel_cost"]');
+        var messages = [];
+        var intervalVal = intervalInput ? parseInt(intervalInput.value, 10) : 60;
+        if (isNaN(intervalVal) || intervalVal < 15) {
+            messages.push('{{ _("فاصل التحديث لا يجب أن يكون أقل من 15 ثانية") }}');
+            if (intervalInput) intervalInput.classList.add('is-invalid');
+        } else if (intervalInput) {
+            intervalInput.classList.remove('is-invalid');
+        }
+        if (leveragesInput) {
+            var parts = leveragesInput.value.split(',');
+            var valid = parts.length > 0 && parts.every(function(p) {
+                var v = parseInt(p.trim(), 10);
+                return !isNaN(v) && v > 0;
+            });
+            if (!valid) {
+                messages.push('{{ _("قائمة رافعات غير صالحة") }}');
+                leveragesInput.classList.add('is-invalid');
+            } else {
+                leveragesInput.classList.remove('is-invalid');
+            }
+        }
+        function nonNegativeValid(inp) {
+            if (!inp) return true;
+            var v = parseFloat(inp.value);
+            if (isNaN(v) || v < 0) {
+                inp.classList.add('is-invalid');
+                return false;
+            }
+            inp.classList.remove('is-invalid');
+            return true;
+        }
+        var okMinBuy = nonNegativeValid(minBuyInput);
+        var okIntel = nonNegativeValid(intelCostInput);
+        if (!okMinBuy || !okIntel) {
+            messages.push('{{ _("القيم لا يجب أن تكون سالبة") }}');
+        }
+        if (messages.length > 0) {
+            e.preventDefault();
+            alert(messages.join('\n'));
+        }
+    });
+});
+</script>
+{% endblock %}

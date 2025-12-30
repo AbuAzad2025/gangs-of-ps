@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="luxury-card fade-in-up">
+    <div class="card-header">
+        <h3 class="card-title text-gradient-gold"><i class="fas fa-users mr-2"></i> {{ _('إدارة اللاعبين') }}</h3>
+        <div class="card-tools">
+            <form action="{{ url_for('main.dev_users') }}" method="GET">
+                <div class="input-group input-group-sm" style="width: 250px;">
+                    <input type="text" name="q" class="form-control form-control-luxury float-right" placeholder="{{ _('بحث عن لاعب...') }}" value="{{ search_query }}">
+                    <div class="input-group-append">
+                        <button type="submit" class="btn btn-default"><i class="fas fa-search text-gold"></i></button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+    <div class="card-body table-responsive p-0">
+        <table class="table luxury-table luxury-table-hover text-nowrap">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>{{ _('الاسم') }}</th>
+                    <th>{{ _('المستوى') }}</th>
+                    <th>{{ _('الدور') }}</th>
+                    <th>{{ _('المال') }}</th>
+                    <th>{{ _('آخر نشاط') }}</th>
+                    <th>{{ _('إجراءات') }}</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for user in users %}
+                <tr style="animation: fadeInUp 0.5s ease backwards; animation-delay: {{ loop.index0 * 0.05 }}s;">
+                    <td><span class="text-muted">{{ user.id }}</span></td>
+                    <td>
+                        <div class="d-flex align-items-center">
+                            {% if user.avatar and user.avatar != 'default.png' %}
+                            <img src="{{ url_for('static', filename='avatars/' + user.avatar) }}" class="img-circle elevation-2 mr-2" style="width: 30px; height: 30px; object-fit: cover; border: 1px solid var(--gold-primary);">
+                            {% else %}
+                            <img src="https://ui-avatars.com/api/?name={{ user.username }}&background=random" class="img-circle elevation-2 mr-2" style="width: 30px; height: 30px;">
+                            {% endif %}
+                            <span class="font-weight-bold">{{ user.username }}</span>
+                        </div>
+                    </td>
+                    <td><span class="badge bg-dark border border-secondary">{{ user.level }}</span></td>
+                    <td><span class="badge badge-{{ 'danger' if user.is_admin else ('warning' if user.is_moderator else 'primary') }}">{{ user.role.name }}</span></td>
+                    <td class="text-success font-weight-bold">${{ "{:,.0f}".format(user.money) }}</td>
+                    <td><small class="text-muted">{{ user.last_daily_reward.strftime('%Y-%m-%d') if user.last_daily_reward else '-' }}</small></td>
+                    <td>
+                        <a href="{{ url_for('main.dev_user_edit', id=user.id) }}" class="btn btn-sm btn-luxury-action">
+                            <i class="fas fa-pencil-alt"></i> {{ _('تعديل') }}
+                        </a>
+                        <a href="{{ url_for('main.dev_user_achievements', user_id=user.id) }}" class="btn btn-sm btn-outline-warning ml-1">
+                            <i class="fas fa-award"></i> {{ _('الإنجازات') }}
+                        </a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    <div class="card-footer clearfix bg-transparent border-top border-secondary">
+        <ul class="pagination pagination-sm m-0 float-right">
+            {% if pagination.has_prev %}
+            <li class="page-item"><a class="page-link bg-dark border-secondary text-gold" href="{{ url_for('main.dev_users', page=pagination.prev_num, q=search_query) }}">&laquo;</a></li>
+            {% endif %}
+            <li class="page-item disabled"><a class="page-link bg-dark border-secondary text-muted" href="#">{{ pagination.page }} / {{ pagination.pages }}</a></li>
+            {% if pagination.has_next %}
+            <li class="page-item"><a class="page-link bg-dark border-secondary text-gold" href="{{ url_for('main.dev_users', page=pagination.next_num, q=search_query) }}">&raquo;</a></li>
+            {% endif %}
+        </ul>
+    </div>
+</div>
+{% endblock %}

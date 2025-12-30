@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="luxury-card fade-in-up">
+            <div class="card-header">
+                <h3 class="card-title text-gradient-gold"><i class="fas fa-edit mr-2"></i> {{ title }}</h3>
+            </div>
+            <form method="POST">
+                {{ form.hidden_tag() }}
+                <div class="card-body">
+                    <div class="form-group mb-3">
+                        <label class="text-gold">{{ _('العنوان') }}</label>
+                        {{ form.title(class="form-control form-control-luxury") }}
+                    </div>
+                    <div class="form-group mb-3">
+                        <label class="text-gold">{{ _('المحتوى') }}</label>
+                        {{ form.content(class="form-control form-control-luxury", rows=5) }}
+                    </div>
+                    <div class="form-group mb-3">
+                        <div class="custom-control custom-switch">
+                            {{ form.is_active(class="custom-control-input", id="customSwitch1") }}
+                            <label class="custom-control-label text-light" for="customSwitch1">{{ _('نشط') }}</label>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-footer bg-transparent border-top border-secondary">
+                    {{ form.submit(class="btn btn-luxury-action") }}
+                    <a href="{{ url_for('main.dev_announcements') }}" class="btn btn-outline-secondary float-right">{{ _('إلغاء') }}</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

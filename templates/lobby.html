@@ -1,0 +1,185 @@
+{% extends "base.html" %}
+
+{% block title %}{{ _('غرفة التخطيط') }}{% endblock %}
+
+{% block content %}
+<div class="container fade-in-up">
+    <div class="luxury-card mb-4">
+        <div class="luxury-header d-flex justify-content-between align-items-center">
+            <h3 class="luxury-title">
+                <i class="fas fa-user-secret mr-2"></i> {{ _('غرفة التخطيط') }}: {{ _(lobby.crime.name) }}
+            </h3>
+            <span class="badge {% if lobby.status == 'recruiting' %}badge-success{% else %}badge-secondary{% endif %}">
+                {{ lobby.status }}
+            </span>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-8">
+                    <div class="alert alert-dark border border-secondary">
+                        <h5 class="text-info">{{ _('المهمة') }}</h5>
+                        <p>{{ _(lobby.crime.description) }}</p>
+                        <hr>
+                        <div class="d-flex justify-content-around text-center">
+                            <div>
+                                <small class="text-muted d-block">{{ _('المكافأة المتوقعة') }}</small>
+                                <span class="text-success fw-bold">{{ lobby.crime.money_reward_min }} - {{ lobby.crime.money_reward_max }}</span>
+                            </div>
+                            <div>
+                                <small class="text-muted d-block">{{ _('الخبرة') }}</small>
+                                <span class="text-primary fw-bold">{{ lobby.crime.exp_reward }}</span>
+                            </div>
+                            <div>
+                                <small class="text-muted d-block">{{ _('الأعضاء') }}</small>
+                                <span class="text-warning fw-bold">{{ lobby.participants|length }} / {{ lobby.crime.min_members }}</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <h4 class="mt-4 mb-3 text-warning border-bottom border-warning pb-2">{{ _('توزيع الأدوار') }}</h4>
+                    
+                    <div class="list-group">
+                        {% for item in lobby_roles %}
+                            {% set role_def = item['def'] %}
+                            {% set participant = item['participant'] %}
+                            
+                            <div class="list-group-item bg-dark border-secondary mb-2 d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h5 class="mb-1 text-light">
+                                        {{ _(role_def.name) }}
+                                        {% if participant %}
+                                            {% if participant.is_ready %}
+                                                <i class="fas fa-check-circle text-success" title="{{ _('جاهز') }}"></i>
+                                            {% else %}
+                                                <i class="fas fa-clock text-warning" title="{{ _('غير جاهز') }}"></i>
+                                            {% endif %}
+                                        {% endif %}
+                                    </h5>
+                                    <p class="mb-1 text-muted small">{{ _(role_def.description) }}</p>
+                                    <div class="small text-info">
+                                        {% if role_def.min_stats %}
+                                            {% for stat, val in role_def.min_stats.items() %}
+                                                <span class="mr-2">{{ _(stat)|capitalize }}: {{ val }}+</span>
+                                            {% endfor %}
+                                        {% endif %}
+                                    </div>
+                                </div>
+
+                                <div>
+                                    {% if participant %}
+                                        <div class="text-right">
+                                            <span class="d-block badge badge-light mb-1">{{ participant.user.username }}</span>
+                                            {% if is_leader and participant.user_id != current_user.id %}
+                                                <form action="{{ url_for('main.kick_member', lobby_id=lobby.id, user_id=participant.user_id) }}" method="post" class="d-inline">
+                                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                                                    <button type="submit" class="btn btn-xs btn-danger" title="{{ _('طرد') }}">
+                                                        <i class="fas fa-times"></i>
+                                                    </button>
+                                                </form>
+                                            {% endif %}
+                                        </div>
+                                    {% else %}
+                                        {% if not current_participant %}
+                                            <form action="{{ url_for('main.join_lobby', lobby_id=lobby.id) }}" method="post" class="d-inline">
+                                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                                                <input type="hidden" name="role_name" value="{{ role_def.name }}"/>
+                                                <button type="submit" class="btn btn-outline-success btn-sm">
+                                                    <i class="fas fa-user-plus"></i> {{ _('استلام الدور') }}
+                                                </button>
+                                            </form>
+                                        {% else %}
+                                            <span class="badge badge-dark text-muted">{{ _('شاغر') }}</span>
+                                        {% endif %}
+                                    {% endif %}
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <div class="col-md-4">
+                    <div class="card bg-dark border-info h-100">
+                        <div class="card-header border-info text-info">
+                            <i class="fas fa-cogs"></i> {{ _('لوحة التحكم') }}
+                        </div>
+                        <div class="card-body d-flex flex-column justify-content-center">
+                            {% if current_participant %}
+                                <div class="mb-3 text-center">
+                                    <h5 class="text-light">{{ _('حالتك') }}: 
+                                        {% if current_participant.is_ready %}
+                                            <span class="text-success">{{ _('جاهز') }}</span>
+                                        {% else %}
+                                            <span class="text-warning">{{ _('غير جاهز') }}</span>
+                                        {% endif %}
+                                    </h5>
+                                    <form action="{{ url_for('main.toggle_ready', lobby_id=lobby.id) }}" method="post" class="mb-2">
+                                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                                        <button type="submit" class="btn {% if current_participant.is_ready %}btn-warning{% else %}btn-success{% endif %} btn-block">
+                                            {% if current_participant.is_ready %}
+                                                <i class="fas fa-pause"></i> {{ _('إلغاء الجاهزية') }}
+                                            {% else %}
+                                                <i class="fas fa-check"></i> {{ _('أنا جاهز') }}
+                                            {% endif %}
+                                        </button>
+                                    </form>
+                                    
+                                    <form action="{{ url_for('main.leave_lobby', lobby_id=lobby.id) }}" method="post" onsubmit="return confirm('{{ _('هل أنت متأكد من الانسحاب؟') }}')">
+                                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                                        <button type="submit" class="btn btn-outline-danger btn-block">
+                                            <i class="fas fa-sign-out-alt"></i> {{ _('انسحاب') }}
+                                        </button>
+                                    </form>
+                                    <small class="text-muted d-block mt-2">
+                                        {{ _('الانسحاب يسبب خسائر: -%(m)s$، -%(xp)s XP، -%(en)s طاقة.', m=money_penalty, xp=xp_penalty, en=energy_penalty) }}
+                                    </small>
+                                </div>
+                            {% else %}
+                                <div class="alert alert-info text-center">
+                                    {{ _('اختر دوراً للانضمام للفريق') }}
+                                </div>
+                            {% endif %}
+
+                            <hr class="border-secondary">
+
+                            {% if is_leader %}
+                                <div class="text-center">
+                                    <h6 class="text-warning mb-2">{{ _('تحكم القائد') }}</h6>
+                                    {% set all_ready = True %}
+                                    {% if lobby.participants|length < lobby.crime.min_members %}
+                                        {% set all_ready = False %}
+                                        <div class="alert alert-warning py-1 small">{{ _('العدد غير مكتمل') }}</div>
+                                    {% else %}
+                                        {% for p in lobby.participants %}
+                                            {% if not p.is_ready %}
+                                                {% set all_ready = False %}
+                                            {% endif %}
+                                        {% endfor %}
+                                    {% endif %}
+
+                                    <form action="{{ url_for('main.start_heist', lobby_id=lobby.id) }}" method="post">
+                                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                                        <button type="submit" class="btn btn-luxury-action btn-lg btn-block {% if not all_ready %}disabled{% endif %}">
+                                            <i class="fas fa-play-circle"></i> {{ _('بدء العملية') }}
+                                        </button>
+                                    </form>
+                                    {% if not all_ready %}
+                                        <small class="text-muted d-block mt-1">{{ _('يجب أن يكون الجميع جاهزاً') }}</small>
+                                    {% endif %}
+
+                                    <form action="{{ url_for('main.broadcast_lobby_invites', lobby_id=lobby.id) }}" method="post" class="mt-3">
+                                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                                        <button type="submit" class="btn btn-outline-info btn-block">
+                                            <i class="fas fa-bullhorn"></i> {{ _('إرسال دعوات لجميع اللاعبين') }}
+                                        </button>
+                                    </form>
+                                    <small class="text-muted d-block mt-1">{{ _('صلاحية الدعوات ساعة ويمكن تجديدها إن لم يكتمل الفريق') }}</small>
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>{{ title }}</h2>
+    
+    <div class="card bg-dark text-light border-gold mt-3">
+        <div class="card-body">
+            <form method="post">
+                {{ form.hidden_tag() }}
+                
+                <div class="mb-3">
+                    {{ form.title.label(class="form-label text-gold") }}
+                    {{ form.title(class="form-control bg-dark text-light border-secondary") }}
+                    {% for error in form.title.errors %}
+                        <div class="text-danger">{{ error }}</div>
+                    {% endfor %}
+                </div>
+
+                <div class="mb-3">
+                    {{ form.description.label(class="form-label text-gold") }}
+                    {{ form.description(class="form-control bg-dark text-light border-secondary", rows=3) }}
+                    {% for error in form.description.errors %}
+                        <div class="text-danger">{{ error }}</div>
+                    {% endfor %}
+                </div>
+
+                <div class="mb-3">
+                    {{ form.script_content.label(class="form-label text-gold") }}
+                    {{ form.script_content(class="form-control bg-dark text-light border-secondary", rows=15, style="font-family: monospace;") }}
+                    <div class="form-text text-muted">{{ _('تأكد من صحة تنسيق JSON.') }}</div>
+                    {% for error in form.script_content.errors %}
+                        <div class="text-danger">{{ error }}</div>
+                    {% endfor %}
+                </div>
+
+                <div class="mb-3 form-check">
+                    {{ form.is_active(class="form-check-input") }}
+                    {{ form.is_active.label(class="form-check-label text-gold") }}
+                </div>
+
+                <div class="mb-3">
+                    {{ form.trigger_keywords.label(class="form-label text-gold") }}
+                    {{ form.trigger_keywords(class="form-control bg-dark text-light border-secondary") }}
+                    {% for error in form.trigger_keywords.errors %}
+                        <div class="text-danger">{{ error }}</div>
+                    {% endfor %}
+                </div>
+
+                <div class="mt-4">
+                    {{ form.submit(class="btn btn-gold") }}
+                    <a href="{{ url_for('main.dev_scenarios') }}" class="btn btn-secondary">{{ _('إلغاء') }}</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

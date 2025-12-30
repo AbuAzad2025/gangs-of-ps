@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="luxury-card fade-in-up">
+    <div class="card-header">
+        <h3 class="card-title text-gradient-gold"><i class="fas fa-history mr-2"></i> {{ _('سجلات النظام') }}</h3>
+    </div>
+    
+    <!-- Filter Form -->
+    <div class="card-body bg-dark border-bottom border-secondary">
+        <form method="GET" action="{{ url_for('main.dev_logs') }}" class="row align-items-end">
+            <div class="col-md-3 mb-2">
+                <label class="text-muted">{{ _('نوع الإجراء') }}</label>
+                <select name="action" class="form-control form-control-sm bg-secondary text-light border-dark">
+                    <option value="">{{ _('الكل') }}</option>
+                    {% for act in actions %}
+                    <option value="{{ act }}" {% if current_filters.action == act %}selected{% endif %}>{{ act }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-3 mb-2">
+                <label class="text-muted">{{ _('اسم المسؤول') }}</label>
+                <input type="text" name="admin_username" class="form-control form-control-sm bg-secondary text-light border-dark" value="{{ current_filters.admin_username or '' }}" placeholder="{{ _('اسم المستخدم') }}">
+            </div>
+            <div class="col-md-4 mb-2">
+                <label class="text-muted">{{ _('بحث في التفاصيل') }}</label>
+                <input type="text" name="search" class="form-control form-control-sm bg-secondary text-light border-dark" value="{{ current_filters.search or '' }}" placeholder="{{ _('كلمة مفتاحية...') }}">
+            </div>
+            <div class="col-md-2 mb-2">
+                <button type="submit" class="btn btn-sm btn-gold w-100 font-weight-bold">
+                    <i class="fas fa-filter"></i> {{ _('تصفية') }}
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <div class="card-body table-responsive p-0">
+        <table class="table luxury-table luxury-table-striped text-nowrap">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>{{ _('المسؤول') }}</th>
+                    <th>{{ _('الإجراء') }}</th>
+                    <th>{{ _('التفاصيل') }}</th>
+                    <th>{{ _('الوقت') }}</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for log in logs %}
+                <tr style="animation: fadeInUp 0.5s ease backwards; animation-delay: {{ loop.index0 * 0.05 }}s;">
+                    <td><span class="text-muted">{{ log.id }}</span></td>
+                    <td><strong class="text-gold">{{ log.admin.username if log.admin else 'System' }}</strong></td>
+                    <td><span class="badge bg-dark border border-info text-info">{{ log.action }}</span></td>
+                    <td>{{ log.details }}</td>
+                    <td class="text-muted">{{ log.timestamp.strftime('%Y-%m-%d %H:%M:%S') }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    <div class="card-footer clearfix bg-transparent border-top border-secondary">
+        <ul class="pagination pagination-sm m-0 float-right">
+            {% if pagination.has_prev %}
+            <li class="page-item"><a class="page-link bg-dark border-secondary text-gold" href="{{ url_for('main.dev_logs', page=pagination.prev_num) }}">&laquo;</a></li>
+            {% endif %}
+            <li class="page-item disabled"><a class="page-link bg-dark border-secondary text-muted" href="#">{{ pagination.page }} / {{ pagination.pages }}</a></li>
+            {% if pagination.has_next %}
+            <li class="page-item"><a class="page-link bg-dark border-secondary text-gold" href="{{ url_for('main.dev_logs', page=pagination.next_num) }}">&raquo;</a></li>
+            {% endif %}
+        </ul>
+    </div>
+</div>
+{% endblock %}

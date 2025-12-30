@@ -1,0 +1,99 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row justify-content-center view-content">
+    <div class="col-md-8">
+        <div class="widget-user-luxury">
+            <!-- Add the bg color to the header using any of the bg-* classes -->
+            <div class="widget-user-header-luxury">
+                <h3 class="widget-user-username">{{ gang.name }}</h3>
+                <h5 class="widget-user-desc">{{ _('المستوى') }}: <span class="text-gold-secondary">{{ gang.level }}</span></h5>
+            </div>
+            <div class="widget-user-image">
+                {% if gang.image %}
+                <img class="img-circle elevation-2" src="{{ gang.image }}" alt="Gang Avatar">
+                {% else %}
+                <img class="img-circle elevation-2" src="https://ui-avatars.com/api/?name={{ gang.name }}&background=random" alt="Gang Avatar">
+                {% endif %}
+            </div>
+            <div class="card-footer-luxury">
+                <div class="row pt-4">
+                    <div class="col-sm-4 border-right-luxury">
+                        <div class="description-block">
+                            <h5 class="description-header">{{ members_count }}</h5>
+                            <span class="description-text">{{ _('الأعضاء') }}</span>
+                        </div>
+                    </div>
+                    <div class="col-sm-4 border-right-luxury">
+                        <div class="description-block">
+                            <h5 class="description-header">{{ gang.exp }}</h5>
+                            <span class="description-text">{{ _('الخبرة') }}</span>
+                        </div>
+                    </div>
+                    <div class="col-sm-4">
+                        <div class="description-block">
+                            <h5 class="description-header">{{ gang.created_at.strftime('%Y-%m-%d') }}</h5>
+                            <span class="description-text">{{ _('التأسيس') }}</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="row mt-4">
+                    <div class="col-12 text-center">
+                        <div class="p-3 mb-3 gang-desc-box">
+                            <p class="text-muted mb-0">{{ gang.description or _('لا يوجد وصف') }}</p>
+                        </div>
+
+                        <ul class="list-unstyled mb-3 text-light">
+                            <li class="mb-1">
+                                <span class="text-gold-primary">{{ _('حالة التجنيد:') }}</span>
+                                {% if gang.recruitment_status == 'open' %}<span class="badge badge-success">{{ _('مفتوح') }}</span>
+                                {% elif gang.recruitment_status == 'invite_only' %}<span class="badge badge-warning">{{ _('دعوات فقط') }}</span>
+                                {% else %}<span class="badge badge-danger">{{ _('مغلق') }}</span>{% endif %}
+                            </li>
+                            <li class="mb-1">
+                                <span class="text-gold-primary">{{ _('أقل مستوى:') }}</span> {{ gang.min_level_req }} |
+                                <span class="text-gold-primary">{{ _('الحد الأقصى:') }}</span> {{ gang.max_members }}
+                            </li>
+                            {% if gang.allowed_countries %}
+                            <li class="mb-1">
+                                <span class="text-gold-primary">{{ _('الدول المسموحة:') }}</span>
+                                {% for c in gang.allowed_countries.split(',') %}
+                                <span class="flag-icon flag-icon-{{ c|lower|trim }}" title="{{ c }}"></span>
+                                {% endfor %}
+                            </li>
+                            {% endif %}
+                        </ul>
+
+                        {% if not current_user.gang_id %}
+                            {% if gang.recruitment_status == 'open' %}
+                            <form action="{{ url_for('gang.request_join', gang_id=gang.id) }}" method="POST" class="mb-3">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                                <button type="submit" class="btn btn-success btn-block font-weight-bold">
+                                    <i class="fas fa-user-plus mr-1"></i> {{ _('انضم الآن') }}
+                                </button>
+                            </form>
+                            {% elif gang.recruitment_status == 'invite_only' %}
+                                <div class="alert alert-info mb-3">{{ _('يجب أن تتلقى دعوة من الزعيم للانضمام.') }}</div>
+                            {% else %}
+                                <div class="alert alert-danger mb-3">{{ _('باب الانضمام مغلق حالياً.') }}</div>
+                            {% endif %}
+                        {% endif %}
+                        
+                        {% if current_user.gang_id and current_user.gang_id != gang.id and current_user.id == current_user.gang.leader_id %}
+                        <form action="{{ url_for('gang.declare_war', target_gang_id=gang.id) }}" method="POST" class="mb-3">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                            <button type="submit" class="btn btn-luxury-war btn-block" data-confirm="{{ _('هل أنت متأكد من إعلان الحرب؟ سيكلفك ذلك 50,000$ من خزينة العصابة.') }}">
+                                <i class="fas fa-skull-crossbones"></i> {{ _('إعلان الحرب') }}
+                            </button>
+                        </form>
+                        {% endif %}
+                        
+                        <a href="{{ url_for('gang.index') }}" class="btn btn-secondary btn-block">{{ _('عودة للقائمة') }}</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

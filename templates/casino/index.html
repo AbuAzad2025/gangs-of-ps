@@ -1,0 +1,96 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container fade-in">
+    <div class="text-center mb-5">
+        <h1 class="display-4 text-warning fw-bold text-shadow-gold">🎰 {{ _('كازينو الزعيم') }} 🎰</h1>
+        <p class="lead text-light">{{ _('المكان الذي تصنع فيه الثروات... أو تخسرها!') }}</p>
+        
+        {% if user.casino_luck_until and user.casino_luck_until > now %}
+            <div class="alert alert-warning d-inline-block animate-pulse">
+                <i class="fas fa-star"></i> <strong>{{ _('حظ المضيفة مفعل!') }}</strong> ({{ _('ينتهي في') }} {{ user.casino_luck_until.strftime('%H:%M') }})
+            </div>
+        {% endif %}
+    </div>
+
+    <div class="row g-4 justify-content-center">
+        <!-- Racing (New Feature) -->
+        <div class="col-12 mb-2">
+            <div class="card bg-dark text-white border-warning h-100 shadow-lg hover-scale bg-gradient-dark-diag">
+                <div class="row no-gutters align-items-center">
+                    <div class="col-md-4 text-center p-4">
+                        <i class="fas fa-flag-checkered display-1 text-warning"></i>
+                    </div>
+                    <div class="col-md-8">
+                        <div class="card-body">
+                            <h3 class="card-title text-warning">{{ _('حلبة سباق السيارات') }} <span class="badge badge-danger ml-2">{{ _('جديد!') }}</span></h3>
+                            <p class="card-text text-light lead">{{ _('سابق لاعبين حقيقين بسيارتك المعدلة! طور محركك، درب سائقك، واربح الملايين.') }}</p>
+                            <a href="{{ url_for('racing.index') }}" class="btn btn-warning btn-lg px-5 font-weight-bold text-dark">{{ _('دخول الحلبة') }}</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Blackjack -->
+        <div class="col-md-4">
+            <div class="card bg-dark text-white border-warning h-100 shadow-lg hover-scale">
+                <div class="card-body text-center p-5">
+                    <div class="display-1 mb-3 text-warning">♠️</div>
+                    <h3 class="card-title">{{ _('بلاك جاك') }}</h3>
+                    <p class="card-text text-muted">{{ _('تحدى الموزع وحاول الوصول لرقم 21.') }}</p>
+                    <a href="{{ url_for('casino.blackjack_index') }}" class="btn btn-outline-warning btn-lg w-100 mt-3">{{ _('لعب الآن') }}</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slots -->
+        <div class="col-md-4">
+            <div class="card bg-dark text-white border-warning h-100 shadow-lg hover-scale">
+                <div class="card-body text-center p-5">
+                    <div class="display-1 mb-3 text-danger">🎰</div>
+                    <h3 class="card-title">{{ _('ماكينات الحظ') }}</h3>
+                    <p class="card-text text-muted">{{ _('جرب حظك مع السلوتس واربح الجاكبوت!') }}</p>
+                    <a href="{{ url_for('casino.slots_index') }}" class="btn btn-outline-danger btn-lg w-100 mt-3">{{ _('لعب الآن') }}</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Roulette -->
+        <div class="col-md-4">
+            <div class="card bg-dark text-white border-warning h-100 shadow-lg hover-scale">
+                <div class="card-body text-center p-5">
+                    <div class="display-1 mb-3 text-success">🎡</div>
+                    <h3 class="card-title">{{ _('الروليت') }}</h3>
+                    <p class="card-text text-muted">{{ _('راهن على الأرقام والألوان.') }}</p>
+                    <a href="{{ url_for('casino.roulette_index') }}" class="btn btn-outline-success btn-lg w-100 mt-3">{{ _('لعب الآن') }}</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Bar -->
+        <div class="col-md-6">
+            <div class="card bg-dark text-white border-info h-100 shadow-lg hover-scale">
+                <div class="card-body text-center p-5">
+                    <div class="display-1 mb-3 text-info">🍸</div>
+                    <h3 class="card-title">{{ _('البار') }}</h3>
+                    <p class="card-text text-muted">{{ _('اشرب وارتاح واسترجع طاقتك.') }}</p>
+                    <a href="{{ url_for('casino.bar') }}" class="btn btn-outline-info btn-lg w-100 mt-3">{{ _('دخول البار') }}</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Hostess -->
+        <div class="col-md-6">
+            <div class="card bg-dark text-white border-danger h-100 shadow-lg hover-scale">
+                <div class="card-body text-center p-5">
+                    <div class="display-1 mb-3 text-danger">💃</div>
+                    <h3 class="card-title">{{ _('المضيفات') }}</h3>
+                    <p class="card-text text-muted">{{ _('استمتع بصحبة جميلة لزيادة حظك.') }}</p>
+                    <a href="{{ url_for('casino.hostess') }}" class="btn btn-outline-danger btn-lg w-100 mt-3">{{ _('صالة VIP') }}</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

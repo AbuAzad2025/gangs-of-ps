@@ -1,0 +1,271 @@
+[
+  {
+    "name": "سرقة بنك",
+    "description": "عملية سطو مسلح على أحد البنوك المحلية.",
+    "min_level": 10,
+    "min_members": 2,
+    "max_members": 4,
+    "duration_minutes": 60,
+    "cooldown_hours": 24,
+    "energy_cost": 50,
+    "money_reward_min": 5000,
+    "money_reward_max": 10000,
+    "exp_reward": 200,
+    "min_gang_level": 1,
+    "image": "crimes/bank_heist.jpg",
+    "roles_config": [
+      {"name": "سائق محترف", "description": "الهروب تحت الضغط واللفّ بين الحواجز", "icon": "fas fa-car", "min_stats": {"agility": 20}},
+      {"name": "خبير متفجرات", "description": "فتح الخزنة بسرعة بدون ضجة", "icon": "fas fa-bomb", "min_stats": {"intelligence": 18}},
+      {"name": "عضلات", "description": "السيطرة على الحراس وتأمين الممر", "icon": "fas fa-dumbbell", "min_stats": {"strength": 22}},
+      {"name": "قائد العملية", "description": "تنسيق الأدوار وقرارات لحظية", "icon": "fas fa-crown", "min_stats": {"intelligence": 14}}
+    ],
+    "requirements": {
+      "required_item": "قنبلة دخانية",
+      "penalty_money_pct": 0.06,
+      "penalty_xp_pct": 0.12,
+      "penalty_energy_min": 10,
+      "heat_window_hours": 8,
+      "heat_success_penalty_pct": 5.0,
+      "heat_jail_boost_pct": 12.0,
+      "lucky_event_pct": 6.0,
+      "lucky_money_pct": 25.0,
+      "lucky_exp_pct": 40.0,
+      "role_bonuses": {
+        "سائق محترف": {"money_pct": 5, "exp_bonus": 10, "rank_points": 1},
+        "خبير متفجرات": {"money_pct": 7, "exp_bonus": 20, "rank_points": 1},
+        "قائد العملية": {"money_pct": 10, "exp_bonus": 25, "rank_points": 2}
+      }
+    }
+  },
+  {
+    "name": "سطو على سيارة نقل أموال",
+    "description": "اعتراض شاحنة نقل أموال مدرعة.",
+    "min_level": 15,
+    "min_members": 3,
+    "max_members": 5,
+    "duration_minutes": 90,
+    "cooldown_hours": 36,
+    "energy_cost": 75,
+    "money_reward_min": 10000,
+    "money_reward_max": 20000,
+    "exp_reward": 400,
+    "min_gang_level": 2,
+    "image": "crimes/car_theft.jpg",
+    "roles_config": [
+      {"name": "سائق", "description": "يطير بالشاحنة أول ما تفتح", "icon": "fas fa-car-side", "min_stats": {"agility": 26}},
+      {"name": "قناص", "description": "يراقب الدورية ويعطي إشارات", "icon": "fas fa-crosshairs", "min_stats": {"intelligence": 16}},
+      {"name": "مقتحم", "description": "يفتح الباب المدرع بالقوة", "icon": "fas fa-hammer", "min_stats": {"strength": 32}},
+      {"name": "دعم", "description": "يغطي الفريق ويصدّ المطاردة", "icon": "fas fa-shield-alt", "min_stats": {"defense": 18}}
+    ],
+    "requirements": {
+      "required_item": "قنبلة دخانية",
+      "double_patrol_pct": 5.0,
+      "double_patrol_success_penalty_pct": 9.0,
+      "double_patrol_jail_boost_pct": 15.0,
+      "lucky_event_pct": 4.0,
+      "lucky_money_pct": 20.0,
+      "lucky_exp_pct": 30.0,
+      "role_bonuses": {
+        "مقتحم": {"money_pct": 8, "exp_bonus": 30, "rank_points": 2},
+        "سائق": {"money_pct": 6, "exp_bonus": 15, "rank_points": 1}
+      }
+    }
+  },
+  {
+    "name": "مداهمة كازينو",
+    "description": "سرقة كبرى لكازينو غير قانوني.",
+    "min_level": 25,
+    "min_members": 4,
+    "max_members": 6,
+    "duration_minutes": 120,
+    "cooldown_hours": 48,
+    "energy_cost": 100,
+    "money_reward_min": 50000,
+    "money_reward_max": 100000,
+    "exp_reward": 1000,
+    "min_gang_level": 3,
+    "image": "crimes/atm.jpg",
+    "roles_config": [
+      {"name": "هكر", "description": "يعطل الكاميرات والسستم", "icon": "fas fa-laptop-code", "min_stats": {"intelligence": 30}},
+      {"name": "متسلل", "description": "يدخل ويطلع بدون ما حدا ينتبه", "icon": "fas fa-user-ninja", "min_stats": {"agility": 28}},
+      {"name": "حماية", "description": "يسند الفريق إذا الأمور سخنت", "icon": "fas fa-fist-raised", "min_stats": {"strength": 28}},
+      {"name": "ماسح مخاطر", "description": "يقرأ الحركة ويتجنب الكمائن", "icon": "fas fa-eye", "min_stats": {"intelligence": 22}}
+    ],
+    "requirements": {
+      "required_item": "جهاز تشويش",
+      "heat_window_hours": 12,
+      "heat_success_penalty_pct": 6.0,
+      "heat_jail_boost_pct": 14.0,
+      "lucky_event_pct": 7.5,
+      "lucky_money_pct": 30.0,
+      "lucky_exp_pct": 50.0,
+      "role_bonuses": {
+        "هكر": {"money_pct": 9, "exp_bonus": 80, "rank_points": 3},
+        "متسلل": {"money_pct": 7, "exp_bonus": 60, "rank_points": 2}
+      }
+    }
+  },
+  {
+    "name": "اختراق مركز بيانات",
+    "description": "اقتحام غرفة سيرفرات وسحب ملفات حساسة.",
+    "min_level": 18,
+    "min_members": 3,
+    "max_members": 5,
+    "duration_minutes": 75,
+    "cooldown_hours": 24,
+    "energy_cost": 80,
+    "money_reward_min": 15000,
+    "money_reward_max": 35000,
+    "exp_reward": 650,
+    "min_gang_level": 2,
+    "image": "crimes/cyber.jpg",
+    "roles_config": [
+      {"name": "هكر رئيسي", "description": "يكسر الجدار الناري بسرعة", "icon": "fas fa-terminal", "min_stats": {"intelligence": 26}},
+      {"name": "هكر دعم", "description": "يغطي ويمنع التتبع", "icon": "fas fa-network-wired", "min_stats": {"intelligence": 20}},
+      {"name": "حارس ممر", "description": "يشغل الحرس ويأمن الدخول", "icon": "fas fa-shield-alt", "min_stats": {"strength": 18, "defense": 18}}
+    ],
+    "requirements": {
+      "required_item": "أجهزة مشفرة",
+      "double_patrol_pct": 4.0,
+      "double_patrol_success_penalty_pct": 8.0,
+      "double_patrol_jail_boost_pct": 12.0,
+      "role_bonuses": {
+        "هكر رئيسي": {"money_pct": 12, "exp_bonus": 120, "rank_points": 3},
+        "هكر دعم": {"money_pct": 6, "exp_bonus": 80, "rank_points": 2}
+      }
+    }
+  },
+  {
+    "name": "اقتحام مستودع سلاح",
+    "description": "ضربة سريعة لمستودع سلاح… الخروج أهم من الدخول.",
+    "min_level": 22,
+    "min_members": 4,
+    "max_members": 6,
+    "duration_minutes": 90,
+    "cooldown_hours": 36,
+    "energy_cost": 95,
+    "money_reward_min": 22000,
+    "money_reward_max": 52000,
+    "exp_reward": 850,
+    "min_gang_level": 3,
+    "image": "crimes/arms_deal.jpg",
+    "roles_config": [
+      {"name": "مقتحم", "description": "يكسر الباب ويمهد", "icon": "fas fa-hammer", "min_stats": {"strength": 26}},
+      {"name": "تغطية", "description": "تثبيت نار وحماية الجنب", "icon": "fas fa-shield-alt", "min_stats": {"defense": 22}},
+      {"name": "نقّال", "description": "يلم الغنائم بسرعة", "icon": "fas fa-people-carry", "min_stats": {"agility": 20}},
+      {"name": "سائق هروب", "description": "يطير قبل وصول تعزيزات", "icon": "fas fa-car", "min_stats": {"agility": 22}}
+    ],
+    "requirements": {
+      "required_item": "سلاح مهرب (M16)",
+      "heat_window_hours": 10,
+      "heat_success_penalty_pct": 6.0,
+      "heat_jail_boost_pct": 14.0,
+      "role_bonuses": {
+        "سائق هروب": {"money_pct": 6, "exp_bonus": 40, "rank_points": 2},
+        "مقتحم": {"money_pct": 8, "exp_bonus": 60, "rank_points": 2}
+      }
+    }
+  },
+  {
+    "name": "تهريب شحنة ذهب",
+    "description": "شحنة ثقيلة… إذا انمسكت بتروح عليك وعلى الفريق.",
+    "min_level": 20,
+    "min_members": 3,
+    "max_members": 5,
+    "duration_minutes": 80,
+    "cooldown_hours": 30,
+    "energy_cost": 85,
+    "money_reward_min": 18000,
+    "money_reward_max": 45000,
+    "exp_reward": 720,
+    "min_gang_level": 2,
+    "image": "crimes/smuggling.jpg",
+    "roles_config": [
+      {"name": "سائق", "description": "يتجنب الحواجز ويتصرف بسرعة", "icon": "fas fa-truck", "min_stats": {"agility": 20}},
+      {"name": "مراقب", "description": "يقرأ الطريق ويبلغ عن دوريات", "icon": "fas fa-binoculars", "min_stats": {"intelligence": 18}},
+      {"name": "حماية", "description": "يسند لو صار اشتباك", "icon": "fas fa-shield-alt", "min_stats": {"defense": 18, "strength": 16}}
+    ],
+    "requirements": {
+      "required_item": "آثار مسروقة",
+      "double_patrol_pct": 6.0,
+      "double_patrol_success_penalty_pct": 10.0,
+      "double_patrol_jail_boost_pct": 18.0
+    }
+  },
+  {
+    "name": "تحرير أسير",
+    "description": "مهمة حساسة… دخول وخروج بدون ما تصير فوضى.",
+    "min_level": 16,
+    "min_members": 3,
+    "max_members": 5,
+    "duration_minutes": 70,
+    "cooldown_hours": 24,
+    "energy_cost": 75,
+    "money_reward_min": 8000,
+    "money_reward_max": 16000,
+    "exp_reward": 600,
+    "min_gang_level": 2,
+    "image": "crimes/boss.jpg",
+    "roles_config": [
+      {"name": "قائد تفاوض", "description": "يبرد الأعصاب ويختار اللحظة", "icon": "fas fa-comments", "min_stats": {"intelligence": 18}},
+      {"name": "متسلل", "description": "يفتح طريق الدخول", "icon": "fas fa-user-ninja", "min_stats": {"agility": 22}},
+      {"name": "حماية", "description": "يحمي الفريق ويغطي الانسحاب", "icon": "fas fa-shield-alt", "min_stats": {"defense": 20}}
+    ],
+    "requirements": {
+      "required_item": "قنبلة دخانية",
+      "heat_window_hours": 8,
+      "heat_success_penalty_pct": 5.5,
+      "heat_jail_boost_pct": 14.0
+    }
+  },
+  {
+    "name": "اغتيال هدف",
+    "description": "عملية دقيقة… طلقة وحدة وتختفي.",
+    "min_level": 28,
+    "min_members": 2,
+    "max_members": 4,
+    "duration_minutes": 55,
+    "cooldown_hours": 40,
+    "energy_cost": 90,
+    "money_reward_min": 25000,
+    "money_reward_max": 60000,
+    "exp_reward": 900,
+    "min_gang_level": 3,
+    "image": "crimes/extortion.jpg",
+    "roles_config": [
+      {"name": "قناص", "description": "اختيار زاوية مثالية", "icon": "fas fa-crosshairs", "min_stats": {"intelligence": 24}},
+      {"name": "مموّه", "description": "يمهد طريق الهروب", "icon": "fas fa-mask", "min_stats": {"agility": 22}}
+    ],
+    "requirements": {
+      "required_item": "جهاز تشويش",
+      "double_patrol_pct": 5.0,
+      "double_patrol_success_penalty_pct": 10.0,
+      "double_patrol_jail_boost_pct": 20.0
+    }
+  },
+  {
+    "name": "تزوير وثائق",
+    "description": "أوراق نظيفة… بتفتحلك أبواب كثيرة.",
+    "min_level": 12,
+    "min_members": 2,
+    "max_members": 4,
+    "duration_minutes": 45,
+    "cooldown_hours": 18,
+    "energy_cost": 55,
+    "money_reward_min": 6000,
+    "money_reward_max": 14000,
+    "exp_reward": 320,
+    "min_gang_level": 1,
+    "image": "crimes/phone.jpg",
+    "roles_config": [
+      {"name": "طابعة", "description": "تجهيز النسخ والورق", "icon": "fas fa-print", "min_stats": {"intelligence": 16}},
+      {"name": "موزّع", "description": "تسليم سريع بدون ما ينكشف", "icon": "fas fa-route", "min_stats": {"agility": 18}}
+    ],
+    "requirements": {
+      "required_item": "أجهزة مشفرة",
+      "lucky_event_pct": 8.0,
+      "lucky_money_pct": 20.0,
+      "lucky_exp_pct": 25.0
+    }
+  }
+]

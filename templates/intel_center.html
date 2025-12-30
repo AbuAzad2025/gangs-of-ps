@@ -1,0 +1,112 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col-12 text-center">
+            <h1 class="display-4 text-danger animate__animated animate__fadeInDown">
+                <i class="fas fa-user-secret"></i> {{ _('مركز الاستخبارات') }}
+            </h1>
+            <p class="lead text-light">{{ _('المعلومات هي القوة. تجسس على أعدائك أو اخترق حساباتهم.') }}</p>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Investigate -->
+        <div class="col-md-6">
+            <div class="card bg-dark text-white border-info mb-4 shadow-lg animate__animated animate__fadeInLeft">
+                <div class="card-header border-info">
+                    <h3 class="card-title text-info"><i class="fas fa-eye"></i> {{ _('تجسس (Investigation)') }}</h3>
+                </div>
+                <div class="card-body">
+                    <p>{{ _('اجمع معلومات سرية عن لاعب آخر. اعرف قوته، فلوسه، ومستواه.') }}</p>
+                    <ul class="list-unstyled">
+                        <li><i class="fas fa-bolt text-warning"></i> {{ _('التكلفة:') }} 10 {{ _('طاقة') }}</li>
+                        <li><i class="fas fa-coins text-warning"></i> {{ _('التكلفة المالية:') }} 500 {{ _('شيكل') }}</li>
+                        <li><i class="fas fa-brain text-success"></i> {{ _('تعتمد على:') }} {{ _('ذكائك vs ذكاء الهدف') }}</li>
+                    </ul>
+                    
+                    <form action="{{ url_for('main.investigate') }}" method="POST">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                        <div class="form-group">
+                            <label for="spy_username">{{ _('اسم اللاعب') }}</label>
+                            <input type="text" class="form-control bg-secondary text-white border-0" id="spy_username" name="username" required placeholder="{{ _('أدخل اسم الهدف...') }}">
+                        </div>
+                        <button type="submit" class="btn btn-info btn-block btn-lg">
+                            <i class="fas fa-search"></i> {{ _('ابدأ المراقبة') }}
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Hack -->
+        <div class="col-md-6">
+            <div class="card bg-dark text-white border-danger mb-4 shadow-lg animate__animated animate__fadeInRight">
+                <div class="card-header border-danger">
+                    <h3 class="card-title text-danger"><i class="fas fa-laptop-code"></i> {{ _('قرصنة (Hacking)') }}</h3>
+                </div>
+                <div class="card-body">
+                    <p>{{ _('اخترق حساب بنكي للاعب واسرق نسبة من أمواله.') }}</p>
+                    <ul class="list-unstyled">
+                        <li><i class="fas fa-bolt text-warning"></i> {{ _('التكلفة:') }} 20 {{ _('طاقة') }}</li>
+                        <li><i class="fas fa-exclamation-triangle text-danger"></i> {{ _('المخاطرة:') }} {{ _('عالية (قد يتم كشفك)') }}</li>
+                        <li><i class="fas fa-brain text-success"></i> {{ _('تعتمد على:') }} {{ _('ذكائك vs ذكاء الهدف') }}</li>
+                    </ul>
+                    
+                    <form action="{{ url_for('main.hack_player') }}" method="POST">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                        <div class="form-group">
+                            <label for="hack_username">{{ _('اسم اللاعب') }}</label>
+                            <input type="text" class="form-control bg-secondary text-white border-0" id="hack_username" name="username" required placeholder="{{ _('أدخل اسم الضحية...') }}">
+                        </div>
+                        <button type="submit" class="btn btn-danger btn-block btn-lg">
+                            <i class="fas fa-user-secret"></i> {{ _('بدء الهجوم السيبراني') }}
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bank Hack (PvE) -->
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card bg-dark text-white border-warning mb-4 shadow-lg animate__animated animate__fadeInUp">
+                <div class="card-header border-warning">
+                    <h3 class="card-title text-warning"><i class="fas fa-university"></i> {{ _('قرصنة البنك المركزي (Bank Heist)') }}</h3>
+                </div>
+                <div class="card-body">
+                    <p>{{ _('عملية كبرى ضد البنك المركزي. المخاطرة جنونية ولكن المكسب خيالي.') }}</p>
+                    <div class="d-flex justify-content-around">
+                         <ul class="list-unstyled">
+                            <li><i class="fas fa-bolt text-warning"></i> {{ _('التكلفة:') }} 50 {{ _('طاقة') }}</li>
+                            <li><i class="fas fa-brain text-success"></i> {{ _('الذكاء المطلوب:') }} 50+</li>
+                        </ul>
+                        <ul class="list-unstyled">
+                            <li><i class="fas fa-skull-crossbones text-danger"></i> {{ _('المخاطرة:') }} {{ _('عالية جداً') }}</li>
+                            <li><i class="fas fa-sack-dollar text-success"></i> {{ _('الجائزة:') }} 10k - 50k {{ _('شيكل') }}</li>
+                        </ul>
+                    </div>
+                   
+                    <form action="{{ url_for('main.hack_bank') }}" method="POST" class="mt-3">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                        <button type="submit" class="btn btn-warning btn-block btn-lg text-dark font-weight-bold">
+                            <i class="fas fa-laptop"></i> {{ _('اختراق نظام البنك') }}
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row mt-4">
+        <div class="col-12 text-center">
+            <div class="alert alert-secondary">
+                <i class="fas fa-info-circle"></i> {{ _('نصيحة: طور مستوى ذكائك عبر الدراسة في النادي الرياضي أو القيام بعمليات التجسس والقرصنة الناجحة.') }}
+            </div>
+            <a href="{{ url_for('main.hara') }}" class="btn btn-outline-light">{{ _('عودة للحارة') }}</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

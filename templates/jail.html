@@ -1,0 +1,172 @@
+{% extends "base.html" %}
+
+{% block title %}{{ _('السجن المركزي') }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    
+    <!-- Header -->
+    <div class="jail-header fade-in-down">
+        <div class="jail-bars"></div>
+        <div class="jail-header-content">
+            <h2 class="gold-text-gradient mb-2 display-4 font-weight-bold"><i class="fas fa-dungeon mr-2"></i> {{ _('السجن المركزي') }}</h2>
+            <p class="text-light opacity-75">{{ _('مكان من يدفع ثمن جرائمه... أو ينتظر من يخرجه') }}</p>
+        </div>
+    </div>
+
+    <!-- User Status -->
+    <div class="row justify-content-center fade-in-up delay-1">
+        <div class="col-md-8">
+            {% if user.jail_until and user.jail_until > now %}
+                <div class="status-card jailed">
+                    <div class="mb-3">
+                        <div class="d-inline-block p-3 rounded-circle jail-icon-bg">
+                            <i class="fas fa-lock fa-3x text-danger"></i>
+                        </div>
+                    </div>
+                    <h3 class="text-white mb-2">{{ _('أنت مسجون!') }}</h3>
+                    <p class="text-muted mb-4">{{ _('لقد تم القبض عليك أثناء قيامك بعمل غير قانوني.') }}</p>
+                    
+                    <div class="d-flex justify-content-center align-items-center p-3 rounded jail-timer-container">
+                        <div class="display-4 text-danger fw-bold mx-3" id="jail-timer" data-until="{{ user.jail_until.timestamp() }}">
+                            {{ ((user.jail_until - now).seconds / 60) | int }}:{{ ((user.jail_until - now).seconds % 60) | int }}
+                        </div>
+                        <div class="text-left">
+                            <div class="text-white fw-bold">{{ _('الوقت المتبقي') }}</div>
+                            <div class="text-muted small">{{ _('حتى الحرية') }}</div>
+                        </div>
+                    </div>
+                    
+                    {% if enable_bribe %}
+                    <div class="mt-4">
+                        <form action="{{ url_for('jail.bribe') }}" method="POST">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                            <button type="submit" class="btn btn-outline-warning rounded-pill px-4">
+                                <i class="fas fa-coins mr-2"></i> {{ _('دفع رشوة') }} ({{ bribe_cost }})
+                            </button>
+                        </form>
+                    </div>
+                    {% endif %}
+                </div>
+            {% else %}
+                <div class="status-card free">
+                    <div class="mb-3">
+                        <div class="d-inline-block p-3 rounded-circle jail-icon-bg-success">
+                            <i class="fas fa-door-open fa-3x text-success"></i>
+                        </div>
+                    </div>
+                    <h3 class="text-white mb-2">{{ _('أنت حر طليق') }}</h3>
+                    <p class="text-muted">{{ _('حاول أن تبقى بعيداً عن المشاكل... أو لا، الخيار لك!') }}</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Prisoners List -->
+    <div class="row mt-4 fade-in-up delay-2">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4 px-2">
+                <h4 class="text-white mb-0 border-right border-4 border-warning pr-3 mr-2">{{ _('قائمة المساجين') }}</h4>
+                <span class="badge bg-dark border border-warning text-warning shadow-sm">{{ jailed_users|length }} {{ _('سجين') }}</span>
+            </div>
+
+            {% if jailed_users %}
+                <div class="row">
+                {% for prisoner in jailed_users %}
+                    <div class="col-md-6 col-lg-4 mb-4 prisoner-card-wrapper">
+                        <div class="prisoner-card fade-in-right">
+                            <div class="d-flex align-items-center">
+                                <div class="prisoner-avatar">
+                                    <i class="fas fa-user"></i>
+                                </div>
+                                <div class="prisoner-info">
+                                    <h5>{{ prisoner.username }}</h5>
+                                    <small><i class="fas fa-gavel text-secondary mr-1"></i> {{ _('مخالفة قانونية') }}</small>
+                                </div>
+                            </div>
+                            <div class="text-right jail-actions-col">
+                                <div class="time-badge mb-2">
+                                    <i class="far fa-clock mr-1"></i> {{ prisoner.jail_until.strftime('%H:%M') }}
+                                </div>
+                                
+                                {% if user.id != prisoner.id and enable_bribe %}
+                                <form action="{{ url_for('jail.pay_bail', prisoner_id=prisoner.id) }}" method="POST" class="mb-2">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                    <button type="submit" 
+                                            class="btn btn-info btn-sm font-weight-bold shadow-sm w-100 py-2" 
+                                            {% if user.diamonds < bail_cost_diamonds %}disabled{% endif %} 
+                                            title="{% if user.diamonds < bail_cost_diamonds %}{{ _('لا تملك ألماس كافٍ') }}{% endif %}">
+                                        <div class="d-flex justify-content-center align-items-center">
+                                            <span class="d-flex align-items-center"><i class="fas fa-gem ml-2"></i> {{ _('كفالة') }}</span>
+                                            <span class="badge bg-dark text-info mr-2 border border-info px-2 d-flex align-items-center jail-cost-badge">
+                                                {{ bail_cost_diamonds }} <i class="fas fa-gem mr-1"></i>
+                                            </span>
+                                        </div>
+                                    </button>
+                                </form>
+                                {% endif %}
+
+                                <form action="{{ url_for('jail.breakout', prisoner_id=prisoner.id) }}" method="POST">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                    {% set is_disabled = not enable_breakout or user.energy < 50 %}
+                                    <button type="submit" 
+                                            class="btn btn-warning btn-sm font-weight-bold shadow-sm w-100 py-2 jail-breakout-btn-force" 
+                                            {% if is_disabled %}disabled{% endif %} 
+                                            title="{% if not enable_breakout %}{{ _('النظام معطل') }}{% elif user.energy < 50 %}{{ _('لا تملك طاقة كافية (50)') }}{% endif %}">
+                                        <div class="d-flex justify-content-center align-items-center">
+                                            <span class="d-flex align-items-center"><i class="fas fa-bomb ml-2"></i> {{ _('تهريب') }}</span>
+                                            <span class="badge bg-dark text-warning mr-2 border border-warning px-2 d-flex align-items-center jail-cost-badge">
+                                                50 <i class="fas fa-bolt mr-1"></i>
+                                            </span>
+                                        </div>
+                                        {% if is_disabled %}
+                                        <small class="d-block mt-1 font-weight-bold jail-error-text">
+                                            {% if not enable_breakout %}{{ _('النظام معطل') }}{% elif user.energy < 50 %}{{ _('طاقتك: %(eng)s', eng=user.energy) }}{% endif %}
+                                        </small>
+                                        {% endif %}
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+                </div>
+            {% else %}
+                <div class="text-center p-5 rounded-3 jail-empty-state">
+                    <i class="fas fa-wind fa-3x text-muted mb-3 opacity-50"></i>
+                    <h5 class="text-muted">{{ _('السجن فارغ تماماً') }}</h5>
+                    <p class="text-muted small mb-0">{{ _('الشرطة تقوم بعمل سيء، أو أن المجرمين أصبحوا أذكياء!') }}</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const timerElement = document.getElementById('jail-timer');
+        if (timerElement) {
+            const untilTimestamp = parseFloat(timerElement.dataset.until);
+            
+            function updateTimer() {
+                const now = Date.now() / 1000;
+                const remaining = untilTimestamp - now;
+                
+                if (remaining <= 0) {
+                    timerElement.textContent = "0:00";
+                    window.location.reload(); // Reload to free the user
+                    return;
+                }
+                
+                const minutes = Math.floor(remaining / 60);
+                const seconds = Math.floor(remaining % 60);
+                
+                timerElement.textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+            }
+            
+            updateTimer(); // Initial call
+            setInterval(updateTimer, 1000); // Update every second
+        }
+    });
+</script>
+{% endblock %}

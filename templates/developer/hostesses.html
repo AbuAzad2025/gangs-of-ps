@@ -1,0 +1,86 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>{{ _('إدارة المضيفات') }}</h2>
+        <div>
+            <a href="{{ url_for('main.dev_scenarios') }}" class="btn btn-warning me-2">
+                <i class="fas fa-film"></i> {{ _('مكتبة سيناريوهات الفيديو') }}
+            </a>
+            <a href="{{ url_for('main.dev_hostess_edit') }}" class="btn btn-primary">
+                <i class="fas fa-plus"></i> {{ _('إضافة مضيفة جديدة') }}
+            </a>
+        </div>
+    </div>
+
+    <div class="card bg-dark text-light border-gold">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover table-dark">
+                    <thead>
+                        <tr>
+                            <th>{{ _('الصورة') }}</th>
+                            <th>{{ _('الاسم') }}</th>
+                            <th>{{ _('الدور') }}</th>
+                            <th>{{ _('المستوى') }}</th>
+                            <th>{{ _('السعر') }}</th>
+                            <th>{{ _('النمط') }}</th>
+                            <th>{{ _('الحالة') }}</th>
+                            <th>{{ _('إجراءات') }}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for hostess in hostesses %}
+                        <tr>
+                            <td>
+                                <img src="{{ url_for('static', filename='images/hostesses/' + hostess.image) }}" 
+                                     class="rounded-circle" width="50" height="50" 
+                                     style="object-fit: cover;"
+                                     onerror="this.src='{{ url_for('static', filename='images/hostesses/default_hostess.jpg') }}'">
+                            </td>
+                            <td>{{ hostess.name }}</td>
+                            <td>
+                                <span class="badge bg-{{ 'info' if hostess.role == 'luck' else 'danger' if hostess.role == 'spy' else 'success' }}">
+                                    {{ hostess.role }}
+                                </span>
+                            </td>
+                            <td>
+                                <span class="badge bg-secondary">{{ _('مستوى') }} {{ hostess.level }}</span>
+                            </td>
+                            <td>${{ hostess.price }}</td>
+                            <td>{{ hostess.dialogue_style }}</td>
+                            <td>
+                                {% if hostess.is_active %}
+                                <span class="badge bg-success">{{ _('نشط') }}</span>
+                                {% else %}
+                                <span class="badge bg-secondary">{{ _('غير نشط') }}</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <a href="{{ url_for('main.dev_hostess_edit', id=hostess.id) }}" class="btn btn-sm btn-info">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                <a href="{{ url_for('main.dev_hostess_trainer', id=hostess.id) }}" class="btn btn-sm btn-warning">
+                                    <i class="fas fa-dumbbell"></i>
+                                </a>
+                                <form action="{{ url_for('main.dev_hostess_delete', id=hostess.id) }}" method="post" style="display:inline;" onsubmit="return confirm('{{ _('هل أنت متأكد من حذف المضيفة؟') }}')">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                    <button type="submit" class="btn btn-sm btn-danger">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="7" class="text-center">{{ _('لا يوجد مضيفات حالياً') }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

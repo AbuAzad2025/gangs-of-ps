@@ -1,0 +1,301 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row mb-4 fade-in">
+    <div class="col-12 text-center">
+        <h1 class="display-4 font-weight-bold text-uppercase crime-title">
+            <i class="fas fa-mask mr-3"></i>{{ _('عالم الجريمة') }}
+        </h1>
+        <p class="lead text-muted">{{ _('خاطر بحياتك من أجل المال والسلطة') }}</p>
+        <div class="separator mx-auto mt-3 crime-header-separator"></div>
+    </div>
+</div>
+
+<!-- Counters Section -->
+<div class="row mb-4">
+    <div class="col-md-4 mb-3">
+        <div class="luxury-card p-3 text-center">
+            <h6 class="text-muted text-uppercase mb-2">{{ _('الطاقة الحالية') }}</h6>
+            <div class="progress bg-dark border border-secondary mb-2 progress-height-15">
+                <div class="progress-bar bg-warning progress-dynamic" role="progressbar" style="--progress-width: {{ (user.energy / user.max_energy) * 100 }}%;" aria-valuenow="{{ user.energy }}" aria-valuemin="0" aria-valuemax="{{ user.max_energy }}"></div>
+            </div>
+            <span class="h4 text-warning font-weight-bold">{{ user.energy }} / {{ user.max_energy }}</span>
+        </div>
+    </div>
+    <div class="col-md-4 mb-3">
+        <div class="luxury-card p-3 text-center">
+            <h6 class="text-muted text-uppercase mb-2">{{ _('استعادة الطاقة') }}</h6>
+            <div class="d-flex justify-content-center align-items-center">
+                <i class="fas fa-clock text-info mr-2"></i>
+                <span class="h4 text-info font-weight-bold" id="energy-timer">00:00</span>
+            </div>
+            <small class="text-muted">{{ _('يتم استعادة الطاقة كل 5 دقائق') }}</small>
+        </div>
+    </div>
+    <div class="col-md-4 mb-3">
+        <div class="luxury-card p-3 text-center">
+            <h6 class="text-muted text-uppercase mb-2">{{ _('نسبة النجاح العامة') }}</h6>
+            <div class="d-flex justify-content-center align-items-center">
+                <i class="fas fa-chart-line text-success mr-2"></i>
+                <span class="h4 text-success font-weight-bold">{{ _('متغيرة حسب الصعوبة') }}</span>
+            </div>
+            <small class="text-muted">{{ _('كلما زاد المستوى زادت التحديات') }}</small>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    {% for crime in crimes %}
+    {# New Professional Difficulty Logic in Template #}
+    {% set difficulty_ratio = user.level / [crime.min_level, 1]|max %}
+    {% set success_chance = (60 * difficulty_ratio)|int %}
+    {% if success_chance > 95 %} {% set success_chance = 95 %} {% endif %}
+    {% if success_chance < 15 %} {% set success_chance = 15 %} {% endif %}
+
+    {# Check Requirements #}
+    {% set is_level_ok = user.level >= crime.min_level %}
+    {% set is_str_ok = user.strength >= (crime.min_strength or 0) %}
+    {% set is_agl_ok = user.agility >= (crime.min_agility or 0) %}
+    {% set is_locked = not (is_level_ok and is_str_ok and is_agl_ok) %}
+    
+    <div class="col-lg-4 col-md-6 mb-4 fade-in-up anim-delay-{{ loop.index if loop.index <= 20 else 20 }}">
+        <div class="crime-card {{ 'locked' if is_locked else '' }}">
+            <div class="card-body text-center p-4">
+                <span class="level-badge">
+                    <i class="fas fa-layer-group mr-1"></i> {{ _('مستوى') }} {{ crime.min_level }}
+                </span>
+
+                <div class="crime-icon-wrapper">
+                    {% if is_locked %}
+                        <i class="fas fa-lock fa-2x text-warning"></i>
+                    {% else %}
+                        {% if crime.image %}
+                            <img src="{{ url_for('static', filename=crime.image) }}"
+                                 class="img-fluid rounded-circle crime-image"
+                                 alt="{{ _(crime.name) }}"
+                                 onerror="this.onerror=null; this.src='{{ url_for('static', filename='crimes/wallet.jpg') }}';">
+                        {% else %}
+                            <i class="fas fa-fist-raised fa-2x text-gold"></i>
+                        {% endif %}
+                    {% endif %}
+                </div>
+
+                {% if is_locked %}
+                    <h3 class="crime-title h4 mb-3">{{ _('جريمة مقفولة') }}</h3>
+                    <p class="text-muted small mb-4 crime-desc-clamp">{{ _('طور نفسك لفتحها…') }}</p>
+                {% else %}
+                    <h3 class="crime-title h4 mb-3">{{ _(crime.name) }}</h3>
+                    <p class="text-muted small mb-4 crime-desc-clamp">{{ _(crime.description) }}</p>
+                {% endif %}
+
+                <div class="crime-stats mb-4">
+                    <div class="crime-stat-row">
+                        <span class="crime-stat-label"><i class="fas fa-bolt text-warning mr-1"></i> {{ _('الطاقة') }}</span>
+                        <span class="crime-stat-value text-warning">{{ crime.energy_cost }}</span>
+                    </div>
+                    {% if not is_locked %}
+                        <div class="crime-stat-row">
+                            <span class="crime-stat-label"><i class="fas fa-coins text-success mr-1"></i> {{ _('المكافأة') }}</span>
+                            {% if crime.reward_type == 'vehicle' %}
+                                <span class="crime-stat-value text-success">{{ _('سيارة مسروقة') }}</span>
+                            {% elif crime.reward_type == 'item' %}
+                                <span class="crime-stat-value text-success">{{ _('مسروقات') }}</span>
+                            {% else %}
+                                <span class="crime-stat-value text-success">${{ "{:,}".format(crime.money_reward_min) }} - ${{ "{:,}".format(crime.money_reward_max) }}</span>
+                            {% endif %}
+                        </div>
+                    {% else %}
+                        <div class="crime-stat-row">
+                            <span class="crime-stat-label"><i class="fas fa-lock text-warning mr-1"></i> {{ _('متطلبات') }}</span>
+                            <span class="crime-stat-value text-warning">
+                                {% if not is_level_ok %}{{ _('مستوى') }} {{ crime.min_level }}{% endif %}
+                                {% if not is_str_ok %}{% if not is_level_ok %} — {% endif %}{{ _('قوة') }} {{ crime.min_strength or 0 }}{% endif %}
+                                {% if not is_agl_ok %}{% if not is_level_ok or not is_str_ok %} — {% endif %}{{ _('رشاقة') }} {{ crime.min_agility or 0 }}{% endif %}
+                            </span>
+                        </div>
+                    {% endif %}
+                    {% if crime.reward_type == 'vehicle' %}
+                    <div class="crime-stat-row">
+                        <span class="crime-stat-label"><i class="fas fa-tools text-warning mr-1"></i> {{ _('ملاحظة') }}</span>
+                        <span class="crime-stat-value text-warning">{{ _('تحتاج تصليح بالمرآب') }}</span>
+                    </div>
+                    {% if crime.money_reward_max and crime.money_reward_max > 0 %}
+                    <div class="crime-stat-row">
+                        <span class="crime-stat-label"><i class="fas fa-coins text-success mr-1"></i> {{ _('كاش') }}</span>
+                        <span class="crime-stat-value text-success">${{ "{:,}".format(crime.money_reward_min) }} - ${{ "{:,}".format(crime.money_reward_max) }}</span>
+                    </div>
+                    {% endif %}
+                    {% elif crime.reward_type == 'item' %}
+                    <div class="crime-stat-row">
+                        <span class="crime-stat-label"><i class="fas fa-sack-dollar text-info mr-1"></i> {{ _('البيع') }}</span>
+                        <span class="crime-stat-value text-info">{{ _('تصلّحها وتبيعها بالسوق السوداء') }}</span>
+                    </div>
+                    {% if crime.money_reward_max and crime.money_reward_max > 0 %}
+                    <div class="crime-stat-row">
+                        <span class="crime-stat-label"><i class="fas fa-coins text-success mr-1"></i> {{ _('كاش') }}</span>
+                        <span class="crime-stat-value text-success">${{ "{:,}".format(crime.money_reward_min) }} - ${{ "{:,}".format(crime.money_reward_max) }}</span>
+                    </div>
+                    {% endif %}
+                    {% set preview_items = (reward_previews.get(crime.id) if reward_previews else []) %}
+                    {% if preview_items %}
+                    <div class="mt-2 d-flex flex-wrap justify-content-center">
+                        {% for it in preview_items %}
+                            <div class="preview-item-box mx-1 mb-1">
+                                {% if it.image %}
+                                    <img src="{{ url_for('static', filename=it.image) }}" alt="{{ _(it.name) }}" class="img-cover-full" onerror="this.onerror=null; this.src='{{ url_for('static', filename='crimes/wallet.jpg') }}';">
+                                {% else %}
+                                    <i class="fas fa-gem text-success"></i>
+                                {% endif %}
+                            </div>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                    {% endif %}
+                    <div class="crime-stat-row">
+                        <span class="crime-stat-label"><i class="fas fa-star text-info mr-1"></i> {{ _('الخبرة') }}</span>
+                        <span class="crime-stat-value text-info">{{ crime.exp_reward }} EXP</span>
+                    </div>
+                    
+                    <!-- Requirements Section -->
+                    {% if (crime.min_strength and crime.min_strength > 0) or (crime.min_agility and crime.min_agility > 0) %}
+                    <div class="crime-stat-row crime-req-row">
+                        <span class="crime-stat-label text-light">{{ _('المتطلبات') }}</span>
+                        <div class="text-right">
+                            {% if crime.min_strength and crime.min_strength > 0 %}
+                                <span class="badge {{ 'badge-success' if is_str_ok else 'badge-danger' }} ml-1" title="{{ _('القوة المطلوبة') }}">
+                                    <i class="fas fa-dumbbell"></i> {{ crime.min_strength }}
+                                </span>
+                            {% endif %}
+                            {% if crime.min_agility and crime.min_agility > 0 %}
+                                <span class="badge {{ 'badge-success' if is_agl_ok else 'badge-danger' }} ml-1" title="{{ _('الخفة المطلوبة') }}">
+                                    <i class="fas fa-running"></i> {{ crime.min_agility }}
+                                </span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <!-- Success Chance Counter -->
+                    <div class="mt-3">
+                        <div class="d-flex justify-content-between mb-1">
+                            <small class="text-muted">{{ _('نسبة النجاح') }}</small>
+                            <small class="{{ 'text-success' if success_chance > 70 else 'text-warning' if success_chance > 40 else 'text-danger' }} font-weight-bold">{{ success_chance }}%</small>
+                        </div>
+                        <div class="progress bg-dark border border-secondary progress-height-6">
+                            <div class="progress-bar {{ 'bg-success' if success_chance > 70 else 'bg-warning' if success_chance > 40 else 'bg-danger' }} w-dynamic" role="progressbar" style="--width: {{ success_chance }}%;" aria-valuenow="{{ success_chance }}" aria-valuemin="0" aria-valuemax="100"></div>
+                        </div>
+                    </div>
+                </div>
+                
+                {% set cooldown_end = cooldown_map.get(crime.id) %}
+                {% if global_cooldown_until_ms and not is_locked %}
+                    <button class="btn btn-secondary btn-block btn-lg" disabled>
+                        <i class="fas fa-hourglass-half mr-2"></i>
+                        <span class="crime-countdown" data-until-ms="{{ global_cooldown_until_ms }}">{{ _('متبقي...') }}</span>
+                    </button>
+                {% elif cooldown_end %}
+                    <button class="btn btn-secondary btn-block btn-lg" disabled>
+                        <i class="fas fa-clock mr-2"></i> 
+                        <span class="crime-countdown" data-until-ms="{{ (cooldown_end.timestamp() * 1000)|int }}">{{ _('متبقي...') }}</span>
+                    </button>
+                {% elif not is_locked %}
+                    <a href="{{ url_for('main.do_crime', crime_id=crime.id) }}" class="btn btn-crime btn-block btn-lg shadow-sm shine-effect">
+                        <i class="fas fa-mask mr-2"></i> {{ _('نفذ العملية') }}
+                    </a>
+                    {% if crime.reward_type == 'item' %}
+                        <a href="{{ url_for('black_market.index') }}" class="btn btn-outline-info btn-block mt-2">
+                            <i class="fas fa-sack-dollar mr-2"></i> {{ _('تصليح/بيع المسروقات') }}
+                        </a>
+                    {% elif crime.reward_type == 'vehicle' %}
+                        <a href="{{ url_for('main.garage') }}" class="btn btn-outline-warning btn-block mt-2">
+                            <i class="fas fa-car mr-2"></i> {{ _('المرآب وإصلاح السيارات') }}
+                        </a>
+                    {% endif %}
+                {% else %}
+                    <button class="btn btn-locked btn-block btn-lg" disabled>
+                        <i class="fas fa-lock mr-2"></i>
+                        {% if not is_level_ok %} {{ _('مستوى') }} {{ crime.min_level }} {% endif %}
+                        {% if not is_str_ok %} {{ _('قوة') }} {{ crime.min_strength }} {% endif %}
+                        {% if not is_agl_ok %} {{ _('خفة') }} {{ crime.min_agility }} {% endif %}
+                    </button>
+                    <div class="mt-2 text-info small">
+                        {% if not is_level_ok %}
+                            <a href="{{ url_for('main.daily_tasks') }}" class="text-info">{{ _('نصيحة: نفّذ المهام اليومية لتتطور أسرع.') }}</a>
+                        {% else %}
+                            <a href="{{ url_for('gym.index') }}" class="text-info">{{ _('نصيحة: روح الجيم وطور مهاراتك.') }}</a>
+                        {% endif %}
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+<script>
+    // Crime Countdown Timer
+    function updateCountdowns() {
+        const now = Date.now();
+        document.querySelectorAll('.crime-countdown').forEach(el => {
+            const untilMsStr = el.getAttribute('data-until-ms');
+            const untilMs = parseInt(untilMsStr || "0", 10);
+            const distance = untilMs - now;
+
+            if (distance < 0) {
+                el.innerHTML = "{{ _('جاهز!') }}";
+                // Optional: reload page to enable button
+                if (!el.dataset.reloaded) {
+                    el.dataset.reloaded = "true";
+                    location.reload();
+                }
+            } else {
+                const totalSeconds = Math.max(0, Math.ceil(distance / 1000));
+                const minutes = Math.floor(totalSeconds / 60);
+                const seconds = totalSeconds % 60;
+                const mm = String(minutes).padStart(2, "0");
+                const ss = String(seconds).padStart(2, "0");
+                el.innerHTML = "{{ _('متبقي') }} " + mm + ":" + ss;
+            }
+        });
+    }
+
+    // Energy Timer
+    function updateEnergyTimer() {
+        const now = new Date();
+        const minutes = now.getMinutes();
+        const seconds = now.getSeconds();
+        const nextResetMinute = Math.ceil(minutes / 5) * 5; 
+        let diffMinutes = nextResetMinute - minutes - 1;
+        let diffSeconds = 60 - seconds;
+        
+        if (diffSeconds === 60) {
+            diffSeconds = 0;
+            diffMinutes += 1;
+        }
+        
+        // Fix for edge case exactly on the minute
+        if (minutes % 5 === 0 && seconds === 0) {
+            diffMinutes = 4;
+            diffSeconds = 59; // actually just reset
+        } else if (minutes % 5 === 0) {
+             diffMinutes = 4;
+        }
+
+        // Just simplistic 5 min loop from 00:00 to 05:00
+        // A better way is server time, but this is visual only
+        // Let's rely on server sync? No, keep it simple.
+        // Assuming cron runs at :00, :05, :10...
+        
+        let displayMin = diffMinutes < 0 ? 4 : diffMinutes;
+        let displaySec = diffSeconds < 10 ? "0" + diffSeconds : diffSeconds;
+        
+        const timerEl = document.getElementById('energy-timer');
+        if(timerEl) timerEl.innerText = displayMin + ":" + displaySec;
+    }
+
+    setInterval(updateCountdowns, 1000);
+    setInterval(updateEnergyTimer, 1000);
+    updateCountdowns();
+    updateEnergyTimer();
+</script>
+{% endblock %}

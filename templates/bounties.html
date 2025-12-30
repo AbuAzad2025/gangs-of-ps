@@ -1,0 +1,139 @@
+{% extends "base.html" %}
+
+{% block title %}{{ _('قائمة المطلوبين') }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid position-relative">
+    <!-- Background Pattern -->
+    <div class="bounties-bg-pattern"></div>
+
+    <div class="row position-relative" style="z-index: 1;">
+        <!-- Place Bounty Form -->
+        <div class="col-md-4 mb-4">
+            <div class="card luxury-card h-100">
+                <div class="card-header luxury-header-gold">
+                    <h3 class="card-title gold-text-gradient mb-0">
+                        <i class="fas fa-crosshairs mr-2"></i> {{ _('وضع مكافأة') }}
+                    </h3>
+                </div>
+                <form action="{{ url_for('bounties.place') }}" method="post" class="h-100 d-flex flex-column">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <div class="card-body">
+                        <div class="form-group">
+                            <label for="username" class="text-light">{{ _('اسم الضحية') }}</label>
+                            <div class="input-group">
+                                <div class="input-group-prepend">
+                                    <span class="input-group-text bg-dark border-gold text-gold"><i class="fas fa-user"></i></span>
+                                </div>
+                                <input type="text" class="form-control bg-dark text-white border-gold" id="username" name="username" placeholder="{{ _('أدخل اسم المستخدم') }}" required>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="amount" class="text-light">{{ _('مبلغ المكافأة') }}</label>
+                            <div class="input-group">
+                                <div class="input-group-prepend">
+                                    <span class="input-group-text bg-dark border-gold text-gold">$</span>
+                                </div>
+                                <input type="number" class="form-control bg-dark text-white border-gold" id="amount" name="amount" placeholder="{{ _('أدخل المبلغ') }}" min="1" required>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <div class="custom-control custom-switch">
+                                <input type="checkbox" class="custom-control-input" id="anonymous" name="anonymous">
+                                <label class="custom-control-label text-light" for="anonymous">{{ _('إخفاء هويتك (مجهول)') }}</label>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-footer bg-transparent border-0 mt-auto">
+                        <button type="submit" class="btn btn-danger btn-block font-weight-bold shadow-sm hover-scale">
+                            <i class="fas fa-skull mr-2"></i> {{ _('نشر المكافأة') }}
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Bounties List -->
+        <div class="col-md-8 mb-4">
+            <div class="card luxury-card h-100">
+                <div class="card-header luxury-header">
+                    <h3 class="card-title gold-text-gradient mb-0">
+                        <i class="fas fa-list-alt mr-2"></i> {{ _('لائحة المطلوبين') }}
+                    </h3>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover text-nowrap luxury-table mb-0">
+                            <thead>
+                                <tr>
+                                    <th>{{ _('المطلوب') }}</th>
+                                    <th>{{ _('المكافأة') }}</th>
+                                    <th>{{ _('بواسطة') }}</th>
+                                    <th class="text-right">{{ _('إجراءات') }}</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for bounty in bounties %}
+                                <tr class="stagger-animation" style="animation-delay: {{ loop.index * 0.1 }}s;">
+                                    <td class="align-middle">
+                                        <a href="{{ url_for('main.profile', user_id=bounty.target.id) }}" class="d-flex align-items-center text-white text-decoration-none">
+                                            <div class="position-relative mr-2">
+                                                {% if bounty.target.avatar and bounty.target.avatar != 'default.png' %}
+                                                    <img src="{{ url_for('static', filename='avatars/' + bounty.target.avatar) }}" class="img-circle img-sm border-gold" alt="User Image">
+                                                {% else %}
+                                                    <img src="https://ui-avatars.com/api/?name={{ bounty.target.username }}&background=random" class="img-circle img-sm border-gold" alt="User Image">
+                                                {% endif %}
+                                            </div>
+                                            <span class="font-weight-bold">{{ bounty.target.username }}</span>
+                                        </a>
+                                    </td>
+                                    <td class="align-middle">
+                                        <span class="badge badge-success p-2 font-weight-bold border border-success" style="font-size: 1em;">
+                                            ${{ "{:,}".format(bounty.amount) }}
+                                        </span>
+                                    </td>
+                                    <td class="align-middle">
+                                        {% if bounty.is_anonymous %}
+                                            <span class="text-muted font-italic"><i class="fas fa-user-secret"></i> {{ _('مجهول') }}</span>
+                                        {% else %}
+                                            <a href="{{ url_for('main.profile', user_id=bounty.placer.id) }}" class="text-gold">
+                                                {{ bounty.placer.username }}
+                                            </a>
+                                        {% endif %}
+                                    </td>
+                                    <td class="align-middle text-right">
+                                        {% if bounty.target_id == current_user.id %}
+                                            <form action="{{ url_for('bounties.buy_off', bounty_id=bounty.id) }}" method="post" style="display:inline;">
+                                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                                <button type="submit" class="btn btn-sm btn-outline-success font-weight-bold hover-scale" title="{{ _('دفع الفدية لإزالة المكافأة') }}">
+                                                    <i class="fas fa-hand-holding-usd mr-1"></i> {{ _('دفع الفدية') }}
+                                                </button>
+                                            </form>
+                                        {% else %}
+                                            <form action="{{ url_for('combat.attack', target_id=bounty.target.id) }}" method="post" style="display:inline;">
+                                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                                <button type="submit" class="btn btn-sm btn-outline-danger font-weight-bold hover-scale">
+                                                    <i class="fas fa-crosshairs mr-1"></i> {{ _('هجوم') }}
+                                                </button>
+                                            </form>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% else %}
+                                <tr>
+                                    <td colspan="4" class="text-center py-5 text-muted">
+                                        <i class="fas fa-check-circle fa-3x mb-3 opacity-50"></i>
+                                        <p>{{ _('الشارع هادئ... لا توجد مكافآت حالياً.') }}</p>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

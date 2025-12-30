@@ -1,0 +1,106 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="luxury-card fade-in-up mb-4">
+    <div class="card-header">
+        <h3 class="card-title text-gradient-gold">
+            <i class="fas fa-user-shield mr-2"></i> {{ _('إنجازات اللاعب') }}: {{ user.username }}
+        </h3>
+        <div class="card-tools">
+            <a href="{{ url_for('main.dev_user_edit', id=user.id) }}" class="btn btn-outline-secondary btn-sm">
+                <i class="fas fa-arrow-right"></i> {{ _('عودة') }}
+            </a>
+        </div>
+    </div>
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-6 mb-3">
+                <div class="p-3 bg-dark rounded border border-secondary">
+                    <div class="text-muted">{{ _('المستوى') }}: <span class="text-gold font-weight-bold">{{ user.level }}</span></div>
+                    <div class="text-muted">{{ _('الدور') }}: <span class="text-gold font-weight-bold">{{ user.role.name }}</span></div>
+                    <div class="text-muted">{{ _('النقاط') }}: <span class="text-gold font-weight-bold">{{ user.rank_points_value }}</span></div>
+                </div>
+            </div>
+            <div class="col-md-6 mb-3">
+                <div class="p-3 bg-dark rounded border border-secondary">
+                    <form method="post" action="{{ url_for('main.dev_user_achievements_grant', user_id=user.id) }}">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                        <div class="form-group mb-2">
+                            <label class="text-gold">{{ _('إضافة إنجاز') }}</label>
+                            <select name="achievement_id" class="form-control form-control-luxury">
+                                {% for a in available %}
+                                <option value="{{ a.id }}">{{ a.key }} — {{ a.title }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <button type="submit" class="btn btn-luxury-action">
+                                <i class="fas fa-plus"></i> {{ _('إضافة') }}
+                            </button>
+                            <a href="{{ url_for('main.dev_achievements') }}" class="btn btn-outline-warning">
+                                <i class="fas fa-award"></i> {{ _('إدارة الإنجازات') }}
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="luxury-card fade-in-up">
+    <div class="card-header">
+        <h3 class="card-title text-gradient-gold"><i class="fas fa-award mr-2"></i> {{ _('الإنجازات المفتوحة') }}</h3>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table luxury-table luxury-table-striped projects">
+                <thead>
+                    <tr>
+                        <th style="width: 10%">{{ _('التاريخ') }}</th>
+                        <th style="width: 15%">{{ _('المعرف') }}</th>
+                        <th style="width: 25%">{{ _('العنوان') }}</th>
+                        <th style="width: 10%" class="text-center">{{ _('النقاط') }}</th>
+                        <th>{{ _('الوصف') }}</th>
+                        <th style="width: 15%"></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for ua in unlocked %}
+                    <tr style="animation: fadeInUp 0.5s ease backwards; animation-delay: {{ loop.index0 * 0.03 }}s;">
+                        <td class="text-muted">
+                            {% if ua.unlocked_at %}
+                                {{ ua.unlocked_at.strftime('%Y-%m-%d') }}
+                            {% else %}
+                                -
+                            {% endif %}
+                        </td>
+                        <td><span class="badge badge-dark">{{ ua.achievement.key }}</span></td>
+                        <td class="font-weight-bold text-gold">{{ ua.achievement.title }}</td>
+                        <td class="text-center">{{ ua.achievement.points or 0 }}</td>
+                        <td>
+                            <div style="max-width: 420px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="{{ ua.achievement.description }}">
+                                {{ ua.achievement.description or '-' }}
+                            </div>
+                        </td>
+                        <td class="project-actions text-right">
+                            <form method="post" action="{{ url_for('main.dev_user_achievements_revoke', user_id=user.id, user_achievement_id=ua.id) }}" style="display:inline;">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                                <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('{{ _('هل أنت متأكد من الإزالة؟') }}')">
+                                    <i class="fas fa-trash"></i> {{ _('إزالة') }}
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="6" class="text-center py-4 text-muted">{{ _('لا توجد إنجازات مفتوحة لهذا اللاعب') }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

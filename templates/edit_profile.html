@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<div class="row justify-content-center">
+    <div class="col-md-10">
+        <div class="card luxury-card">
+            <div class="card-header luxury-header">
+                <h3 class="card-title luxury-title">
+                    <i class="fas fa-user-edit mr-2"></i> {{ _('تغيير الصورة الشخصية') }}
+                </h3>
+            </div>
+            <div class="card-body p-4">
+                <div class="mb-5 pb-4 border-bottom border-secondary">
+                    <h5 class="text-white mb-3">{{ _('رفع صورة جديدة') }}</h5>
+                    <form method="POST" enctype="multipart/form-data">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                        <div class="input-group">
+                            <div class="custom-file">
+                                <input type="file" class="custom-file-input" id="avatarUpload" name="avatar_upload" accept="image/*" required>
+                                <label class="custom-file-label custom-file-label-luxury" for="avatarUpload">{{ _('اختر صورة...') }}</label>
+                            </div>
+                            <div class="input-group-append">
+                                <button type="submit" class="btn btn-luxury">{{ _('رفع') }}</button>
+                            </div>
+                        </div>
+                        <small class="form-text text-muted mt-2">{{ _('الحجم الأقصى 2 ميجابايت. الصيغ المدعومة: PNG, JPG, GIF') }}</small>
+                    </form>
+                </div>
+
+                <h5 class="text-white mb-4">{{ _('أو اختر من القائمة') }}</h5>
+                {% if avatars %}
+                <form method="POST">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                    <div class="row text-center">
+                        {% for avatar in avatars %}
+                        <div class="col-6 col-sm-4 col-md-3 col-lg-2 mb-4">
+                            <label class="d-block avatar-option {% if current_user.avatar == avatar %}selected{% endif %}">
+                                <input type="radio" name="avatar" value="{{ avatar }}" class="d-none" onchange="this.form.submit()">
+                                <img src="{{ url_for('static', filename='avatars/' + avatar) }}" 
+                                     class="img-fluid avatar-img" 
+                                     alt="Avatar">
+                            </label>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </form>
+                {% else %}
+                <div class="alert alert-warning border-gold" style="background: rgba(255, 193, 7, 0.1);">
+                    {{ _('لا توجد صور رمزية متاحة حالياً. يرجى مراجعة الإدارة.') }}
+                </div>
+                {% endif %}
+            </div>
+            <div class="card-footer bg-transparent border-top border-secondary">
+                <a href="{{ url_for('main.profile', user_id=current_user.id) }}" class="btn btn-outline-light">{{ _('عودة للملف الشخصي') }}</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.querySelector('.custom-file-input').addEventListener('change', function(e) {
+        var fileName = document.getElementById("avatarUpload").files[0].name;
+        var nextSibling = e.target.nextElementSibling;
+        nextSibling.innerText = fileName;
+    });
+</script>
+{% endblock %}

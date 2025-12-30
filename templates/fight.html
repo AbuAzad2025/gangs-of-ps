@@ -1,0 +1,255 @@
+{% extends "base.html" %}
+
+{% block title %}{{ _('ساحة القتال') }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .arena-header {
+        background: radial-gradient(circle at center, rgba(100, 20, 20, 0.8) 0%, rgba(20, 20, 25, 0.95) 100%);
+        border-bottom: 2px solid #ff4444;
+        padding: 30px;
+        border-radius: 15px;
+        margin-bottom: 25px;
+        text-align: center;
+        position: relative;
+        overflow: hidden;
+        box-shadow: 0 10px 30px rgba(255, 68, 68, 0.2);
+    }
+    
+    .arena-bg-pattern {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ff0000' fill-opacity='0.05'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+        opacity: 0.5;
+        z-index: 0;
+    }
+
+    .opponent-card {
+        background: var(--dark-card);
+        border: 1px solid rgba(255,255,255,0.05);
+        border-radius: 15px;
+        padding: 20px;
+        margin-bottom: 20px;
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+    }
+    
+    .opponent-card:hover {
+        transform: translateY(-10px) scale(1.02);
+        box-shadow: 0 15px 30px rgba(0,0,0,0.5);
+        border-color: #ff4444;
+    }
+    
+    .opponent-card::after {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        height: 3px;
+        background: linear-gradient(90deg, transparent, #ff4444, transparent);
+        opacity: 0;
+        transition: opacity 0.3s ease;
+    }
+    
+    .opponent-card:hover::after {
+        opacity: 1;
+    }
+
+    .opponent-avatar-container {
+        position: relative;
+        width: 80px;
+        height: 80px;
+        margin: 0 auto 15px;
+    }
+    
+    .opponent-avatar {
+        width: 100%;
+        height: 100%;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 3px solid #333;
+        box-shadow: 0 0 15px rgba(0,0,0,0.5);
+        transition: border-color 0.3s ease;
+    }
+    
+    .opponent-card:hover .opponent-avatar {
+        border-color: #ff4444;
+    }
+    
+    .level-badge {
+        position: absolute;
+        bottom: -5px;
+        right: -5px;
+        background: var(--gold-primary);
+        color: #000;
+        width: 30px;
+        height: 30px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+        font-size: 0.9rem;
+        border: 2px solid #1e1e2f;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+    }
+
+    .opponent-info {
+        text-align: center;
+        flex-grow: 1;
+    }
+    
+    .opponent-name {
+        font-size: 1.2rem;
+        font-weight: bold;
+        color: #fff;
+        margin-bottom: 5px;
+    }
+    
+    .opponent-rank {
+        color: #aaa;
+        font-size: 0.9rem;
+        margin-bottom: 15px;
+        display: block;
+    }
+    
+    .stat-row {
+        display: flex;
+        justify-content: space-between;
+        padding: 8px 0;
+        border-bottom: 1px solid rgba(255,255,255,0.05);
+        font-size: 0.9rem;
+    }
+    
+    .stat-row:last-child {
+        border-bottom: none;
+    }
+    
+    .stat-label {
+        color: #888;
+    }
+    
+    .stat-value {
+        color: #fff;
+        font-weight: bold;
+    }
+
+    .btn-attack {
+        background: linear-gradient(45deg, #cc0000, #ff4444);
+        color: #fff;
+        border: none;
+        padding: 10px;
+        border-radius: 25px;
+        font-weight: bold;
+        width: 100%;
+        margin-top: 15px;
+        position: relative;
+        overflow: hidden;
+        transition: all 0.3s;
+        box-shadow: 0 4px 15px rgba(255, 68, 68, 0.3);
+    }
+    
+    .btn-attack:hover {
+        transform: scale(1.05);
+        box-shadow: 0 6px 20px rgba(255, 68, 68, 0.5);
+        color: #fff;
+    }
+    
+    .btn-attack i {
+        margin-left: 5px;
+        transition: transform 0.3s;
+    }
+    
+    .btn-attack:hover i {
+        transform: rotate(90deg);
+    }
+    
+    /* Staggered animation */
+    .opponent-col:nth-child(1) .opponent-card { animation-delay: 0.1s; }
+    .opponent-col:nth-child(2) .opponent-card { animation-delay: 0.15s; }
+    .opponent-col:nth-child(3) .opponent-card { animation-delay: 0.2s; }
+    .opponent-col:nth-child(4) .opponent-card { animation-delay: 0.25s; }
+    
+    .gang-badge {
+        background: rgba(255, 255, 255, 0.05);
+        padding: 4px 10px;
+        border-radius: 15px;
+        font-size: 0.8rem;
+        color: var(--gold-secondary);
+        border: 1px solid rgba(212, 175, 55, 0.2);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    
+    <!-- Header -->
+    <div class="arena-header fade-in-down">
+        <div class="arena-bg-pattern"></div>
+        <div class="position-relative z-1">
+            <h2 class="gold-text-gradient mb-2 font-size-2-5"><i class="fas fa-skull-crossbones mr-2 text-warning"></i> {{ _('ساحة القتال') }}</h2>
+            <p class="text-light opacity-75">{{ _('البقاء للأقوى... لا مكان للضعفاء هنا') }}</p>
+        </div>
+    </div>
+
+    <!-- Opponents Grid -->
+    <div class="row">
+        {% for opponent in users %}
+        <div class="col-md-6 col-lg-4 col-xl-3 mb-4 opponent-col">
+            <div class="opponent-card fade-in-up">
+                <div class="opponent-avatar-container">
+                    <img src="{{ url_for('static', filename='avatars/' + opponent.avatar) }}" class="opponent-avatar" alt="{{ opponent.username }}">
+                    <div class="level-badge" title="{{ _('المستوى') }}">
+                        {{ opponent.level }}
+                    </div>
+                </div>
+                
+                <div class="opponent-info">
+                    <div class="opponent-name">{{ opponent.username }}</div>
+                    <div class="opponent-rank">{{ _(opponent.rank_title) }}</div>
+                    
+                    <div class="mb-3">
+                        {% if opponent.gang_id %}
+                            <span class="gang-badge">
+                                <i class="fas fa-users mr-1"></i> {{ opponent.gang_id }}
+                            </span>
+                        {% else %}
+                            <span class="text-muted small">
+                                <i class="fas fa-user-slash mr-1"></i> {{ _('ذئب وحيد') }}
+                            </span>
+                        {% endif %}
+                    </div>
+                    
+                    <form action="{{ url_for('combat.attack', target_id=opponent.id) }}" method="post">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <button type="submit" class="btn btn-attack">
+                            <i class="fas fa-crosshairs"></i> {{ _('هجوم كاسح') }}
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+        {% else %}
+        <div class="col-12 fade-in-up">
+            <div class="text-center p-5 rounded-3 empty-arena-state">
+                <i class="fas fa-peace fa-4x text-muted mb-3 opacity-50"></i>
+                <h4 class="text-muted">{{ _('الساحة هادئة... بشكل مريب') }}</h4>
+                <p class="text-muted">{{ _('لا يوجد أحد لقتاله حالياً، استغل الوقت في التدريب!') }}</p>
+                <a href="{{ url_for('gym.index') }}" class="btn btn-outline-warning mt-3">
+                    <i class="fas fa-dumbbell mr-2"></i> {{ _('الذهاب للنادي') }}
+                </a>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

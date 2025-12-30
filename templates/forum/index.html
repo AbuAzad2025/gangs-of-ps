@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+{% block title %}{{ _('المنتدى') }}{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <h2 class="section-title">{{ _('المنتدى') }}</h2>
+    </div>
+</div>
+
+<div class="card luxury-card">
+    <div class="card-header">
+        <h5 class="mb-0">{{ _('الأقسام') }}</h5>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover table-dark mb-0">
+                <thead>
+                    <tr>
+                        <th width="50%">{{ _('القسم') }}</th>
+                        <th class="text-center">{{ _('المواضيع') }}</th>
+                        <th class="text-center">{{ _('آخر نشاط') }}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for category in categories %}
+                    <tr>
+                        <td>
+                            <a href="{{ url_for('forum.category', id=category.id) }}" class="text-gold font-weight-bold fs-1-1">
+                                {{ _(category.title) }}
+                            </a>
+                            <div class="text-muted small mt-1">{{ _(category.description) }}</div>
+                        </td>
+                        <td class="text-center align-middle">{{ category.topics.count() }}</td>
+                        <td class="text-center align-middle">
+                            <span class="text-muted small">
+                                {% set last_topic = category.topics.order_by(ForumTopic.last_post_at.desc()).first() %}
+                                {% if last_topic %}
+                                    {{ last_topic.last_post_at.strftime('%Y-%m-%d') }}<br>
+                                    {{ last_topic.last_post_at.strftime('%H:%M') }}
+                                {% else %}
+                                    -
+                                {% endif %}
+                            </span>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="3" class="text-center py-4">{{ _('لا توجد أقسام حالياً.') }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

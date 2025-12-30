@@ -1,0 +1,134 @@
+{% extends "base.html" %}
+
+{% block content %}
+<!-- Styles moved to palestine_luxury.css -->
+
+<div class="container-fluid fade-in">
+    <div class="dealership-header">
+        <h2 class="display-4"><i class="fas fa-car-side"></i> {{ _('معرض السيارات') }}</h2>
+        <p class="text-muted lead">{{ _('اختر ما يليق بمكانتك في العالم السفلي') }}</p>
+    </div>
+    
+    <!-- Legal Section -->
+    <div class="section-title">
+        <i class="fas fa-check-circle fa-lg mr-2 text-success"></i>
+        <span>{{ _('سيارات قانونية (أمان وراحة بال)') }}</span>
+    </div>
+
+    <div class="row">
+        {% for car in vehicles if car.type != 'mushtuba' %}
+        <div class="col-xl-3 col-lg-4 col-md-6 mb-4">
+            <div class="car-shop-card">
+                <div class="badge-type {{ 'bg-warning text-dark' if car.type == 'legal_il' else 'bg-success text-white' }}">
+                    {% if car.type == 'legal_il' %}{{ _('نمرة صفراء') }}{% else %}{{ _('نمرة فلسطينية') }}{% endif %}
+                </div>
+                
+                <div class="car-shop-image">
+                    {% if car.image %}
+                        <img src="{{ url_for('static', filename=car.image) }}" alt="{{ car.name }}">
+                    {% else %}
+                        <i class="fas fa-car fa-4x text-muted"></i>
+                    {% endif %}
+                </div>
+                
+                <div class="car-shop-body">
+                    <h3 class="car-shop-title">{{ _(car.name) }}</h3>
+                    <div class="car-price">{{ "{:,}".format(car.price) }} ₪</div>
+                    
+                    <p class="small text-muted mb-3">{{ _(car.description) }}</p>
+                    
+                    <div class="car-specs">
+                        <div class="mb-2">
+                            <div class="d-flex justify-content-between">
+                                <span class="spec-label">{{ _('السرعة') }}</span>
+                                <span class="spec-value">{{ car.speed }}</span>
+                            </div>
+                            <div class="progress progress-thin progress-bg-dark">
+                                <div class="progress-bar bg-info w-dynamic" role="progressbar" style="--width: {{ (car.speed / 200) * 100 }}%"></div>
+                            </div>
+                        </div>
+                        <div class="mb-2">
+                            <div class="d-flex justify-content-between">
+                                <span class="spec-label">{{ _('الدفاع') }}</span>
+                                <span class="spec-value">{{ car.defense }}</span>
+                            </div>
+                            <div class="progress progress-thin progress-bg-dark">
+                                <div class="progress-bar bg-success w-dynamic" role="progressbar" style="--width: {{ (car.defense / 100) * 100 }}%"></div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <form action="{{ url_for('main.buy_car', vehicle_id=car.id) }}" method="POST">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                        <button type="submit" class="btn btn-buy btn-buy-legal btn-block shine-effect">
+                            <i class="fas fa-shopping-cart mr-2"></i> {{ _('شراء آمن') }}
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Mushtuba Section -->
+    <div class="section-title mt-5">
+        <i class="fas fa-exclamation-triangle fa-lg mr-2 text-danger"></i>
+        <span>{{ _('سيارات مشطوبة (رخيص وقوي بس خطر!)') }}</span>
+    </div>
+
+    <div class="row">
+        {% for car in vehicles if car.type == 'mushtuba' %}
+        <div class="col-xl-3 col-lg-4 col-md-6 mb-4">
+            <div class="car-shop-card car-shop-card-danger">
+                <div class="badge-type bg-danger text-white">
+                    {{ _('مشطوبة') }}
+                </div>
+                
+                <div class="car-shop-image">
+                    {% if car.image %}
+                        <img src="{{ url_for('static', filename=car.image) }}" alt="{{ car.name }}">
+                    {% else %}
+                        <i class="fas fa-car-crash fa-4x text-danger"></i>
+                    {% endif %}
+                </div>
+                
+                <div class="car-shop-body">
+                    <h3 class="car-shop-title text-danger">{{ car.name }}</h3>
+                    <div class="car-price text-danger">{{ "{:,}".format(car.price) }} ₪</div>
+                    
+                    <p class="small text-muted mb-3">{{ car.description }}</p>
+                    
+                    <div class="car-specs">
+                        <div class="mb-2">
+                            <div class="d-flex justify-content-between">
+                                <span class="spec-label">{{ _('السرعة') }}</span>
+                                <span class="spec-value">{{ car.speed }}</span>
+                            </div>
+                            <div class="progress progress-thin progress-bg-dark">
+                                <div class="progress-bar bg-danger w-dynamic" role="progressbar" style="--width: {{ (car.speed / 200) * 100 }}%"></div>
+                            </div>
+                        </div>
+                        <div class="mb-2">
+                            <div class="d-flex justify-content-between">
+                                <span class="spec-label">{{ _('الخطر') }}</span>
+                                <span class="spec-value text-danger">{{ car.risk }}%</span>
+                            </div>
+                            <div class="progress progress-thin progress-bg-dark">
+                                <div class="progress-bar bg-danger w-dynamic" role="progressbar" style="--width: {{ car.risk }}%"></div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <form action="{{ url_for('main.buy_car', vehicle_id=car.id) }}" method="POST">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                        <button type="submit" class="btn btn-buy btn-buy-illegal btn-block shine-effect">
+                            <i class="fas fa-skull-crossbones mr-2"></i> {{ _('شراء (على مسؤوليتك)') }}
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

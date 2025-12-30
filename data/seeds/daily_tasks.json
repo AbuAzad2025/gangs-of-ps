@@ -1,0 +1,74 @@
+[
+  {
+    "description": "نفّذ 3 جرائم",
+    "target_type": "crime",
+    "target_count": 3,
+    "reward_money": 450,
+    "reward_exp": 35,
+    "min_level": 1,
+    "is_active": true
+  },
+  {
+    "description": "تمرّن في الجيم مرتين",
+    "target_type": "gym",
+    "target_count": 2,
+    "reward_money": 300,
+    "reward_exp": 30,
+    "min_level": 1,
+    "is_active": true
+  },
+  {
+    "description": "اشترِ شيئاً واحداً",
+    "target_type": "buy",
+    "target_count": 1,
+    "reward_money": 250,
+    "reward_exp": 20,
+    "min_level": 1,
+    "is_active": true
+  },
+  {
+    "description": "قاتل لاعباً واحداً",
+    "target_type": "combat",
+    "target_count": 1,
+    "reward_money": 600,
+    "reward_exp": 60,
+    "min_level": 5,
+    "is_active": true
+  },
+  {
+    "description": "نفّذ 6 جرائم",
+    "target_type": "crime",
+    "target_count": 6,
+    "reward_money": 1200,
+    "reward_exp": 90,
+    "min_level": 8,
+    "is_active": true
+  },
+  {
+    "description": "تمرّن في الجيم 5 مرات",
+    "target_type": "gym",
+    "target_count": 5,
+    "reward_money": 900,
+    "reward_exp": 70,
+    "min_level": 8,
+    "is_active": true
+  },
+  {
+    "description": "اشترِ 3 عناصر من السوق",
+    "target_type": "buy",
+    "target_count": 3,
+    "reward_money": 750,
+    "reward_exp": 55,
+    "min_level": 6,
+    "is_active": true
+  },
+  {
+    "description": "اكسب معركتين",
+    "target_type": "combat",
+    "target_count": 2,
+    "reward_money": 1600,
+    "reward_exp": 140,
+    "min_level": 15,
+    "is_active": true
+  }
+]

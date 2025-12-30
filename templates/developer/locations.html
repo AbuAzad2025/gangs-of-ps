@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="luxury-card fade-in-up">
+    <div class="card-header">
+        <h3 class="card-title text-gradient-gold"><i class="fas fa-map-marked-alt mr-2"></i> {{ _('إدارة المواقع والمدن') }}</h3>
+        <div class="card-tools">
+            <a href="{{ url_for('main.dev_location_edit', id=None) }}" class="btn btn-luxury-action btn-sm">
+                <i class="fas fa-plus"></i> {{ _('إضافة موقع جديد') }}
+            </a>
+            <a href="{{ url_for('main.dev_dashboard') }}" class="btn btn-outline-secondary btn-sm ml-2">
+                <i class="fas fa-arrow-right"></i> {{ _('عودة') }}
+            </a>
+        </div>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table luxury-table luxury-table-striped projects">
+                <thead>
+                    <tr>
+                        <th style="width: 5%">#</th>
+                        <th style="width: 20%">{{ _('الاسم') }}</th>
+                        <th style="width: 10%">{{ _('الصورة') }}</th>
+                        <th style="width: 10%">{{ _('التكلفة') }}</th>
+                        <th style="width: 15%">{{ _('الانتظار (ثانية)') }}</th>
+                        <th style="width: 15%">{{ _('التخصص') }}</th>
+                        <th style="width: 20%"></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for location in locations %}
+                    <tr style="animation: fadeInUp 0.5s ease backwards; animation-delay: {{ loop.index0 * 0.05 }}s;">
+                        <td><span class="text-muted">{{ location.id }}</span></td>
+                        <td>
+                            <strong class="text-gold">{{ location.name }}</strong>
+                            <br/>
+                            <small class="text-muted">{{ location.description or '-' }}</small>
+                        </td>
+                        <td>
+                            {% if location.image %}
+                            <img alt="Location Image" class="table-avatar rounded" src="{{ url_for('static', filename='images/locations/' + location.image) }}" style="width: 50px; height: 50px; object-fit: cover; border: 1px solid rgba(212,175,55,0.3);">
+                            {% else %}
+                            <span class="text-muted">{{ _('لا توجد صورة') }}</span>
+                            {% endif %}
+                        </td>
+                        <td class="text-success font-weight-bold">${{ "{:,}".format(location.cost or 0) }}</td>
+                        <td>
+                            <span class="badge bg-dark border border-secondary">{{ location.cooldown }}s</span>
+                        </td>
+                        <td>
+                            {% if location.specialty %}
+                            <span class="badge badge-info">{{ location.specialty }}</span>
+                            {% if location.specialty_value %}
+                            <small class="text-warning">+{{ location.specialty_value }}</small>
+                            {% endif %}
+                            {% else %}
+                            <span class="text-muted">-</span>
+                            {% endif %}
+                        </td>
+                        <td class="project-actions text-right">
+                            <a class="btn btn-luxury-action btn-sm" href="{{ url_for('main.dev_location_edit', id=location.id) }}">
+                                <i class="fas fa-pencil-alt"></i> {{ _('تعديل') }}
+                            </a>
+                            <form method="post" action="{{ url_for('main.dev_location_delete', id=location.id) }}" style="display:inline;">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                                <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('{{ _('هل أنت متأكد من الحذف؟') }}')">
+                                    <i class="fas fa-trash"></i> {{ _('حذف') }}
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

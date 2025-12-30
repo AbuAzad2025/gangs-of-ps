@@ -1,0 +1,79 @@
+{% extends "base.html" %}
+
+{% block title %}{{ _('مطار فلسطين الدولي') }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid position-relative">
+    <div class="row mb-4 position-relative z-1">
+        <div class="col-md-12">
+            <div class="airport-board">
+                <div class="row align-items-center mb-4">
+                    <div class="col-md-8">
+                        <h2 class="text-gold font-weight-bold mb-0">
+                            <i class="fas fa-plane-departure mr-3"></i>{{ _('جدول الرحلات المغادرة') }}
+                        </h2>
+                        <p class="text-muted mb-0 mt-2">{{ _('مطار القدس الدولي - صالة المغادرين') }}</p>
+                    </div>
+                    <div class="col-md-4 text-right">
+                         <div class="p-2 border border-gold rounded d-inline-block">
+                             <span class="text-muted small d-block">{{ _('موقعك الحالي') }}</span>
+                             <strong class="text-white h5">{{ _(current_location.name) if current_location else _('غير معروف') }}</strong>
+                         </div>
+                    </div>
+                </div>
+
+                <div class="row text-muted text-uppercase small font-weight-bold border-bottom border-secondary pb-2 mb-2 d-none d-md-flex">
+                    <div class="col-md-4">{{ _('الوجهة') }}</div>
+                    <div class="col-md-2">{{ _('رقم الرحلة') }}</div>
+                    <div class="col-md-2">{{ _('التكلفة') }}</div>
+                    <div class="col-md-2">{{ _('الحالة') }}</div>
+                    <div class="col-md-2 text-right">{{ _('حجز') }}</div>
+                </div>
+
+                {% for location in locations %}
+                <div class="flight-row row align-items-center py-2 border-bottom border-dark">
+                    <div class="col-md-4 col-12 d-flex align-items-center">
+                        {% set raw_image = location.image if location.image else 'default_city.jpg' %}
+                        {% set image_file = raw_image.split('/')[-1].split('\\\\')[-1] %}
+                        <img src="{{ url_for('static', filename='locations/' + image_file) }}" 
+                             alt="{{ _(location.name) }}" 
+                             class="img-thumbnail mr-3 location-thumbnail">
+                        <div>
+                            <h5 class="mb-0 text-white font-weight-bold">{{ _(location.name) }}</h5>
+                            <small class="text-muted d-block line-height-12">{{ _(location.description) }}</small>
+                        </div>
+                    </div>
+                    <div class="col-md-2 col-6 mt-2 mt-md-0">
+                        <span class="text-monospace">PA-{{ 100 + location.id }}</span>
+                        <small class="text-muted d-block d-md-none">{{ _('رقم الرحلة') }}</small>
+                    </div>
+                    <div class="col-md-2 col-6 mt-2 mt-md-0">
+                        <span class="text-warning font-weight-bold">{{ location.cost }} ₪</span>
+                        <small class="text-muted d-block d-md-none">{{ _('التكلفة') }}</small>
+                    </div>
+                    <div class="col-md-2 col-6 mt-2 mt-md-0">
+                        {% if remaining_time > 0 %}
+                             <span class="text-danger font-weight-bold"><i class="fas fa-clock mr-1"></i> {{ _('انتظار') }} {{ remaining_time }}s</span>
+                        {% else %}
+                             <span class="flight-status status-boarding">{{ _('نداء أخير') }}</span>
+                        {% endif %}
+                    </div>
+                    <div class="col-md-2 col-12 mt-3 mt-md-0 text-right">
+                        {% if remaining_time > 0 %}
+                            <button class="btn btn-secondary btn-sm disabled btn-block"><i class="fas fa-ban mr-1"></i> {{ _('مغلق') }}</button>
+                        {% else %}
+                            <form action="{{ url_for('travel.fly', location_id=location.id) }}" method="POST">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                                <button type="submit" class="btn btn-warning btn-sm btn-block font-weight-bold shine-button">
+                                    <i class="fas fa-ticket-alt mr-1"></i> {{ _('حجز') }}
+                                </button>
+                            </form>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

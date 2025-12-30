@@ -1,0 +1,52 @@
+{
+    "name": "سارة",
+    "role": "support",
+    "price": 10000,
+    "description": "النسخة المطورة: ملكة الدعم الطبي. شفاء سريع وعناية فائقة.",
+    "dialogue_style": "caring",
+    "intro_message": "سلامتك يا بطل. خليني أهتم فيك شوي... 😉",
+    "buff_type": "hospital_recovery",
+    "buff_value": 0.35,
+    "image": "sarah.png",
+    "video": "sara_max_intel.mp4",
+    "video_prompt": {
+        "title": "سارة - دعم وطمأنة",
+        "description": "مضيفة دعم عربية بطابع أنيمي/2.5D، مظهر لطيف ومطمئن، خلفية غرفة VIP هادئة أو عيادة فخمة، إضاءة ناعمة، تمسك كوب شاي أو حقيبة إسعاف صغيرة (بدون شعارات). بورتريه 9:16، حركة تنفس هادئة وابتسامة حنونة.",
+        "duration_seconds": 9,
+        "fps": 24,
+        "resolution": "1080x1920",
+        "style": {
+            "visual_style": "soft 2.5D animation, comforting mood",
+            "palette": "warm beige, gold, soft teal",
+            "lighting": "soft diffused, gentle glow",
+            "color_grade": "warm soft"
+        },
+        "global_constraints": {
+            "avoid": ["men", "male", "text overlays", "logos", "watermarks", "nudity", "explicit content"],
+            "physics": "gentle motion, loopable"
+        },
+        "audio": {
+            "music_mood": "calm lounge",
+            "dialogue": [
+                {"lang": "ar", "text": "سلامتك أهم شي… خليك قريب وأنا بكون معك."}
+            ]
+        },
+        "shots": [
+            {"shot": "medium close-up", "camera": "static", "action": "soft smile, reassuring nod", "background": "VIP lounge, warm lights"},
+            {"shot": "close-up", "camera": "slow push-in", "action": "gentle hand gesture (calm down)", "background": "soft bokeh"}
+        ]
+    },
+    "level": 10,
+    "exp": 50000,
+    "charm": 100,
+    "intelligence": 100,
+    "personality_config": {
+        "flirt_level": 10, 
+        "shyness": 0, 
+        "dominance": 8, 
+        "cunning": 10,
+        "voice_pitch": 1.0,
+        "speed": 1.0
+    },
+    "is_public": false
+}

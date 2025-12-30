@@ -1,0 +1,383 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div id="callOverlay" class="call-overlay">
+    <div class="text-center">
+        <img id="callAvatar" src="" class="call-avatar mb-4" alt="Hostess">
+        <h3 id="callName" class="text-white fw-bold mb-2"></h3>
+        <p id="callStatus" class="text-muted mb-4">{{ _('جاري الاتصال...') }}</p>
+        
+        <div id="callWaveform" class="waveform mb-5 opacity-0">
+            <div class="bar"></div><div class="bar"></div><div class="bar"></div>
+            <div class="bar"></div><div class="bar"></div><div class="bar"></div>
+        </div>
+
+        <div class="d-flex justify-content-center gap-4">
+            <button class="btn btn-danger btn-lg rounded-circle p-4" onclick="endCall()">
+                <i class="fas fa-phone-slash fa-2x"></i>
+            </button>
+            <button class="btn btn-success btn-lg rounded-circle p-4" id="micBtn" onclick="toggleMic()">
+                <i class="fas fa-microphone fa-2x"></i>
+            </button>
+        </div>
+        
+        <div id="callTranscript" class="mt-4 text-white-50 small mw-300px"></div>
+    </div>
+</div>
+
+<div class="container fade-in">
+    <div class="text-center mb-5">
+        <h2 class="text-gold display-5 fw-bold"><i class="fas fa-glass-martini-alt mr-2"></i> {{ _('نادي كبار الزوار (VIP Club)') }}</h2>
+        <p class="text-muted">{{ _('اختر رفيقتك في عالم الجريمة. كل واحدة تملك مهارات خاصة تساعدك.') }}</p>
+    </div>
+
+    <!-- Active Hostess Section -->
+    {% if user.active_hostess_id and user.casino_luck_until and user.casino_luck_until > now %}
+        {% set active_h = hostesses.get(user.active_hostess_id) %}
+        {% if active_h %}
+        <div class="card bg-dark border-gold mb-5 shadow-lg">
+            <div class="card-body">
+                <div class="row align-items-center">
+                    <div class="col-md-3 text-center">
+                        <div class="rounded-circle border border-gold mx-auto {{ 'ken-burns' if active_h.video_prompt and not active_h.video }} w-100px h-100px overflow-hidden bg-dark">
+                            {% if active_h.is_avatar_active and active_h.video %}
+                              {% if active_h.video.endswith('.gif') %}
+                                <img src="{{ url_for('static', filename='videos/hostesses/' + active_h.video) }}" class="h-100-cover">
+                              {% else %}
+                                <video src="{{ url_for('static', filename='videos/hostesses/' + active_h.video) }}" autoplay loop muted playsinline class="h-100-cover"></video>
+                              {% endif %}
+                            {% else %}
+                            <img src="{{ url_for('static', filename='images/hostesses/' + (active_h.image or 'default_hostess.jpg')) }}" class="h-100-cover" onerror="this.onerror=null; this.src='{{ url_for('static', filename='images/hostesses/default_hostess.jpg') }}';">
+                            {% endif %}
+                        </div>
+                        <h4 class="mt-2 text-gold">{{ active_h.name }}</h4>
+                    </div>
+                    <div class="col-md-5">
+                        <h5 class="text-light">{{ _('معك الآن') }}</h5>
+                        <p class="text-muted mb-0">{{ active_h.description }}</p>
+                        <div class="mt-2">
+                            <span class="badge badge-warning"><i class="fas fa-clock"></i> {{ _('ينتهي:') }} {{ user.casino_luck_until.strftime('%H:%M') }}</span>
+                        </div>
+                    </div>
+                    <div class="col-md-4 text-center">
+                        <div class="mt-4 d-grid gap-2">
+                            <button class="btn btn-gold btn-lg pulse-btn" data-toggle="modal" data-target="#chatModal">
+                                <i class="fas fa-comments"></i> {{ _('تحدث معها الآن') }}
+                            </button>
+                            <button class="btn btn-danger btn-lg rounded-pill shadow-lg" onclick="startCall('{{ active_h.name }}', '{{ active_h.image }}', '{{ active_h.video if active_h.is_avatar_active else '' }}')">
+                                <i class="fas fa-phone-alt"></i> {{ _('مكالمة صوتية (Voice Call)') }}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-6 d-flex align-items-center">
+                <div class="text-light p-4 bg-dark rounded shadow border-left-gold">
+                    <h3 class="mb-3 text-gold">{{ active_h.intro or _('مرحباً بك في عالمي...') }}</h3>
+                    <p class="lead">{{ active_h.description }}</p>
+                    <div class="mt-3">
+                        <span class="badge badge-success p-2">{{ _('مكافأة نشطة') }}: +{{ (active_h.buff_value * 100)|int }}% {{ active_h.buff_type }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    {% endif %}
+
+    <!-- Hostess List -->
+    <div class="row">
+        {% for id, h in hostesses.items() %}
+        <div class="col-md-4 mb-4">
+            <div class="card hostess-card h-100">
+                <div class="hostess-img bg-secondary {{ 'ken-burns' if h.video_prompt and not h.video }}">
+                    <!-- Hostess Image/Video -->
+                    {% if h.is_avatar_active and h.video %}
+                        {% if h.video.endswith('.gif') %}
+                          <img src="{{ url_for('static', filename='videos/hostesses/' + h.video) }}" class="h-100-cover opacity-80">
+                        {% else %}
+                          <video src="{{ url_for('static', filename='videos/hostesses/' + h.video) }}" autoplay loop muted playsinline class="h-100-cover opacity-80"></video>
+                        {% endif %}
+                    {% else %}
+                        <img src="{{ url_for('static', filename='images/hostesses/' + (h.image or 'default_hostess.jpg')) }}" class="h-100-cover opacity-80" onerror="this.onerror=null; this.src='{{ url_for('static', filename='images/hostesses/default_hostess.jpg') }}';">
+                    {% endif %}
+                    
+                    <span class="hostess-badge badge-{{ h.role }}">
+                        {% if h.role == 'luck' %}<i class="fas fa-gem"></i> {{ _('حظ') }}
+                        {% elif h.role == 'spy' %}<i class="fas fa-user-secret"></i> {{ _('تجسس') }}
+                        {% else %}<i class="fas fa-heart"></i> {{ _('دعم') }}
+                        {% endif %}
+                    </span>
+                </div>
+                <div class="card-body text-center">
+                    <h3 class="text-light font-weight-bold">{{ h.name }}</h3>
+                    <p class="text-muted small">{{ h.description }}</p>
+                    <hr class="border-secondary">
+                    <h4 class="text-gold mb-3">${{ h.price }} <small class="text-muted">/ 30 {{ _('دقيقة') }}</small></h4>
+                    
+                    {% if h.current_player_id and h.current_player_id != user.id %}
+                        <button class="btn btn-danger btn-block" disabled>
+                             <i class="fas fa-ban"></i> {{ _('مشغولة مع لاعب آخر') }}
+                        </button>
+                    {% elif user.level < h.min_rank %}
+                        <button class="btn btn-secondary btn-block" disabled>
+                             <i class="fas fa-lock"></i> {{ _('مطلوب مستوى %(lvl)s', lvl=h.min_rank) }}
+                        </button>
+                    {% elif user.active_hostess_id == id and user.casino_luck_until > now %}
+                        <button class="btn btn-secondary btn-block" disabled>{{ _('نشطة حالياً') }}</button>
+                    {% else %}
+                        <form action="{{ url_for('casino.hire_hostess', h_id=id) }}" method="post">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                            <button type="submit" class="btn btn-outline-gold btn-block" {{ 'disabled' if user.money < h.price }}>
+                                {{ _('تعاقد الآن') }}
+                            </button>
+                        </form>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<!-- Chat Modal -->
+<div class="modal fade" id="chatModal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content bg-dark border-gold">
+            <div class="modal-header border-secondary">
+                <h5 class="modal-title text-gold" id="chatTitle">{{ _('محادثة خاصة') }}</h5>
+                <button type="button" class="close text-light" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="chat-box" id="chatBox">
+                    {% if chat_history %}
+                        {% for msg in chat_history %}
+                            <div class="message {{ 'user' if msg.role == 'user' else 'hostess' }}">
+                                {{ msg.content }}
+                            </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="message hostess">
+                            {{ _('أهلاً يا عزيزي. كيف يمكنني مساعدتك؟') }}
+                        </div>
+                    {% endif %}
+                </div>
+                <div class="input-group">
+                    <input type="text" id="chatInput" class="form-control bg-dark text-light border-secondary" placeholder="{{ _('اكتب رسالتك...') }}">
+                    <div class="input-group-append">
+                        <button class="btn btn-gold" type="button" id="sendBtn"><i class="fas fa-paper-plane"></i></button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Voice Call Logic
+    var recognition;
+    var isCallActive = false;
+    var isMicOn = false;
+    var synth = window.speechSynthesis;
+    const CALL_GREETING = {{ _('أهلاً يا روحي، اشتقت لك كثير. شو أخبارك اليوم؟')|tojson }};
+    const CALL_STATUS_CONNECTED = {{ _('متصل (Connected)')|tojson }};
+    const CALL_STATUS_CONNECTING = {{ _('جاري الاتصال...')|tojson }};
+
+    function startCall(name, image, video) {
+        document.getElementById('callName').innerText = name;
+        
+        // Setup Avatar or Video Background
+        const avatarImg = document.getElementById('callAvatar');
+        const overlay = document.getElementById('callOverlay');
+        
+        // Remove existing video if any
+        const existingVideo = document.getElementById('callBgVideo');
+        if (existingVideo) existingVideo.remove();
+        
+        if (video && video !== 'None' && video !== '') {
+            const lower = String(video).toLowerCase();
+            if (lower.endsWith('.gif')) {
+                avatarImg.style.display = 'block';
+                avatarImg.src = "/static/videos/hostesses/" + video;
+                document.getElementById('callOverlay').style.display = 'flex';
+                isCallActive = true;
+                setTimeout(() => {
+                    speak(CALL_GREETING, 1.2, 1.1);
+                    document.getElementById('callStatus').innerText = CALL_STATUS_CONNECTED;
+                    document.getElementById('callStatus').classList.add('text-success');
+                    document.getElementById('callStatus').classList.remove('text-muted');
+                }, 2000);
+                return;
+            }
+            // Use Video Background
+            avatarImg.style.display = 'none'; // Hide avatar, use full screen video
+            
+            const vid = document.createElement('video');
+            vid.id = 'callBgVideo';
+            vid.src = "/static/videos/hostesses/" + video;
+            vid.autoplay = true;
+            vid.loop = true;
+            vid.muted = true;
+            vid.playsInline = true;
+            vid.className = 'video-bg-fullscreen';
+            
+            overlay.insertBefore(vid, overlay.firstChild);
+        } else {
+            // Use Avatar
+            avatarImg.src = "/static/images/hostesses/" + (image || "default_hostess.jpg");
+            avatarImg.style.display = 'block';
+        }
+        
+        document.getElementById('callOverlay').style.display = 'flex';
+        
+        isCallActive = true;
+        
+        // Initial Greeting
+        setTimeout(() => {
+            speak(CALL_GREETING, 1.2, 1.1); // Flirty default
+            document.getElementById('callStatus').innerText = CALL_STATUS_CONNECTED;
+            document.getElementById('callStatus').classList.add('text-success');
+            document.getElementById('callStatus').classList.remove('text-muted');
+        }, 2000);
+    }
+
+    function endCall() {
+        isCallActive = false;
+        document.getElementById('callOverlay').style.display = 'none';
+        synth.cancel();
+        if (window.recognition) window.recognition.stop();
+        document.getElementById('callStatus').innerText = CALL_STATUS_CONNECTING;
+        document.getElementById('callStatus').classList.remove('text-success');
+        document.getElementById('callStatus').classList.add('text-muted');
+    }
+
+    function toggleMic() {
+        if (!isCallActive) return;
+        
+        if (!isMicOn) {
+            startListening();
+            document.getElementById('micBtn').classList.remove('btn-success');
+            document.getElementById('micBtn').classList.add('btn-danger', 'pulse-btn');
+            document.getElementById('callWaveform').style.opacity = 1;
+            isMicOn = true;
+        } else {
+            stopListening();
+            document.getElementById('micBtn').classList.add('btn-success');
+            document.getElementById('micBtn').classList.remove('btn-danger', 'pulse-btn');
+            document.getElementById('callWaveform').style.opacity = 0;
+            isMicOn = false;
+        }
+    }
+
+    function startListening() {
+        if ('webkitSpeechRecognition' in window) {
+            recognition = new webkitSpeechRecognition();
+            recognition.continuous = false;
+            recognition.interimResults = false;
+            recognition.lang = 'ar-SA'; // Arabic
+
+            recognition.onresult = function(event) {
+                const text = event.results[0][0].transcript;
+                document.getElementById('callTranscript').innerText = "You: " + text;
+                sendVoiceMessage(text);
+                toggleMic(); // Auto toggle off after speak
+            };
+
+            recognition.onerror = function(event) {
+                console.error(event.error);
+                toggleMic();
+            };
+
+            recognition.start();
+        } else {
+            alert("Browser does not support Speech Recognition.");
+        }
+    }
+
+    function stopListening() {
+        if (recognition) recognition.stop();
+    }
+
+    function sendVoiceMessage(text) {
+        // Send to backend as chat message, get response, then speak it
+        $.post("{{ chat_endpoint }}", {
+            message: text,
+            csrf_token: "{{ csrf_token() }}",
+            is_voice: true
+        }, function(data) {
+            const transcriptDiv = document.getElementById('callTranscript');
+            transcriptDiv.innerHTML += '<div class="text-left text-gold mb-1">She: ' + data.response + '</div>';
+            transcriptDiv.scrollTop = transcriptDiv.scrollHeight;
+            
+            // Default settings
+            let pitch = 1.0;
+            let rate = 1.0;
+            
+            // Try to parse dynamic config from backend if available
+            if (data.voice_config) {
+                try {
+                    const vConfig = JSON.parse(data.voice_config);
+                    if (vConfig.pitch) pitch = vConfig.pitch;
+                    if (vConfig.rate) rate = vConfig.rate;
+                } catch(e) {}
+            }
+            
+            speak(data.response, pitch, rate); 
+        });
+    }
+
+    function speak(text, pitch=1.0, rate=1.0) {
+        if (synth.speaking) synth.cancel();
+        const utterThis = new SpeechSynthesisUtterance(text);
+        utterThis.pitch = pitch;
+        utterThis.rate = rate;
+        utterThis.lang = 'ar-SA';
+        synth.speak(utterThis);
+    }
+
+    $(document).ready(function() {
+        $('#sendBtn').click(sendMessage);
+        $('#chatInput').keypress(function(e) {
+            if(e.which == 13) sendMessage();
+        });
+
+        function sendMessage() {
+            var msg = $('#chatInput').val();
+            if(!msg) return;
+
+            // Append User Msg
+            $('#chatBox').append('<div class="message user">' + msg + '</div>');
+            $('#chatInput').val('');
+            scrollToBottom();
+
+            // Send AJAX
+            $.post("{{ chat_endpoint }}", {
+                message: msg,
+                csrf_token: "{{ csrf_token() }}"
+            }, function(data) {
+                // Append Hostess Msg
+                $('#chatBox').append('<div class="message hostess">' + data.response + '</div>');
+                scrollToBottom();
+                
+                // Voice Response
+                if(data.response && isCallActive && isMicOn) {
+                   speak(data.response);
+                }
+            }).fail(function(xhr) {
+                console.error("Chat Error:", xhr.statusText);
+                $('#chatBox').append('<div class="message system error text-danger fs-0-8">' + "{{ _('حدث خطأ في الاتصال. يرجى المحاولة مرة أخرى.') }}" + '</div>');
+                scrollToBottom();
+            });
+        }
+
+        function scrollToBottom() {
+            var chatBox = document.getElementById("chatBox");
+            chatBox.scrollTop = chatBox.scrollHeight;
+        }
+    });
+</script>
+{% endblock %}

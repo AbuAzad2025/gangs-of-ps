@@ -1,0 +1,214 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container-fluid fade-in">
+  <div class="row">
+    <div class="col-lg-8">
+      <div class="factory-card p-4 mb-4">
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h2 class="m-0 text-white font-weight-bold">
+      <i class="fas fa-cog gear-icon text-muted mr-2 factory-icon-lg"></i>
+      {{ _('المصانع الحربية') }}
+    </h2>
+    <div class="text-white-50">
+      {{ _('المستوى الصناعي:') }} <span class="text-warning font-weight-bold">{{ tier }}</span>
+    </div>
+  </div>
+
+  <div class="row mb-4">
+    <div class="col-md-4 mb-3">
+      <div class="resource-stat">
+        <div class="text-muted text-uppercase small">{{ _('رصاص') }}</div>
+        <div class="h3 m-0 text-white font-weight-bold">{{ user.bullets }}</div>
+        <i class="fas fa-crosshairs position-absolute text-white-50 resource-stat-icon"></i>
+      </div>
+    </div>
+    <div class="col-md-4 mb-3">
+      <div class="resource-stat border-left-grey">
+        <div class="text-muted text-uppercase small">{{ _('سبائك معدن') }}</div>
+        <div class="h3 m-0 text-white font-weight-bold">{{ metal_qty }}</div>
+        <i class="fas fa-cubes position-absolute text-white-50 resource-stat-icon"></i>
+      </div>
+    </div>
+    <div class="col-md-4 mb-3">
+      <div class="resource-stat border-left-red">
+        <div class="text-muted text-uppercase small">{{ _('متفجرات') }}</div>
+        <div class="h3 m-0 text-white font-weight-bold">{{ explosive_qty }}</div>
+        <i class="fas fa-bomb position-absolute text-white-50 resource-stat-icon"></i>
+      </div>
+    </div>
+  </div>
+
+  {% if active_job %}
+    <div class="p-4 mb-4 rounded factory-active-job">
+      <div class="d-flex justify-content-between align-items-center mb-2">
+              <h5 class="text-warning m-0">
+                <i class="fas fa-cogs fa-spin mr-2"></i>
+                {% if active_job.job_type == 'bullets' %}{{ _('خط إنتاج الرصاص') }}{% else %}{{ _('خط إنتاج المتفجرات') }}{% endif %}
+              </h5>
+              <span class="badge badge-warning text-dark">{{ _('جاري العمل') }}</span>
+            </div>
+            
+            <div class="d-flex justify-content-between text-muted small mb-1">
+                <span>{{ _('الكمية المستهدفة:') }} <strong class="text-white">{{ active_job.output_amount }}</strong></span>
+                <span>{{ _('ينتهي في:') }} {{ active_job.ends_at.strftime('%H:%M:%S') }}</span>
+            </div>
+
+            {% set total_duration = (active_job.ends_at - active_job.started_at).total_seconds() %}
+            {% set elapsed = (now.replace(tzinfo=None) - active_job.started_at).total_seconds() %}
+            {% set progress_pct = (elapsed / total_duration * 100) | int %}
+            {% if progress_pct > 100 %}{% set progress_pct = 100 %}{% endif %}
+            {% if progress_pct < 0 %}{% set progress_pct = 0 %}{% endif %}
+
+            <div class="factory-progress mb-3">
+                <div class="factory-progress-bar w-dynamic" style="--width: {{ progress_pct }}%"></div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-6 mb-2">
+                    <form method="POST" action="{{ url_for('factory.boost', job_id=active_job.id) }}">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                        <input type="hidden" name="mode" value="finish"/>
+                        <button class="btn btn-outline-warning btn-block font-weight-bold">
+                        <i class="fas fa-bolt mr-2"></i>{{ _('تسريع بالماس') }}
+                        </button>
+                    </form>
+                </div>
+                <div class="col-md-6 mb-2">
+                    <form method="POST" action="{{ url_for('factory.claim', job_id=active_job.id) }}">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                        <button class="btn btn-success btn-block font-weight-bold shine-effect" {% if not active_job.is_ready %}disabled{% endif %}>
+                        <i class="fas fa-box-open mr-2"></i>{{ _('استلام الشحنة') }}
+                        </button>
+                    </form>
+                </div>
+            </div>
+          </div>
+        {% else %}
+          {% set bullets_card = (job_cards|selectattr('job_type','equalto','bullets')|list|first) %}
+          {% set explosives_card = (job_cards|selectattr('job_type','equalto','explosives')|list|first) %}
+          <div class="row">
+            <div class="col-md-6 mb-3">
+              <div class="luxury-card h-100 factory-card-bg-trans">
+                <div class="card-body">
+                    {% if bullets_card and bullets_card.unlocked %}
+                    <h5 class="mb-3 text-white"><i class="fas fa-crosshairs text-danger mr-2"></i>{{ _('معمل الذخيرة') }}</h5>
+                    {% else %}
+                    <h5 class="mb-3 text-muted"><i class="fas fa-lock mr-2"></i>{{ _('معمل الذخيرة (مغلق)') }}</h5>
+                    {% endif %}
+                    
+                    <div class="mb-4 small text-muted">
+                    {% if bullets_card and bullets_card.unlocked %}
+                        <div class="d-flex justify-content-between mb-1">
+                            <span>{{ _('التكلفة (ماس):') }}</span>
+                            <span class="text-info">{{ pricing.bullet_diamonds }} 💎</span>
+                        </div>
+                        <div class="d-flex justify-content-between">
+                            <span>{{ _('المواد الخام:') }}</span>
+                            <span class="text-white">{{ pricing.bullet_metal }} {{ _('سبيكة') }}</span>
+                        </div>
+                    {% else %}
+                        <p>{{ _('ارفع مستواك لفتح هذا القسم.') }}</p>
+                        {% if bullets_card and bullets_card.locked_reason %}
+                            <div class="text-warning">{{ bullets_card.locked_reason }}</div>
+                        {% endif %}
+                    {% endif %}
+                    </div>
+
+                    {% if bullets_card and bullets_card.unlocked %}
+                    <form method="POST" action="{{ url_for('factory.start_job') }}">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                        <input type="hidden" name="job_type" value="bullets"/>
+                        <button class="btn btn-danger btn-block shine-effect" {% if user.diamonds < pricing.bullet_diamonds or metal_qty < pricing.bullet_metal %}disabled{% endif %}>
+                        <i class="fas fa-industry mr-2"></i>{{ _('بدء الإنتاج') }}
+                        </button>
+                    </form>
+                    {% else %}
+                    <button class="btn btn-dark btn-block disabled">
+                        <i class="fas fa-lock mr-2"></i>{{ _('غير متاح') }}
+                    </button>
+                    {% endif %}
+                </div>
+              </div>
+            </div>
+
+            <div class="col-md-6 mb-3">
+              <div class="luxury-card h-100 factory-card-bg-dim">
+                <div class="card-body">
+                    {% if explosives_card and explosives_card.unlocked %}
+                    <h5 class="mb-3 text-white"><i class="fas fa-bomb text-warning mr-2"></i>{{ _('معمل المتفجرات') }}</h5>
+                    {% else %}
+                    <h5 class="mb-3 text-muted"><i class="fas fa-lock mr-2"></i>{{ _('معمل المتفجرات (مغلق)') }}</h5>
+                    {% endif %}
+                    
+                    <div class="mb-4 small text-muted">
+                    {% if explosives_card and explosives_card.unlocked %}
+                        <div class="d-flex justify-content-between mb-1">
+                            <span>{{ _('التكلفة (ماس):') }}</span>
+                            <span class="text-info">{{ pricing.expl_diamonds }} 💎</span>
+                        </div>
+                        <div class="d-flex justify-content-between">
+                            <span>{{ _('المواد الخام:') }}</span>
+                            <span class="text-white">{{ pricing.expl_metal }} {{ _('سبيكة') }}</span>
+                        </div>
+                    {% else %}
+                        <p>{{ _('ارفع مستواك لفتح هذا القسم.') }}</p>
+                        {% if explosives_card and explosives_card.locked_reason %}
+                            <div class="text-warning">{{ explosives_card.locked_reason }}</div>
+                        {% endif %}
+                    {% endif %}
+                    </div>
+
+                    {% if explosives_card and explosives_card.unlocked %}
+                    <form method="POST" action="{{ url_for('factory.start_job') }}">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                        <input type="hidden" name="job_type" value="explosives"/>
+                        <button class="btn btn-warning btn-block shine-effect text-dark font-weight-bold" {% if user.diamonds < pricing.expl_diamonds or metal_qty < pricing.expl_metal %}disabled{% endif %}>
+                        <i class="fas fa-radiation mr-2"></i>{{ _('بدء الإنتاج') }}
+                        </button>
+                    </form>
+                    {% else %}
+                    <button class="btn btn-dark btn-block disabled">
+                        <i class="fas fa-lock mr-2"></i>{{ _('غير متاح') }}
+                    </button>
+                    {% endif %}
+                </div>
+              </div>
+            </div>
+          </div>
+        {% endif %}
+      </div>
+    </div>
+
+    <div class="col-lg-4">
+      <div class="luxury-card p-4 mb-4 factory-card-bg-dark">
+        <h4 class="mb-3 text-warning"><i class="fas fa-fire-alt mr-2"></i>{{ _('فرن الصهر') }}</h4>
+        <p class="text-muted small mb-4">{{ _('حول خردة السيارات والمسروقات إلى سبائك معدنية ثمينة.') }}</p>
+
+        {% if smeltable %}
+          {% for row in smeltable %}
+            <div class="d-flex justify-content-between align-items-center mb-3 p-3 bg-dark rounded border border-secondary">
+              <div>
+                <div class="text-white font-weight-bold">{{ _(row.item.name) }}</div>
+                <div class="text-muted small">{{ _('المتوفر:') }} <span class="text-white">{{ row.qty }}</span></div>
+              </div>
+              <form method="POST" action="{{ url_for('factory.smelt') }}">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                <input type="hidden" name="item_id" value="{{ row.item.id }}"/>
+                <button class="btn btn-sm btn-outline-warning">
+                    <i class="fas fa-fire mr-1"></i> {{ _('صهر') }}
+                </button>
+              </form>
+            </div>
+          {% endfor %}
+        {% else %}
+          <div class="text-center py-5 text-muted">
+              <i class="fas fa-box-open fa-3x mb-3 opacity-50"></i>
+              <p>{{ _('المخزن فاضي! جيب مسروقات عشان نصهرها.') }}</p>
+          </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

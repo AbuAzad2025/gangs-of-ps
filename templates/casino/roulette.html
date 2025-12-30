@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container fade-in">
+    <div class="text-center mb-4">
+        <h2 class="text-success display-5 fw-bold">🎡 {{ _('الروليت') }} 🎡</h2>
+        <a href="{{ url_for('casino.index') }}" class="btn btn-outline-light btn-sm mb-3">
+            <i class="fas fa-arrow-right"></i> {{ _('عودة للكازينو') }}
+        </a>
+    </div>
+
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="roulette-table">
+                <div class="wheel-area text-center mb-4">
+                    <div class="wheel-icon display-1 animate-spin-slow">🎡</div>
+                </div>
+
+                <div class="betting-board p-4 bg-dark rounded border border-success">
+                    <form action="{{ url_for('casino.roulette_spin') }}" method="post">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        
+                        <div class="row g-3">
+                            <div class="col-12 text-center mb-3">
+                                <label class="form-label text-white">{{ _('قيمة الرهان') }}</label>
+                                <input type="number" name="bet_amount" class="form-control bg-secondary text-white text-center mx-auto mw-200px" value="100" min="10">
+                            </div>
+
+                            <!-- Color Bets -->
+                            <div class="col-md-4">
+                                <div class="d-grid gap-2">
+                                    <input type="radio" class="btn-check" name="bet_type" id="bet-red" value="red" required>
+                                    <label class="btn btn-outline-danger btn-lg" for="bet-red">🔴 {{ _('أحمر') }} (x2)</label>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="d-grid gap-2">
+                                    <input type="radio" class="btn-check" name="bet_type" id="bet-black" value="black">
+                                    <label class="btn btn-outline-dark btn-lg border-light" for="bet-black">⚫ {{ _('أسود') }} (x2)</label>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="d-grid gap-2">
+                                    <input type="radio" class="btn-check" name="bet_type" id="bet-green" value="green">
+                                    <label class="btn btn-outline-success btn-lg" for="bet-green">🟢 {{ _('صفر') }} (x35)</label>
+                                </div>
+                            </div>
+
+                            <!-- Number Bet -->
+                            <div class="col-12 mt-4">
+                                <div class="card bg-secondary">
+                                    <div class="card-body">
+                                        <div class="form-check mb-2">
+                                            <input class="form-check-input" type="radio" name="bet_type" value="number" id="bet-number-radio">
+                                            <label class="form-check-label text-white" for="bet-number-radio">
+                                                {{ _('رقم محدد (x35)') }}
+                                            </label>
+                                        </div>
+                                        <input type="number" name="bet_number" class="form-control bg-dark text-white text-center" min="0" max="36" placeholder="{{ _('اختر رقم (0-36)') }}">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-12 mt-4">
+                                <button type="submit" class="btn btn-success w-100 btn-lg shadow-lg">{{ _('دور العجلة!') }}</button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

@@ -1,0 +1,103 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container-fluid fade-in">
+    <div class="inventory-header">
+        <h1 class="display-4 font-weight-bold text-uppercase text-white text-shadow-heavy">
+            <i class="fas fa-briefcase mr-3 text-warning"></i>{{ _('حقيبة الأغراض') }}
+        </h1>
+        <p class="lead text-white-50">{{ _('عدتك وسلاحك، جاهز للطوشة؟') }}</p>
+        <a href="{{ url_for('market.index') }}" class="btn btn-luxury mt-3 shine-button">
+            <i class="fas fa-shopping-cart mr-2"></i> {{ _('الذهاب للسوق') }}
+        </a>
+    </div>
+
+    {% if items %}
+    <div class="row">
+        {% for user_item in items %}
+        <div class="col-lg-4 col-md-6 mb-4 fade-in anim-delay-{{ loop.index if loop.index <= 20 else 20 }}">
+            <div class="item-card {{ 'equipped' if user_item.is_equipped }}">
+                <div class="item-icon">
+                    {% if user_item.item.image %}
+                        <img src="{{ url_for('static', filename=user_item.item.image) }}" alt="{{ _(user_item.item.name) }}">
+                    {% else %}
+                        <i class="fas {{ 'fa-khanda' if user_item.item.type == 'weapon' else 'fa-shield-alt' }} fa-2x text-muted"></i>
+                    {% endif %}
+                </div>
+                
+                <div class="item-details">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <h5 class="item-name mb-0">{{ _(user_item.item.name) }}</h5>
+                        <span class="badge-quantity" title="{{ _('العدد') }}">{{ user_item.quantity }}</span>
+                    </div>
+                    
+                    <div class="item-stats">
+                        {% if user_item.item.bonus_strength > 0 %}
+                            <span class="stat-badge stat-str"><i class="fas fa-fist-raised"></i> +{{ user_item.item.bonus_strength }}</span>
+                        {% endif %}
+                        {% if user_item.item.ammo_needed > 0 %}
+                            <span class="stat-badge badge-warning text-dark"><i class="fas fa-bullseye"></i> {{ _('رصاص:') }} {{ user_item.item.ammo_needed }}</span>
+                        {% endif %}
+                        {% if user_item.item.bonus_defense > 0 %}
+                            <span class="stat-badge stat-def"><i class="fas fa-shield-alt"></i> +{{ user_item.item.bonus_defense }}</span>
+                        {% endif %}
+                        {% if user_item.item.bonus_strength == 0 and user_item.item.bonus_defense == 0 %}
+                             <span class="text-muted small"><i class="fas fa-info-circle"></i> {{ _('عنصر استهلاكي') }}</span>
+                        {% endif %}
+                    </div>
+
+                    {% if user_item.item.type in ['weapon', 'armor'] %}
+                        <div class="mb-2">
+                            <span class="badge {{ 'badge-success' if (user_item.condition or 100) >= 100 else 'badge-warning text-dark' }}">
+                                {{ _('الحالة:') }} {{ user_item.condition or 100 }}%
+                            </span>
+                        </div>
+                    {% endif %}
+                    
+                    <div class="item-actions">
+                        {% if user_item.item.type in ['weapon', 'armor'] %}
+                            {% if user_item.is_equipped %}
+                                <form action="{{ url_for('inventory.unequip', item_id=user_item.id) }}" method="POST" class="d-inline">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                                    <button type="submit" class="btn btn-equip btn-unequip">
+                                        <i class="fas fa-check mr-1"></i> {{ _('مجهز') }}
+                                    </button>
+                                </form>
+                            {% else %}
+                                <form action="{{ url_for('inventory.equip', item_id=user_item.id) }}" method="POST" class="d-inline">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                                    <button type="submit" class="btn btn-equip btn-do-equip">
+                                        <i class="fas fa-hand-paper mr-1"></i> {{ _('تجهيز') }}
+                                    </button>
+                                </form>
+                            {% endif %}
+
+                            {% if (user_item.condition or 100) < 100 %}
+                                <form action="{{ url_for('inventory.repair', item_id=user_item.id) }}" method="POST" class="d-inline">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                                    <button type="submit" class="btn btn-equip btn-outline-warning ml-2">
+                                        <i class="fas fa-tools mr-1"></i> {{ _('إصلاح') }}
+                                    </button>
+                                </form>
+                            {% endif %}
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="empty-inventory">
+        <div class="mb-4">
+            <i class="fas fa-box-open fa-5x text-muted opacity-50"></i>
+        </div>
+        <h3 class="text-white mb-3">{{ _('الحقيبة فاضية!') }}</h3>
+        <p class="text-muted mb-4 lead">{{ _('لا تطلع عالحارة وإيديك فاضية، الناس بتوكل وجهك.') }}</p>
+        <a href="{{ url_for('market.index') }}" class="btn btn-luxury btn-lg shine-button">
+            {{ _('اشتري عدة') }}
+        </a>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

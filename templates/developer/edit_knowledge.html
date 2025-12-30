@@ -1,0 +1,58 @@
+{% extends "developer/dashboard.html" %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-10">
+        <div class="luxury-card fade-in-up">
+            <div class="card-header">
+                <h3 class="card-title text-gradient-gold"><i class="fas fa-brain mr-2"></i> {{ title }}</h3>
+            </div>
+            <form method="POST">
+                {{ form.hidden_tag() }}
+                <div class="card-body">
+                    <div class="form-group mb-3">
+                        <label class="text-gold">{{ form.question.label }}</label>
+                        {{ form.question(class="form-control form-control-luxury", rows="2") }}
+                    </div>
+                    <div class="form-group mb-3">
+                        <label class="text-gold">{{ form.answer.label }}</label>
+                        {{ form.answer(class="form-control form-control-luxury", rows="5") }}
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group mb-3">
+                                <label class="text-gold">{{ form.category.label }}</label>
+                                {{ form.category(class="form-control form-control-luxury") }}
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group mb-3">
+                                <label class="text-gold">{{ form.language.label }}</label>
+                                {{ form.language(class="form-control form-control-luxury") }}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group mb-3">
+                                <label class="text-gold">{{ form.keywords.label }}</label>
+                                {{ form.keywords(class="form-control form-control-luxury") }}
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group mb-3">
+                                <label class="text-gold">{{ form.hostess_id.label }}</label>
+                                {{ form.hostess_id(class="form-control form-control-luxury") }}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-footer bg-transparent border-top border-secondary">
+                    <button type="submit" class="btn btn-luxury-action">{{ _('حفظ') }}</button>
+                    <a href="{{ url_for('main.dev_knowledge') }}" class="btn btn-outline-secondary float-right">{{ _('إلغاء') }}</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

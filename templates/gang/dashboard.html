@@ -1,0 +1,422 @@
+{% extends "base.html" %}
+
+{% block content %}
+<style>
+    .luxury-card {
+        background: var(--dark-card);
+        border: 1px solid rgba(212, 175, 55, 0.2);
+        box-shadow: 0 0 15px rgba(0, 0, 0, 0.5);
+        border-radius: 15px;
+        overflow: hidden;
+        margin-bottom: 20px;
+    }
+
+    .luxury-header {
+        background: radial-gradient(circle at center, rgba(30, 10, 10, 0.9) 0%, rgba(10, 5, 5, 0.95) 100%);
+        border-bottom: 2px solid var(--gold-primary);
+        padding: 15px;
+    }
+
+    .luxury-title {
+        color: var(--gold-primary);
+        font-weight: bold;
+        margin: 0;
+        text-shadow: 0 0 10px rgba(212, 175, 55, 0.3);
+    }
+
+    .profile-user-img {
+        border: 3px solid var(--gold-primary);
+        padding: 3px;
+        background: rgba(0,0,0,0.5);
+    }
+
+    .list-group-item {
+        background-color: transparent;
+        border-color: rgba(255,255,255,0.1);
+        color: #ddd;
+    }
+
+    .nav-pills .nav-link.active, .nav-pills .show>.nav-link {
+        background-color: var(--gold-primary);
+        color: #000;
+        font-weight: bold;
+    }
+
+    .nav-pills .nav-link {
+        color: #aaa;
+        transition: all 0.3s;
+    }
+
+    .nav-pills .nav-link:hover {
+        color: var(--gold-primary);
+    }
+
+    .form-control-luxury {
+        background: rgba(0,0,0,0.3);
+        border: 1px solid rgba(255,255,255,0.1);
+        color: #fff;
+    }
+    
+    .form-control-luxury:focus {
+        background: rgba(0,0,0,0.5);
+        border-color: var(--gold-primary);
+        color: #fff;
+    }
+
+    .btn-luxury-action {
+        background: linear-gradient(45deg, var(--gold-secondary), var(--gold-primary));
+        border: none;
+        color: #000;
+        font-weight: bold;
+        transition: all 0.3s;
+    }
+
+    .btn-luxury-action:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(212, 175, 55, 0.4);
+        color: #000;
+    }
+    
+    .timeline-item {
+        background: rgba(255,255,255,0.05) !important;
+        border: 1px solid rgba(255,255,255,0.1);
+        color: #ddd;
+    }
+    
+    .timeline-header {
+        border-bottom: 1px solid rgba(255,255,255,0.1) !important;
+        color: var(--gold-primary);
+    }
+    
+    .timeline-header a {
+        color: #fff;
+    }
+
+    .table-luxury th {
+        border-top: none;
+        border-bottom: 2px solid var(--gold-primary);
+        color: var(--gold-primary);
+    }
+    
+    .table-luxury td {
+        border-top: 1px solid rgba(255,255,255,0.05);
+        color: #ddd;
+    }
+</style>
+
+<div class="row">
+    <!-- Sidebar / Stats -->
+    <div class="col-md-4">
+        <!-- Gang Profile -->
+        <div class="card luxury-card">
+            <div class="card-body box-profile">
+                <div class="text-center">
+                    {% if gang.image %}
+                    <img class="profile-user-img img-fluid img-circle" src="{{ gang.image }}" alt="Gang logo">
+                    {% else %}
+                    <div class="text-center mb-3">
+                        <i class="fas fa-users fa-3x text-gold"></i>
+                    </div>
+                    {% endif %}
+                </div>
+
+                <h3 class="profile-username text-center text-white">{{ gang.name }}</h3>
+                <p class="text-muted text-center">{{ gang.description }}</p>
+
+                <ul class="list-group list-group-unbordered mb-3">
+                    <li class="list-group-item">
+                        <b>{{ _('المستوى') }}</b> <a class="float-right text-gold">{{ gang.level }}</a>
+                    </li>
+                    <li class="list-group-item">
+                        <b>{{ _('الخبرة') }}</b> <a class="float-right text-info">{{ gang.exp }}</a>
+                    </li>
+                    <li class="list-group-item">
+                        <b>{{ _('الخزينة') }}</b> <a class="float-right text-success">{{ gang.money }}$</a>
+                    </li>
+                    <li class="list-group-item">
+                        <b>{{ _('الترسانة') }}</b> <a class="float-right text-danger">{{ gang.bullets }}</a>
+                    </li>
+                    <li class="list-group-item">
+                        <b>{{ _('الأعضاء') }}</b> <a class="float-right text-white">{{ members|length }} / {{ gang.max_members }}</a>
+                    </li>
+                </ul>
+
+                <a href="{{ url_for('gang.organized_crimes') }}" class="btn btn-luxury-action btn-block mb-2">
+                    <i class="fas fa-mask"></i> <b>{{ _('الجرائم المنظمة') }}</b>
+                </a>
+
+                <form action="{{ url_for('gang.leave') }}" method="POST" onsubmit="return confirm('{{ _('هل أنت متأكد من المغادرة؟') }}')" class="mb-2">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                    <button type="submit" class="btn btn-outline-danger btn-block"><b>{{ _('مغادرة العصابة') }}</b></button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Donation Form -->
+        <div class="card luxury-card">
+            <div class="card-header luxury-header">
+                <h3 class="card-title luxury-title"><i class="fas fa-donate mr-2"></i> {{ _('التبرع للعصابة') }}</h3>
+            </div>
+            <div class="card-body">
+                <form action="{{ url_for('gang.donate') }}" method="POST">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                    <div class="form-group">
+                        <label class="text-muted">{{ _('النوع') }}</label>
+                        <select name="type" class="form-control form-control-luxury">
+                            <option value="money">{{ _('كاش') }}</option>
+                            <option value="bullets">{{ _('رصاص') }}</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="text-muted">{{ _('الكمية') }}</label>
+                        <input type="number" name="amount" class="form-control form-control-luxury" min="1" required>
+                    </div>
+                    <button type="submit" class="btn btn-success btn-block">{{ _('تبرع') }}</button>
+                </form>
+            </div>
+        </div>
+
+        {% if is_leader or is_underboss %}
+        <!-- Withdraw Form -->
+        <div class="card luxury-card">
+            <div class="card-header luxury-header">
+                <h3 class="card-title text-danger font-weight-bold"><i class="fas fa-money-bill-wave mr-2"></i> {{ _('سحب من الخزينة') }}</h3>
+            </div>
+            <div class="card-body">
+                <form action="{{ url_for('gang.withdraw') }}" method="POST">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                    <div class="form-group">
+                        <label class="text-muted">{{ _('الكمية') }}</label>
+                        <input type="number" name="amount" class="form-control form-control-luxury" min="1" required>
+                    </div>
+                    <button type="submit" class="btn btn-danger btn-block">{{ _('سحب') }}</button>
+                </form>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Main Content -->
+    <div class="col-md-8">
+        <div class="card luxury-card">
+            <div class="card-header p-2 border-bottom border-secondary">
+                <ul class="nav nav-pills">
+                    <li class="nav-item"><a class="nav-link active" href="#members" data-toggle="tab">{{ _('الأعضاء') }}</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#wars" data-toggle="tab">{{ _('الحروب') }}</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#logs" data-toggle="tab">{{ _('السجلات') }}</a></li>
+                    {% if is_leader or is_underboss %}
+                    <li class="nav-item"><a class="nav-link" href="#manage" data-toggle="tab">{{ _('الإدارة') }}</a></li>
+                    {% endif %}
+                </ul>
+            </div>
+            <div class="card-body">
+                <div class="tab-content">
+                    <!-- Members Tab -->
+                    <div class="active tab-pane" id="members">
+                        <ul class="list-group list-group-flush">
+                            {% for member in members %}
+                            <li class="list-group-item">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        {% if member.country %}
+                                        <span class="flag-icon flag-icon-{{ member.country|lower }} mr-1"></span>
+                                        {% endif %}
+                                        <strong>{{ member.username }}</strong>
+                                        <span class="badge badge-secondary ml-2">{{ _(member.rank_title) }}</span>
+                                        {% if member.id == gang.leader_id %}
+                                            <span class="badge badge-warning ml-1">{{ _('الزعيم') }}</span>
+                                        {% elif member.id == gang.underboss_id %}
+                                            <span class="badge badge-info ml-1">{{ _('النائب') }}</span>
+                                        {% endif %}
+                                    </div>
+                                    <div>
+                                        <span class="text-muted small mr-3">Lvl {{ member.level }}</span>
+                                        {% if is_leader and member.id != current_user.id %}
+                                            {% if member.id != gang.underboss_id %}
+                                            <form action="{{ url_for('gang.kick_member', user_id=member.id) }}" method="POST" class="d-inline" onsubmit="return confirm('{{ _('هل أنت متأكد؟ سيكلف هذا خزينة العصابة!') }}');">
+                                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                                                <button type="submit" class="btn btn-xs btn-outline-danger" title="{{ _('طرد (مع عواقب)') }}">
+                                                    <i class="fas fa-ban"></i>
+                                                </button>
+                                            </form>
+                                            {% endif %}
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+
+                    <!-- Wars Tab -->
+                    <div class="tab-pane" id="wars">
+                    {% if active_wars %}
+                        <div class="table-responsive">
+                            <table class="table table-luxury table-bordered">
+                                <thead>
+                                    <tr>
+                                        <th>{{ _('الخصم') }}</th>
+                                        <th>{{ _('النتيجة') }}</th>
+                                        <th>{{ _('ينتهي في') }}</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for war in active_wars %}
+                                    {% set opponent = war.gang2 if war.gang1_id == gang.id else war.gang1 %}
+                                    {% set my_score = war.score_gang1 if war.gang1_id == gang.id else war.score_gang2 %}
+                                    {% set their_score = war.score_gang2 if war.gang1_id == gang.id else war.score_gang1 %}
+                                    <tr>
+                                        <td>
+                                            <a href="{{ url_for('gang.view', gang_id=opponent.id) }}" class="text-gold">{{ opponent.name }}</a>
+                                        </td>
+                                        <td>
+                                            <span class="text-success">{{ my_score }}</span> - <span class="text-danger">{{ their_score }}</span>
+                                        </td>
+                                        <td>{{ war.end_time.strftime('%Y-%m-%d %H:%M') }}</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="alert alert-info text-center bg-transparent border-gold text-gold">
+                            {{ _('لا يوجد حروب نشطة حالياً. السلام يعم المكان!') }}
+                        </div>
+                    {% endif %}
+                </div>
+
+                <!-- Logs Tab -->
+                <div class="tab-pane" id="logs">
+                        <div class="timeline timeline-inverse">
+                            {% for log in logs %}
+                            <div>
+                                <i class="fas fa-info bg-primary"></i>
+                                <div class="timeline-item">
+                                    <span class="time"><i class="far fa-clock"></i> {{ log.timestamp.strftime('%Y-%m-%d %H:%M') }}</span>
+                                    <h3 class="timeline-header no-border">
+                                        {% if log.user_id %}
+                                            <a href="#" class="text-gold font-weight-bold">{{ log.user.username }}</a>
+                                        {% else %}
+                                            {{ _('نظام العصابة') }}
+                                        {% endif %}
+                                        {{ log.action }}
+                                    </h3>
+                                </div>
+                            </div>
+                            {% endfor %}
+                            <div>
+                                <i class="far fa-clock bg-gray"></i>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Manage Tab -->
+                    {% if is_leader or is_underboss %}
+                    <div class="tab-pane" id="manage">
+                        <!-- Removed url_for('gang.edit') because the route is missing. Using # for now to prevent error -->
+                        <form class="form-horizontal" action="{{ url_for('gang.edit') }}" method="POST" enctype="multipart/form-data">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                            <div class="form-group row">
+                                <label class="col-sm-2 col-form-label">{{ _('اسم العصابة') }}</label>
+                                <div class="col-sm-10">
+                                    <input type="text" class="form-control" value="{{ gang.name }}" disabled>
+                                    <small class="text-muted">{{ _('لا يمكن تغيير الاسم') }}</small>
+                                </div>
+                            </div>
+                            <div class="form-group row">
+                                <label class="col-sm-2 col-form-label">{{ _('الوصف') }}</label>
+                                <div class="col-sm-10">
+                                    <textarea class="form-control" name="description" rows="3">{{ gang.description }}</textarea>
+                                </div>
+                            </div>
+                            
+                            <hr class="border-gold">
+                            <h5 class="text-gold mb-3"><i class="fas fa-filter"></i> {{ _('سياسات التجنيد') }}</h5>
+                            
+                            <div class="form-group row">
+                                <label class="col-sm-2 col-form-label">{{ _('حالة التجنيد') }}</label>
+                                <div class="col-sm-10">
+                                    <select class="form-control" name="recruitment_status">
+                                        <option value="open" {% if gang.recruitment_status == 'open' %}selected{% endif %}>{{ _('مفتوح للجميع') }}</option>
+                                        <option value="invite_only" {% if gang.recruitment_status == 'invite_only' %}selected{% endif %}>{{ _('دعوات فقط') }}</option>
+                                        <option value="closed" {% if gang.recruitment_status == 'closed' %}selected{% endif %}>{{ _('مغلق') }}</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="form-group row">
+                                <label class="col-sm-2 col-form-label">{{ _('الحد الأدنى للمستوى') }}</label>
+                                <div class="col-sm-10">
+                                    <input type="number" class="form-control" name="min_level_req" value="{{ gang.min_level_req }}" min="1">
+                                </div>
+                            </div>
+                            <div class="form-group row">
+                                <label class="col-sm-2 col-form-label">{{ _('الدول المسموحة') }}</label>
+                                <div class="col-sm-10">
+                                    <input type="text" class="form-control" name="allowed_countries" value="{{ gang.allowed_countries or '' }}" placeholder="PS,JO,EG (comma separated ISO codes)">
+                                    <small class="text-muted">{{ _('اتركه فارغاً للسماح للجميع. استخدم رموز الدول (ISO) مفصولة بفواصل.') }}</small>
+                                </div>
+                            </div>
+                            
+                            <hr class="border-gold">
+                            
+                            <div class="form-group row">
+                                <label class="col-sm-2 col-form-label">{{ _('الشعار') }}</label>
+                                <div class="col-sm-10">
+                                    <div class="custom-file">
+                                        <input type="file" class="custom-file-input" name="image" id="customFile">
+                                        <label class="custom-file-label" for="customFile">{{ _('اختر صورة') }}</label>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-group row">
+                                <div class="offset-sm-2 col-sm-10">
+                                    {% if is_leader %}
+                                    <button type="submit" class="btn btn-primary">{{ _('حفظ التغييرات') }}</button>
+                                    {% else %}
+                                    <button type="button" class="btn btn-secondary" disabled>{{ _('فقط الزعيم يمكنه التعديل') }}</button>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </form>
+                        
+                        {% if is_leader %}
+                        <hr>
+                        <h4>{{ _('دعوات الانضمام') }}</h4>
+                        <form action="{{ url_for('gang.broadcast_invite_all') }}" method="POST" class="mb-4">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                            <button type="submit" class="btn btn-success btn-block">
+                                <i class="fas fa-bullhorn"></i> {{ _('إرسال دعوة عامة لكل اللاعبين بدون عصابة') }}
+                            </button>
+                        </form>
+                        
+                        <hr>
+                        <h4>{{ _('تطوير العصابة') }}</h4>
+                        <p>{{ _('التكلفة') }}: <span class="text-danger">{{ gang.level * 10000 }}$</span> + <span class="text-info">{{ gang.level * 500 }} XP</span></p>
+                        <form action="{{ url_for('gang.upgrade') }}" method="POST">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                            <input type="hidden" name="type" value="level">
+                            <button type="submit" class="btn btn-warning btn-block">
+                                <i class="fas fa-arrow-up"></i> {{ _('ترقية المستوى') }}
+                            </button>
+                        </form>
+
+                        <hr>
+                        <h4>{{ _('زيادة سعة الأعضاء') }}</h4>
+                        <p>{{ _('السعة الحالية') }}: {{ gang.max_members }}</p>
+                        <p>{{ _('التكلفة') }}: <span class="text-danger">{{ gang.max_members * 1000 }}$</span></p>
+                        <form action="{{ url_for('gang.upgrade') }}" method="POST">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                            <input type="hidden" name="type" value="capacity">
+                            <button type="submit" class="btn btn-info btn-block">
+                                <i class="fas fa-users-cog"></i> {{ _('زيادة السعة (+5)') }}
+                            </button>
+                        </form>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,60 @@
+{% extends "developer/dashboard.html" %}
+
+{% block content %}
+<div class="luxury-card fade-in-up">
+    <div class="card-header">
+        <h3 class="card-title text-gradient-gold"><i class="fas fa-tasks mr-2"></i> {{ _('قائمة المهام اليومية') }}</h3>
+        <div class="card-tools">
+            <a href="{{ url_for('main.dev_task_edit', id=None) }}" class="btn btn-luxury-action btn-sm">
+                <i class="fas fa-plus"></i> {{ _('إضافة مهمة جديدة') }}
+            </a>
+        </div>
+    </div>
+    <div class="card-body p-0">
+        <table class="table luxury-table luxury-table-striped projects">
+            <thead>
+                <tr>
+                    <th style="width: 1%">#</th>
+                    <th style="width: 20%">{{ _('الوصف') }}</th>
+                    <th style="width: 15%">{{ _('النوع') }}</th>
+                    <th>{{ _('الهدف') }}</th>
+                    <th>{{ _('المكافأة (مال)') }}</th>
+                    <th>{{ _('المكافأة (خبرة)') }}</th>
+                    <th style="width: 8%" class="text-center">{{ _('الحالة') }}</th>
+                    <th style="width: 20%"></th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for task in tasks %}
+                <tr style="animation: fadeInUp 0.5s ease backwards; animation-delay: {{ loop.index0 * 0.05 }}s;">
+                    <td><span class="text-muted">{{ task.id }}</span></td>
+                    <td>
+                        <strong class="text-gold">{{ task.description }}</strong>
+                    </td>
+                    <td><span class="badge bg-dark border border-secondary">{{ task.target_type }}</span></td>
+                    <td><span class="text-info font-weight-bold">{{ task.target_count }}</span></td>
+                    <td class="text-success">${{ "{:,}".format(task.reward_money) }}</td>
+                    <td class="text-warning">{{ task.reward_exp }} EXP</td>
+                    <td class="project-state">
+                        {% if task.is_active %}
+                        <span class="badge badge-success">{{ _('نشط') }}</span>
+                        {% else %}
+                        <span class="badge badge-secondary">{{ _('غير نشط') }}</span>
+                        {% if task.image %}
+                        <br>
+                        <img src="{{ url_for('static', filename=task.image) }}" alt="Task Image" class="img-thumbnail mt-1 border-gold" style="max-height: 50px; background: transparent;">
+                        {% endif %}
+                        {% endif %}
+                    </td>
+                    <td class="project-actions text-right">
+                        <a class="btn btn-luxury-action btn-sm" href="{{ url_for('main.dev_task_edit', id=task.id) }}">
+                            <i class="fas fa-pencil-alt"></i> {{ _('تعديل') }}
+                        </a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,52 @@
+{
+    "name": "روبي",
+    "role": "luck",
+    "price": 15000,
+    "description": "الوردة الحمراء الخطرة. خبيرة التكتيك والرهانات العالية.",
+    "dialogue_style": "sharp",
+    "intro_message": "اللعب مع الكبار بدو قلب ميت... جاهز للمخاطرة؟",
+    "buff_type": "casino_luck",
+    "buff_value": 0.40,
+    "image": "ruby.png",
+    "video": "ruby_avatar.mp4",
+    "video_prompt": {
+        "title": "روبي - رهانات عالية",
+        "description": "مضيفة كازينو عربية بطابع 2.5D أنيمي، شخصية حادة وذكية، لون أحمر/ذهبي، تمسك شريحة كازينو وتدوّرها بين الأصابع بثقة. بورتريه 9:16، حركة سريعة خفيفة، ابتسامة تحدّي.",
+        "duration_seconds": 8,
+        "fps": 24,
+        "resolution": "1080x1920",
+        "style": {
+            "visual_style": "stylized 2.5D, crisp, high-contrast",
+            "palette": "deep red, gold, black",
+            "lighting": "sharp highlights, casino neon",
+            "color_grade": "clean cinematic"
+        },
+        "global_constraints": {
+            "avoid": ["men", "male", "text overlays", "logos", "watermarks", "nudity", "explicit content"],
+            "physics": "smooth hand motion, loopable"
+        },
+        "audio": {
+            "music_mood": "high-stakes electronic lounge",
+            "dialogue": [
+                {"lang": "ar", "text": "اللعب مع الكبار… بدّو أعصاب. جاهز؟"}
+            ]
+        },
+        "shots": [
+            {"shot": "medium close-up", "camera": "static", "action": "spin a chip, confident smirk", "background": "casino bar, red neon"},
+            {"shot": "close-up", "camera": "slow push-in", "action": "raise eyebrow, slight nod", "background": "bokeh lights"}
+        ]
+    },
+    "level": 10,
+    "exp": 50000,
+    "charm": 90,
+    "intelligence": 95,
+    "personality_config": {
+        "flirt_level": 5, 
+        "shyness": 0, 
+        "dominance": 10, 
+        "sharpness": 10,
+        "voice_pitch": 0.9,
+        "speed": 1.0
+    },
+    "is_public": false
+}

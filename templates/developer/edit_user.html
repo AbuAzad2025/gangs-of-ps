@@ -1,0 +1,239 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-10">
+        <div class="luxury-card fade-in-up">
+            <div class="card-header">
+                <div class="d-flex justify-content-between align-items-center w-100">
+                    <h3 class="card-title text-gradient-gold m-0"><i class="fas fa-user-edit mr-2"></i> {{ _('تعديل اللاعب') }}: {{ user.username }}</h3>
+                    <div class="d-flex flex-wrap gap-2">
+                        <a href="{{ url_for('main.dev_user_achievements', user_id=user.id) }}" class="btn btn-outline-warning btn-sm ml-2">
+                            <i class="fas fa-award"></i> {{ _('الإنجازات') }}
+                        </a>
+                        <form method="post" action="{{ url_for('main.dev_user_clear_status', id=user.id) }}" class="d-inline ml-2">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                            <button type="submit" class="btn btn-outline-light btn-sm" onclick="return confirm('{{ _('تصفير الحالة والكولداون؟') }}')">
+                                <i class="fas fa-broom"></i> {{ _('تصفير الحالة') }}
+                            </button>
+                        </form>
+                        {% if user.is_admin_protected %}
+                        <form method="post" action="{{ url_for('main.dev_user_protection_disable', id=user.id) }}" class="d-inline ml-2">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                            <button type="submit" class="btn btn-outline-warning btn-sm" onclick="return confirm('{{ _('إلغاء حماية اللاعب؟') }}')">
+                                <i class="fas fa-shield-alt"></i> {{ _('إلغاء الحماية') }}
+                            </button>
+                        </form>
+                        {% else %}
+                        <form method="post" action="{{ url_for('main.dev_user_protection_enable', id=user.id) }}" class="d-inline ml-2">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                            <button type="submit" class="btn btn-outline-success btn-sm" onclick="return confirm('{{ _('تفعيل حماية اللاعب؟') }}')">
+                                <i class="fas fa-shield-alt"></i> {{ _('حماية اللاعب') }}
+                            </button>
+                        </form>
+                        {% endif %}
+                        <form method="post" action="{{ url_for('main.dev_user_protection_clear_all', id=user.id) }}" class="d-inline ml-2">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                            <button type="submit" class="btn btn-outline-danger btn-sm" onclick="return confirm('{{ _('إخراج اللاعب من كل الحماية (منزل آمن + حماية مبتدئ + حماية الإدارة)؟') }}')">
+                                <i class="fas fa-user-shield"></i> {{ _('إخراج من كل الحماية') }}
+                            </button>
+                        </form>
+                        <form method="post" action="{{ url_for('main.dev_user_boost', id=user.id) }}" class="d-inline ml-2">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                            <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('{{ _('تحويل لمطور وترقية لأقصى قوة؟') }}')">
+                                <i class="fas fa-bolt"></i> {{ _('ترقية مطور') }}
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            <form method="POST">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group mb-3">
+                                <label class="text-gold">{{ _('اسم المستخدم') }}</label>
+                                <input type="text" name="username" class="form-control form-control-luxury" value="{{ user.username }}" required>
+                            </div>
+                            <div class="form-group mb-3">
+                                <label class="text-gold">{{ _('الدور') }}</label>
+                                <select name="role" class="form-control form-control-luxury">
+                                    {% for role in roles %}
+                                    <option value="{{ role.name }}" {% if user.role == role %}selected{% endif %}>{{ role.name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="form-group mb-3">
+                                <label class="text-gold">{{ _('المستوى') }}</label>
+                                <input type="number" name="level" class="form-control form-control-luxury" value="{{ user.level }}">
+                            </div>
+                            <div class="form-group mb-3">
+                                <label class="text-gold">{{ _('الخبرة (EXP)') }}</label>
+                                <input type="number" name="exp" class="form-control form-control-luxury" value="{{ user.exp }}">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group mb-3">
+                                <label class="text-gold">{{ _('الكاش') }}</label>
+                                <input type="number" name="money" class="form-control form-control-luxury" value="{{ user.money }}">
+                            </div>
+                            <div class="form-group mb-3">
+                                <label class="text-gold">{{ _('الرصيد البنكي') }}</label>
+                                <input type="number" name="bank_balance" class="form-control form-control-luxury" value="{{ user.bank_balance }}">
+                            </div>
+                            <div class="form-group mb-3">
+                                <label class="text-gold">{{ _('الماس') }}</label>
+                                <input type="number" name="diamonds" class="form-control form-control-luxury" value="{{ user.diamonds }}">
+                            </div>
+                            <div class="form-group mb-3">
+                                <label class="text-gold">{{ _('الرصاص') }}</label>
+                                <input type="number" name="bullets" class="form-control form-control-luxury" value="{{ user.bullets }}">
+                            </div>
+                        </div>
+                    </div>
+
+                    <hr class="border-secondary my-4">
+                    <h5 class="text-gradient-gold mb-3">{{ _('التقدم والحرارة') }}</h5>
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="form-group mb-3">
+                                <label class="text-gold">{{ _('مستوى الحرارة') }}</label>
+                                <input type="number" name="heat" class="form-control form-control-luxury" value="{{ user.heat_value() }}">
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-group mb-3">
+                                <label class="text-gold">{{ _('أيام الدخول المتتالي') }}</label>
+                                <input type="number" name="daily_streak" class="form-control form-control-luxury" value="{{ user.daily_streak }}">
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-group mb-3">
+                                <label class="text-gold">{{ _('الموقع الحالي') }}</label>
+                                <select name="location_id" class="form-control form-control-luxury">
+                                    {% for loc in locations %}
+                                    <option value="{{ loc.id }}" {% if user.location_id == loc.id %}selected{% endif %}>{{ loc.name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <hr class="border-secondary my-4">
+                    <h5 class="text-gradient-gold mb-3">{{ _('الخصائص القتالية') }}</h5>
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="form-group mb-3">
+                                <label class="text-gold">{{ _('القوة') }}</label>
+                                <input type="number" name="strength" class="form-control form-control-luxury" value="{{ user.strength }}">
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-group mb-3">
+                                <label class="text-gold">{{ _('الدفاع') }}</label>
+                                <input type="number" name="defense" class="form-control form-control-luxury" value="{{ user.defense }}">
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-group mb-3">
+                                <label class="text-gold">{{ _('السرعة') }}</label>
+                                <input type="number" name="agility" class="form-control form-control-luxury" value="{{ user.agility }}">
+                            </div>
+                        </div>
+                    </div>
+
+                    <hr class="border-secondary my-4">
+                    <h5 class="text-gradient-gold mb-3">{{ _('الحالة') }}</h5>
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="form-group mb-3">
+                                <label class="text-gold">{{ _('الصحة') }}</label>
+                                <div class="input-group">
+                                    <input type="number" name="health" class="form-control form-control-luxury" value="{{ user.health }}">
+                                    <div class="input-group-append"><span class="input-group-text bg-dark border-secondary text-gold">/</span></div>
+                                    <input type="number" name="max_health" class="form-control form-control-luxury" value="{{ user.max_health }}">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-group mb-3">
+                                <label class="text-gold">{{ _('الطاقة') }}</label>
+                                <div class="input-group">
+                                    <input type="number" name="energy" class="form-control form-control-luxury" value="{{ user.energy }}">
+                                    <div class="input-group-append"><span class="input-group-text bg-dark border-secondary text-gold">/</span></div>
+                                    <input type="number" name="max_energy" class="form-control form-control-luxury" value="{{ user.max_energy }}">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-group mb-3">
+                                <label class="text-gold">{{ _('الشجاعة') }}</label>
+                                <div class="input-group">
+                                    <input type="number" name="brave" class="form-control form-control-luxury" value="{{ user.brave }}">
+                                    <div class="input-group-append"><span class="input-group-text bg-dark border-secondary text-gold">/</span></div>
+                                    <input type="number" name="max_brave" class="form-control form-control-luxury" value="{{ user.max_brave }}">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
+                <hr class="border-secondary my-4">
+                <h5 class="text-gradient-gold mb-3">{{ _('إدارة الحساب') }}</h5>
+                <div class="row">
+                    <div class="col-md-12">
+                        <div class="form-group mb-3">
+                            <div class="custom-control custom-switch">
+                                <input type="checkbox" class="custom-control-input" id="ghostSwitch" name="is_ghost_mode" {% if user.is_ghost_mode %}checked{% endif %}>
+                                <label class="custom-control-label text-gold" for="ghostSwitch">{{ _('وضع الشبح (Ghost Mode)') }}</label>
+                            </div>
+                            <small class="text-muted">{{ _('إخفاء المستخدم من قوائم المتصلين والترتيب.') }}</small>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="row bg-dark p-3 rounded border border-danger">
+                    <div class="col-md-12 mb-2">
+                        <h6 class="text-danger"><i class="fas fa-ban mr-2"></i> {{ _('نظام الحظر (Ban System)') }}</h6>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            <label class="text-light">{{ _('مدة الحظر (ساعات)') }}</label>
+                            <input type="number" name="ban_hours" class="form-control bg-secondary text-light border-danger" placeholder="0">
+                        </div>
+                    </div>
+                    <div class="col-md-8">
+                        <div class="form-group">
+                            <label class="text-light">{{ _('سبب الحظر') }}</label>
+                            <input type="text" name="ban_reason" class="form-control bg-secondary text-light border-danger" placeholder="{{ _('مخالفة القوانين...') }}" value="{{ user.ban_reason or '' }}">
+                        </div>
+                    </div>
+                    <div class="col-md-12 mt-2">
+                        {% if user.banned_until %}
+                            <div class="alert alert-danger mb-2">
+                                {{ _('محظور حتى:') }} {{ user.banned_until.strftime('%Y-%m-%d %H:%M') }}
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" name="clear_ban" id="clearBan">
+                                <label class="form-check-label text-white" for="clearBan">
+                                    {{ _('رفع الحظر الآن') }}
+                                </label>
+                            </div>
+                        {% else %}
+                            <small class="text-success">{{ _('المستخدم غير محظور حالياً.') }}</small>
+                        {% endif %}
+                    </div>
+                </div>
+
+            </div>
+            <div class="card-footer bg-transparent border-top border-secondary">
+                <button type="submit" class="btn btn-luxury-action">{{ _('حفظ التغييرات') }}</button>
+                <a href="{{ url_for('main.dev_users') }}" class="btn btn-outline-secondary float-right">{{ _('إلغاء') }}</a>
+            </div>
+        </form>
+    </div>
+</div>
+</div>
+{% endblock %}

@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>{{ _('مكتبة سيناريوهات الفيديو (Video Scenarios)') }}</h2>
+        <a href="{{ url_for('main.dev_scenario_new') }}" class="btn btn-primary">
+            <i class="fas fa-plus"></i> {{ _('إضافة سيناريو جديد') }}
+        </a>
+    </div>
+
+    <div class="card bg-dark text-light border-gold">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover table-dark">
+                    <thead>
+                        <tr>
+                            <th>{{ _('العنوان') }}</th>
+                            <th>{{ _('الوصف') }}</th>
+                            <th>{{ _('تاريخ الإنشاء') }}</th>
+                            <th>{{ _('إجراءات') }}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for scenario in scenarios %}
+                        <tr>
+                            <td>{{ scenario.title }}</td>
+                            <td>{{ scenario.description }}</td>
+                            <td>{{ scenario.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
+                            <td>
+                                <a href="{{ url_for('main.dev_scenario_edit', id=scenario.id) }}" class="btn btn-sm btn-info" title="{{ _('تعديل') }}">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                <div class="btn-group">
+                                    <button type="button" class="btn btn-sm btn-success dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                        {{ _('تطبيق على...') }}
+                                    </button>
+                                    <div class="dropdown-menu dropdown-menu-dark">
+                                        {% for h in hostesses %}
+                                        <form action="{{ url_for('main.dev_scenario_apply', scenario_id=scenario.id, hostess_id=h.id) }}" method="post">
+                                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                            <button type="submit" class="dropdown-item">{{ h.name }}</button>
+                                        </form>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                                <form action="{{ url_for('main.dev_scenario_delete', id=scenario.id) }}" method="post" style="display:inline;" onsubmit="return confirm('{{ _('هل أنت متأكد؟') }}')">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                    <button type="submit" class="btn btn-sm btn-danger">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="4" class="text-center">{{ _('لا توجد سيناريوهات حالياً') }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

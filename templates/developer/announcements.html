@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="luxury-card fade-in-up">
+    <div class="card-header">
+        <h3 class="card-title text-gradient-gold"><i class="fas fa-bullhorn mr-2"></i> {{ _('إدارة الإعلانات') }}</h3>
+        <div class="card-tools">
+            <a href="{{ url_for('main.dev_announcement_edit') }}" class="btn btn-luxury-action btn-sm">
+                <i class="fas fa-plus"></i> {{ _('إضافة إعلان') }}
+            </a>
+        </div>
+    </div>
+    <div class="card-body p-0">
+        <table class="table luxury-table luxury-table-striped projects">
+            <thead>
+                <tr>
+                    <th>{{ _('العنوان') }}</th>
+                    <th>{{ _('المحتوى') }}</th>
+                    <th>{{ _('الحالة') }}</th>
+                    <th>{{ _('تاريخ الإنشاء') }}</th>
+                    <th>{{ _('إجراءات') }}</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for announcement in announcements %}
+                <tr style="animation: fadeInUp 0.5s ease backwards; animation-delay: {{ loop.index0 * 0.05 }}s;">
+                    <td><strong class="text-gold">{{ announcement.title }}</strong></td>
+                    <td class="text-muted">{{ announcement.content | truncate(50) }}</td>
+                    <td>
+                        {% if announcement.is_active %}
+                        <span class="badge badge-success">{{ _('نشط') }}</span>
+                        {% else %}
+                        <span class="badge badge-secondary">{{ _('غير نشط') }}</span>
+                        {% endif %}
+                    </td>
+                    <td class="text-muted">{{ announcement.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
+                    <td class="project-actions text-right">
+                        <a class="btn btn-luxury-action btn-sm" href="{{ url_for('main.dev_announcement_edit', id=announcement.id) }}">
+                            <i class="fas fa-pencil-alt"></i> {{ _('تعديل') }}
+                        </a>
+                        <form action="{{ url_for('main.dev_announcement_delete', id=announcement.id) }}" method="POST" style="display:inline;">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                            <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('{{ _('هل أنت متأكد؟') }}')">
+                                <i class="fas fa-trash"></i> {{ _('حذف') }}
+                            </button>
+                        </form>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

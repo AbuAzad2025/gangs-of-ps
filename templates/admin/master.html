@@ -1,0 +1,14 @@
+{% extends 'admin/base.html' %}
+
+{% block head %}
+    {{ super() }}
+    <!-- Custom Style -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/palestine_luxury.css') }}">
+    {% block head_css %}{% endblock %}
+{% endblock %}
+
+{% block page_body %}
+    <div class="container-fluid fade-in-up">
+        {{ super() }}
+    </div>
+{% endblock %}

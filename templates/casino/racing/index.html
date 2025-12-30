@@ -1,0 +1,150 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col-12 text-center">
+            <h1 class="display-4 text-warning"><i class="fas fa-flag-checkered"></i> {{ _('حلبة السباق') }}</h1>
+            <p class="lead text-muted">{{ _('سابق بسيارتك ضد لاعبين حقيقيين واربح الملايين!') }}</p>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Sidebar: My Car & Stats -->
+        <div class="col-md-4">
+            <div class="card mb-4 bg-dark text-white border-warning">
+                <div class="card-header bg-warning text-dark">
+                    <h5 class="m-0"><i class="fas fa-car"></i> {{ _('سيارتي') }}</h5>
+                </div>
+                <div class="card-body">
+                    {% if my_car %}
+                        <div class="text-center mb-3">
+                            <h4 class="text-warning">{{ my_car.vehicle.name }}</h4>
+                            <div class="badge badge-secondary p-2">{{ _('السرعة الأساسية:') }} {{ my_car.vehicle.speed }}</div>
+                        </div>
+                        
+                        <div class="row text-center mb-3">
+                            <div class="col-4">
+                                <small class="text-muted d-block">{{ _('المحرك') }}</small>
+                                <h5 class="text-info">{{ my_car.engine_level }}</h5>
+                                <form action="{{ url_for('racing.upgrade_car', part_type='engine') }}" method="POST">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                                    <button class="btn btn-sm btn-outline-info" title="{{ _('تطوير') }} ({{ 5000 * (my_car.engine_level + 1) }}$)">
+                                        <i class="fas fa-arrow-up"></i>
+                                    </button>
+                                </form>
+                            </div>
+                            <div class="col-4">
+                                <small class="text-muted d-block">{{ _('العجلات') }}</small>
+                                <h5 class="text-info">{{ my_car.tires_level }}</h5>
+                                <form action="{{ url_for('racing.upgrade_car', part_type='tires') }}" method="POST">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                                    <button class="btn btn-sm btn-outline-info" title="{{ _('تطوير') }} ({{ 3000 * (my_car.tires_level + 1) }}$)">
+                                        <i class="fas fa-arrow-up"></i>
+                                    </button>
+                                </form>
+                            </div>
+                            <div class="col-4">
+                                <small class="text-muted d-block">{{ _('الدروع') }}</small>
+                                <h5 class="text-info">{{ my_car.armor_level }}</h5>
+                                <form action="{{ url_for('racing.upgrade_car', part_type='armor') }}" method="POST">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                                    <button class="btn btn-sm btn-outline-info" title="{{ _('تطوير') }} ({{ 4000 * (my_car.armor_level + 1) }}$)">
+                                        <i class="fas fa-arrow-up"></i>
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                        
+                        <hr class="bg-secondary">
+                        
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span><i class="fas fa-id-card"></i> {{ _('مهارة السائق:') }}</span>
+                            <span class="text-success font-weight-bold">{{ current_user.driving_skill }}</span>
+                        </div>
+                        <form action="{{ url_for('racing.train_driver') }}" method="POST">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                            <button class="btn btn-block btn-outline-success btn-sm">
+                                <i class="fas fa-dumbbell"></i> {{ _('تدريب السائق') }} ({{ 1000 * current_user.driving_skill }}$)
+                            </button>
+                        </form>
+                        
+                    {% else %}
+                        <div class="alert alert-danger">
+                            {{ _('ليس لديك سيارة مفعلة! اذهب للكراج واشترِ واحدة.') }}
+                            <a href="{{ url_for('main.garage') }}" class="btn btn-sm btn-light mt-2">{{ _('الكراج') }}</a>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <!-- Create Race Form -->
+            <div class="card bg-dark text-white border-success">
+                <div class="card-header bg-success text-white">
+                    <h5 class="m-0"><i class="fas fa-plus-circle"></i> {{ _('إنشاء سباق جديد') }}</h5>
+                </div>
+                <div class="card-body">
+                    <form action="{{ url_for('racing.create') }}" method="POST">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                        <div class="form-group">
+                            <label>{{ _('مبلغ الرهان') }}</label>
+                            <input type="number" name="bet" class="form-control bg-secondary text-white border-0" min="100" placeholder="100" required>
+                        </div>
+                        <button type="submit" class="btn btn-success btn-block" {% if not my_car %}disabled{% endif %}>
+                            {{ _('إنشاء التحدي') }}
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Main: Lobby List -->
+        <div class="col-md-8">
+            <div class="card bg-dark text-white">
+                <div class="card-header">
+                    <h5 class="m-0"><i class="fas fa-list"></i> {{ _('السباقات المتاحة') }}</h5>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-dark table-hover mb-0">
+                            <thead>
+                                <tr>
+                                    <th>{{ _('المنشئ') }}</th>
+                                    <th>{{ _('الرهان') }}</th>
+                                    <th>{{ _('المتسابقين') }}</th>
+                                    <th>{{ _('الحالة') }}</th>
+                                    <th>{{ _('إجراء') }}</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for race in races %}
+                                <tr>
+                                    <td>{{ race.creator.username }}</td>
+                                    <td class="text-success font-weight-bold">${{ "{:,}".format(race.bet_amount) }}</td>
+                                    <td>{{ race.participants|length }}</td>
+                                    <td><span class="badge badge-warning">{{ _('بانتظار المتحدين') }}</span></td>
+                                    <td>
+                                        <form action="{{ url_for('racing.join', race_id=race.id) }}" method="POST">
+                                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                                            <button class="btn btn-sm btn-primary" {% if not my_car %}disabled{% endif %}>
+                                                {{ _('انضمام') }}
+                                            </button>
+                                        </form>
+                                    </td>
+                                </tr>
+                                {% else %}
+                                <tr>
+                                    <td colspan="5" class="text-center py-4 text-muted">
+                                        {{ _('لا يوجد سباقات حالياً. كن أول من ينشئ واحداً!') }}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
