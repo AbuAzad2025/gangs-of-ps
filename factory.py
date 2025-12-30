@@ -418,8 +418,21 @@ def create_app(config_class=Config):
         expires_at = cache.get("expires_at")
         if not expires_at or expires_at <= now:
             try:
-                latest_announcement = Announcement.query.filter_by(is_active=True).order_by(Announcement.created_at.desc()).first()
-                recent_combat = (
+                latest_announcement_row = (
+                    Announcement.query.filter_by(is_active=True)
+                    .order_by(Announcement.created_at.desc())
+                    .first()
+                )
+                latest_announcement = None
+                if latest_announcement_row:
+                    latest_announcement = {
+                        "id": latest_announcement_row.id,
+                        "title": latest_announcement_row.title,
+                        "content": latest_announcement_row.content,
+                        "created_at": latest_announcement_row.created_at,
+                    }
+
+                recent_combat_rows = (
                     CombatLog.query.options(
                         joinedload(CombatLog.attacker),
                         joinedload(CombatLog.defender),
@@ -428,6 +441,18 @@ def create_app(config_class=Config):
                     .limit(5)
                     .all()
                 )
+                recent_combat = []
+                for combat in recent_combat_rows:
+                    attacker_name = _("مجهول")
+                    if not getattr(combat, "is_attacker_anonymous", False):
+                        attacker_name = combat.attacker.username if combat.attacker else _("مجهول")
+                    defender_name = combat.defender.username if combat.defender else _("مجهول")
+                    recent_combat.append(
+                        {
+                            "attacker": attacker_name,
+                            "defender": defender_name,
+                        }
+                    )
                 cache = {
                     "expires_at": now.replace(microsecond=0) + timedelta(seconds=cache_seconds),
                     "latest_announcement": latest_announcement,
@@ -447,13 +472,11 @@ def create_app(config_class=Config):
         
         ticker_items = []
         if latest_announcement:
-             ticker_items.append({'type': 'announcement', 'text': f"📢 {latest_announcement.title}: {latest_announcement.content[:50]}..."})
+             ticker_items.append({'type': 'announcement', 'text': f"📢 {latest_announcement['title']}: {latest_announcement['content'][:50]}..."})
 
         for combat in recent_combat:
             try:
-                attacker_name = combat.attacker.username if combat.attacker else _("مجهول")
-                defender_name = combat.defender.username if combat.defender else _("مجهول")
-                ticker_items.append({'type': 'combat', 'text': _("⚔️ %(attacker)s هاجم %(defender)s", attacker=attacker_name, defender=defender_name)})
+                ticker_items.append({'type': 'combat', 'text': _("⚔️ %(attacker)s هاجم %(defender)s", attacker=combat.get("attacker") or _("مجهول"), defender=combat.get("defender") or _("مجهول"))})
             except:
                 continue
                 

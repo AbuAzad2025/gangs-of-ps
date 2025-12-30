@@ -1,6 +1,7 @@
 from flask import Blueprint, render_template, abort
 from flask_login import login_required
 from models import Announcement
+from extensions import db
 
 bp = Blueprint('news', __name__, url_prefix='/news')
 
