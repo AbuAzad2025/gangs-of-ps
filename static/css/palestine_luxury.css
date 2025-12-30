@@ -4768,3 +4768,32 @@ h1, h2, h3, h4, h5, h6, .brand-text-custom, .luxury-title {
     margin-right: 8px;
     margin-top: 8px;
 }
+
+.farm-item-icon-wrapper {
+    width: 72px;
+    height: 72px;
+    flex: 0 0 72px;
+    border-radius: 14px;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0, 0, 0, 0.25);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.farm-item-img {
+    width: 100%;
+    height: 100%;
+    display: block;
+    object-fit: contain;
+}
+
+.farm-locked-overlay {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0, 0, 0, 0.35);
+}
