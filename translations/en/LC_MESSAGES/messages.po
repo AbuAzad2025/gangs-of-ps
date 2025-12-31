@@ -2461,11 +2461,9 @@ msgid "لسه بدري يا كبير! ارجع بعد %(hours)s ساعة و %(mi
 msgstr "Too early! Come back in %(hours)s hours and %(minutes)s minutes."
 
 #: routes/gameplay.py:132
-#, fuzzy, python-format
+#, python-format
 msgid "أخذت مكافأتك اليومية: %(money)s شيكل و %(energy)s طاقة!"
-msgstr ""
-"You claimed your daily reward (streak %(streak)s): %(money)s shekels and "
-"%(energy)s energy!"
+msgstr "You claimed your daily reward: %(money)s shekels and %(energy)s energy!"
 
 #: routes/gameplay.py:181
 msgid "أنت في السجن ولا يمكنك القيام بجرائم!"
@@ -3417,9 +3415,8 @@ msgid "لا يمكنك دفع كفالة لنفسك بالماس، استخدم 
 msgstr "You can't bail yourself out with diamonds; use the money bribe option!"
 
 #: routes/jail.py:90
-#, fuzzy, python-format
 msgid "تم دفع الكفالة بنجاح! تم إخراج %(name)s من السجن."
-msgstr "Done paid bail successfully! Done remove %(name)s from jail. %(msg)s"
+msgstr "Done paid bail successfully! Done remove %(name)s from jail."
 
 #: routes/jail.py:92
 #, python-format
