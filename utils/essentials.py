@@ -31,6 +31,7 @@ def initialize_essentials(app):
         initialize_vehicles()
         initialize_hostesses()
         initialize_daily_tasks()
+        take_economy_snapshot()
         db.session.commit()
         print("Essential game data verification completed.")
 
@@ -118,7 +119,8 @@ def initialize_basic_crimes():
                 cooldown=data.get('cooldown', 60),
                 min_strength=data.get('min_strength', 0),
                 min_agility=data.get('min_agility', 0),
-                min_intelligence=data.get('min_intelligence', 0)
+                min_intelligence=data.get('min_intelligence', 0),
+                daily_limit=data.get('daily_limit', 0)
             )
             if data.get('image'):
                 crime.image = data.get('image')
@@ -189,6 +191,12 @@ def initialize_basic_crimes():
             if (not crime.description) and data.get('description'):
                 crime.description = data.get('description')
                 updated = True
+                
+            seed_daily_limit = data.get('daily_limit', 0)
+            if crime.daily_limit is None or seed_daily_limit != crime.daily_limit:
+                crime.daily_limit = seed_daily_limit
+                updated = True
+
             if updated:
                 db.session.add(crime)
     if count > 0:
@@ -422,3 +430,46 @@ def initialize_daily_tasks():
         print(f"Seeded {inserted} daily tasks.")
     if deactivated > 0:
         print(f"Deactivated {deactivated} duplicate daily tasks.")
+
+def take_economy_snapshot():
+    """Takes a daily snapshot of the economy for analysis."""
+    from models.user import User
+    from models.log import EconomySnapshot
+    from sqlalchemy import func
+
+    today = datetime.now(timezone.utc).date()
+    
+    # Check if snapshot exists for today
+    if EconomySnapshot.query.filter_by(date=today).first():
+        return
+
+    # Calculate stats
+    total_money = db.session.query(func.sum(User.money)).scalar() or 0
+    total_bank = db.session.query(func.sum(User.bank_balance)).scalar() or 0
+    user_count = User.query.count()
+    
+    if user_count == 0:
+        avg_wealth = 0
+    else:
+        avg_wealth = (total_money + total_bank) // user_count
+
+    # Top 1% share
+    limit = max(1, int(user_count * 0.01))
+    top_users = User.query.with_entities(User.money, User.bank_balance).order_by((User.money + User.bank_balance).desc()).limit(limit).all()
+    
+    top_wealth = sum([(u.money + u.bank_balance) for u in top_users])
+    total_wealth = total_money + total_bank
+    
+    top_1_percent_share = (top_wealth / total_wealth * 100) if total_wealth > 0 else 0
+
+    snapshot = EconomySnapshot(
+        date=today,
+        total_money=total_money,
+        total_bank=total_bank,
+        avg_wealth=avg_wealth,
+        top_1_percent_share=top_1_percent_share,
+        active_users_24h=0 # Placeholder
+    )
+    db.session.add(snapshot)
+    db.session.commit()
+    print(f"Economy Snapshot taken for {today}")

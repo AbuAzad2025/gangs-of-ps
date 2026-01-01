@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="error-page-container">
+    <div class="error-card warning text-center py-5 px-3">
+        <div class="mb-4">
+            <i class="fas fa-tachometer-alt error-icon warning"></i>
+        </div>
+        
+        <h1 class="error-title warning">429</h1>
+        <div class="error-subtitle warning">{{ _('هدي اللعب يا كبير!') }}</div>
+        
+        <p class="error-text">
+            {{ _('شكلك مستعجل زيادة عن اللزوم. خذ نفس وهدي أعصابك، السرعة هادي بتجيب الشبهات.') }}
+        </p>
+        
+        {% if error and error.description %}
+        <div class="alert alert-dark border-warning text-warning d-inline-block mt-2 mb-2">
+            <small>{{ error.description }}</small>
+        </div>
+        {% endif %}
+        
+        <div class="mt-4 mb-4">
+            <h4 class="text-white-50">{{ _('تقدر تحاول كمان مرة بعد:') }}</h4>
+            <div id="countdown" class="display-4 font-weight-bold text-warning">60</div>
+            <span class="text-muted">{{ _('ثانية') }}</span>
+        </div>
+
+        <div class="d-flex justify-content-center gap-3">
+            <a href="{{ url_for('main.index') }}" class="btn btn-error-action warning">
+                <i class="fas fa-home mr-2"></i> {{ _('ارجع للحارة') }}
+            </a>
+            <a href="javascript:history.back()" class="btn btn-outline-light rounded-pill px-4 py-2 ml-2" style="border-color: #555;">
+                <i class="fas fa-undo mr-2"></i> {{ _('رجوع للخلف') }}
+            </a>
+        </div>
+        
+        <div class="street-overlay-full"></div>
+    </div>
+</div>
+
+<script>
+    // Simple countdown based on description
+    let seconds = 60;
+    const desc = "{{ error.description if error and error.description else '' }}";
+    
+    if (desc.includes("hour")) {
+        seconds = 3600;
+    } else if (desc.includes("day")) {
+        seconds = 86400;
+    } else if (desc.includes("second")) {
+        seconds = 10;
+    }
+    
+    const countdownEl = document.getElementById('countdown');
+    
+    // Update initial display
+    countdownEl.textContent = seconds;
+    
+    const timer = setInterval(() => {
+        seconds--;
+        countdownEl.textContent = seconds;
+        
+        if (seconds <= 0) {
+            clearInterval(timer);
+            location.reload(); // Reload page when timer ends
+        }
+    }, 1000);
+</script>
+{% endblock %}

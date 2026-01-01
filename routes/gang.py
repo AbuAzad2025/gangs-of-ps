@@ -4,13 +4,17 @@ from flask_babel import _
 from extensions import db
 from models.social import Gang, GangInvite, GangLog, GangWar, GangAlliance
 from models.gameplay import OrganizedCrime, CrimeLobby, LobbyParticipant
-from models.user import User
+from models.user import User, UserRole
+from models.economy import Asset
+from models.system import SystemConfig
 from werkzeug.utils import secure_filename
 from datetime import datetime, timedelta, timezone
 import os
 import random
 from .utils import save_image, send_notification
 from sqlalchemy import or_
+
+from services.resource_service import ResourceService
 
 bp = Blueprint('gang', __name__, url_prefix='/gang')
 
@@ -100,37 +104,41 @@ def leave():
 @bp.route('/create', methods=['GET', 'POST'])
 @login_required
 def create():
-    # Status Check
-    now = datetime.now(timezone.utc)
-    if current_user.jail_until:
-        jail_until = current_user.jail_until
-        if jail_until.tzinfo is None:
-            jail_until = jail_until.replace(tzinfo=timezone.utc)
-        if jail_until > now:
-            flash(_('أنت في السجن ولا يمكنك إنشاء عصابة!'), 'danger')
-            return redirect(url_for('jail.index'))
-    
-    if current_user.hospital_until:
-        hospital_until = current_user.hospital_until
-        if hospital_until.tzinfo is None:
-            hospital_until = hospital_until.replace(tzinfo=timezone.utc)
-        if hospital_until > now:
-            flash(_('أنت في المستشفى ولا يمكنك إنشاء عصابة!'), 'danger')
-            return redirect(url_for('hospital.index'))
-
-    if current_user.gym_until:
-        gym_until = current_user.gym_until
-        if gym_until.tzinfo is None:
-            gym_until = gym_until.replace(tzinfo=timezone.utc)
-        if gym_until > now:
-            flash(_('أنت تتدرب ولا يمكنك إنشاء عصابة!'), 'danger')
-            return redirect(url_for('gym.index'))
-
     if current_user.gang_id:
         flash(_('أنت بالفعل عضو في عصابة!'), 'warning')
         return redirect(url_for('gang.dashboard'))
     
-    cost = 10000 # Configurable
+    cost = int(SystemConfig.get_value('gang_creation_cost', 10000))
+    is_admin = current_user.role.value >= UserRole.ADMIN.value
+    if is_admin:
+        cost = 0
+
+    # Status Check Bypass for Admin
+    if not is_admin:
+        now = datetime.now(timezone.utc)
+        if current_user.jail_until:
+            jail_until = current_user.jail_until
+            if jail_until.tzinfo is None:
+                jail_until = jail_until.replace(tzinfo=timezone.utc)
+            if jail_until > now:
+                flash(_('أنت في السجن ولا يمكنك إنشاء عصابة!'), 'danger')
+                return redirect(url_for('jail.index'))
+        
+        if current_user.hospital_until:
+            hospital_until = current_user.hospital_until
+            if hospital_until.tzinfo is None:
+                hospital_until = hospital_until.replace(tzinfo=timezone.utc)
+            if hospital_until > now:
+                flash(_('أنت في المستشفى ولا يمكنك إنشاء عصابة!'), 'danger')
+                return redirect(url_for('hospital.index'))
+
+        if current_user.gym_until:
+            gym_until = current_user.gym_until
+            if gym_until.tzinfo is None:
+                gym_until = gym_until.replace(tzinfo=timezone.utc)
+            if gym_until > now:
+                flash(_('أنت تتدرب ولا يمكنك إنشاء عصابة!'), 'danger')
+                return redirect(url_for('gym.index'))
     
     if request.method == 'POST':
         name = request.form.get('name')
@@ -148,7 +156,12 @@ def create():
             flash(_('لا تملك كاش كافي لإنشاء عصابة! المطلوب: %(cost)s', cost=cost), 'danger')
             return redirect(url_for('gang.create'))
             
-        current_user.money -= cost
+        # Atomic deduction via ResourceService
+        if cost > 0:
+            if not ResourceService.modify_resources(current_user.id, {'money': -cost}, 'gang_creation', auto_commit=False, expected_version=current_user.version):
+                 flash(_('لا تملك كاش كافي لإنشاء عصابة!'), 'danger')
+                 return redirect(url_for('gang.create'))
+
         new_gang = Gang(name=name, description=description, leader_id=current_user.id)
         
         # Handle recruitment policies
@@ -170,31 +183,34 @@ def create():
 @bp.route('/request_join/<int:gang_id>', methods=['POST'])
 @login_required
 def request_join(gang_id):
-    # Status Check
-    now = datetime.now(timezone.utc)
-    if current_user.jail_until:
-        jail_until = current_user.jail_until
-        if jail_until.tzinfo is None:
-            jail_until = jail_until.replace(tzinfo=timezone.utc)
-        if jail_until > now:
-            flash(_('أنت في السجن ولا يمكنك الانضمام لعصابة!'), 'danger')
-            return redirect(url_for('jail.index'))
+    is_admin = current_user.role.value >= UserRole.ADMIN.value
     
-    if current_user.hospital_until:
-        hospital_until = current_user.hospital_until
-        if hospital_until.tzinfo is None:
-            hospital_until = hospital_until.replace(tzinfo=timezone.utc)
-        if hospital_until > now:
-            flash(_('أنت في المستشفى ولا يمكنك الانضمام لعصابة!'), 'danger')
-            return redirect(url_for('hospital.index'))
+    # Status Check
+    if not is_admin:
+        now = datetime.now(timezone.utc)
+        if current_user.jail_until:
+            jail_until = current_user.jail_until
+            if jail_until.tzinfo is None:
+                jail_until = jail_until.replace(tzinfo=timezone.utc)
+            if jail_until > now:
+                flash(_('أنت في السجن ولا يمكنك الانضمام لعصابة!'), 'danger')
+                return redirect(url_for('jail.index'))
+        
+        if current_user.hospital_until:
+            hospital_until = current_user.hospital_until
+            if hospital_until.tzinfo is None:
+                hospital_until = hospital_until.replace(tzinfo=timezone.utc)
+            if hospital_until > now:
+                flash(_('أنت في المستشفى ولا يمكنك الانضمام لعصابة!'), 'danger')
+                return redirect(url_for('hospital.index'))
 
-    if current_user.gym_until:
-        gym_until = current_user.gym_until
-        if gym_until.tzinfo is None:
-            gym_until = gym_until.replace(tzinfo=timezone.utc)
-        if gym_until > now:
-            flash(_('أنت تتدرب ولا يمكنك الانضمام لعصابة!'), 'danger')
-            return redirect(url_for('gym.index'))
+        if current_user.gym_until:
+            gym_until = current_user.gym_until
+            if gym_until.tzinfo is None:
+                gym_until = gym_until.replace(tzinfo=timezone.utc)
+            if gym_until > now:
+                flash(_('أنت تتدرب ولا يمكنك الانضمام لعصابة!'), 'danger')
+                return redirect(url_for('gym.index'))
 
     if current_user.gang_id:
         flash(_('أنت بالفعل عضو في عصابة!'), 'warning')
@@ -229,9 +245,7 @@ def request_join(gang_id):
         flash(_('العصابة ممتلئة!'), 'danger')
         return redirect(url_for('gang.view', gang_id=gang.id))
         
-    # Auto join for now if open (or make it a request logic if needed, but keeping it simple as per original 'invites' flow logic, or add direct join if open)
-    # The original code only had invites. Let's assume this route is "Join Now" for open gangs.
-    
+    # Auto join for now if open
     current_user.gang_id = gang.id
     log = GangLog(gang_id=gang.id, user_id=current_user.id, action="Joined the gang directly")
     db.session.add(log)
@@ -274,7 +288,9 @@ def kick_member(user_id):
         return redirect(url_for('gang.index'))
         
     gang = db.session.get(Gang, current_user.gang_id)
-    if current_user.id != gang.leader_id and current_user.id != gang.underboss_id:
+    is_admin = current_user.role.value >= UserRole.ADMIN.value
+    
+    if current_user.id != gang.leader_id and current_user.id != gang.underboss_id and not is_admin:
         flash(_('ليس لديك صلاحية لطرد الأعضاء.'), 'danger')
         return redirect(url_for('gang.dashboard'))
         
@@ -287,29 +303,44 @@ def kick_member(user_id):
         return redirect(url_for('gang.dashboard'))
         
     if member_to_kick.id == gang.leader_id:
-        flash(_('لا يمكنك طرد الزعيم!'), 'danger')
+        flash(_('لا يمكنك طرد الزعيم! يجب نقل الزعامة أولاً.'), 'danger')
         return redirect(url_for('gang.dashboard'))
         
-    if member_to_kick.id == gang.underboss_id and current_user.id != gang.leader_id:
+    if member_to_kick.id == gang.underboss_id and current_user.id != gang.leader_id and not is_admin:
          flash(_('لا يمكنك طرد النائب!'), 'danger')
          return redirect(url_for('gang.dashboard'))
 
     # Consequences
-    # If member joined > 24 hours ago, penalty applies
-    # Assuming we track join time? We don't have a 'joined_at' in User model specifically for Gang, 
-    # but we can check Logs or just apply a flat penalty for now.
+    penalty_cost = int(SystemConfig.get_value('gang_kick_penalty', 50000))
     
-    penalty_cost = 50000 # Cost from Gang Bank
+    # Admin bypass penalty
+    if is_admin:
+        penalty_cost = 0
+        
     if gang.money < penalty_cost:
          flash(_('خزينة العصابة لا تكفي لدفع مستحقات الطرد! (%(cost)s$)', cost=penalty_cost), 'warning')
          return redirect(url_for('gang.dashboard'))
          
-    gang.money -= penalty_cost
-    member_to_kick.money += int(penalty_cost * 0.5) # Member gets 50% as severance
+    # Atomic update for gang money
+    g_rows = Gang.query.filter(Gang.id == gang.id, Gang.money >= penalty_cost).update({
+        Gang.money: Gang.money - penalty_cost
+    }, synchronize_session=False)
+    
+    if g_rows == 0:
+        flash(_('خزينة العصابة لا تكفي لدفع مستحقات الطرد!'), 'warning')
+        return redirect(url_for('gang.dashboard'))
+
+    # Atomic update for member money (Refund/Severance) via ResourceService
+    refund_amount = int(penalty_cost * 0.5)
+    ResourceService.modify_resources(member_to_kick.id, {'money': refund_amount}, 'gang_kick_severance', auto_commit=False)
+
     member_to_kick.gang_id = None
     
     # Gang loses XP
-    gang.exp = max(0, gang.exp - 100)
+    xp_penalty = int(SystemConfig.get_value('gang_kick_xp_penalty', 100))
+    if is_admin:
+        xp_penalty = 0
+    gang.exp = max(0, gang.exp - xp_penalty)
     
     log = GangLog(gang_id=gang.id, user_id=current_user.id, action=f"Kicked {member_to_kick.username} (Paid severance)")
     db.session.add(log)
@@ -327,6 +358,7 @@ def dashboard():
     
     gang = db.session.get(Gang, current_user.gang_id)
     members = User.query.filter_by(gang_id=gang.id).all()
+    assets = Asset.query.filter_by(gang_id=gang.id).all()
     logs = GangLog.query.filter_by(gang_id=gang.id).order_by(GangLog.timestamp.desc()).limit(20).all()
     
     is_leader = (current_user.id == gang.leader_id)
@@ -337,7 +369,7 @@ def dashboard():
         GangWar.status == 'active'
     ).all()
     
-    return render_template('gang/dashboard.html', title=gang.name, gang=gang, members=members, logs=logs, is_leader=is_leader, is_underboss=is_underboss, active_wars=active_wars)
+    return render_template('gang/dashboard.html', title=gang.name, gang=gang, members=members, assets=assets, logs=logs, is_leader=is_leader, is_underboss=is_underboss, active_wars=active_wars)
 
 @bp.route('/broadcast_invite_all', methods=['POST'])
 @login_required
@@ -349,9 +381,12 @@ def broadcast_invite_all():
     if not gang:
         flash(_('العصابة غير موجودة.'), 'danger')
         return redirect(url_for('gang.index'))
-    if current_user.id != gang.leader_id and current_user.id != getattr(gang, "underboss_id", None):
+        
+    is_admin = current_user.role.value >= UserRole.ADMIN.value
+    if current_user.id != gang.leader_id and current_user.id != getattr(gang, "underboss_id", None) and not is_admin:
         flash(_('فقط القيادة يمكنها إرسال دعوات عامة!'), 'danger')
         return redirect(url_for('gang.dashboard'))
+        
     recipients = User.query.filter(User.id != current_user.id, User.gang_id.is_(None)).all()
     join_link = url_for('gang.view', gang_id=gang.id)
     sent = 0
@@ -396,7 +431,8 @@ def declare_war(target_gang_id):
     if not target_gang:
         abort(404)
     
-    if current_user.id != my_gang.leader_id:
+    is_admin = current_user.role.value >= UserRole.ADMIN.value
+    if current_user.id != my_gang.leader_id and not is_admin:
         flash(_('فقط الزعيم يمكنه إعلان الحرب'), 'danger')
         return redirect(url_for('gang.view', gang_id=target_gang_id))
 
@@ -442,8 +478,15 @@ def donate():
         
     gang = db.session.get(Gang, current_user.gang_id)
     
-    current_user.money -= amount
-    gang.money += amount
+    # Atomic deduction using ResourceService
+    if not ResourceService.modify_resources(current_user.id, {'money': -amount}, 'gang_donate', auto_commit=False, expected_version=current_user.version):
+        flash(_('لا تملك هذا المبلغ!'), 'danger')
+        return redirect(url_for('gang.dashboard'))
+
+    # Atomic addition to gang
+    Gang.query.filter(Gang.id == gang.id).update({
+        Gang.money: Gang.money + amount
+    }, synchronize_session=False)
     
     # Log
     log = GangLog(gang_id=gang.id, user_id=current_user.id, action=_('تبرع بـ %(amount)s$', amount=amount))
@@ -456,31 +499,34 @@ def donate():
 @bp.route('/withdraw', methods=['POST'])
 @login_required
 def withdraw():
-    # Status Check
-    now = datetime.now(timezone.utc)
-    if current_user.jail_until:
-        jail_until = current_user.jail_until
-        if jail_until.tzinfo is None:
-            jail_until = jail_until.replace(tzinfo=timezone.utc)
-        if jail_until > now:
-            flash(_('أنت في السجن ولا يمكنك سحب الأموال!'), 'danger')
-            return redirect(url_for('jail.index'))
-    
-    if current_user.hospital_until:
-        hospital_until = current_user.hospital_until
-        if hospital_until.tzinfo is None:
-            hospital_until = hospital_until.replace(tzinfo=timezone.utc)
-        if hospital_until > now:
-            flash(_('أنت في المستشفى ولا يمكنك سحب الأموال!'), 'danger')
-            return redirect(url_for('hospital.index'))
+    is_admin = current_user.role.value >= UserRole.ADMIN.value
 
-    if current_user.gym_until:
-        gym_until = current_user.gym_until
-        if gym_until.tzinfo is None:
-            gym_until = gym_until.replace(tzinfo=timezone.utc)
-        if gym_until > now:
-            flash(_('أنت تتدرب ولا يمكنك سحب الأموال!'), 'danger')
-            return redirect(url_for('gym.index'))
+    # Status Check
+    if not is_admin:
+        now = datetime.now(timezone.utc)
+        if current_user.jail_until:
+            jail_until = current_user.jail_until
+            if jail_until.tzinfo is None:
+                jail_until = jail_until.replace(tzinfo=timezone.utc)
+            if jail_until > now:
+                flash(_('أنت في السجن ولا يمكنك سحب الأموال!'), 'danger')
+                return redirect(url_for('jail.index'))
+        
+        if current_user.hospital_until:
+            hospital_until = current_user.hospital_until
+            if hospital_until.tzinfo is None:
+                hospital_until = hospital_until.replace(tzinfo=timezone.utc)
+            if hospital_until > now:
+                flash(_('أنت في المستشفى ولا يمكنك سحب الأموال!'), 'danger')
+                return redirect(url_for('hospital.index'))
+
+        if current_user.gym_until:
+            gym_until = current_user.gym_until
+            if gym_until.tzinfo is None:
+                gym_until = gym_until.replace(tzinfo=timezone.utc)
+            if gym_until > now:
+                flash(_('أنت تتدرب ولا يمكنك سحب الأموال!'), 'danger')
+                return redirect(url_for('gym.index'))
 
     amount = int(request.form.get('amount', 0))
     if amount <= 0:
@@ -492,7 +538,8 @@ def withdraw():
         
     gang = db.session.get(Gang, current_user.gang_id)
     
-    if current_user.id != gang.leader_id:
+    is_admin = current_user.role.value >= UserRole.ADMIN.value
+    if current_user.id != gang.leader_id and not is_admin:
         flash(_('فقط الزعيم يمكنه سحب الأموال!'), 'danger')
         return redirect(url_for('gang.dashboard'))
         
@@ -500,8 +547,20 @@ def withdraw():
         flash(_('لا يوجد مال كافٍ في الخزينة!'), 'danger')
         return redirect(url_for('gang.dashboard'))
         
-    gang.money -= amount
-    current_user.money += amount
+    # Atomic deduction
+    g_rows = Gang.query.filter(Gang.id == gang.id, Gang.money >= amount).update({
+        Gang.money: Gang.money - amount
+    }, synchronize_session=False)
+    
+    if g_rows == 0:
+        flash(_('لا يوجد مال كافٍ في الخزينة!'), 'danger')
+        return redirect(url_for('gang.dashboard'))
+
+    # Atomic addition
+    if not ResourceService.modify_resources(current_user.id, {'money': amount}, 'gang_withdraw', auto_commit=False, expected_version=current_user.version):
+        db.session.rollback()
+        flash(_('حدث خطأ أثناء سحب الأموال.'), 'danger')
+        return redirect(url_for('gang.dashboard'))
     
     # Log
     log = GangLog(gang_id=gang.id, user_id=current_user.id, action=_('سحب %(amount)s$', amount=amount))
@@ -535,23 +594,24 @@ def do_organized_crime(crime_id):
         abort(404)
     
     # Check permissions
-    if current_user.id != gang.leader_id and current_user.id != gang.underboss_id:
+    is_admin = current_user.role.value >= UserRole.ADMIN.value
+    if current_user.id != gang.leader_id and current_user.id != gang.underboss_id and not is_admin:
         flash(_('فقط الزعيم أو نائبه يمكنهم بدء عملية منظمة'), 'danger')
         return redirect(url_for('gang.organized_crimes'))
         
     # Check members count
     members_count = User.query.filter_by(gang_id=gang.id).count()
-    if members_count < crime.min_members:
+    if members_count < crime.min_members and not is_admin:
         flash(_('عدد أعضاء العصابة غير كافي لهذه العملية. المطلوب: %(min)s', min=crime.min_members), 'danger')
         return redirect(url_for('gang.organized_crimes'))
         
     # Check Gang Level
-    if gang.level < crime.min_gang_level:
+    if gang.level < crime.min_gang_level and not is_admin:
         flash(_('مستوى العصابة منخفض جداً لهذه العملية.'), 'danger')
         return redirect(url_for('gang.organized_crimes'))
         
     # Check Cooldown
-    if gang.last_organized_crime_at:
+    if gang.last_organized_crime_at and not is_admin:
         last_crime_at = gang.last_organized_crime_at
         if last_crime_at.tzinfo is None:
             last_crime_at = last_crime_at.replace(tzinfo=timezone.utc)
@@ -563,7 +623,7 @@ def do_organized_crime(crime_id):
              return redirect(url_for('gang.organized_crimes'))
 
     # Check Energy (Leader)
-    if current_user.energy < crime.energy_cost:
+    if current_user.energy < crime.energy_cost and not is_admin:
         flash(_('لا تملك طاقة كافية لبدء العملية.'), 'danger')
         return redirect(url_for('gang.organized_crimes'))
     
@@ -573,7 +633,11 @@ def do_organized_crime(crime_id):
     db.session.flush()
     
     # Deduct leader energy immediately to prevent spam
-    current_user.energy = max(0, current_user.energy - crime.energy_cost)
+    # Atomic deduction for leader energy
+    if not is_admin:
+        if not ResourceService.modify_resources(current_user.id, {'energy': -crime.energy_cost}, 'organized_crime_energy_cost', auto_commit=False, expected_version=current_user.version):
+            flash(_('لا تملك طاقة كافية لبدء العملية.'), 'danger')
+            return redirect(url_for('gang.organized_crimes'))
     
     # Assign leader role if available
     leader_role = 'القائد'
@@ -643,20 +707,34 @@ def upgrade():
         return redirect(url_for('gang.index'))
         
     gang = db.session.get(Gang, current_user.gang_id)
+    is_admin = current_user.role.value >= UserRole.ADMIN.value
     
-    if current_user.id != gang.leader_id:
+    if current_user.id != gang.leader_id and not is_admin:
         flash(_('فقط الزعيم يمكنه تطوير العصابة!'), 'danger')
         return redirect(url_for('gang.dashboard'))
         
     if upgrade_type == 'capacity':
-        # Cost: 1000 * current_max
-        cost = gang.max_members * 1000
+        # Cost: base * current_max
+        base = int(SystemConfig.get_value('gang_upgrade_capacity_base_cost', 1000))
+        cost = gang.max_members * base
+        
+        if is_admin:
+            cost = 0
+
         if gang.money < cost:
             flash(_('لا يوجد مال كافٍ في الخزينة! التكلفة: %(cost)s$', cost=cost), 'danger')
             return redirect(url_for('gang.dashboard'))
             
-        gang.money -= cost
-        gang.max_members += 5
+        # Atomic deduction
+        rows = Gang.query.filter(Gang.id == gang.id, Gang.money >= cost).update({
+            Gang.money: Gang.money - cost
+        }, synchronize_session=False)
+
+        if rows == 0:
+            flash(_('لا يوجد مال كافٍ في الخزينة!'), 'danger')
+            return redirect(url_for('gang.dashboard'))
+
+        gang.max_members += int(SystemConfig.get_value('gang_upgrade_capacity_amount', 5))
         
         log = GangLog(gang_id=gang.id, user_id=current_user.id, action=f"Upgraded capacity to {gang.max_members}")
         db.session.add(log)
@@ -665,20 +743,44 @@ def upgrade():
         flash(_('تم زيادة سعة العصابة إلى %(num)s عضو!', num=gang.max_members), 'success')
         
     elif upgrade_type == 'level':
-        money_cost = gang.level * 10000
-        exp_cost = gang.level * 500
+        base_money = int(SystemConfig.get_value('gang_upgrade_level_base_money', 10000))
+        base_exp = int(SystemConfig.get_value('gang_upgrade_level_base_exp', 500))
         
-        if gang.money < money_cost:
-            flash(_('لا يوجد مال كافٍ في الخزينة! التكلفة: %(cost)s$', cost=money_cost), 'danger')
-            return redirect(url_for('gang.dashboard'))
+        money_cost = gang.level * base_money
+        exp_cost = gang.level * base_exp
+        
+        if is_admin:
+            money_cost = 0
+            exp_cost = 0
+        
+        # Atomic deduction for money and exp, and level up
+        filters = [Gang.id == gang.id]
+        if money_cost > 0:
+            filters.append(Gang.money >= money_cost)
+        if exp_cost > 0:
+            filters.append(Gang.exp >= exp_cost)
             
-        if gang.exp < exp_cost:
-            flash(_('لا يوجد خبرة كافية للعصابة! المطلوب: %(cost)s XP', cost=exp_cost), 'danger')
-            return redirect(url_for('gang.dashboard'))
+        updates = {
+            Gang.level: Gang.level + 1
+        }
+        if money_cost > 0:
+            updates[Gang.money] = Gang.money - money_cost
+        if exp_cost > 0:
+            updates[Gang.exp] = Gang.exp - exp_cost
             
-        gang.money -= money_cost
-        gang.exp -= exp_cost
-        gang.level += 1
+        rows = Gang.query.filter(*filters).update(updates, synchronize_session=False)
+
+        if rows == 0:
+            if gang.money < money_cost:
+                flash(_('لا يوجد مال كافٍ في الخزينة! التكلفة: %(cost)s$', cost=money_cost), 'danger')
+            elif gang.exp < exp_cost:
+                flash(_('لا يوجد خبرة كافية للعصابة! المطلوب: %(cost)s XP', cost=exp_cost), 'danger')
+            else:
+                flash(_('حدث خطأ أثناء التطوير.'), 'danger')
+            return redirect(url_for('gang.dashboard'))
+
+        # Reload gang to get new level for log
+        db.session.expire(gang)
         
         log = GangLog(gang_id=gang.id, user_id=current_user.id, action=_('طوّر مستوى العصابة إلى %(num)s', num=gang.level))
         db.session.add(log)
@@ -695,8 +797,9 @@ def edit():
         return redirect(url_for('gang.index'))
         
     gang = db.session.get(Gang, current_user.gang_id)
+    is_admin = current_user.role.value >= UserRole.ADMIN.value
     
-    if current_user.id != gang.leader_id:
+    if current_user.id != gang.leader_id and not is_admin:
         flash(_('فقط الزعيم يمكنه تعديل إعدادات العصابة!'), 'danger')
         return redirect(url_for('gang.dashboard'))
         
@@ -735,7 +838,9 @@ def request_alliance(target_gang_id):
     my_gang = db.session.get(Gang, current_user.gang_id)
     target_gang = Gang.query.get_or_404(target_gang_id)
     
-    if current_user.id != my_gang.leader_id and current_user.id != my_gang.underboss_id:
+    is_admin = current_user.role.value >= UserRole.ADMIN.value
+    
+    if current_user.id != my_gang.leader_id and current_user.id != my_gang.underboss_id and not is_admin:
         flash(_('فقط القيادة يمكنها طلب التحالف!'), 'danger')
         return redirect(url_for('gang.index'))
         
@@ -792,7 +897,8 @@ def accept_alliance(alliance_id):
         return redirect(url_for('gang.alliances'))
         
     gang = db.session.get(Gang, current_user.gang_id)
-    if current_user.id != gang.leader_id and current_user.id != gang.underboss_id:
+    is_admin = current_user.role.value >= UserRole.ADMIN.value
+    if current_user.id != gang.leader_id and current_user.id != gang.underboss_id and not is_admin:
         flash(_('فقط القيادة تملك صلاحية قبول التحالفات!'), 'danger')
         return redirect(url_for('gang.alliances'))
         
@@ -818,7 +924,8 @@ def reject_alliance(alliance_id):
         return redirect(url_for('gang.alliances'))
         
     gang = db.session.get(Gang, current_user.gang_id)
-    if current_user.id != gang.leader_id and current_user.id != gang.underboss_id:
+    is_admin = current_user.role.value >= UserRole.ADMIN.value
+    if current_user.id != gang.leader_id and current_user.id != gang.underboss_id and not is_admin:
          flash(_('فقط القيادة تملك صلاحية رفض التحالفات!'), 'danger')
          return redirect(url_for('gang.alliances'))
 
@@ -827,3 +934,78 @@ def reject_alliance(alliance_id):
     
     flash(_('تم رفض التحالف.'), 'info')
     return redirect(url_for('gang.alliances'))
+
+@bp.route('/disband', methods=['POST'])
+@login_required
+def disband():
+    if not current_user.gang_id:
+        return redirect(url_for('gang.index'))
+        
+    gang = db.session.get(Gang, current_user.gang_id)
+    if not gang:
+        return redirect(url_for('gang.index'))
+        
+    is_admin = current_user.role.value >= UserRole.ADMIN.value
+    if current_user.id != gang.leader_id and not is_admin:
+        flash(_('فقط الزعيم يمكنه حل العصابة!'), 'danger')
+        return redirect(url_for('gang.dashboard'))
+        
+    # Remove all members
+    members = User.query.filter_by(gang_id=gang.id).all()
+    for member in members:
+        member.gang_id = None
+        
+    # Delete gang (cascade should handle related items like invites, logs if configured, otherwise we delete them manually or let DB constraints handle it)
+    # Models show cascade='all, delete-orphan' for logs and invites.
+    # Wars/Alliances might need manual cleanup if not cascaded.
+    
+    db.session.delete(gang)
+    db.session.commit()
+    
+    flash(_('تم حل العصابة نهائياً.'), 'success')
+    return redirect(url_for('gang.index'))
+
+@bp.route('/transfer_leadership', methods=['POST'])
+@login_required
+def transfer_leadership():
+    if not current_user.gang_id:
+        return redirect(url_for('gang.index'))
+        
+    gang = db.session.get(Gang, current_user.gang_id)
+    if not gang:
+        return redirect(url_for('gang.index'))
+        
+    is_admin = current_user.role.value >= UserRole.ADMIN.value
+    if current_user.id != gang.leader_id and not is_admin:
+        flash(_('فقط الزعيم يمكنه نقل القيادة!'), 'danger')
+        return redirect(url_for('gang.dashboard'))
+        
+    new_leader_id = request.form.get('new_leader_id', type=int)
+    if not new_leader_id:
+        flash(_('يجب اختيار عضو لنقل القيادة إليه.'), 'danger')
+        return redirect(url_for('gang.dashboard'))
+        
+    new_leader = db.session.get(User, new_leader_id)
+    if not new_leader or new_leader.gang_id != gang.id:
+        flash(_('العضو المختار ليس في هذه العصابة.'), 'danger')
+        return redirect(url_for('gang.dashboard'))
+        
+    if new_leader.id == gang.leader_id:
+        flash(_('أنت الزعيم بالفعل!'), 'warning')
+        return redirect(url_for('gang.dashboard'))
+        
+    # Swap roles
+    old_leader = db.session.get(User, gang.leader_id)
+    
+    gang.leader_id = new_leader.id
+    if gang.underboss_id == new_leader.id:
+        gang.underboss_id = None # Promote underboss to leader, so underboss slot becomes empty
+        
+    # Log
+    log = GangLog(gang_id=gang.id, user_id=current_user.id, action=_('نقل الزعامة إلى %(user)s', user=new_leader.username))
+    db.session.add(log)
+    
+    db.session.commit()
+    
+    flash(_('تم نقل زعامة العصابة إلى %(user)s بنجاح.', user=new_leader.username), 'success')
+    return redirect(url_for('gang.dashboard'))

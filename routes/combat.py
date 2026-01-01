@@ -1,11 +1,13 @@
 from flask import Blueprint, render_template, redirect, url_for, flash, request, abort, current_app
 from flask_login import login_required, current_user
 from flask_babel import _
-from extensions import db
-from models import User, UserItem, Item, CombatLog
+from extensions import db, limiter
+from models import User, UserItem, Item, CombatLog, UserLog
+from services.resource_service import ResourceService
 from models.combat import ActiveIntel
 import random
 from datetime import datetime, timedelta, timezone
+from sqlalchemy import or_, desc, func, select
 from .utils import update_daily_task_progress
 
 bp = Blueprint('combat', __name__, url_prefix='/combat')
@@ -16,8 +18,6 @@ def index():
     # Find targets: Users not self, not in hospital, not in jail
     # Matchmaking: +/- 5 levels first, then others
     now = datetime.now(timezone.utc)
-    
-    from sqlalchemy import or_, desc, func
     
     # 1. Search Logic
     search_query = request.args.get('q')
@@ -79,6 +79,7 @@ def index():
 
 @bp.route('/attack/<int:target_id>', methods=['POST'])
 @login_required
+@limiter.limit("20 per minute")
 def attack(target_id):
     # Status Check for Attacker
     now = datetime.now(timezone.utc)
@@ -91,6 +92,14 @@ def attack(target_id):
              flash(_('أنت في السجن ولا يمكنك القتال!'), 'danger')
              return redirect(url_for('jail.index'))
              
+    if current_user.hospital_until:
+        hospital_until = current_user.hospital_until
+        if hospital_until.tzinfo is None:
+            hospital_until = hospital_until.replace(tzinfo=timezone.utc)
+        if hospital_until > now:
+             flash(_('أنت في المستشفى ولا يمكنك القتال!'), 'danger')
+             return redirect(url_for('hospital.index'))
+
     if current_user.gym_until:
         gym_until = current_user.gym_until
         if gym_until.tzinfo is None:
@@ -109,7 +118,11 @@ def attack(target_id):
             flash(_('انتظر قليلاً قبل الهجوم التالي!'), 'warning')
             return redirect(url_for('combat.index'))
 
-    target = db.session.get(User, target_id)
+    # Target Fetch with Lock to prevent race conditions
+    target = db.session.execute(
+        select(User).where(User.id == target_id).with_for_update()
+    ).scalar_one_or_none()
+    
     if not target:
         abort(404)
     
@@ -176,11 +189,19 @@ def attack(target_id):
                     flash(_('تحتاج إلى متفجرات C4 لتفجير المنزل الآمن!'), 'danger')
                     return redirect(url_for('combat.index'))
                 
-                # Consume C4
-                c4_item.quantity -= 1
-                if c4_item.quantity <= 0:
-                    db.session.delete(c4_item)
+                # Atomic Consume C4
+                rows = UserItem.query.filter(
+                    UserItem.user_id == current_user.id,
+                    UserItem.id == c4_item.id,
+                    UserItem.quantity >= 1
+                ).update({
+                    UserItem.quantity: UserItem.quantity - 1
+                }, synchronize_session=False)
                 
+                if rows == 0:
+                     flash(_('حدث خطأ أثناء استخدام C4!'), 'danger')
+                     return redirect(url_for('combat.index'))
+                     
                 # Destroy Safe House
                 target.is_safe_house_active = False
                 target.safe_house_until = None
@@ -251,7 +272,9 @@ def attack(target_id):
                 return redirect(url_for('combat.index'))
         
             # Deduct Bullets
-            current_user.bullets -= equipped_weapon.item.ammo_needed
+            if not ResourceService.modify_resources(current_user.id, {'bullets': -equipped_weapon.item.ammo_needed}, 'combat_ammo_use', auto_commit=False, expected_version=current_user.version):
+                 flash(_('ما معك رصاص كافي لسلاحك!'), 'danger')
+                 return redirect(url_for('combat.index'))
     
         mult = 1.0
         if equipped_weapon.condition is not None and equipped_weapon.condition < 100:
@@ -343,31 +366,48 @@ def attack(target_id):
         if not current_app.config.get('TESTING', False):
             if random.random() < 0.3:
                 bullets_looted = random.randint(5, 20)
-                current_user.bullets += bullets_looted
+                # Atomic Update via ResourceService
+                ResourceService.modify_resources(current_user.id, {'bullets': bullets_looted}, 'combat_loot_bullets', auto_commit=False, expected_version=current_user.version)
                 loot_msg = _(' ووجدت في جيوبه %(bullets)s رصاصة!', bullets=bullets_looted)
 
         exp_gain = 100 if is_war else 50
         
-        current_user.money += money_stolen
-        target.money -= money_stolen
-        current_user.exp += exp_gain
+        # Atomic Steal Logic via ResourceService
+        real_stolen = 0
+        if money_stolen > 0:
+            # Try to deduct from target
+            if ResourceService.modify_resources(target.id, {'money': -money_stolen}, f'combat_loss_vs_{current_user.id}', auto_commit=False):
+                real_stolen = money_stolen
+            else:
+                real_stolen = 0 # Failed to steal (maybe insufficient funds)
+        
+        money_stolen = real_stolen # Sync for display
+
+        # Apply Attacker Rewards (Money + Exp)
+        attacker_changes = {'exp': exp_gain}
+        if real_stolen > 0:
+            attacker_changes['money'] = real_stolen
+            
+        ResourceService.modify_resources(current_user.id, attacker_changes, 'combat_win', auto_commit=False, expected_version=current_user.version)
+
         current_user.add_rank_points(5 if is_war else 3)
         
         if current_user.check_level_up():
             flash(_('مبروك! وصلت للمستوى %(level)s!', level=current_user.level), 'success')
         
-        # Damage target health (guarantee kill on overwhelming damage)
-        if target.health <= 10:
-            target.health = 0
-        elif int(damage) >= target.health * 10:
-            target.health = 0
-        else:
-            target.health -= max(5, int(damage / 10))
-            if target.health < 0: target.health = 0
+        # Damage target health
+        damage_val = max(5, int(damage / 10))
+        # Ensure we don't go below 0 (ResourceService check_balance=True by default for negative values, 
+        # but here we want to clamp, not fail. So we calculate exact deduction.)
+        current_target_health = target.health
+        actual_damage = min(current_target_health, damage_val)
         
-        # Send target to hospital if health 0
-        if target.health == 0:
-            target.hospital_until = (datetime.now(timezone.utc) + timedelta(days=3650)).replace(tzinfo=None)
+        target_changes = {'health': -actual_damage}
+        target_set_fields = {}
+        
+        # Check if dead
+        if current_target_health - actual_damage <= 0:
+            target_set_fields['hospital_until'] = (datetime.now(timezone.utc) + timedelta(days=3650)).replace(tzinfo=None)
             flash(_('لقد قضيت على خصمك وأرسلته للمقبرة!'), 'success')
             try:
                 from models.user import reserve_elite_titles_for_death
@@ -384,8 +424,12 @@ def attack(target_id):
                     total_bounty += bounty.amount
                     db.session.delete(bounty)
                 
-                current_user.money += total_bounty
-                db.session.commit()
+                # Atomic Update for Bounty
+                ResourceService.modify_resources(current_user.id, {'money': total_bounty}, 'combat_bounty_claim', auto_commit=False, expected_version=current_user.version)
+
+                db.session.commit() # Commit bounty claim immediately or let the final commit handle it? 
+                # Better to let final commit handle it, but we deleted bounties.
+                
                 current_user.add_rank_points(10)
                 flash(_('مبروك! لقد قبضت على مكافآت بقيمة %(amount)s$ كانت على رأس هذا اللاعب!', amount=total_bounty), 'success')
 
@@ -405,14 +449,19 @@ def attack(target_id):
                     db.session.add(new_war)
                     flash(_('بسبب رتبتك العالية، تسبب قتلك لعضو عصابة أخرى بإعلان الحرب رسمياً!'), 'danger')
                     is_war = True # War starts now
+        
+        # Apply Target Damage & Status
+        ResourceService.modify_resources(target.id, target_changes, 'combat_damage', auto_commit=False, set_fields=target_set_fields)
 
         # Gang EXP Logic
         if current_user.gang_id:
             from models.social import Gang, GangLog
-            gang = db.session.get(Gang, current_user.gang_id)
+            # Lock Gang Row
+            gang = db.session.query(Gang).filter_by(id=current_user.gang_id).with_for_update().first()
             if gang:
-                gang.exp += 20 if is_war else 10
                 exp_amount = 20 if is_war else 10
+                gang.exp += exp_amount
+                
                 log_action = _('هاجم %(target)s وكسب %(exp)s خبرة', target=target.username, exp=exp_amount)
                 if is_anonymous:
                     log_action += " " + _('(متخفي)')
@@ -471,15 +520,27 @@ def attack(target_id):
         money_lost = int(current_user.money * 0.1)
         money_lost = max(0, money_lost) # Ensure no negative money loss
         
-        current_user.money -= money_lost
-        target.money += money_lost
+        # Atomic Loss
+        if money_lost > 0:
+            # Deduct from loser (current_user)
+            if ResourceService.modify_resources(current_user.id, {'money': -money_lost}, 'combat_loss_penalty', auto_commit=False, expected_version=current_user.version):
+                # Add to winner (target) - no expected_version
+                ResourceService.modify_resources(target.id, {'money': money_lost}, 'combat_win_defense', auto_commit=False)
+            else:
+                money_lost = 0 # Could not take money
         
-        current_user.health -= max(5, int(damage / 10))
-        if current_user.health < 0: current_user.health = 0
+        # Apply Damage to Loser (Current User)
+        loser_damage_val = max(5, int(damage / 10))
+        loser_actual_damage = min(current_user.health, loser_damage_val)
         
-        if current_user.health == 0:
-            current_user.hospital_until = (datetime.now(timezone.utc) + timedelta(minutes=10)).replace(tzinfo=None)
+        loser_changes = {'health': -loser_actual_damage}
+        loser_set_fields = {}
+        
+        if current_user.health - loser_actual_damage <= 0:
+            loser_set_fields['hospital_until'] = (datetime.now(timezone.utc) + timedelta(minutes=10)).replace(tzinfo=None)
             flash(_('لقد قُضي عليك وذهبت للمستشفى!'), 'danger')
+            
+        ResourceService.modify_resources(current_user.id, loser_changes, 'combat_loss_damage', auto_commit=False, set_fields=loser_set_fields)
             
         # Create Combat Log (Lose)
         combat_log = CombatLog(
@@ -491,6 +552,17 @@ def attack(target_id):
             is_attacker_anonymous=is_anonymous 
         )
         db.session.add(combat_log)
+
+        # User Log
+        log = UserLog(
+            user_id=current_user.id,
+            action='COMBAT_LOSE',
+            details=f"Lost against {target.username}. Lost {money_lost}",
+            result='fail',
+            ip_address=request.remote_addr,
+            user_agent=request.user_agent.string
+        )
+        db.session.add(log)
 
         db.session.commit()
         

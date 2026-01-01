@@ -5,6 +5,7 @@ from flask_babel import _
 from models import Race, RaceParticipant, UserVehicle, User, Vehicle, Hostess
 from datetime import datetime, timezone
 import random
+from services.resource_service import ResourceService
 
 bp = Blueprint('racing', __name__, url_prefix='/casino/racing')
 
@@ -40,8 +41,10 @@ def create():
         flash(_('سيارتك خربانة! صلحها قبل السباق.'), 'danger')
         return redirect(url_for('racing.index'))
 
-    # Deduct money
-    current_user.money -= bet
+    # Atomic deduction via ResourceService
+    if not ResourceService.modify_resources(current_user.id, {'money': -bet}, 'create_race', auto_commit=False, expected_version=current_user.version):
+        flash(_('معكش مصاري كفاية!'), 'danger')
+        return redirect(url_for('racing.index'))
     
     race = Race(creator_id=current_user.id, bet_amount=bet)
     db.session.add(race)
@@ -58,7 +61,8 @@ def create():
 @bp.route('/join/<int:race_id>', methods=['POST'])
 @login_required
 def join(race_id):
-    race = db.session.get(Race, race_id)
+    # Lock race to prevent double start
+    race = Race.query.with_for_update().get(race_id)
     if not race or race.status != 'waiting':
         flash(_('السباق غير متاح!'), 'danger')
         return redirect(url_for('racing.index'))
@@ -81,7 +85,10 @@ def join(race_id):
     if existing:
         return redirect(url_for('racing.room', race_id=race.id))
         
-    current_user.money -= race.bet_amount
+    # Atomic deduction via ResourceService
+    if not ResourceService.modify_resources(current_user.id, {'money': -race.bet_amount}, 'join_race', auto_commit=False, expected_version=current_user.version):
+        flash(_('معكش مصاري كفاية للانضمام!'), 'danger')
+        return redirect(url_for('racing.index'))
     
     participant = RaceParticipant(race_id=race.id, user_id=current_user.id, user_vehicle_id=my_car.id)
     db.session.add(participant)
@@ -124,7 +131,8 @@ def room(race_id):
 @bp.route('/start/<int:race_id>', methods=['POST'])
 @login_required
 def start(race_id):
-    race = db.session.get(Race, race_id)
+    # Lock race to prevent double start
+    race = Race.query.with_for_update().get(race_id)
     if not race or race.status != 'waiting':
         flash(_('لا يمكن بدء السباق!'), 'danger')
         return redirect(url_for('racing.index'))
@@ -183,7 +191,8 @@ def start(race_id):
     # Winner takes all (or split 70/30 etc. - lets do Winner Takes All for excitement)
     winner = results[0]
     winner.reward = total_pot
-    winner.user.money += total_pot
+    # Atomic Update via ResourceService
+    ResourceService.modify_resources(winner.user.id, {'money': total_pot}, 'race_win', auto_commit=False, expected_version=winner.user.version)
     
     for i, p in enumerate(results):
         p.rank = i + 1
@@ -202,7 +211,10 @@ def train_driver():
         flash(_('بدك %(cost)s للتدريب!', cost=cost), 'danger')
         return redirect(url_for('racing.index'))
         
-    current_user.money -= cost
+    if not ResourceService.modify_resources(current_user.id, {'money': -cost}, 'train_driver', auto_commit=False, expected_version=current_user.version):
+        flash(_('بدك %(cost)s للتدريب!', cost=cost), 'danger')
+        return redirect(url_for('racing.index'))
+
     current_user.driving_skill += 1
     db.session.commit()
     
@@ -239,7 +251,9 @@ def upgrade_car(part_type):
         flash(_('وصلت للحد الأقصى لهذا التطوير!'), 'warning')
         return redirect(url_for('racing.index'))
         
-    current_user.money -= cost
+    if not ResourceService.modify_resources(current_user.id, {'money': -cost}, 'upgrade_car', auto_commit=False, expected_version=current_user.version):
+        flash(_('معكش مصاري للتطوير!'), 'danger')
+        return redirect(url_for('racing.index'))
     
     if part_type == 'engine':
         my_car.engine_level += 1

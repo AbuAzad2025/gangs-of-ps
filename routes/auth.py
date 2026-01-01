@@ -5,7 +5,7 @@ from flask import render_template, redirect, url_for, flash, request, session, a
 from flask_login import login_user, logout_user, current_user, login_required
 from flask_babel import _
 from extensions import db, login, limiter
-from models import User, Referral, Gang, CombatLog, SystemConfig, UserRole, Hostess, SecurityLog
+from models import User, Referral, Gang, CombatLog, SystemConfig, UserRole, Hostess, SecurityLog, UserLog
 from services.ai_hostess_service import AIHostessService
 from services.hostess_training_service import build_greeter_leader_prompt, build_greeter_leader_training_json
 from forms.auth import LoginForm, RegistrationForm
@@ -122,6 +122,15 @@ def login():
                 return redirect(url_for('main.login'))
 
         login_user(user, remember=form.remember_me.data)
+
+        # Log Login
+        try:
+            log = UserLog(user_id=user.id, action='LOGIN', ip_address=request.remote_addr, details='Successful login', user_agent=request.user_agent.string)
+            db.session.add(log)
+            db.session.commit()
+        except Exception:
+            pass
+
         try:
             if getattr(user, "is_developer", False):
                 user.apply_developer_power()
@@ -224,7 +233,9 @@ def confirm_email(token):
 def unconfirmed():
     if current_user.is_authenticated and current_user.is_verified:
         return redirect(url_for('main.hara'))
-    return render_template('unconfirmed.html')
+    
+    whatsapp_number = SystemConfig.get_value('support_whatsapp_number', '970591234567')
+    return render_template('unconfirmed.html', whatsapp_number=whatsapp_number)
 
 @bp.route('/resend_confirmation')
 def resend_confirmation():

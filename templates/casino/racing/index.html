@@ -88,7 +88,7 @@
                         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
                         <div class="form-group">
                             <label>{{ _('مبلغ الرهان') }}</label>
-                            <input type="number" name="bet" class="form-control bg-secondary text-white border-0" min="100" placeholder="100" required>
+                            <input type="number" name="bet" class="form-control bg-secondary text-white border-0" min="100" placeholder="{{ _('100') }}" required>
                         </div>
                         <button type="submit" class="btn btn-success btn-block" {% if not my_car %}disabled{% endif %}>
                             {{ _('إنشاء التحدي') }}

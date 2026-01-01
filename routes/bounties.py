@@ -1,9 +1,11 @@
-from flask import Blueprint, render_template, redirect, url_for, flash, request
+from flask import Blueprint, render_template, redirect, url_for, flash, request, abort
 from flask_login import login_required, current_user
 from extensions import db
 from flask_babel import _
 from models import Bounty, User
 from sqlalchemy import func
+from services.resource_service import ResourceService
+from datetime import datetime, timezone
 
 bp = Blueprint('bounties', __name__, url_prefix='/bounties')
 
@@ -43,8 +45,10 @@ def place():
         flash(_('لا يمكنك وضع مكافأة على نفسك!'), 'danger')
         return redirect(url_for('bounties.index'))
 
-    # Deduct money
-    current_user.money -= amount
+    # Atomic Deduction
+    if not ResourceService.modify_resources(current_user.id, {'money': -amount}, 'place_bounty', auto_commit=False, expected_version=current_user.version):
+        flash(_('ليس لديك مال كافٍ!'), 'danger')
+        return redirect(url_for('bounties.index'))
     
     # Create bounty
     bounty = Bounty(
@@ -102,7 +106,11 @@ def buy_off(bounty_id):
         flash(_('ليس لديك مال كافٍ لإزالة المكافأة!'), 'danger')
         return redirect(url_for('bounties.index'))
 
-    current_user.money -= bounty.amount
+    # Atomic Deduction
+    if not ResourceService.modify_resources(current_user.id, {'money': -bounty.amount}, 'buy_off_bounty', auto_commit=False, expected_version=current_user.version):
+        flash(_('ليس لديك مال كافٍ لإزالة المكافأة!'), 'danger')
+        return redirect(url_for('bounties.index'))
+
     db.session.delete(bounty)
     db.session.commit()
 

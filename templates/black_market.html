@@ -29,11 +29,11 @@
                         </div>
                         <div class="text-left">
                             <div class="font-weight-bold">
-                                {{ black_market_event.title or _('حدث في السوق السوداء') }}
+                                {{ _(black_market_event.title) if black_market_event.title else _('حدث في السوق السوداء') }}
                             </div>
                             {% if black_market_event.description %}
                                 <div class="small">
-                                    {{ black_market_event.description }}
+                                    {{ _(black_market_event.description) }}
                                 </div>
                             {% endif %}
                         </div>
@@ -286,24 +286,60 @@
                         </div>
                     </div>
                     
-                    {% if bullets_factory_only %}
-                        <a href="{{ url_for('factory.index') }}" class="btn btn-outline-warning">
-                            <i class="fas fa-industry mr-2"></i> {{ _('اذهب للمصانع') }}
-                        </a>
-                    {% else %}
-                        <form action="{{ url_for('black_market.buy_bullets') }}" method="POST" class="form-inline">
-                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-                            <div class="input-group mr-2">
-                                <input type="number" name="quantity" class="form-control bg-dark text-white border-secondary" placeholder="{{ _('الكمية') }}" min="1" required>
-                                <div class="input-group-append">
-                                    <span class="input-group-text bg-secondary border-secondary text-white">$10</span>
-                                </div>
+                    <div class="col-12 mt-3">
+                        <div class="row">
+                            {% if not bullets_factory_only %}
+                            <div class="col-md-6 mb-2">
+                                <form action="{{ url_for('black_market.buy_bullets') }}" method="POST">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                                    <input type="hidden" name="payment_method" value="money"/>
+                                    <div class="input-group">
+                                        <input type="number" name="quantity" class="form-control bg-dark text-white border-secondary" placeholder="{{ _('الكمية') }}" min="1" required>
+                                        <div class="input-group-append">
+                                            <span class="input-group-text bg-secondary border-secondary text-white">$10/{{ _('رصاصة') }}</span>
+                                            <button class="btn btn-outline-light" type="submit">
+                                                <i class="fas fa-money-bill-wave"></i> {{ _('شراء بالكاش') }}
+                                            </button>
+                                        </div>
+                                    </div>
+                                </form>
                             </div>
-                            <button type="submit" class="btn btn-danger">
-                                <i class="fas fa-cart-plus"></i> {{ _('شراء ذخيرة') }}
-                            </button>
-                        </form>
-                    {% endif %}
+                            {% endif %}
+                            
+                            <div class="col-md-6 mb-2">
+                                <form action="{{ url_for('black_market.buy_bullets') }}" method="POST">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                                    <input type="hidden" name="payment_method" value="diamonds"/>
+                                    <div class="input-group">
+                                        <div class="input-group-prepend">
+                                            <span class="input-group-text bg-dark border-info text-info">
+                                                <i class="fas fa-gem"></i>
+                                            </span>
+                                        </div>
+                                        <select name="quantity" class="form-control bg-dark text-white border-info">
+                                            <option value="100">100 {{ _('رصاصة') }} (10 💎)</option>
+                                            <option value="500">500 {{ _('رصاصة') }} (50 💎)</option>
+                                            <option value="1000">1000 {{ _('رصاصة') }} (100 💎)</option>
+                                            <option value="5000">5000 {{ _('رصاصة') }} (500 💎)</option>
+                                        </select>
+                                        <div class="input-group-append">
+                                            <button class="btn btn-outline-info" type="submit">
+                                                <i class="fas fa-shopping-cart"></i> {{ _('شراء بالماس') }}
+                                            </button>
+                                        </div>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                        
+                        {% if bullets_factory_only %}
+                            <div class="mt-2 text-center">
+                                <a href="{{ url_for('factory.index') }}" class="btn btn-sm btn-outline-warning">
+                                    <i class="fas fa-industry mr-2"></i> {{ _('أو اذهب للمصانع للإنتاج المجاني') }}
+                                </a>
+                            </div>
+                        {% endif %}
+                    </div>
                 </div>
             </div>
         </div>

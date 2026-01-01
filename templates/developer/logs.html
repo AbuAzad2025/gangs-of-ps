@@ -38,7 +38,7 @@
         <table class="table luxury-table luxury-table-striped text-nowrap">
             <thead>
                 <tr>
-                    <th>ID</th>
+                    <th>{{ _('ID') }}</th>
                     <th>{{ _('المسؤول') }}</th>
                     <th>{{ _('الإجراء') }}</th>
                     <th>{{ _('التفاصيل') }}</th>
@@ -49,7 +49,7 @@
                 {% for log in logs %}
                 <tr style="animation: fadeInUp 0.5s ease backwards; animation-delay: {{ loop.index0 * 0.05 }}s;">
                     <td><span class="text-muted">{{ log.id }}</span></td>
-                    <td><strong class="text-gold">{{ log.admin.username if log.admin else 'System' }}</strong></td>
+                    <td><strong class="text-gold">{{ log.admin.username if log.admin else _('System') }}</strong></td>
                     <td><span class="badge bg-dark border border-info text-info">{{ log.action }}</span></td>
                     <td>{{ log.details }}</td>
                     <td class="text-muted">{{ log.timestamp.strftime('%Y-%m-%d %H:%M:%S') }}</td>

@@ -1,0 +1,148 @@
+{% extends "base.html" %}
+
+{% block title %}{{ _('المزاد الأسود') }}{% endblock %}
+
+{% block content %}
+<div class="content-header">
+  <div class="container-fluid">
+    <div class="row mb-2">
+      <div class="col-sm-6">
+        <h1 class="m-0 text-dark">{{ _('المزاد الأسود') }} <i class="fas fa-gavel"></i></h1>
+      </div>
+      <div class="col-sm-6">
+        <ol class="breadcrumb float-sm-right">
+          <li class="breadcrumb-item"><a href="{{ url_for('main.index') }}">{{ _('الرئيسية') }}</a></li>
+          <li class="breadcrumb-item active">{{ _('المزادات') }}</li>
+        </ol>
+      </div>
+    </div>
+  </div>
+</div>
+
+<section class="content">
+  <div class="container-fluid">
+    
+    <div class="row">
+      <div class="col-12">
+        <div class="card card-dark">
+          <div class="card-header">
+            <h3 class="card-title">{{ _('المزادات الجارية') }}</h3>
+            <div class="card-tools">
+                <button type="button" class="btn btn-tool" onclick="window.location.reload();">
+                    <i class="fas fa-sync-alt"></i>
+                </button>
+            </div>
+          </div>
+          <div class="card-body">
+            {% if auctions %}
+            <div class="row">
+                {% for item in auctions %}
+                <div class="col-md-4 col-sm-6 col-12">
+                    <div class="card card-dark card-outline">
+                        <div class="card-body box-profile">
+                            <div class="text-center mb-3">
+                                {% if item.item_image %}
+                                    <img class="img-fluid img-circle elevation-2" style="width: 120px; height: 120px; object-fit: cover; background-color: #343a40;"
+                                         src="{{ url_for('static', filename=item.item_image) }}"
+                                         alt="{{ item.item_name }}">
+                                {% else %}
+                                    <div class="img-circle elevation-2 d-flex align-items-center justify-content-center bg-secondary" style="width: 120px; height: 120px; margin: 0 auto;">
+                                        {% if item.item_type == 'vehicle' %}
+                                            <i class="fas fa-car fa-3x"></i>
+                                        {% else %}
+                                            <i class="fas fa-box-open fa-3x"></i>
+                                        {% endif %}
+                                    </div>
+                                {% endif %}
+                            </div>
+
+                            <h3 class="profile-username text-center text-truncate" title="{{ item.item_name }}">{{ item.item_name }}</h3>
+
+                            <ul class="list-group list-group-unbordered mb-3">
+                                <li class="list-group-item bg-dark border-secondary">
+                                    <b>{{ _('السعر الحالي') }}</b> <a class="float-right text-warning font-weight-bold">{{ item.current_bid | number_format }} ₪</a>
+                                </li>
+                                <li class="list-group-item bg-dark border-secondary">
+                                    <b>{{ _('أعلى مزايد') }}</b> <a class="float-right text-info">{{ item.bidder_name }}</a>
+                                </li>
+                                <li class="list-group-item bg-dark border-secondary">
+                                     <b>{{ _('الوقت المتبقي') }}</b> 
+                                     <small class="float-right text-danger countdown-timer font-weight-bold" data-endtime="{{ item.end_time_iso }}">
+                                        --:--:--
+                                    </small>
+                                </li>
+                            </ul>
+
+                            <form action="{{ url_for('black_market.place_bid', auction_id=item.obj.id) }}" method="post">
+                                <div class="input-group">
+                                    <input type="number" name="amount" class="form-control" placeholder="{{ _('المبلغ') }}" 
+                                           min="{{ item.current_bid + item.obj.min_bid_increment }}" required>
+                                    <span class="input-group-append">
+                                        <button type="submit" class="btn btn-success"><b>{{ _('زاود') }}</b></button>
+                                    </span>
+                                </div>
+                                <small class="text-muted d-block mt-1 text-center">
+                                    {{ _('الحد الأدنى:') }} {{ (item.current_bid + item.obj.min_bid_increment) | number_format }} ₪
+                                </small>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="alert alert-info text-center">
+                <h5><i class="icon fas fa-info"></i> {{ _('لا توجد مزادات نشطة حالياً') }}</h5>
+                {{ _('ترقبوا المزادات القادمة للحصول على عناصر نادرة!') }}
+            </div>
+            {% endif %}
+          </div>
+          <div class="card-footer">
+              <small class="text-muted">
+                  <i class="fas fa-info-circle"></i> {{ _('تنبيه: يتم تمديد المزاد 5 دقائق إضافية إذا تمت المزايدة في آخر 5 دقائق.') }}
+              </small>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const timers = document.querySelectorAll('.countdown-timer');
+        
+        function updateTimers() {
+            const now = new Date().getTime();
+            
+            timers.forEach(timer => {
+                const endTimeStr = timer.getAttribute('data-endtime');
+                // Convert ISO string to Date object. Python isoformat might lack 'Z' if naive, but usually ok in modern browsers.
+                // Better to ensure it acts as UTC.
+                const endTime = new Date(endTimeStr).getTime();
+                
+                const distance = endTime - now;
+                
+                if (distance < 0) {
+                    timer.innerHTML = "{{ _('منتهي') }}";
+                    timer.classList.add('text-danger');
+                    // Optional: Disable form
+                } else {
+                    const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                    const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+                    const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+                    
+                    timer.innerHTML = "{{ _('ينتهي في:') }} " + 
+                        (hours < 10 ? "0" + hours : hours) + ":" + 
+                        (minutes < 10 ? "0" + minutes : minutes) + ":" + 
+                        (seconds < 10 ? "0" + seconds : seconds);
+                }
+            });
+        }
+        
+        setInterval(updateTimers, 1000);
+        updateTimers(); // Initial call
+    });
+</script>
+{% endblock %}

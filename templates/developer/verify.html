@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card shadow">
+                <div class="card-header bg-danger text-white">
+                    <h4 class="mb-0"><i class="fas fa-shield-alt me-2"></i>{{ _('تحقق أمني مطلوب') }}</h4>
+                </div>
+                <div class="card-body">
+                    <p class="text-muted mb-4">{{ _('يرجى إعادة إدخال كلمة المرور للمتابعة.') }}</p>
+                    <form method="POST">
+                        <div class="mb-3">
+                            <label for="password" class="form-label">{{ _('كلمة المرور') }}</label>
+                            <input type="password" class="form-control" id="password" name="password" required autofocus>
+                        </div>
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary">{{ _('تأكيد') }}</button>
+                            <a href="{{ url_for('main.dev_dashboard') }}" class="btn btn-outline-secondary">{{ _('إلغاء') }}</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

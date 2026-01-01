@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card bg-dark text-white border-info">
+            <div class="card-header border-info d-flex justify-content-between align-items-center">
+                <h3 class="card-title text-info"><i class="fas fa-images mr-2"></i> {{ title }}</h3>
+                <a href="{{ url_for('main.dev_dashboard') }}" class="btn btn-outline-secondary btn-sm">{{ _('عودة') }}</a>
+            </div>
+            <div class="card-body">
+                
+                <!-- Upload Form -->
+                <div class="mb-4 p-3 border border-secondary rounded">
+                    <h5>{{ _('رفع صورة جديدة') }}</h5>
+                    <form action="{{ url_for('main.dev_upload_image') }}" method="POST" enctype="multipart/form-data" class="form-inline">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                        <div class="form-group mr-2">
+                            <label class="mr-2">{{ _('الفئة:') }}</label>
+                            <select name="category" class="form-control bg-dark text-white">
+                                <option value="items">{{ _('عناصر (Items)') }}</option>
+                                <option value="vehicles">{{ _('مركبات (Vehicles)') }}</option>
+                            </select>
+                        </div>
+                        <div class="form-group mr-2">
+                            <input type="file" name="file" class="form-control-file" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary">{{ _('رفع') }}</button>
+                    </form>
+                </div>
+
+                <ul class="nav nav-tabs" id="imageTabs" role="tablist">
+                    <li class="nav-item">
+                        <a class="nav-link active" id="items-tab" data-toggle="tab" href="#items" role="tab">{{ _('العناصر') }}</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" id="vehicles-tab" data-toggle="tab" href="#vehicles" role="tab">{{ _('المركبات') }}</a>
+                    </li>
+                </ul>
+                <div class="tab-content p-3 border border-top-0 border-secondary rounded-bottom" id="imageTabsContent">
+                    <div class="tab-pane fade show active" id="items" role="tabpanel">
+                        <div class="row">
+                            {% for img in item_images %}
+                            <div class="col-md-2 col-sm-4 mb-3 text-center">
+                                <div class="img-thumbnail bg-secondary p-1">
+                                    <img src="{{ url_for('static', filename='images/items/' + img) }}" class="img-fluid" style="max-height: 100px;">
+                                    <div class="mt-1 small text-truncate" title="{{ img }}">{{ img }}</div>
+                                </div>
+                            </div>
+                            {% else %}
+                            <div class="col-12 text-center">{{ _('لا توجد صور') }}</div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    <div class="tab-pane fade" id="vehicles" role="tabpanel">
+                        <div class="row">
+                            {% for img in vehicle_images %}
+                            <div class="col-md-2 col-sm-4 mb-3 text-center">
+                                <div class="img-thumbnail bg-secondary p-1">
+                                    <img src="{{ url_for('static', filename='images/vehicles/' + img) }}" class="img-fluid" style="max-height: 100px;">
+                                    <div class="mt-1 small text-truncate" title="{{ img }}">{{ img }}</div>
+                                </div>
+                            </div>
+                            {% else %}
+                            <div class="col-12 text-center">{{ _('لا توجد صور') }}</div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

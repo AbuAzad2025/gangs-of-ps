@@ -18,7 +18,7 @@
             <div class="property-card">
                 <div class="property-image">
                     {% if asset.image %}
-                        <img src="{{ url_for('static', filename=asset.image) }}" alt="{{ asset.name }}">
+                        <img src="{{ url_for('static', filename=asset.image) }}" alt="{{ _(asset.name) }}">
                     {% else %}
                         <img src="https://images.unsplash.com/photo-1560518883-ce09059eeffa?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60" alt="Property">
                     {% endif %}
@@ -28,13 +28,13 @@
                 </div>
 
                 <div class="property-body">
-                    <h3 class="property-title">{{ asset.name }}</h3>
+                    <h3 class="property-title">{{ _(asset.name) }}</h3>
                     <div class="income-badge">
                         <i class="fas fa-chart-line mr-2"></i>
                         <span>{{ _('الدخل اليومي:') }} +{{ "{:,}".format(asset.income) }} $</span>
                     </div>
                     
-                    <p class="text-muted small mb-4">{{ asset.description }}</p>
+                    <p class="text-muted small mb-4">{{ _(asset.description) }}</p>
                     
                     <form action="{{ url_for('economy.buy_property', asset_id=asset.id) }}" method="POST">
                         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>

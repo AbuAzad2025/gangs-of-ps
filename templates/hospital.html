@@ -56,6 +56,24 @@
                             </form>
                         </div>
                     </div>
+
+                    <div class="col-md-12 fade-in-up anim-delay-3 mt-4">
+                        <div class="treatment-option surgery-option text-center p-4" style="border: 1px dashed #d9534f; background: rgba(217, 83, 79, 0.05);">
+                            <i class="fas fa-syringe fa-3x mb-3 text-danger"></i>
+                            <h4>{{ _('عملية تجريبية') }}</h4>
+                            <p class="text-muted">{{ _('مخاطرة عالية! قد تزيد قوتك أو دفاعك بشكل دائم... أو تفشل.') }}</p>
+                            <h5 class="text-danger mb-3">50,000 $</h5>
+                            <form action="{{ url_for('hospital.experimental_surgery') }}" method="POST" class="d-flex justify-content-center gap-2">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                                <button type="submit" name="type" value="strength" class="btn btn-outline-danger mx-2">
+                                    <i class="fas fa-fist-raised mr-1"></i> {{ _('زيادة القوة') }}
+                                </button>
+                                <button type="submit" name="type" value="defense" class="btn btn-outline-info mx-2">
+                                    <i class="fas fa-shield-alt mr-1"></i> {{ _('زيادة الدفاع') }}
+                                </button>
+                            </form>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>

@@ -10,6 +10,7 @@ from models import Item, UserItem, FarmJob, SystemConfig, UserFacility
 from models.location import Location
 from models.contract import FarmSupplyContract
 from services.requirements import check_requirements
+from services.resource_service import ResourceService
 
 
 bp = Blueprint('farm', __name__, url_prefix='/farm')
@@ -294,6 +295,11 @@ def index():
             "hint_url": hint_url,
         })
 
+    if not catalog and not running and cfg.get("products"):
+        # If catalog is empty but products exist in config, it means Item query failed for all.
+        # This suggests a database sync issue.
+        flash(_("تحذير: لم يتم العثور على المنتجات في قاعدة البيانات. يرجى مراجعة الإدارة."), "warning")
+
     facilities = []
     contract_source = None
     contract_source_level = 0
@@ -416,7 +422,10 @@ def upgrade_facility(facility_key):
         flash(_('ليس لديك ما يكفي من الماس! تحتاج إلى %(cost)s ماسة.', cost=cost), 'danger')
         return redirect(url_for('farm.index'))
 
-    current_user.diamonds = max(0, int(current_user.diamonds) - cost)
+    # Atomic deduction via ResourceService
+    if not ResourceService.modify_resources(current_user.id, {'diamonds': -cost}, 'farm_facility_upgrade', auto_commit=False, expected_version=current_user.version):
+        flash(_('ليس لديك ما يكفي من الماس!'), 'danger')
+        return redirect(url_for('farm.index'))
 
     uf = UserFacility.query.filter_by(user_id=current_user.id, facility_key=facility_key).first()
     if not uf:
@@ -539,7 +548,14 @@ def buy_contract():
         db.session.commit()
         active = None
 
-    current_user.diamonds = max(0, int(current_user.diamonds) - cost)
+    # Atomic Deduction
+    rows = User.query.filter(User.id == current_user.id, User.diamonds >= cost).update({
+        User.diamonds: User.diamonds - cost
+    }, synchronize_session=False)
+
+    if rows == 0:
+        flash(_('ليس لديك ما يكفي من الماس! تحتاج إلى %(cost)s ماسة.', cost=cost), 'danger')
+        return redirect(url_for('farm.index'))
 
     if active:
         ends = active.ends_at
@@ -730,7 +746,10 @@ def boost(job_id):
         flash(_('ليس لديك ما يكفي من الماس! تحتاج إلى %(cost)s ماسة.', cost=diamonds_cost), 'danger')
         return redirect(url_for('farm.index'))
 
-    current_user.diamonds = max(0, int(current_user.diamonds) - diamonds_cost)
+    # Atomic deduction via ResourceService
+    if not ResourceService.modify_resources(current_user.id, {'diamonds': -diamonds_cost}, 'farm_boost_job', auto_commit=False, expected_version=current_user.version):
+        flash(_('ليس لديك ما يكفي من الماس!'), 'danger')
+        return redirect(url_for('farm.index'))
 
     job.ends_at = now.replace(tzinfo=None)
     db.session.add(job)

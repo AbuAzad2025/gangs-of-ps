@@ -66,7 +66,7 @@
 
                     <div class="form-group">
                         {{ form.ends_at.label(class="text-light") }}
-                        {{ form.ends_at(class="form-control bg-dark text-light border-secondary", placeholder="YYYY-MM-DD HH:MM:SS") }}
+                        {{ form.ends_at(class="form-control bg-dark text-light border-secondary", placeholder=_('YYYY-MM-DD HH:MM:SS')) }}
                         <small class="form-text text-muted">{{ _('الصيغة: YYYY-MM-DD HH:MM:SS') }}</small>
                         {% for error in form.ends_at.errors %}
                             <span class="text-danger">{{ error }}</span>

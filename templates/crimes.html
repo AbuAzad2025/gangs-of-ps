@@ -88,6 +88,21 @@
                     <p class="text-muted small mb-4 crime-desc-clamp">{{ _(crime.description) }}</p>
                 {% endif %}
 
+                {% if crime.daily_limit and crime.daily_limit > 0 %}
+                    <div class="crime-stat-row">
+                        <span class="crime-stat-label"><i class="fas fa-calendar-day text-info mr-1"></i> {{ _('الحد اليومي') }}</span>
+                        {% set daily_count = 0 %}
+                        {% for c in user.crime_cooldowns %}
+                            {% if c.crime_id == crime.id and c.last_reset_date == now.date() %}
+                                {% set daily_count = c.daily_count %}
+                            {% endif %}
+                        {% endfor %}
+                        <span class="crime-stat-value {{ 'text-danger' if daily_count >= crime.daily_limit else 'text-info' }}">
+                            {{ daily_count }} / {{ crime.daily_limit }}
+                        </span>
+                    </div>
+                {% endif %}
+
                 <div class="crime-stats mb-4">
                     <div class="crime-stat-row">
                         <span class="crime-stat-label"><i class="fas fa-bolt text-warning mr-1"></i> {{ _('الطاقة') }}</span>

@@ -1,4 +1,6 @@
 import re
+import os
+import sys
 
 translations = {
     "تاريخ الإنشاء": "Creation Date",
@@ -545,9 +547,15 @@ translations = {
     "مرتبط": "In a Relationship",
 }
 
-path = r"c:\Users\AhmadGh\Desktop\لوجو\GangsOfPalestine\translations\en\LC_MESSAGES\messages.po"
+# Resolve target PO path (default to local repo path, allow override via CLI)
+DEFAULT_PO_PATH = os.path.join('translations', 'en', 'LC_MESSAGES', 'messages.po')
+po_path = sys.argv[1] if len(sys.argv) > 1 else DEFAULT_PO_PATH
 
-with open(path, 'r', encoding='utf-8') as f:
+if not os.path.isfile(po_path):
+    print(f"Error: PO file not found at {po_path}")
+    sys.exit(1)
+
+with open(po_path, 'r', encoding='utf-8') as f:
     lines = f.readlines()
 
 new_lines = []
@@ -566,7 +574,7 @@ for line in lines:
     else:
         new_lines.append(line)
 
-with open(path, 'w', encoding='utf-8') as f:
+with open(po_path, 'w', encoding='utf-8') as f:
     f.writelines(new_lines)
 
-print("Translations updated.")
+print(f"Translations updated: {po_path}")

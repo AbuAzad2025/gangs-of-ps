@@ -17,6 +17,15 @@ def seed_db():
     
     print("Database seeding completed!")
 
+@app.cli.command("economy_daily")
+@with_appcontext
+def economy_daily():
+    from services.economy import process_daily_economy_checks
+    """Runs the daily economy checks (bank fees, property maintenance)."""
+    print("Starting daily economy checks...")
+    process_daily_economy_checks()
+    print("Daily economy checks completed!")
+
 if __name__ == '__main__':
     # Create tables automatically on dev run
     # with app.app_context():

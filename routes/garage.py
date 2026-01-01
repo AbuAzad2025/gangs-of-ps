@@ -5,7 +5,8 @@ from extensions import db
 from models import Vehicle, UserVehicle
 from . import bp
 from datetime import datetime, timedelta, timezone
-from .utils import update_daily_task_progress
+from services.resource_service import ResourceService
+from routes.utils import update_daily_task_progress
 
 @bp.route('/garage')
 @login_required
@@ -70,7 +71,10 @@ def buy_car(vehicle_id):
         flash(_('معكش مصاري كفاية يا زعيم!'), 'danger')
         return redirect(url_for('main.dealership'))
     
-    current_user.money -= vehicle.price
+    # Atomic Update via ResourceService
+    if not ResourceService.modify_resources(current_user.id, {'money': -vehicle.price}, 'buy_vehicle', auto_commit=False, expected_version=current_user.version):
+        flash(_('معكش مصاري كفاية يا زعيم!'), 'danger')
+        return redirect(url_for('main.dealership'))
     
     new_car = UserVehicle(user_id=current_user.id, vehicle_id=vehicle.id, is_active=True)
     
@@ -141,7 +145,10 @@ def repair_car(user_vehicle_id):
         flash(_('تحتاج %(cost)s شيكل لإصلاح السيارة بالكامل!', cost=cost), 'danger')
         return redirect(url_for('main.garage'))
         
-    current_user.money -= cost
+    # Atomic Update via ResourceService
+    if not ResourceService.modify_resources(current_user.id, {'money': -cost}, 'repair_car', auto_commit=False, expected_version=current_user.version):
+        flash(_('تحتاج %(cost)s شيكل لإصلاح السيارة بالكامل!', cost=cost), 'danger')
+        return redirect(url_for('main.garage'))
     
     # Time: 1 minute per 10% damage (min 1 minute)
     minutes = max(1, int(damage / 10))
@@ -194,7 +201,10 @@ def sell_car(user_vehicle_id):
     # Sell price is 50% of original price
     sell_price = int(car.vehicle.price * 0.5)
     
-    current_user.money += sell_price
+    # Atomic Update via ResourceService
+    if not ResourceService.modify_resources(current_user.id, {'money': sell_price}, 'sell_car', auto_commit=False, expected_version=current_user.version):
+        flash(_('حدث خطأ أثناء بيع السيارة. حاول مرة أخرى.'), 'danger')
+        return redirect(url_for('main.garage'))
     
     # If active, deactivate
     if car.is_active:
@@ -249,7 +259,10 @@ def tune_car(user_vehicle_id):
         flash(_('لا يمكنك تعديل سيارة متضررة! قم بإصلاحها أولاً.'), 'danger')
         return redirect(url_for('main.garage'))
         
-    current_user.money -= cost
+    # Atomic Update via ResourceService
+    if not ResourceService.modify_resources(current_user.id, {'money': -cost}, 'tune_vehicle', auto_commit=False, expected_version=current_user.version):
+        flash(_('معكش مصاري للتعديل يا كبير!'), 'danger')
+        return redirect(url_for('main.garage'))
     # We use condition > 100 to represent "Tuned" status
     # Normal max is 100. Tuned max is 200.
     car.condition = min(car.condition + 20, 200)

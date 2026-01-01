@@ -126,6 +126,9 @@
                         <a href="{{ url_for('main.dev_users') }}" class="btn btn-outline-info m-2">
                             <i class="fas fa-users mr-2"></i> {{ _('إدارة اللاعبين') }}
                         </a>
+                        <a href="{{ url_for('main.dev_distribute_resources') }}" class="btn btn-outline-warning m-2">
+                            <i class="fas fa-hand-holding-usd mr-2"></i> {{ _('توزيع الموارد') }}
+                        </a>
                         <a href="{{ url_for('main.dev_factories') }}" class="btn btn-outline-light m-2">
                             <i class="fas fa-industry mr-2"></i> {{ _('المصانع') }}
                         </a>
@@ -152,6 +155,15 @@
                         </a>
                         <a href="{{ url_for('main.admin_messages') }}" class="btn btn-outline-light m-2">
                             <i class="fas fa-envelope-open-text mr-2"></i> {{ _('إدارة الرسائل') }}
+                        </a>
+                        <a href="{{ url_for('main.dev_auctions') }}" class="btn btn-outline-warning m-2">
+                            <i class="fas fa-gavel mr-2"></i> {{ _('إدارة المزادات') }}
+                        </a>
+                        <a href="{{ url_for('main.dev_images') }}" class="btn btn-outline-info m-2">
+                            <i class="fas fa-images mr-2"></i> {{ _('إدارة الصور') }}
+                        </a>
+                        <a href="{{ url_for('main.dev_economy_sinks') }}" class="btn btn-outline-danger m-2">
+                            <i class="fas fa-file-invoice-dollar mr-2"></i> {{ _('سجلات الاقتصاد') }}
                         </a>
                         <button type="button" class="btn btn-outline-danger m-2" data-toggle="modal" data-target="#maintenanceModal">
                             <i class="fas fa-tools mr-2"></i> {{ _('وضع الصيانة') }}
@@ -217,6 +229,103 @@
             </div>
             <div class="icon">
                 <i class="fas fa-chart-line"></i>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Economy Stats -->
+<div class="row mb-4">
+    <div class="col-md-4">
+        <div class="small-box-luxury">
+            <div class="inner">
+                <h3>${{ "{:,.0f}".format(stats.active_auctions_money) }}</h3>
+                <p>{{ _('أموال في المزادات النشطة') }}</p>
+            </div>
+            <div class="icon">
+                <i class="fas fa-gavel"></i>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="small-box-luxury">
+            <div class="inner">
+                <h3>${{ "{:,.0f}".format(stats.burned_auction_money) }}</h3>
+                <p>{{ _('أموال محروقة بالمزادات') }}</p>
+            </div>
+            <div class="icon">
+                <i class="fas fa-fire-alt"></i>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="small-box-luxury">
+            <div class="inner">
+                <h3>${{ "{:,.0f}".format(stats.daily_sunk_money) }}</h3>
+                <p>{{ _('إجمالي الأموال المحروقة اليوم') }}</p>
+            </div>
+            <div class="icon">
+                <i class="fas fa-burn"></i>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Specific Sinks Stats -->
+<div class="row mb-4">
+    <div class="col-md-6">
+        <div class="small-box-luxury">
+            <div class="inner">
+                <h3>${{ "{:,.0f}".format(stats.gang_maintenance_today) }}</h3>
+                <p>{{ _('ضريبة صيانة العقارات (اليوم)') }}</p>
+            </div>
+            <div class="icon">
+                <i class="fas fa-building"></i>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="small-box-luxury">
+            <div class="inner">
+                <h3>${{ "{:,.0f}".format(stats.factory_smelt_today) }}</h3>
+                <p>{{ _('تكاليف صهر المصانع (اليوم)') }}</p>
+            </div>
+            <div class="icon">
+                <i class="fas fa-industry"></i>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mb-4">
+    <div class="col-md-12">
+        <div class="card luxury-card">
+            <div class="card-header luxury-header">
+                <h4 class="mb-0 text-gold"><i class="fas fa-chart-pie mr-2"></i> {{ _('أكثر قنوات حرق الأموال (توب 5)') }}</h4>
+            </div>
+            <div class="card-body bg-dark">
+                <div class="table-responsive">
+                    <table class="table table-dark table-hover mb-0">
+                        <thead>
+                            <tr>
+                                <th>{{ _('نوع القناة') }}</th>
+                                <th>{{ _('إجمالي المحروق') }}</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for sink_type, total in stats.sink_breakdown %}
+                            <tr>
+                                <td>{{ sink_type }}</td>
+                                <td>${{ "{:,.0f}".format(total) }}</td>
+                            </tr>
+                            {% else %}
+                            <tr>
+                                <td colspan="2" class="text-center text-muted">{{ _('لا توجد بيانات متاحة') }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
     </div>
@@ -295,6 +404,9 @@
                     <a href="{{ url_for('main.dev_assets') }}" class="btn btn-outline-light m-2"><i class="fas fa-building mr-2"></i>{{ _('العقارات') }}</a>
                     <a href="{{ url_for('main.dev_factories') }}" class="btn btn-outline-light m-2"><i class="fas fa-industry mr-2"></i>{{ _('المصانع') }}</a>
                     <a href="{{ url_for('main.dev_market') }}" class="btn btn-outline-light m-2"><i class="fas fa-chart-line mr-2"></i>{{ _('سوق الأسهم') }}</a>
+                    <a href="{{ url_for('main.dev_auctions') }}" class="btn btn-outline-warning m-2"><i class="fas fa-gavel mr-2"></i>{{ _('المزادات') }}</a>
+                    <a href="{{ url_for('main.dev_economy_sinks') }}" class="btn btn-outline-danger m-2"><i class="fas fa-file-invoice-dollar mr-2"></i>{{ _('سجلات الاقتصاد') }}</a>
+                    <a href="{{ url_for('main.dev_images') }}" class="btn btn-outline-info m-2"><i class="fas fa-images mr-2"></i>{{ _('الصور') }}</a>
                     <a href="{{ url_for('main.dev_locations') }}" class="btn btn-outline-light m-2"><i class="fas fa-map-marked-alt mr-2"></i>{{ _('المواقع') }}</a>
                     <a href="{{ url_for('main.dev_crimes') }}" class="btn btn-outline-light m-2"><i class="fas fa-mask mr-2"></i>{{ _('الجرائم') }}</a>
                     <a href="{{ url_for('main.dev_organized_crimes') }}" class="btn btn-outline-light m-2"><i class="fas fa-users-cog mr-2"></i>{{ _('الجرائم المنظمة') }}</a>
@@ -311,6 +423,47 @@
                     <a href="{{ url_for('main.dev_config') }}" class="btn btn-outline-warning m-2"><i class="fas fa-sliders-h mr-2"></i>{{ _('إعدادات متقدمة') }}</a>
                 </div>
             </div>
+        </div>
+    </div>
+</div>
+
+<!-- Maintenance Modal -->
+<div class="modal fade" id="maintenanceModal" tabindex="-1" role="dialog" aria-labelledby="maintenanceModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content luxury-card border-gold">
+            <div class="modal-header border-gold">
+                <h5 class="modal-title text-gold" id="maintenanceModalLabel">{{ _('وضع الصيانة') }}</h5>
+                <button type="button" class="close text-light" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <form action="{{ url_for('main.dev_maintenance_mode') }}" method="POST">
+                <div class="modal-body bg-dark">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                    
+                    <div class="form-group">
+                        <label class="text-white">{{ _('الحالة') }}</label>
+                        <div class="custom-control custom-switch">
+                            <input type="checkbox" class="custom-control-input" id="maintenanceSwitch" name="mode" value="on" 
+                                   {% if maintenance_mode %}checked{% endif %}>
+                            <label class="custom-control-label text-white" for="maintenanceSwitch">{{ _('تفعيل وضع الصيانة') }}</label>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group mt-3">
+                        <label class="text-white">{{ _('رسالة الصيانة') }}</label>
+                        <textarea class="form-control bg-dark text-light border-gold" name="message" rows="3">{{ maintenance_message }}</textarea>
+                    </div>
+                    
+                    <div class="alert alert-warning mt-3">
+                        <i class="fas fa-exclamation-triangle"></i> {{ _('تنبيه: عند تفعيل وضع الصيانة، لن يتمكن اللاعبون العاديون من دخول اللعبة.') }}
+                    </div>
+                </div>
+                <div class="modal-footer border-gold bg-dark">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">{{ _('إلغاء') }}</button>
+                    <button type="submit" class="btn btn-warning">{{ _('حفظ التغييرات') }}</button>
+                </div>
+            </form>
         </div>
     </div>
 </div>

@@ -3,7 +3,10 @@ from flask_login import login_required, current_user
 from flask_babel import _
 from extensions import db, limiter
 from models.user import User
+from models import UserLog
 from datetime import datetime, timezone
+from decorators import check_maintenance, player_only
+from services.resource_service import ResourceService
 
 bp = Blueprint('bank', __name__, url_prefix='/bank')
 
@@ -52,9 +55,15 @@ def deposit():
         flash(_('لا تملك مالاً كافياً للإيداع!'), 'danger')
         return redirect(url_for('bank.index'))
         
-    # Atomic Update using explicit update queries to prevent race conditions
-    User.query.filter_by(id=current_user.id).update({'money': User.money - amount, 'bank_balance': User.bank_balance + amount})
-    db.session.commit()
+    # Atomic Update using ResourceService (logs before/after)
+    if not ResourceService.modify_resources(
+        current_user.id, 
+        {'money': -amount, 'bank_balance': amount}, 
+        'bank_deposit', 
+        auto_commit=True
+    ):
+        flash(_('لا تملك مالاً كافياً للإيداع!'), 'danger')
+        return redirect(url_for('bank.index'))
     
     flash(_('تم إيداع %(amount)s في البنك.', amount=amount), 'success')
     return redirect(url_for('bank.index'))
@@ -99,16 +108,27 @@ def withdraw():
         flash(_('رصيدك في البنك غير كافٍ!'), 'danger')
         return redirect(url_for('bank.index'))
         
-    # Atomic Update
-    User.query.filter_by(id=current_user.id).update({'bank_balance': User.bank_balance - amount, 'money': User.money + amount})
-    db.session.commit()
+    # Atomic Update using ResourceService (logs before/after)
+    # Check bank_balance explicitly in ResourceService call via check_balance logic
+    # Note: ResourceService checks balance for negative changes.
+    # Here we decrement bank_balance, so it will check if bank_balance >= amount.
+    if not ResourceService.modify_resources(
+        current_user.id, 
+        {'bank_balance': -amount, 'money': amount}, 
+        'bank_withdraw', 
+        auto_commit=True
+    ):
+        flash(_('رصيدك في البنك غير كافٍ!'), 'danger')
+        return redirect(url_for('bank.index'))
     
     flash(_('تم سحب %(amount)s من البنك.', amount=amount), 'success')
     return redirect(url_for('bank.index'))
 
 @bp.route('/transfer', methods=['POST'])
 @login_required
-@limiter.limit("5 per minute")
+@check_maintenance('transfers')
+@player_only
+@limiter.limit("5 per hour")
 def transfer():
     # Status Check
     now = datetime.now(timezone.utc)
@@ -161,9 +181,30 @@ def transfer():
         flash(_('لا يمكنك التحويل لنفسك!'), 'danger')
         return redirect(url_for('bank.index'))
         
-    # Atomic Update
-    User.query.filter_by(id=current_user.id).update({'bank_balance': User.bank_balance - amount})
-    User.query.filter_by(id=recipient.id).update({'bank_balance': User.bank_balance + amount})
+    # Atomic Update using ResourceService
+    # 1. Deduct from sender
+    if not ResourceService.modify_resources(
+        current_user.id, 
+        {'bank_balance': -amount}, 
+        f'bank_transfer_sent_to_{recipient.id}', 
+        auto_commit=False
+    ):
+        flash(_('رصيدك في البنك غير كافٍ!'), 'danger')
+        db.session.rollback()
+        return redirect(url_for('bank.index'))
+
+    # 2. Add to recipient
+    if not ResourceService.modify_resources(
+        recipient.id, 
+        {'bank_balance': amount}, 
+        f'bank_transfer_received_from_{current_user.id}', 
+        auto_commit=False
+    ):
+        # Should not happen unless recipient deleted or locked?
+        db.session.rollback()
+        flash(_('حدث خطأ أثناء التحويل!'), 'danger')
+        return redirect(url_for('bank.index'))
+    
     db.session.commit()
     
     flash(_('تم تحويل %(amount)s إلى %(name)s بنجاح.', amount=amount, name=recipient.username), 'success')

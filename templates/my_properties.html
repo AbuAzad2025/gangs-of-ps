@@ -23,22 +23,28 @@
                 
                 <div class="owned-image">
                     {% if asset.image %}
-                        <img src="{{ url_for('static', filename=asset.image) }}" alt="{{ asset.name }}">
+                        <img src="{{ url_for('static', filename=asset.image) }}" alt="{{ _(asset.name) }}">
                     {% else %}
                         <img src="https://images.unsplash.com/photo-1560518883-ce09059eeffa?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60" alt="Property">
                     {% endif %}
                 </div>
 
                 <div class="owned-body">
-                    <h3 class="owned-title">{{ asset.name }}</h3>
+                    <h3 class="owned-title">{{ _(asset.name) }}</h3>
                     <div class="owned-value">
                         <i class="fas fa-tag mr-1"></i> {{ _('القيمة السوقية:') }} {{ "{:,}".format(asset.value) }} $
                     </div>
                     
-                    <div class="income-stat">
+                    <div class="income-stat mb-2">
                         <span class="income-label"><i class="fas fa-chart-line mr-2"></i>{{ _('الدخل اليومي') }}</span>
-                        <span class="income-value">+{{ "{:,}".format(asset.income) }} $</span>
+                        <span class="income-value text-success">+{{ "{:,}".format(asset.income) }} $</span>
                     </div>
+                    {% if asset.maintenance_cost and asset.maintenance_cost > 0 %}
+                    <div class="income-stat">
+                        <span class="income-label"><i class="fas fa-wrench mr-2"></i>{{ _('تكلفة الصيانة') }}</span>
+                        <span class="income-value text-danger">-{{ "{:,}".format(asset.maintenance_cost) }} $</span>
+                    </div>
+                    {% endif %}
                     
                     {% if asset.can_collect %}
                     <form action="{{ url_for('economy.collect_income', asset_id=asset.id) }}" method="POST" class="mt-3">

@@ -7,25 +7,60 @@ from models.user import User
 from models.social import Message
 from datetime import datetime, timezone, timedelta
 from models.system import SystemConfig
+from sqlalchemy import select
 import yfinance as yf
 import random
 import pandas as pd
 from .utils import update_daily_task_progress
+from services.resource_service import ResourceService
 
 bp = Blueprint('market', __name__, url_prefix='/market')
 
 def check_limit_orders(asset):
     """Checks and executes limit orders for a given asset"""
     # Buy Orders: Execute if current_price <= limit_price
+    # Fetch potential candidates
     buy_orders = SpotOrder.query.filter_by(asset_id=asset.id, status='open', order_type='buy').all()
     for order in buy_orders:
         if asset.current_price <= order.price:
-            # User already paid (locked money), so just give assets
-            investment = UserInvestment.query.filter_by(user_id=order.user_id, asset_id=asset.id).first()
+            # Fetch user for expected_version
+            user = db.session.get(User, order.user_id)
+            if not user:
+                continue
+
+            # Optimistic Lock: Try to set status to 'filled' atomically
+            # This prevents multiple threads from processing the same order
+            rows = SpotOrder.query.filter(
+                SpotOrder.id == order.id, 
+                SpotOrder.status == 'open'
+            ).update({
+                SpotOrder.status: 'filled', 
+                SpotOrder.filled_quantity: order.quantity
+            }, synchronize_session=False)
+            
+            if rows == 0:
+                continue # Already processed by another thread
+            
+            # User already paid (locked money) at limit price.
+            # If we fill at a better price (current_price < limit_price), refund the difference.
+            fill_price = asset.current_price
+            refund_amount = 0
+            if fill_price < order.price:
+                refund_amount = (order.price - fill_price) * order.quantity
+            
+            if refund_amount > 0:
+                # Refund the difference atomically
+                # Use expected_version to ensure consistency
+                if not ResourceService.modify_resources(order.user_id, {'money': refund_amount}, 'spot_limit_buy_refund', auto_commit=False, expected_version=user.version):
+                    db.session.rollback()
+                    continue
+
+            # Lock the investment row to prevent concurrent modifications
+            investment = UserInvestment.query.filter_by(user_id=order.user_id, asset_id=asset.id).with_for_update().first()
             if investment:
                 # Avg Price update
                 total_cost_old = investment.quantity * investment.average_buy_price
-                total_cost_new = order.quantity * order.price
+                total_cost_new = order.quantity * fill_price # Use actual fill price
                 total_qty = investment.quantity + order.quantity
                 if total_qty > 0:
                     investment.average_buy_price = (total_cost_old + total_cost_new) / total_qty
@@ -35,29 +70,45 @@ def check_limit_orders(asset):
                     user_id=order.user_id,
                     asset_id=asset.id,
                     quantity=order.quantity,
-                    average_buy_price=order.price
+                    average_buy_price=fill_price # Use actual fill price
                 )
                 db.session.add(investment)
             
-            order.status = 'filled'
-            order.filled_quantity = order.quantity
+            # Commit immediately to finalize this order
+            db.session.commit()
             
     # Sell Orders: Execute if current_price >= limit_price
     sell_orders = SpotOrder.query.filter_by(asset_id=asset.id, status='open', order_type='sell').all()
     for order in sell_orders:
         if asset.current_price >= order.price:
+            # Fetch user for expected_version
+            user = db.session.get(User, order.user_id)
+            if not user:
+                continue
+
+            # Optimistic Lock
+            rows = SpotOrder.query.filter(
+                SpotOrder.id == order.id, 
+                SpotOrder.status == 'open'
+            ).update({
+                SpotOrder.status: 'filled', 
+                SpotOrder.filled_quantity: order.quantity
+            }, synchronize_session=False)
+            
+            if rows == 0:
+                continue # Already processed
+                
             # Assets already locked, give money
             total_value = order.quantity * order.price
-            user = db.session.get(User, order.user_id)
-            if user:
-                user.money += total_value
             
-            order.status = 'filled'
-            order.filled_quantity = order.quantity
+            # Atomic update with logging
+            # Use expected_version to ensure consistency
+            if not ResourceService.modify_resources(order.user_id, {'money': total_value}, 'spot_limit_sell_fill', auto_commit=False, expected_version=user.version):
+                db.session.rollback()
+                continue
+            
             try:
-                user = db.session.get(User, order.user_id)
-                if user:
-                    update_daily_task_progress(user, 'buy')
+                update_daily_task_progress(user, 'buy')
             except Exception:
                 pass
             
@@ -214,7 +265,10 @@ def buy_intel():
         flash(_('لا تملك كاش كافي لشراء المعلومة!'), 'danger')
         return redirect(url_for('market.index'))
         
-    current_user.money -= cost
+    # Atomic Deduction with logging
+    if not ResourceService.modify_resources(current_user.id, {'money': -cost}, 'buy_intel_market', auto_commit=False, expected_version=current_user.version):
+        flash(_('لا تملك كاش كافي لشراء المعلومة!'), 'danger')
+        return redirect(url_for('market.index'))
     
     # Generate random intel
     intels = [
@@ -291,11 +345,13 @@ def buy(asset_id):
     # Calculate quantity
     quantity = amount_to_invest / asset.current_price
     
-    # Update User
-    current_user.money -= amount_to_invest
+    # Atomic Deduction with logging
+    if not ResourceService.modify_resources(current_user.id, {'money': -amount_to_invest}, 'buy_asset_spot', auto_commit=False, expected_version=current_user.version):
+        flash(_('لا تملك كاش كافي للعملية!'), 'danger')
+        return redirect(url_for('market.index'))
     
     # Update/Create Investment
-    investment = UserInvestment.query.filter_by(user_id=current_user.id, asset_id=asset.id).first()
+    investment = UserInvestment.query.filter_by(user_id=current_user.id, asset_id=asset.id).with_for_update().first()
     
     if investment:
         # Calculate new average price
@@ -351,13 +407,21 @@ def sell(asset_id):
     asset = db.session.get(MarketAsset, asset_id)
     if not asset:
         abort(404)
+
+    # Deadlock Prevention: Lock User first, then Investment
+    # 1. Lock User (via dummy select or just rely on ResourceService if we call it first? 
+    # ResourceService calls with_for_update on User.
+    # But we need to know the investment quantity BEFORE calling ResourceService to know how much to sell?
+    # No, we can read investment (no lock), calculate, then start transaction: Lock User, Lock Investment, Verify Investment Quantity again.
+    
+    # 1. Read Investment (Snapshot)
     investment = UserInvestment.query.filter_by(user_id=current_user.id, asset_id=asset.id).first()
     
     if not investment or investment.quantity <= 0:
         flash(_('لا تملك أسهم في هذه الشركة!'), 'danger')
         return redirect(url_for('market.index'))
         
-    # Percentage to sell (25%, 50%, 100%) or amount? Let's do percentage for simplicity in UI
+    # Percentage to sell
     percent = int(request.form.get('percent', 0))
     if percent not in [25, 50, 100]:
         flash(_('نسبة بيع غير صحيحة!'), 'danger')
@@ -374,6 +438,32 @@ def sell(asset_id):
     except:
         pass
         
+    # Start Atomic Transaction
+    # 1. Lock User (via ResourceService later? No, better explicit if we want to be safe, but ResourceService is fine if it's the first lock)
+    # BUT we need to calculate 'sale_value' based on 'quantity_to_sell'.
+    # If we don't lock investment, quantity might change.
+    # Standard Order: User -> Investment.
+    
+    # So:
+    # 1. Lock User
+    # 2. Lock Investment
+    # 3. Calculate
+    # 4. Apply changes
+    
+    # We can use ResourceService to lock User implicitly, BUT ResourceService expects 'changes' dict.
+    # We don't know 'changes' (money gain) until we calculate based on Investment.
+    # So we MUST lock User explicitly first.
+    
+    db.session.execute(select(User).where(User.id == current_user.id).with_for_update()).scalar_one()
+    
+    # 2. Lock Investment
+    investment = UserInvestment.query.filter_by(user_id=current_user.id, asset_id=asset.id).with_for_update().first()
+    
+    if not investment or investment.quantity <= 0:
+        db.session.rollback()
+        flash(_('لا تملك أسهم في هذه الشركة!'), 'danger')
+        return redirect(url_for('market.index'))
+
     quantity_to_sell = investment.quantity * (percent / 100)
     sale_value = quantity_to_sell * asset.current_price
     
@@ -382,14 +472,18 @@ def sell(asset_id):
     profit = sale_value - cost_basis
     
     # Intelligence Reward (1 IQ per $1000 profit)
+    changes = {'money': sale_value}
     if profit > 0:
         iq_gain = int(profit / 1000)
         if iq_gain > 0:
-            current_user.intelligence += iq_gain
+            changes['intelligence'] = iq_gain
             flash(_('ربح ممتاز! اكتسبت %(iq)s نقطة ذكاء.', iq=iq_gain), 'success')
 
-    # Update User
-    current_user.money += sale_value
+    # Atomic Update User Money with logging
+    # Note: User is already locked by us. ResourceService should handle this (nested check or re-entrant).
+    # ResourceService uses db.session.get(User, user_id, with_for_update=True).
+    # In SQLAlchemy, with_for_update is re-entrant in same transaction.
+    ResourceService.modify_resources(current_user.id, changes, 'sell_asset_spot', auto_commit=False, expected_version=current_user.version)
     
     # Update Investment
     investment.quantity -= quantity_to_sell
@@ -480,7 +574,11 @@ def open_futures(asset_id):
         liquidation_price=liquidation_price
     )
     
-    current_user.money -= amount
+    # Atomic deduction with logging
+    if not ResourceService.modify_resources(current_user.id, {'money': -amount}, 'open_futures', auto_commit=False, expected_version=current_user.version):
+        flash(_('لا تملك رصيد كافي!'), 'danger')
+        return redirect(url_for('market.trade', symbol=asset.symbol))
+
     db.session.add(position)
     db.session.commit()
     
@@ -547,12 +645,20 @@ def close_futures(position_id):
         if pnl > 0:
             iq_gain = int(pnl / 1000)
             if iq_gain > 0:
-                current_user.intelligence += iq_gain
-                flash(_('ربح ممتاز! اكتسبت %(iq)s نقطة ذكاء.', iq=iq_gain), 'success')
+                # Add IQ to changes, handled by ResourceService below
+                pass # Logic moved to changes dict construction
                 
         flash(_('تم إغلاق الصفقة. الربح/الخسارة: %(val).2f$', val=pnl), 'success' if pnl >= 0 else 'warning')
         
-    current_user.money += return_amount
+    # Atomic addition with logging
+    changes = {'money': return_amount}
+    if pnl > 0:
+        iq_gain = int(pnl / 1000)
+        if iq_gain > 0:
+             changes['intelligence'] = iq_gain
+             flash(_('ربح ممتاز! اكتسبت %(iq)s نقطة ذكاء.', iq=iq_gain), 'success')
+
+    ResourceService.modify_resources(current_user.id, changes, 'close_futures', auto_commit=False, expected_version=current_user.version)
     
     # Mark as closed (or delete? let's delete to keep DB clean for game, or keep for history)
     # For game simplicity, let's delete or mark closed. Let's delete to avoid clutter.
@@ -627,7 +733,10 @@ def purchase_intel_report():
         msg = msg_template.format(symbol=asset.symbol)
         
         # Now deduct money and commit
-        current_user.money -= cost
+        # Atomic deduction with logging
+        if not ResourceService.modify_resources(current_user.id, {'money': -cost}, 'buy_intel_report', auto_commit=False, expected_version=current_user.version):
+            flash(_('لا تملك كاش كافي لشراء المعلومة!'), 'danger')
+            return redirect(url_for('market.index'))
         
         # Create delayed message
         delivery_time = datetime.now(timezone.utc) + timedelta(minutes=10)
@@ -711,9 +820,13 @@ def place_order(asset_id):
                 return redirect(url_for('market.trade', symbol=asset.symbol))
             
             quantity = amount / asset.current_price
-            current_user.money -= amount
             
-            investment = UserInvestment.query.filter_by(user_id=current_user.id, asset_id=asset.id).first()
+            # Atomic deduction with logging
+            if not ResourceService.modify_resources(current_user.id, {'money': -amount}, 'buy_spot_market', auto_commit=False, expected_version=current_user.version):
+                flash(_('لا تملك كاش كافي!'), 'danger')
+                return redirect(url_for('market.trade', symbol=asset.symbol))
+            
+            investment = UserInvestment.query.filter_by(user_id=current_user.id, asset_id=asset.id).with_for_update().first()
             if investment:
                 total_cost_old = investment.quantity * investment.average_buy_price
                 total_cost_new = amount
@@ -732,7 +845,10 @@ def place_order(asset_id):
             
         elif order_type == 'sell':
             # Amount is Quantity (Shares)
-            investment = UserInvestment.query.filter_by(user_id=current_user.id, asset_id=asset.id).first()
+            # Lock investment first (since we are not using ResourceService to deduct money, but to ADD money later)
+            # Wait, we need to check balance first.
+            # And we need to lock to prevent double spending of shares.
+            investment = UserInvestment.query.filter_by(user_id=current_user.id, asset_id=asset.id).with_for_update().first()
             if not investment or investment.quantity < amount:
                 flash(_('لا تملك أسهم كافية!'), 'danger')
                 return redirect(url_for('market.trade', symbol=asset.symbol))
@@ -742,11 +858,21 @@ def place_order(asset_id):
             # Profit logic
             cost_basis = amount * investment.average_buy_price
             profit = sale_value - cost_basis
+            iq_gain = 0
             if profit > 0:
-                iq = int(profit/1000)
-                if iq > 0: current_user.intelligence += iq
+                iq_gain = int(profit/1000)
                 
-            current_user.money += sale_value
+            # Atomic update with logging
+            changes = {'money': sale_value}
+            if iq_gain > 0:
+                changes['intelligence'] = iq_gain
+            
+            # Note: We pass expected_version here to ensure User hasn't changed (though we only add money)
+            if not ResourceService.modify_resources(current_user.id, changes, 'sell_spot_market', auto_commit=False, expected_version=current_user.version):
+                 db.session.rollback()
+                 flash(_('حدث خطأ أثناء المعالجة. حاول مرة أخرى.'), 'danger')
+                 return redirect(url_for('market.trade', symbol=asset.symbol))
+            
             investment.quantity -= amount
             if investment.quantity < 1e-6: db.session.delete(investment)
             
@@ -770,7 +896,10 @@ def place_order(asset_id):
                 flash(_('لا تملك كاش كافي! (المطلوب: %(cost).2f$)', cost=total_cost), 'danger')
                 return redirect(url_for('market.trade', symbol=asset.symbol))
                 
-            current_user.money -= total_cost
+            # Atomic deduction with logging
+            if not ResourceService.modify_resources(current_user.id, {'money': -total_cost}, 'spot_limit_buy_order', auto_commit=False, expected_version=current_user.version):
+                flash(_('لا تملك كاش كافي!'), 'danger')
+                return redirect(url_for('market.trade', symbol=asset.symbol))
             
             order = SpotOrder(
                 user_id=current_user.id,
@@ -786,7 +915,8 @@ def place_order(asset_id):
             
         elif order_type == 'sell':
             # Amount is Quantity (Shares)
-            investment = UserInvestment.query.filter_by(user_id=current_user.id, asset_id=asset.id).first()
+            # Lock investment to prevent race conditions
+            investment = UserInvestment.query.filter_by(user_id=current_user.id, asset_id=asset.id).with_for_update().first()
             if not investment or investment.quantity < amount:
                 flash(_('لا تملك أسهم كافية!'), 'danger')
                 return redirect(url_for('market.trade', symbol=asset.symbol))
@@ -819,11 +949,18 @@ def cancel_order(order_id):
     # Refund
     if order.order_type == 'buy':
         refund = (order.quantity - order.filled_quantity) * order.price
-        current_user.money += refund
+        
+        # Atomic addition with logging
+        if not ResourceService.modify_resources(current_user.id, {'money': refund}, 'spot_order_cancel_refund', auto_commit=False, expected_version=current_user.version):
+            db.session.rollback()
+            flash(_('حدث خطأ أثناء إلغاء الأمر.'), 'danger')
+            return redirect(url_for('market.trade', symbol=order.asset.symbol))
+
     else:
         # Return shares
         asset = order.asset
-        investment = UserInvestment.query.filter_by(user_id=current_user.id, asset_id=asset.id).first()
+        # Lock investment to prevent race conditions
+        investment = UserInvestment.query.filter_by(user_id=current_user.id, asset_id=asset.id).with_for_update().first()
         qty_back = order.quantity - order.filled_quantity
         if investment:
             investment.quantity += qty_back

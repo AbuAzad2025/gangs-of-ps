@@ -1,8 +1,10 @@
 from flask import Blueprint, render_template, redirect, url_for, flash, request, session, jsonify
 from flask_login import login_required, current_user
 from extensions import db
+from models.user import User
 from models.hostess import Hostess
 from services.ai_hostess_service import AIHostessService
+from services.resource_service import ResourceService
 from flask_babel import _
 import random
 from datetime import datetime, timedelta, timezone
@@ -132,13 +134,18 @@ def blackjack_deal():
         flash(_('أقل رهان هو 10!'), 'danger')
         return redirect(url_for('casino.blackjack_index'))
     
-    if current_user.money < bet:
+    # Atomic deduction
+    success = ResourceService.modify_resources(
+        user_id=current_user.id,
+        changes={'money': -bet},
+        reason='casino_blackjack_bet',
+        auto_commit=False,
+        expected_version=current_user.version
+    )
+    
+    if not success:
         flash(_('ليس لديك مال كافٍ!'), 'danger')
         return redirect(url_for('casino.blackjack_index'))
-
-    # Deduct bet
-    current_user.money -= bet
-    db.session.commit()
 
     deck = Deck()
     player_hand = [deck.draw(), deck.draw()]
@@ -158,12 +165,17 @@ def blackjack_deal():
     if player_score == 21:
         # Blackjack!
         winnings = int(bet * 2.5)
-        current_user.money += winnings
-        db.session.commit()
+        ResourceService.modify_resources(
+            user_id=current_user.id,
+            changes={'money': winnings},
+            reason='casino_blackjack_win_natural',
+            auto_commit=False
+        )
         game_state['status'] = 'player_win'
         game_state['message'] = _('بلاك جاك! ربحت %(amount)s!', amount=winnings)
         session.pop('blackjack_game', None)
     
+    db.session.commit()
     session['blackjack_game'] = game_state
     return redirect(url_for('casino.blackjack_index'))
 
@@ -253,7 +265,13 @@ def blackjack_stand():
         elif current_user.casino_luck_until and current_user.casino_luck_until.replace(tzinfo=timezone.utc) > datetime.now(timezone.utc):
             winnings = int(winnings * 1.1) # 10% Bonus
             
-        current_user.money += winnings
+        ResourceService.modify_resources(
+            user_id=current_user.id,
+            changes={'money': winnings},
+            reason='casino_blackjack_dealer_bust',
+            auto_commit=False,
+            expected_version=current_user.version
+        )
         db.session.commit()
         game_state['message'] = _('الموزع تجاوز 21! ربحت %(amount)s!', amount=winnings)
         trigger_hostess_reaction(current_user, winnings, True)
@@ -277,7 +295,13 @@ def blackjack_stand():
 
         if saved_by_hostess:
                 game_state['status'] = 'push'
-                current_user.money += game_state['bet']
+                ResourceService.modify_resources(
+                    user_id=current_user.id,
+                    changes={'money': game_state['bet']},
+                    reason='casino_blackjack_hostess_save',
+                    auto_commit=False,
+                    expected_version=current_user.version
+                )
                 db.session.commit()
                 game_state['message'] = _('المضيفة أنقذتك! استرجعت رهانك.')
         else:
@@ -298,16 +322,27 @@ def blackjack_stand():
         elif current_user.casino_luck_until and current_user.casino_luck_until.replace(tzinfo=timezone.utc) > datetime.now(timezone.utc):
             winnings = int(winnings * 1.1) # 10% Bonus
             
-        current_user.money += winnings
-        db.session.commit()
+        ResourceService.modify_resources(
+            user_id=current_user.id,
+            changes={'money': winnings},
+            reason='casino_blackjack_win',
+            auto_commit=False,
+            expected_version=current_user.version
+        )
         game_state['message'] = _('مبروك! ربحت %(amount)s!', amount=winnings)
         trigger_hostess_reaction(current_user, winnings, True)
     else:
         game_state['status'] = 'push'
-        current_user.money += game_state['bet'] # Return bet
-        db.session.commit()
+        ResourceService.modify_resources(
+            user_id=current_user.id,
+            changes={'money': game_state['bet']},
+            reason='casino_blackjack_push',
+            auto_commit=False,
+            expected_version=current_user.version
+        )
         game_state['message'] = _('تعادل! استرجعت رهانك.')
         
+    db.session.commit()
     session['blackjack_game'] = game_state
     return redirect(url_for('casino.blackjack_index'))
 
@@ -362,7 +397,20 @@ def slots_spin():
         flash(_('ليس لديك مال كافٍ!'), 'danger')
         return redirect(url_for('casino.slots_index'))
         
-    current_user.money -= bet
+    # Atomic deduction
+    success = ResourceService.modify_resources(
+        user_id=current_user.id,
+        changes={'money': -bet},
+        reason='casino_slots_bet',
+        auto_commit=False,
+        expected_version=current_user.version
+    )
+
+    if not success:
+        flash(_('ليس لديك مال كافٍ!'), 'danger')
+        return redirect(url_for('casino.slots_index'))
+
+    # current_user.money -= bet # Removed
     
     # Symbols: 🍒 🍋 🍊 🍇 🔔 💎 7️⃣
     symbols = ['🍒', '🍋', '🍊', '🍇', '🔔', '💎', '7️⃣']
@@ -408,7 +456,16 @@ def slots_spin():
                  message = _("المضيفة ابتسمت لك! استرجعت نصف رهانك.")
 
     if winnings > 0:
-        current_user.money += winnings
+        # Atomic Update
+        ResourceService.modify_resources(
+            user_id=current_user.id,
+            changes={'money': winnings},
+            reason='casino_slots_win',
+            auto_commit=False,
+            expected_version=current_user.version
+        )
+        # current_user.money += winnings # Removed
+
         if not message:
             message = _('ربحت %(amount)s!', amount=winnings)
         trigger_hostess_reaction(current_user, winnings, True)
@@ -445,7 +502,18 @@ def roulette_spin():
         flash(_('ليس لديك مال كافٍ!'), 'danger')
         return redirect(url_for('casino.roulette_index'))
         
-    current_user.money -= bet_amount
+    # Atomic deduction
+    if not ResourceService.modify_resources(
+        user_id=current_user.id,
+        changes={'money': -bet_amount},
+        reason='casino_roulette_bet',
+        auto_commit=False,
+        expected_version=current_user.version
+    ):
+        flash(_('ليس لديك مال كافٍ!'), 'danger')
+        return redirect(url_for('casino.roulette_index'))
+
+    # current_user.money -= bet_amount # Removed
     
     # Spin
     # 0 (Green), 1-36
@@ -490,17 +558,31 @@ def roulette_spin():
         if current_user.casino_luck_until and current_user.casino_luck_until.replace(tzinfo=timezone.utc) > datetime.now(timezone.utc):
             winnings = int(winnings * 1.1)
             
-        current_user.money += winnings
-        db.session.commit()
+        # Atomic Update
+        ResourceService.modify_resources(
+            user_id=current_user.id,
+            changes={'money': winnings},
+            reason='casino_roulette_win',
+            auto_commit=False
+        )
+
         trigger_hostess_reaction(current_user, winnings, True)
         flash(_('الكرة وقفت على %(num)s (%(col)s). مبروك! ربحت %(win)s!', num=landing, col=color, win=winnings), 'success')
+        db.session.commit()
     else:
         # Hostess Second Chance
         if current_user.casino_luck_until and current_user.casino_luck_until.replace(tzinfo=timezone.utc) > datetime.now(timezone.utc):
             if random.random() < 0.2:
                 refund = int(bet_amount * 0.5)
-                current_user.money += refund
-                db.session.commit()
+                # Atomic Update
+                ResourceService.modify_resources(
+                    user_id=current_user.id,
+                    changes={'money': refund},
+                    reason='casino_roulette_refund',
+                    auto_commit=False,
+                    expected_version=current_user.version
+                )
+                
                 flash(_('الكرة وقفت على %(num)s. لكن المضيفة عوضتك بـ %(ref)s!', num=landing, ref=refund), 'warning')
                 return redirect(url_for('casino.roulette_index'))
                 
@@ -567,10 +649,34 @@ def buy_drink(drink_id):
         flash(_('طفرنا! ما معك حق المشروب.'), 'danger')
         return redirect(url_for('casino.bar'))
         
-    current_user.money -= drink['cost']
-    current_user.energy = min(current_user.max_energy, current_user.energy + drink['energy'])
-    current_user.brave = min(current_user.max_brave, current_user.brave + drink['brave'])
-    current_user.health = min(current_user.max_health, max(0, current_user.health + drink['health']))
+    # Atomic deduction
+    if not ResourceService.modify_resources(
+        user_id=current_user.id,
+        changes={'money': -drink['cost']},
+        reason=f'casino_bar_buy_{drink_id}',
+        auto_commit=False,
+        expected_version=current_user.version
+    ):
+        flash(_('طفرنا! ما معك حق المشروب.'), 'danger')
+        return redirect(url_for('casino.bar'))
+
+    # Calculate effects based on fresh state (locked by previous call)
+    user = db.session.get(User, current_user.id)
+    
+    energy_gain = min(drink['energy'], user.max_energy - user.energy)
+    brave_gain = min(drink['brave'], user.max_brave - user.brave)
+    
+    # Health logic: min(max, max(0, current + delta))
+    target_health = min(user.max_health, max(0, user.health + drink['health']))
+    health_delta = target_health - user.health
+    
+    effect_changes = {}
+    if energy_gain != 0: effect_changes['energy'] = energy_gain
+    if brave_gain != 0: effect_changes['brave'] = brave_gain
+    if health_delta != 0: effect_changes['health'] = health_delta
+    
+    if effect_changes:
+        ResourceService.modify_resources(user.id, effect_changes, f'casino_bar_effect_{drink_id}', auto_commit=False)
     
     db.session.commit()
     flash(_('شربت المشروب! صحتين.'), 'success')
@@ -665,7 +771,9 @@ def hire_hostess(h_id):
         if prev_h:
             prev_h.current_player_id = None
 
-    current_user.money -= h.price
+    if not ResourceService.modify_resources(current_user.id, {'money': -h.price}, 'hire_hostess', auto_commit=False, expected_version=current_user.version):
+        flash(_('ما معك كاش يكفي لجلوس مع هذه الجميلة!'), 'danger')
+        return redirect(url_for('casino.hostess'))
     
     # Set luck/contract expiry (1 hour for all for now, or based on price)
     # Let's say 30 mins standard

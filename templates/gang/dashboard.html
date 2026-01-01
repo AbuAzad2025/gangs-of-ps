@@ -203,6 +203,7 @@
                 <ul class="nav nav-pills">
                     <li class="nav-item"><a class="nav-link active" href="#members" data-toggle="tab">{{ _('الأعضاء') }}</a></li>
                     <li class="nav-item"><a class="nav-link" href="#wars" data-toggle="tab">{{ _('الحروب') }}</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#assets" data-toggle="tab">{{ _('الممتلكات') }}</a></li>
                     <li class="nav-item"><a class="nav-link" href="#logs" data-toggle="tab">{{ _('السجلات') }}</a></li>
                     {% if is_leader or is_underboss %}
                     <li class="nav-item"><a class="nav-link" href="#manage" data-toggle="tab">{{ _('الإدارة') }}</a></li>
@@ -285,6 +286,76 @@
                     {% endif %}
                 </div>
 
+                <!-- Assets Tab -->
+                <div class="tab-pane" id="assets">
+                    {% if assets %}
+                    <div class="row">
+                        {% for asset in assets %}
+                        <div class="col-md-6 mb-3">
+                            <div class="card luxury-card h-100 border-gold">
+                                <div class="card-body">
+                                    <div class="d-flex align-items-center mb-3">
+                                        {% if asset.image %}
+                                        <img src="{{ url_for('static', filename=asset.image) }}" class="rounded mr-2" style="width: 50px; height: 50px; object-fit: cover;">
+                                        {% else %}
+                                        <div class="rounded mr-2 bg-dark d-flex align-items-center justify-content-center" style="width: 50px; height: 50px; border: 1px solid #d4af37;">
+                                            <i class="fas fa-building text-gold"></i>
+                                        </div>
+                                        {% endif %}
+                                        <div>
+                                            <h5 class="card-title text-gold mb-0">{{ asset.name }}</h5>
+                                            <small class="text-muted">{{ _(asset.type) }}</small>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="d-flex justify-content-between mb-2 border-bottom border-secondary pb-2">
+                                        <span>{{ _('الدخل:') }}</span>
+                                        <span class="text-success">+{{ "{:,}".format(asset.income) }}$</span>
+                                    </div>
+                                    
+                                    {% if asset.maintenance_cost and asset.maintenance_cost > 0 %}
+                                    <div class="d-flex justify-content-between mb-3 border-bottom border-secondary pb-2">
+                                        <span>{{ _('الصيانة:') }}</span>
+                                        <span class="text-danger">-{{ "{:,}".format(asset.maintenance_cost) }}$</span>
+                                    </div>
+                                    {% endif %}
+                                    
+                                    {% if is_leader or is_underboss %}
+                                        {% if asset.can_collect %}
+                                        <form action="{{ url_for('economy.collect_gang_income', asset_id=asset.id) }}" method="POST">
+                                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                                            <button type="submit" class="btn btn-sm btn-luxury-action btn-block">
+                                                <i class="fas fa-hand-holding-usd"></i> {{ _('جمع الدخل للعصابة') }}
+                                            </button>
+                                        </form>
+                                        {% else %}
+                                        <button class="btn btn-sm btn-outline-secondary btn-block" disabled>
+                                            <i class="far fa-clock"></i> {{ _('تم الجمع - انتظر للغد') }}
+                                        </button>
+                                        {% endif %}
+                                    {% else %}
+                                        <div class="text-center text-muted small">
+                                            <i class="fas fa-lock"></i> {{ _('فقط القيادة يمكنها جمع الدخل') }}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <div class="text-center py-5">
+                        <i class="fas fa-city fa-3x text-muted mb-3"></i>
+                        <p class="text-muted">{{ _('لا تملك العصابة أي عقارات.') }}</p>
+                        {% if is_leader %}
+                        <a href="{{ url_for('economy.properties') }}" class="btn btn-outline-gold mt-2">
+                            {{ _('شراء عقارات') }}
+                        </a>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+                </div>
+
                 <!-- Logs Tab -->
                 <div class="tab-pane" id="logs">
                         <div class="timeline timeline-inverse">
@@ -352,7 +423,7 @@
                             <div class="form-group row">
                                 <label class="col-sm-2 col-form-label">{{ _('الدول المسموحة') }}</label>
                                 <div class="col-sm-10">
-                                    <input type="text" class="form-control" name="allowed_countries" value="{{ gang.allowed_countries or '' }}" placeholder="PS,JO,EG (comma separated ISO codes)">
+                                    <input type="text" class="form-control" name="allowed_countries" value="{{ gang.allowed_countries or '' }}" placeholder="{{ _('PS,JO,EG (comma separated ISO codes)') }}">
                                     <small class="text-muted">{{ _('اتركه فارغاً للسماح للجميع. استخدم رموز الدول (ISO) مفصولة بفواصل.') }}</small>
                                 </div>
                             </div>
@@ -411,6 +482,46 @@
                                 <i class="fas fa-users-cog"></i> {{ _('زيادة السعة (+5)') }}
                             </button>
                         </form>
+                        
+                        <hr class="border-danger mt-5">
+                        <h4 class="text-danger"><i class="fas fa-exclamation-triangle"></i> {{ _('منطقة الخطر') }}</h4>
+                        
+                        <!-- Transfer Leadership -->
+                        <div class="card bg-transparent border-danger mb-3">
+                            <div class="card-body">
+                                <h5 class="text-white">{{ _('نقل الزعامة') }}</h5>
+                                <p class="text-muted small">{{ _('نقل صلاحيات الزعيم لعضو آخر. لا يمكن التراجع عن هذا الإجراء.') }}</p>
+                                <form action="{{ url_for('gang.transfer_leadership') }}" method="POST" onsubmit="return confirm('{{ _('هل أنت متأكد من نقل الزعامة؟ ستفقد صلاحياتك كزعيم.') }}');">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                                    <div class="form-group">
+                                        <select name="new_leader_id" class="form-control form-control-luxury mb-2">
+                                            {% for member in members %}
+                                                {% if member.id != current_user.id %}
+                                                <option value="{{ member.id }}">{{ member.username }} (Lvl {{ member.level }})</option>
+                                                {% endif %}
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                    <button type="submit" class="btn btn-outline-warning btn-block">
+                                        <i class="fas fa-crown"></i> {{ _('نقل الزعامة') }}
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+
+                        <!-- Disband Gang -->
+                        <div class="card bg-transparent border-danger">
+                            <div class="card-body">
+                                <h5 class="text-danger">{{ _('حل العصابة') }}</h5>
+                                <p class="text-muted small">{{ _('حذف العصابة نهائياً وطرد جميع الأعضاء. هذا الإجراء لا رجعة فيه.') }}</p>
+                                <form action="{{ url_for('gang.disband') }}" method="POST" onsubmit="return confirm('{{ _('هل أنت متأكد تماماً؟ سيتم حذف العصابة وكل ممتلكاتها نهائياً!') }}');">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                                    <button type="submit" class="btn btn-danger btn-block">
+                                        <i class="fas fa-trash-alt"></i> {{ _('حل العصابة نهائياً') }}
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
                         {% endif %}
                     </div>
                     {% endif %}

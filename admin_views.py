@@ -5,6 +5,8 @@ from flask_babel import lazy_gettext as _
 from wtforms import PasswordField
 from models import User, UserRank, UserItem, UserVehicle, UserInvestment, Announcement, Hostess, HostessKnowledge, LearningLog
 
+from services.resource_service import ResourceService
+
 class SecureModelView(ModelView):
     def is_accessible(self):
         # Allow ADMIN, SUPER_ADMIN, and DEVELOPER to access
@@ -416,6 +418,25 @@ class LogView(SecureModelView):
         'details': _('التفاصيل')
     }
 
+class UserLogView(SecureModelView):
+    can_create = False
+    can_edit = False
+    can_delete = False
+    column_list = ('timestamp', 'user', 'action', 'details', 'result', 'before_state', 'after_state', 'ip_address')
+    column_default_sort = ('timestamp', True)
+    column_filters = ('user.username', 'action', 'result', 'ip_address')
+    column_searchable_list = ('action', 'details', 'ip_address')
+    column_labels = {
+        'timestamp': _('الوقت'),
+        'user': _('المستخدم'),
+        'action': _('الحدث'),
+        'details': _('التفاصيل'),
+        'result': _('النتيجة'),
+        'before_state': _('قبل'),
+        'after_state': _('بعد'),
+        'ip_address': _('IP')
+    }
+
 class AssetView(SecureModelView):
     column_list = ('id', 'name', 'type', 'base_price', 'income_per_day')
     column_labels = {
@@ -439,6 +460,52 @@ class PaymentView(SecureModelView):
         'created_at': _('تاريخ الطلب'),
         'is_verified': _('تم التحقق')
     }
+
+    def on_model_change(self, form, model, is_created):
+        if is_created:
+            return
+
+        from sqlalchemy import inspect
+        from models import User
+        
+        ins = inspect(model)
+        status_hist = ins.attrs.status.history
+        verified_hist = ins.attrs.is_verified.history
+        
+        new_status = model.status
+        new_verified = model.is_verified
+        
+        # We only care if the transaction is becoming "completed" and "verified"
+        if new_status == 'completed' and new_verified:
+            # Check if it was ALREADY completed and verified before this change
+            # If no changes to status/verified, it was already effectively in this state (or came from DB that way)
+            # But on_model_change only fires if form validates. 
+            
+            status_changed = status_hist.has_changes()
+            verified_changed = verified_hist.has_changes()
+            
+            was_already_valid = False
+            
+            if not status_changed and not verified_changed:
+                # No relevant fields changed, so if it is valid now, it was valid before.
+                was_already_valid = True
+            else:
+                # Reconstruct previous state
+                # If changed, 'deleted' contains the old value. If not changed, current value is the old value.
+                prev_status = status_hist.deleted[0] if status_changed and status_hist.deleted else model.status
+                prev_verified = verified_hist.deleted[0] if verified_changed and verified_hist.deleted else model.is_verified
+                
+                if prev_status == 'completed' and prev_verified:
+                    was_already_valid = True
+            
+            if not was_already_valid:
+                # It just became valid. Award diamonds.
+                user = db.session.get(User, model.user_id)
+                if user and ResourceService.modify_resources(model.user_id, {'diamonds': model.diamonds_amount}, 'payment_verified', auto_commit=False, expected_version=user.version):
+                    flash(_('تم إضافة %(amount)s ماسة للمستخدم بنجاح.', amount=model.diamonds_amount), 'success')
+                else:
+                    flash(_('فشل إضافة الماسات. لم يتم العثور على المستخدم أو حدث خطأ في البيانات.', amount=model.diamonds_amount), 'error')
+
 
 class SystemConfigView(SecureModelView):
     column_list = ('key', 'value', 'description')

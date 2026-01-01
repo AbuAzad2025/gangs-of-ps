@@ -1,9 +1,11 @@
 from flask import Blueprint, render_template, redirect, url_for, flash, abort
 from flask_login import login_required, current_user
 from extensions import db
-from models import UserItem, Item
+from models import UserItem, Item, User
 from flask_babel import _
 from datetime import datetime, timezone
+
+from services.resource_service import ResourceService
 
 bp = Blueprint('inventory', __name__, url_prefix='/inventory')
 
@@ -16,18 +18,21 @@ def index():
 @bp.route('/equip/<int:item_id>', methods=['POST'])
 @login_required
 def equip(item_id):
-    user_item = UserItem.query.filter_by(id=item_id, user_id=current_user.id).first_or_404()
+    # Lock the item row
+    user_item = db.session.query(UserItem).filter_by(id=item_id, user_id=current_user.id).with_for_update().first()
+    if not user_item:
+        abort(404)
     
     if user_item.item.type not in ['weapon', 'armor']:
         flash(_('لا يمكن تجهيز هذا العنصر.'), 'warning')
         return redirect(url_for('inventory.index'))
     
-    # Unequip current item of same type
+    # Unequip current item of same type (find and lock)
     current_equipped = UserItem.query.join(Item).filter(
         UserItem.user_id == current_user.id,
         UserItem.is_equipped == True,
         Item.type == user_item.item.type
-    ).first()
+    ).with_for_update().first()
     
     if current_equipped:
         current_equipped.is_equipped = False
@@ -67,7 +72,10 @@ def unequip(item_id):
             flash(_('أنت تتدرب ولا يمكنك تغيير عتادك!'), 'danger')
             return redirect(url_for('gym.index'))
 
-    user_item = UserItem.query.filter_by(id=item_id, user_id=current_user.id).first_or_404()
+    # Lock the item row
+    user_item = db.session.query(UserItem).filter_by(id=item_id, user_id=current_user.id).with_for_update().first()
+    if not user_item:
+        abort(404)
     
     if not user_item.is_equipped:
         flash(_('هذا العنصر غير مجهز أصلاً.'), 'warning')
@@ -107,10 +115,9 @@ def repair(item_id):
             flash(_('أنت تتدرب ولا يمكنك إصلاح العتاد!'), 'danger')
             return redirect(url_for('gym.index'))
 
-    user_item = db.session.get(UserItem, item_id)
+    # Lock the item row
+    user_item = db.session.query(UserItem).filter_by(id=item_id, user_id=current_user.id).with_for_update().first()
     if not user_item:
-        abort(404)
-    if user_item.user_id != current_user.id:
         abort(404)
 
     if user_item.item.type not in ['weapon', 'armor']:
@@ -126,11 +133,11 @@ def repair(item_id):
     cost = int(damage * (base_cost * 0.003))
     cost = max(1, cost)
 
-    if current_user.money < cost:
+    # Atomic deduction using ResourceService (logs before/after)
+    if not ResourceService.modify_resources(current_user.id, {'money': -cost}, 'repair_item', auto_commit=False, expected_version=current_user.version):
         flash(_('تحتاج %(cost)s شيكل لإصلاح العتاد!', cost=cost), 'danger')
         return redirect(url_for('inventory.index'))
 
-    current_user.money -= cost
     user_item.condition = 100
     db.session.commit()
 

@@ -5,6 +5,7 @@ from extensions import db
 from models import User, SystemConfig, GameLog
 from models.hostess import Hostess
 from datetime import datetime, timezone, timedelta
+from services.resource_service import ResourceService
 
 bp = Blueprint('jail', __name__, url_prefix='/jail')
 
@@ -17,8 +18,30 @@ def index():
     # Settings
     enable_breakout = SystemConfig.get_value('jail_enable_breakout', 'false') == 'true'
     enable_bribe = SystemConfig.get_value('jail_enable_bribe', 'false') == 'true'
-    bribe_cost = int(SystemConfig.get_value('jail_bribe_cost', '1000'))
-    bail_cost_diamonds = int(SystemConfig.get_value('jail_bail_cost_diamonds', '5'))
+    
+    # Calculate Bribe Cost with Discounts
+    base_bribe_cost = int(SystemConfig.get_value('jail_bribe_cost', '1000'))
+    bribe_discount_percent = 0
+    if current_user.gang:
+        bribe_discount_percent = min(50, current_user.gang.level * 2)
+
+    if current_user.active_hostess_id and current_user.casino_luck_until:
+        luck_until = current_user.casino_luck_until
+        if luck_until.tzinfo is None:
+            luck_until = luck_until.replace(tzinfo=timezone.utc)
+
+        if luck_until > now:
+            hostess = db.session.get(Hostess, current_user.active_hostess_id)
+            if hostess and hostess.buff_type == 'jail_bail_discount':
+                hostess_discount = int((hostess.buff_value if hostess.buff_value else 0.1) * 100)
+                bribe_discount_percent = min(70, bribe_discount_percent + hostess_discount)
+    
+    bribe_cost = max(1, int(base_bribe_cost * (1 - bribe_discount_percent / 100)))
+
+    # Calculate Bail Cost (Diamonds) with Discounts
+    base_bail_cost = int(SystemConfig.get_value('jail_bail_cost_diamonds', '5'))
+    # Re-use same discount logic for bail? Code uses same logic in routes.
+    bail_cost_diamonds = max(1, int(base_bail_cost * (1 - bribe_discount_percent / 100)))
 
     # Ensure timezone awareness for template comparison
     if current_user.jail_until and current_user.jail_until.tzinfo is None:
@@ -58,8 +81,7 @@ def bribe():
 
     bribe_cost = max(1, int(base_bribe_cost * (1 - discount_percent / 100)))
     
-    if current_user.money >= bribe_cost:
-        current_user.money -= bribe_cost
+    if ResourceService.modify_resources(current_user.id, {'money': -bribe_cost}, 'jail_bribe', auto_commit=False, expected_version=current_user.version):
         current_user.jail_until = None
         
         # Log
@@ -121,8 +143,7 @@ def pay_bail(prisoner_id):
 
     bail_cost_diamonds = max(1, int(base_bail_cost * (1 - discount_percent / 100)))
 
-    if current_user.diamonds >= bail_cost_diamonds:
-        current_user.diamonds -= bail_cost_diamonds
+    if ResourceService.modify_resources(current_user.id, {'diamonds': -bail_cost_diamonds}, 'jail_bail', auto_commit=False, expected_version=current_user.version):
         prisoner.jail_until = None
         
         # Log
@@ -187,11 +208,11 @@ def breakout(prisoner_id):
 
     # Cost / Risk logic
     energy_cost = 50
-    if current_user.energy < energy_cost:
+    
+    # Atomic Energy Deduction
+    if not ResourceService.modify_resources(current_user.id, {'energy': -energy_cost}, 'jail_breakout_attempt', auto_commit=False, expected_version=current_user.version):
         flash(_('تحتاج إلى 50 طاقة لمحاولة التهريب!'), 'danger')
         return redirect(url_for('jail.index'))
-
-    current_user.energy -= energy_cost
     
     # Success chance (e.g., 30% + level diff?)
     import random
@@ -202,12 +223,21 @@ def breakout(prisoner_id):
         
         # Reward
         xp_reward = random.randint(100, 300)
-        current_user.exp += xp_reward
         
         # Critical Success (20% chance): Gain Intelligence
+        intelligence_gain = 0
         if random.random() < 0.2:
-            current_user.intelligence += 1
-            flash(_('تطورت مهاراتك في التخطيط! (+1 ذكاء)'), 'info')
+             intelligence_gain = 1
+             flash(_('تطورت مهاراتك في التخطيط! (+1 ذكاء)'), 'info')
+
+        changes = {'exp': xp_reward}
+        if intelligence_gain > 0:
+            changes['intelligence'] = intelligence_gain
+            
+        # Don't use expected_version here because we just modified the user (energy deduction)
+        # and the version in memory might be stale compared to DB if not refreshed.
+        # Since we are in the same transaction and hold the lock, it is safe.
+        ResourceService.modify_resources(current_user.id, changes, 'jail_breakout_success', auto_commit=False)
         
         log = GameLog(admin_id=current_user.id, action='JAIL_BREAKOUT', details=f'Broke out {prisoner.username}')
         db.session.add(log)

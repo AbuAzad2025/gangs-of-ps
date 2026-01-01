@@ -29,7 +29,7 @@
                         </div>
                         <input type="number" name="amount" class="form-control bg-dark border-secondary text-white" placeholder="{{ _('المبلغ للإيداع') }}">
                     </div>
-                    <button type="submit" class="btn btn-bank btn-block shine-effect">
+                    <button type="submit" class="btn btn-outline-success btn-block font-weight-bold shine-effect">
                         <i class="fas fa-arrow-down mr-2"></i>{{ _('إيداع') }}
                     </button>
                 </form>
@@ -52,6 +52,28 @@
                     <button type="submit" class="btn btn-outline-warning btn-block font-weight-bold">
                         <i class="fas fa-arrow-up mr-2"></i>{{ _('سحب') }}
                     </button>
+                </form>
+            </div>
+        </div>
+    </div>
+    <div class="row justify-content-center">
+        <div class="col-md-8 mb-4">
+            <div class="luxury-card p-4">
+                <h3 class="text-gradient-gold mb-3 text-center"><i class="fas fa-exchange-alt mr-2"></i>{{ _('تحويل الأموال') }}</h3>
+                <form method="POST" action="{{ url_for('bank.transfer') }}">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                    <div class="form-group">
+                        <label class="text-muted">{{ _('اسم المستلم') }}</label>
+                        <input type="text" name="recipient" class="form-control bg-dark border-secondary text-white" placeholder="{{ _('اسم اللاعب') }}" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="text-muted">{{ _('المبلغ') }}</label>
+                        <input type="number" name="amount" class="form-control bg-dark border-secondary text-white" placeholder="{{ _('المبلغ') }}" required>
+                    </div>
+                    <button type="submit" class="btn btn-info btn-block">
+                        <i class="fas fa-paper-plane mr-2"></i>{{ _('تحويل') }}
+                    </button>
+                    <small class="form-text text-muted text-center mt-2">{{ _('تنبيه: التحويلات لا يمكن التراجع عنها.') }}</small>
                 </form>
             </div>
         </div>

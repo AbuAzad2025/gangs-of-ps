@@ -83,19 +83,19 @@
                 <div class="chart-toolbar d-flex align-items-center p-1 border-bottom border-secondary bg-dark position-absolute w-100 chart-toolbar-style">
                      <div class="btn-group btn-group-sm btn-group-toggle" data-toggle="buttons">
                         <label class="btn btn-outline-secondary active btn-xs" id="toggle-candles">
-                            <input type="checkbox" checked> Candles
+                            <input type="checkbox" checked> {{ _('Candles') }}
                         </label>
                     </div>
                     <div class="vr mx-2 bg-secondary vr-custom"></div>
                     <div class="btn-group btn-group-sm btn-group-toggle" data-toggle="buttons">
                         <label class="btn btn-outline-info btn-xs" id="toggle-sma">
-                            <input type="checkbox"> SMA 20
+                            <input type="checkbox"> {{ _('SMA 20') }}
                         </label>
                         <label class="btn btn-outline-warning btn-xs" id="toggle-ema">
-                            <input type="checkbox"> EMA 50
+                            <input type="checkbox"> {{ _('EMA 50') }}
                         </label>
                         <label class="btn btn-outline-primary btn-xs" id="toggle-bb">
-                            <input type="checkbox"> BB
+                            <input type="checkbox"> {{ _('BB') }}
                         </label>
                     </div>
                 </div>
@@ -161,7 +161,7 @@
                                     <th>{{ _('رافعة') }}</th>
                                     <th>{{ _('دخول') }}</th>
                                     <th>{{ _('هامش') }}</th>
-                                    <th>PNL</th>
+                                    <th>{{ _('PNL') }}</th>
                                     <th>{{ _('إغلاق') }}</th>
                                 </tr>
                             </thead>
@@ -278,7 +278,7 @@
                                     <div class="mb-3">
                                         <label class="small text-muted mb-1">{{ _('شراء (المبلغ بـ USD)') }}</label>
                                         <div class="input-group input-group-sm mb-2">
-                                            <input type="number" step="any" name="amount" class="form-control form-control-dark" placeholder="Total USD">
+                                            <input type="number" step="any" name="amount" class="form-control form-control-dark" placeholder="{{ _('Total USD') }}">
                                             <div class="input-group-append">
                                                 <span class="input-group-text">USD</span>
                                             </div>
@@ -293,7 +293,7 @@
                                     <div>
                                         <label class="small text-muted mb-1">{{ _('بيع (الكمية)') }}</label>
                                         <div class="input-group input-group-sm mb-2">
-                                            <input type="number" step="any" name="amount" class="form-control form-control-dark" placeholder="Quantity">
+                                            <input type="number" step="any" name="amount" class="form-control form-control-dark" placeholder="{{ _('Quantity') }}">
                                             <div class="input-group-append">
                                                 <span class="input-group-text">{{ asset.symbol }}</span>
                                             </div>
@@ -339,10 +339,10 @@
                             
                             <div class="row no-gutters">
                                 <div class="col-6 pr-1">
-                                    <button type="submit" name="type" value="long" class="btn btn-buy btn-block btn-sm py-2">Long</button>
+                                    <button type="submit" name="type" value="long" class="btn btn-buy btn-block btn-sm py-2">{{ _('Long') }}</button>
                                 </div>
                                 <div class="col-6 pl-1">
-                                    <button type="submit" name="type" value="short" class="btn btn-sell btn-block btn-sm py-2">Short</button>
+                                    <button type="submit" name="type" value="short" class="btn btn-sell btn-block btn-sm py-2">{{ _('Short') }}</button>
                                 </div>
                             </div>
                         </form>

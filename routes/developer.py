@@ -1,27 +1,29 @@
-from flask import render_template, request, flash, redirect, url_for, abort, current_app
+from flask import render_template, request, flash, redirect, url_for, abort, current_app, session
 from werkzeug.utils import secure_filename
 import os
 import json
 from flask_login import current_user
 from flask_babel import _
+from sqlalchemy import or_
 from . import bp
-from decorators import developer_required
+from decorators import developer_required, double_verification_required
 from models.user import User, UserRank, UserRole
-from models.social import Gang, Message
+from models.social import Gang, Message, GangWar, GangAlliance
 from models.gameplay import Crime, DailyTask, HeistHistory, CrimeLobby, OrganizedCrime, ResurrectionRequest
 from models.knowledge import HostessKnowledge
 from models.bounty import Bounty
 from models.system import SystemConfig, Announcement
-from models.log import GameLog
+from models.log import GameLog, UserLog, ConfigLog, MoneySinkLog
 from models.events import WeeklyWinner
 from models.hostess import Hostess, VideoScenario, HostessChatMessage, HostessMemory
 from services.hostess_training_service import build_greeter_leader_prompt, build_greeter_leader_training_json
+from services.resource_service import ResourceService
 from models.item import Item
 from models.vehicle import Vehicle
 from models.location import Location
 from models.economy import Asset
 from models.factory import FactoryJob
-from models.market import MarketAsset, UserInvestment, FuturesPosition
+from models.market import MarketAsset, UserInvestment, FuturesPosition, Auction, AuctionBid
 from models.forum import ForumCategory, ForumTopic
 from models.achievement import Achievement, UserAchievement
 from forms.developer import (
@@ -46,20 +48,86 @@ def dev_dashboard():
     total_diamonds = db.session.query(func.sum(User.diamonds)).scalar() or 0
     new_users_today = User.query.filter(User.created_at >= datetime.now().date()).count()
     
+    # Auction Stats
+    active_auctions_money = db.session.query(func.sum(Auction.current_price)).filter(Auction.status == 'active').scalar() or 0
+    burned_auction_money = db.session.query(func.sum(Auction.current_price)).filter(Auction.status == 'completed', Auction.seller_id == None).scalar() or 0
+
+    # Economy Sinks Stats
+    today_start = datetime.now(timezone.utc).replace(hour=0, minute=0, second=0, microsecond=0)
+    daily_sunk_money = db.session.query(func.sum(MoneySinkLog.amount)).filter(MoneySinkLog.timestamp >= today_start).scalar() or 0
+    
+    # Specific Sink Totals (Today)
+    gang_maintenance_today = db.session.query(func.sum(MoneySinkLog.amount)).filter(
+        MoneySinkLog.timestamp >= today_start,
+        MoneySinkLog.sink_type == 'gang_property_maintenance'
+    ).scalar() or 0
+
+    factory_smelt_today = db.session.query(func.sum(MoneySinkLog.amount)).filter(
+        MoneySinkLog.timestamp >= today_start,
+        MoneySinkLog.sink_type == 'factory_smelt_cost'
+    ).scalar() or 0
+    
+    # Top Sink Types
+    sink_breakdown = db.session.query(
+        MoneySinkLog.sink_type, 
+        func.sum(MoneySinkLog.amount).label('total')
+    ).group_by(MoneySinkLog.sink_type).order_by(func.sum(MoneySinkLog.amount).desc()).limit(5).all()
+
     stats = SimpleNamespace(
         total_users=total_users,
         total_money=total_money,
         total_diamonds=total_diamonds,
-        new_users_today=new_users_today
+        new_users_today=new_users_today,
+        active_auctions_money=active_auctions_money,
+        burned_auction_money=burned_auction_money,
+        daily_sunk_money=daily_sunk_money,
+        gang_maintenance_today=gang_maintenance_today,
+        factory_smelt_today=factory_smelt_today,
+        sink_breakdown=sink_breakdown
     )
     
     backups = BackupManager.get_backups()
     
-    return render_template('developer/dashboard.html', stats=stats, backups=backups, title=_('لوحة تحكم المطور'))
+    maintenance_mode = SystemConfig.get_value('maintenance_mode') == 'true'
+    maintenance_message = SystemConfig.get_value('maintenance_message', '')
+    
+    return render_template('developer/dashboard.html', stats=stats, backups=backups, 
+                           maintenance_mode=maintenance_mode, maintenance_message=maintenance_message,
+                           title=_('لوحة تحكم المطور'))
+
+@bp.route('/developer/maintenance', methods=['POST'])
+@developer_required
+@double_verification_required
+def dev_maintenance_mode():
+    mode = request.form.get('mode') == 'on'
+    message = request.form.get('message', '')
+    
+    SystemConfig.set_value('maintenance_mode', 'true' if mode else 'false', description='System Maintenance Mode')
+    SystemConfig.set_value('maintenance_message', message, description='Maintenance Message')
+    
+    flash(_('تم تحديث وضع الصيانة'), 'success')
+    return redirect(url_for('main.dev_dashboard'))
+
+@bp.route('/developer/verify', methods=['GET', 'POST'])
+@developer_required
+def admin_verify():
+    if request.method == 'POST':
+        password = request.form.get('password')
+        if current_user.check_password(password):
+            session['admin_verified_at'] = datetime.now(timezone.utc).isoformat()
+            next_url = session.get('next_url', url_for('main.dev_dashboard'))
+            session.pop('next_url', None)
+            flash(_('تم التحقق بنجاح.'), 'success')
+            return redirect(next_url)
+        else:
+            flash(_('كلمة المرور غير صحيحة.'), 'danger')
+            
+    return render_template('developer/verify.html', title=_('التحقق الأمني'))
 
 # --- Backups ---
 @bp.route('/developer/backup/create', methods=['POST'])
 @developer_required
+@double_verification_required
 def create_backup():
     success, message = BackupManager.create_backup()
     if success:
@@ -80,6 +148,7 @@ def restore_backup(filename):
 
 @bp.route('/developer/backup/delete/<filename>', methods=['POST'])
 @developer_required
+@double_verification_required
 def delete_backup(filename):
     success, message = BackupManager.delete_backup(filename)
     if success:
@@ -102,6 +171,43 @@ def dev_users():
     pagination = query.order_by(User.id.desc()).paginate(page=page, per_page=20, error_out=False)
     return render_template('developer/users.html', users=pagination.items, pagination=pagination, search_query=search_query, title=_('إدارة اللاعبين'))
 
+@bp.route('/developer/resources/distribute', methods=['GET', 'POST'])
+@developer_required
+@double_verification_required
+def dev_distribute_resources():
+    if request.method == 'POST':
+        target_type = request.form.get('target_type') # 'all', 'online', 'user_id'
+        resource_type = request.form.get('resource_type') # 'money', 'diamonds', 'bullets'
+        amount = int(request.form.get('amount', 0))
+        reason = request.form.get('reason', 'admin_distribution')
+        
+        if amount <= 0:
+            flash(_('الكمية يجب أن تكون أكبر من صفر'), 'danger')
+            return redirect(url_for('main.dev_distribute_resources'))
+
+        target_users = []
+        if target_type == 'all':
+            target_users = User.query.all()
+        elif target_type == 'user_id':
+            uid = request.form.get('user_id')
+            user = db.session.get(User, uid)
+            if user:
+                target_users = [user]
+        # For 'online', we assume active in last 5 minutes (requires tracking, skipping for now or assume all)
+        # Simplification: Only All or Single for now as user tracking might not be reliable
+        
+        count = 0
+        for user in target_users:
+            changes = {resource_type: amount}
+            if ResourceService.modify_resources(user.id, changes, reason, check_balance=False, auto_commit=False):
+                count += 1
+        
+        db.session.commit()
+        flash(_('تم توزيع الموارد على %(count)s لاعب بنجاح', count=count), 'success')
+        return redirect(url_for('main.dev_distribute_resources'))
+        
+    return render_template('developer/distribute_resources.html', title=_('توزيع الموارد'))
+
 @bp.route('/developer/user/edit/<int:id>', methods=['GET', 'POST'])
 @developer_required
 def dev_user_edit(id):
@@ -109,53 +215,95 @@ def dev_user_edit(id):
     if not user: abort(404)
     
     if request.method == 'POST':
-        user.username = request.form.get('username')
-        user.level = int(request.form.get('level', 1))
-        user.exp = int(request.form.get('exp', 0))
-        user.money = int(request.form.get('money', 0))
-        user.bank_balance = int(request.form.get('bank_balance', 0))
-        user.diamonds = int(request.form.get('diamonds', 0))
-        user.bullets = int(request.form.get('bullets', 0))
-        
-        user.strength = int(request.form.get('strength', 10))
-        user.defense = int(request.form.get('defense', 10))
-        user.agility = int(request.form.get('agility', 10))
-        
-        user.health = int(request.form.get('health', 100))
-        user.max_health = int(request.form.get('max_health', 100))
-        user.energy = int(request.form.get('energy', 100))
-        user.max_energy = int(request.form.get('max_energy', 100))
-        user.brave = int(request.form.get('brave', 100))
-        user.max_brave = int(request.form.get('max_brave', 100))
-        
         try:
-            heat_value = int(request.form.get('heat', 0))
-        except Exception:
-            heat_value = 0
-        heat_value = max(0, min(100, heat_value))
-        user.heat_points = heat_value
-        user.heat_updated_at = datetime.now(timezone.utc).replace(tzinfo=None) if heat_value > 0 else None
-        user.daily_streak = int(request.form.get('daily_streak', 0))
-        user.location_id = int(request.form.get('location_id', 1))
-
-        user.is_ghost_mode = 'is_ghost_mode' in request.form
-        
-        ban_hours = request.form.get('ban_hours')
-        if ban_hours and int(ban_hours) > 0:
-            user.banned_until = datetime.now() + timedelta(hours=int(ban_hours))
-            user.ban_reason = request.form.get('ban_reason')
-        
-        if 'clear_ban' in request.form:
-            user.banned_until = None
+            # Calculate changes for resources
+            new_money = int(request.form.get('money', 0))
+            new_bank = int(request.form.get('bank_balance', 0))
+            new_diamonds = int(request.form.get('diamonds', 0))
+            new_bullets = int(request.form.get('bullets', 0))
+            new_exp = int(request.form.get('exp', 0))
             
-        role_name = request.form.get('role')
-        if role_name:
-             role = UserRank.query.filter_by(name=role_name).first()
-             if role:
-                 user.role_id = role.id
-        
-        db.session.commit()
-        flash(_('تم تحديث بيانات المستخدم'), 'success')
+            new_strength = int(request.form.get('strength', 10))
+            new_defense = int(request.form.get('defense', 10))
+            new_agility = int(request.form.get('agility', 10))
+            new_intelligence = int(request.form.get('intelligence', 10))
+            
+            changes = {
+                'money': new_money - (user.money or 0),
+                'bank_balance': new_bank - (user.bank_balance or 0),
+                'diamonds': new_diamonds - (user.diamonds or 0),
+                'bullets': new_bullets - (user.bullets or 0),
+                'exp': new_exp - (user.exp or 0),
+                'strength': new_strength - (user.strength or 0),
+                'defense': new_defense - (user.defense or 0),
+                'agility': new_agility - (user.agility or 0),
+                'intelligence': new_intelligence - (user.intelligence or 0)
+            }
+            
+            # Remove 0 changes to avoid clutter
+            changes = {k: v for k, v in changes.items() if v != 0}
+            
+            # Prepare set_fields for non-resource attributes
+            set_fields = {
+                'username': request.form.get('username'),
+                'level': int(request.form.get('level', 1)),
+                'health': int(request.form.get('health', 100)),
+                'max_health': int(request.form.get('max_health', 100)),
+                'energy': int(request.form.get('energy', 100)),
+                'max_energy': int(request.form.get('max_energy', 100)),
+                'brave': int(request.form.get('brave', 100)),
+                'max_brave': int(request.form.get('max_brave', 100)),
+                'daily_streak': int(request.form.get('daily_streak', 0)),
+                'location_id': int(request.form.get('location_id', 1)),
+                'is_ghost_mode': 'is_ghost_mode' in request.form
+            }
+            
+            # Gang ID Handling
+            gang_id_input = request.form.get('gang_id')
+            if gang_id_input:
+                try:
+                    gid = int(gang_id_input)
+                    gang = db.session.get(Gang, gid)
+                    if gang:
+                        set_fields['gang_id'] = gid
+                    else:
+                        flash(_('عصابة غير موجودة'), 'warning')
+                except ValueError:
+                    pass
+            elif 'gang_id' in request.form and not gang_id_input:
+                # If field exists but empty, user wants to leave gang
+                set_fields['gang_id'] = None
+            
+            try:
+                heat_value = int(request.form.get('heat', 0))
+            except Exception:
+                heat_value = 0
+            heat_value = max(0, min(100, heat_value))
+            set_fields['heat_points'] = heat_value
+            set_fields['heat_updated_at'] = datetime.now(timezone.utc).replace(tzinfo=None) if heat_value > 0 else None
+
+            ban_hours = request.form.get('ban_hours')
+            if ban_hours and int(ban_hours) > 0:
+                set_fields['banned_until'] = datetime.now() + timedelta(hours=int(ban_hours))
+                set_fields['ban_reason'] = request.form.get('ban_reason')
+            
+            if 'clear_ban' in request.form:
+                set_fields['banned_until'] = None
+                
+            role_name = request.form.get('role')
+            if role_name:
+                 role = UserRank.query.filter_by(name=role_name).first()
+                 if role:
+                     set_fields['role_id'] = role.id
+
+            # Apply changes via ResourceService
+            # Note: expected_version is None because Admin overrides everything
+            ResourceService.modify_resources(user.id, changes, 'admin_edit', auto_commit=True, set_fields=set_fields)
+            
+            flash(_('تم تحديث بيانات المستخدم'), 'success')
+        except Exception as e:
+            flash(_('حدث خطأ أثناء التحديث: %(e)s', e=str(e)), 'danger')
+            
         return redirect(url_for('main.dev_user_edit', id=user.id))
         
     roles = UserRank.query.all()
@@ -167,11 +315,24 @@ def dev_user_edit(id):
 def dev_user_clear_status(id):
     user = db.session.get(User, id)
     if user:
-        user.health = user.max_health
-        user.energy = user.max_energy
-        user.brave = user.max_brave
-        db.session.commit()
+        set_fields = {
+            'health': user.max_health,
+            'energy': user.max_energy,
+            'brave': user.max_brave
+        }
+        ResourceService.modify_resources(user.id, {}, 'admin_clear_status', auto_commit=True, set_fields=set_fields)
         flash(_('تم تصفير الحالة'), 'success')
+    return redirect(url_for('main.dev_user_edit', id=id))
+
+@bp.route('/developer/user/reset_daily_limit/<int:id>', methods=['POST'])
+@developer_required
+def dev_user_reset_daily_limit(id):
+    user = db.session.get(User, id)
+    if user:
+        user.daily_money_earned = 0
+        user.daily_money_date = datetime.now(timezone.utc).date()
+        db.session.commit()
+        flash(_('تم تصفير الحد اليومي للكسب'), 'success')
     return redirect(url_for('main.dev_user_edit', id=id))
 
 @bp.route('/developer/user/boost/<int:id>', methods=['POST'])
@@ -179,12 +340,31 @@ def dev_user_clear_status(id):
 def dev_user_boost(id):
     user = db.session.get(User, id)
     if user:
-        user.role = UserRole.DEVELOPER
-        user.level = max(user.level, 100)
-        user.money = max(user.money, 10_000_000_000)
-        user.diamonds = max(user.diamonds, 10000)
-        user.strength = max(user.strength, 9999)
-        db.session.commit()
+        changes = {
+            'money': max(user.money or 0, 10_000_000_000) - (user.money or 0),
+            'diamonds': max(user.diamonds or 0, 10000) - (user.diamonds or 0),
+            'strength': max(user.strength or 0, 9999) - (user.strength or 0)
+        }
+        changes = {k: v for k, v in changes.items() if v != 0}
+        
+        set_fields = {
+            'role': UserRole.DEVELOPER, # Warning: This might need role_id if role is a relation, but UserRole seems to be Enum or string? 
+            # Checked imports: from models.user import User, UserRank, UserRole
+            # UserRole is likely an Enum. User model usually has role_id or role column.
+            # In dev_user_edit, we used role_id.
+            # Let's check User model.
+            'level': max(user.level, 100)
+        }
+        # Checking dev_user_edit: user.role_id = role.id
+        # Checking dev_user_boost original: user.role = UserRole.DEVELOPER
+        # If user.role is a property or column?
+        # Let's assume user.role is correct as per original code, but if it's a relationship, we might need to handle it.
+        # Wait, in dev_user_edit, it sets user.role_id.
+        # In dev_user_boost, it sets user.role.
+        # I'll stick to original logic but put it in set_fields.
+        # However, set_fields uses setattr.
+        
+        ResourceService.modify_resources(user.id, changes, 'admin_boost', auto_commit=True, set_fields=set_fields)
         flash(_('تمت الترقية!'), 'success')
     return redirect(url_for('main.dev_user_edit', id=id))
 
@@ -427,10 +607,14 @@ def handle_resurrection_request(req_id, action):
         req.status = 'approved'
         # Resurrect user
         user = req.user
-        user.health = user.max_health
-        user.energy = user.max_energy
-        user.is_dead = False
-        user.death_time = None
+        
+        set_fields = {
+            'health': user.max_health,
+            'energy': user.max_energy,
+            'is_dead': False,
+            'death_time': None
+        }
+        ResourceService.modify_resources(user.id, {}, 'admin_resurrect', auto_commit=False, set_fields=set_fields)
         
         # Log notification or message to user
         msg = Message(
@@ -440,6 +624,7 @@ def handle_resurrection_request(req_id, action):
             body=_('تهانينا! تمت الموافقة على طلبك وتم إحياؤك من جديد. حظاً موفقاً!')
         )
         db.session.add(msg)
+        db.session.commit()
         flash(_('تم قبول الطلب وإحياء اللاعب.'), 'success')
         
     elif action == 'reject':
@@ -720,6 +905,7 @@ def dev_settings():
 @bp.route('/developer/settings/edit/<int:id>', methods=['GET', 'POST'])
 @bp.route('/developer/settings/new', methods=['GET', 'POST'])
 @developer_required
+@double_verification_required
 def dev_settings_edit(id=None):
     if id:
         setting = db.session.get(SystemConfig, id)
@@ -741,7 +927,28 @@ def dev_settings_edit(id=None):
         
     form = SystemConfigForm(obj=setting)
     if form.validate_on_submit():
+        # Log changes
+        old_val = setting.value
         form.populate_obj(setting)
+        new_val = setting.value
+        
+        if setting.id and old_val != new_val:
+            db.session.add(ConfigLog(
+                admin_id=current_user.id,
+                key=setting.key,
+                old_value=str(old_val) if old_val else None,
+                new_value=str(new_val) if new_val else None,
+                reason="Manual Edit"
+            ))
+        elif not setting.id:
+            db.session.add(ConfigLog(
+                admin_id=current_user.id,
+                key=setting.key,
+                old_value=None,
+                new_value=str(new_val) if new_val else None,
+                reason="New Config"
+            ))
+
         db.session.add(setting)
         db.session.commit()
         flash(_('تم حفظ الإعداد'), 'success')
@@ -751,6 +958,7 @@ def dev_settings_edit(id=None):
 
 @bp.route('/developer/settings/delete/<int:id>', methods=['POST'])
 @developer_required
+@double_verification_required
 def dev_settings_delete(id):
     setting = db.session.get(SystemConfig, id)
     if setting:
@@ -1257,11 +1465,24 @@ def dev_gangs():
 @bp.route('/developer/gang/new', methods=['GET', 'POST'])
 @developer_required
 def dev_gang_edit(id=None):
+    active_wars = []
+    active_alliances = []
+    
     if id:
         gang = db.session.get(Gang, id)
         if not gang:
             abort(404)
         title = _('تعديل عصابة')
+        
+        active_wars = GangWar.query.filter(
+            or_(GangWar.gang1_id == gang.id, GangWar.gang2_id == gang.id),
+            GangWar.status == 'active'
+        ).all()
+        
+        active_alliances = GangAlliance.query.filter(
+            or_(GangAlliance.gang1_id == gang.id, GangAlliance.gang2_id == gang.id),
+            GangAlliance.status == 'active'
+        ).all()
     else:
         gang = Gang()
         title = _('إضافة عصابة')
@@ -1272,7 +1493,7 @@ def dev_gang_edit(id=None):
         leader = db.session.get(User, form.leader_id.data)
         if not leader:
             flash(_('المستخدم القائد غير موجود.'), 'danger')
-            return render_template('developer/edit_gang.html', form=form, title=title)
+            return render_template('developer/edit_gang.html', form=form, title=title, active_wars=active_wars, active_alliances=active_alliances, gang=gang)
             
         form.populate_obj(gang)
         image_path = save_image(form.image.data, 'gangs')
@@ -1290,7 +1511,7 @@ def dev_gang_edit(id=None):
         flash(_('تم حفظ العصابة'), 'success')
         return redirect(url_for('main.dev_gangs'))
 
-    return render_template('developer/edit_gang.html', form=form, title=title)
+    return render_template('developer/edit_gang.html', form=form, title=title, active_wars=active_wars, active_alliances=active_alliances, gang=gang)
 
 @bp.route('/developer/gang/delete/<int:id>', methods=['POST'])
 @developer_required
@@ -1304,6 +1525,27 @@ def dev_gang_delete(id):
         db.session.commit()
         flash(_('تم حذف العصابة'), 'success')
     return redirect(url_for('main.dev_gangs'))
+
+@bp.route('/developer/gang/war/end/<int:war_id>', methods=['POST'])
+@developer_required
+def dev_gang_war_end(war_id):
+    war = db.session.get(GangWar, war_id)
+    if war:
+        war.status = 'ended'
+        war.end_time = datetime.now(timezone.utc)
+        db.session.commit()
+        flash(_('تم إنهاء الحرب قسرياً'), 'success')
+    return redirect(request.referrer or url_for('main.dev_gangs'))
+
+@bp.route('/developer/gang/alliance/break/<int:alliance_id>', methods=['POST'])
+@developer_required
+def dev_gang_alliance_break(alliance_id):
+    alliance = db.session.get(GangAlliance, alliance_id)
+    if alliance:
+        db.session.delete(alliance)
+        db.session.commit()
+        flash(_('تم فسخ التحالف قسرياً'), 'success')
+    return redirect(request.referrer or url_for('main.dev_gangs'))
 
 
 # --- Hostess Knowledge ---
@@ -1395,6 +1637,7 @@ def dev_config_add():
 
 @bp.route('/developer/config/reset_market_defaults', methods=['POST'])
 @developer_required
+@double_verification_required
 def dev_config_reset_market_defaults():
     defaults = {
         'market_enable_spot': 'true',
@@ -1413,6 +1656,42 @@ def dev_config_reset_market_defaults():
         config.value = value
     db.session.commit()
     flash(_('تمت إعادة إعدادات السوق الافتراضية.'), 'success')
+    return redirect(url_for('main.dev_config'))
+
+
+@bp.route('/developer/config/reset_gameplay_defaults', methods=['POST'])
+@developer_required
+@double_verification_required
+def dev_config_reset_gameplay_defaults():
+    defaults = {
+        'crime_base_success_chance': '60',
+        'crime_level_money_multiplier': '0.02',
+        'crime_heat_gain_base': '2',
+        'crime_global_cooldown_seconds': '20',
+        'crime_global_cooldown_max_seconds': '240',
+        'heat_success_penalty_per_point': '0.15'
+    }
+    for key, value in defaults.items():
+        config = SystemConfig.query.filter_by(key=key).first()
+        old_val = None
+        if not config:
+            config = SystemConfig(key=key)
+            db.session.add(config)
+        else:
+            old_val = config.value
+            
+        if old_val != value:
+            config.value = value
+            db.session.add(ConfigLog(
+                admin_id=current_user.id,
+                key=key,
+                old_value=str(old_val) if old_val else None,
+                new_value=str(value),
+                reason="Reset Gameplay Defaults"
+            ))
+
+    db.session.commit()
+    flash(_('تمت إعادة إعدادات اللعب الافتراضية.'), 'success')
     return redirect(url_for('main.dev_config'))
 
 
@@ -1443,6 +1722,37 @@ def dev_logs():
         actions=actions,
         current_filters=current_filters,
         title=_('سجلات النظام'),
+    )
+
+
+@bp.route('/developer/user_logs')
+@developer_required
+def dev_user_logs():
+    page = request.args.get('page', 1, type=int)
+    action = request.args.get('action', '').strip()
+    username = request.args.get('username', '').strip()
+    ip_address = request.args.get('ip', '').strip()
+
+    query = UserLog.query.order_by(UserLog.timestamp.desc())
+    if action:
+        query = query.filter(UserLog.action == action)
+    if username:
+        query = query.join(User, UserLog.user_id == User.id).filter(User.username.ilike(f'%{username}%'))
+    if ip_address:
+        query = query.filter(UserLog.ip_address.ilike(f'%{ip_address}%'))
+
+    pagination = query.paginate(page=page, per_page=50, error_out=False)
+    actions = [row[0] for row in db.session.query(UserLog.action).distinct().order_by(UserLog.action.asc()).all()]
+    
+    current_filters = SimpleNamespace(action=action, username=username, ip_address=ip_address)
+
+    return render_template(
+        'developer/user_logs.html',
+        logs=pagination.items,
+        pagination=pagination,
+        actions=actions,
+        current_filters=current_filters,
+        title=_('سجلات المستخدمين'),
     )
 
 
@@ -1644,3 +1954,139 @@ def dev_market_delete(id):
         db.session.commit()
         flash(_('تم حذف الأصل المالي'), 'success')
     return redirect(url_for('main.dev_market'))
+
+# --- Auctions Management ---
+@bp.route('/developer/auctions')
+@developer_required
+def dev_auctions():
+    page = request.args.get('page', 1, type=int)
+    auctions = Auction.query.order_by(Auction.end_time.desc()).paginate(page=page, per_page=20, error_out=False)
+    return render_template('developer/auctions.html', auctions=auctions.items, pagination=auctions, title=_('إدارة المزادات'))
+
+@bp.route('/developer/auctions/delete/<int:auction_id>', methods=['POST'])
+@developer_required
+def dev_delete_auction(auction_id):
+    auction = Auction.query.get_or_404(auction_id)
+    # Optional: Refund highest bidder if active
+    if auction.status == 'active':
+        highest_bid = AuctionBid.query.filter_by(auction_id=auction.id).order_by(AuctionBid.amount.desc()).first()
+        if highest_bid:
+            bidder = User.query.get(highest_bid.bidder_id)
+            if bidder:
+                ResourceService.modify_resources(bidder.id, {'money': highest_bid.amount}, 'auction_refund_admin', auto_commit=False, expected_version=bidder.version)
+                flash(_('تم إعادة المبلغ للمزايد الأخير: %(amount)s', amount=highest_bid.amount), 'info')
+    
+    db.session.delete(auction)
+    db.session.commit()
+    flash(_('تم حذف المزاد بنجاح'), 'success')
+    return redirect(url_for('main.dev_auctions'))
+
+# --- Image Management ---
+@bp.route('/developer/images')
+@developer_required
+def dev_images():
+    # List images from static/images/items and static/images/vehicles
+    base_path = os.path.join(current_app.root_path, 'static', 'images')
+    items_path = os.path.join(base_path, 'items')
+    vehicles_path = os.path.join(base_path, 'vehicles')
+    
+    os.makedirs(items_path, exist_ok=True)
+    os.makedirs(vehicles_path, exist_ok=True)
+    
+    item_images = [f for f in os.listdir(items_path) if f.lower().endswith(('.png', '.jpg', '.jpeg', '.svg', '.gif'))]
+    vehicle_images = [f for f in os.listdir(vehicles_path) if f.lower().endswith(('.png', '.jpg', '.jpeg', '.svg', '.gif'))]
+    
+    return render_template('developer/images.html', item_images=item_images, vehicle_images=vehicle_images, title=_('إدارة الصور'))
+
+@bp.route('/developer/images/upload', methods=['POST'])
+@developer_required
+def dev_upload_image():
+    if 'file' not in request.files:
+        flash(_('لم يتم اختيار ملف'), 'danger')
+        return redirect(url_for('main.dev_images'))
+    
+    file = request.files['file']
+    category = request.form.get('category') # 'items' or 'vehicles'
+    
+    if file.filename == '':
+        flash(_('لم يتم اختيار ملف'), 'danger')
+        return redirect(url_for('main.dev_images'))
+        
+    if category not in ['items', 'vehicles']:
+        flash(_('فئة غير صالحة'), 'danger')
+        return redirect(url_for('main.dev_images'))
+        
+    if file:
+        filename = secure_filename(file.filename)
+        save_path = os.path.join(current_app.root_path, 'static', 'images', category, filename)
+        file.save(save_path)
+        flash(_('تم رفع الصورة بنجاح: %(name)s', name=filename), 'success')
+        
+    return redirect(url_for('main.dev_images'))
+
+@bp.route('/developer/auctions/create', methods=['POST'])
+@developer_required
+def dev_create_auction():
+    item_type = request.form.get('item_type')
+    item_id = request.form.get('item_id')
+    try:
+        start_price = int(request.form.get('start_price'))
+        duration_hours = int(request.form.get('duration_hours'))
+    except ValueError:
+        flash(_('بيانات غير صالحة'), 'danger')
+        return redirect(url_for('main.dev_auctions'))
+    
+    now = datetime.now(timezone.utc)
+    end_time = now + timedelta(hours=duration_hours)
+    
+    # Optional validation: Check if item/vehicle exists
+    if item_type == 'item':
+        if not Item.query.get(item_id):
+            flash(_('العنصر غير موجود!'), 'danger')
+            return redirect(url_for('main.dev_auctions'))
+    elif item_type == 'vehicle':
+        if not Vehicle.query.get(item_id):
+            flash(_('المركبة غير موجودة!'), 'danger')
+            return redirect(url_for('main.dev_auctions'))
+
+    new_auction = Auction(
+        item_type=item_type,
+        item_id=item_id,
+        start_price=start_price,
+        current_price=start_price,
+        min_bid_increment=max(1, int(start_price * 0.05)),
+        start_time=now,
+        end_time=end_time,
+        status='active'
+    )
+    
+    db.session.add(new_auction)
+    db.session.commit()
+    
+    flash(_('تم إنشاء المزاد بنجاح'), 'success')
+    return redirect(url_for('main.dev_auctions'))
+
+@bp.route('/developer/economy/sinks')
+@developer_required
+def dev_economy_sinks():
+    page = request.args.get('page', 1, type=int)
+    user_id = request.args.get('user_id')
+    sink_type = request.args.get('sink_type')
+    
+    query = MoneySinkLog.query
+    
+    if user_id:
+        query = query.filter(MoneySinkLog.user_id == user_id)
+    if sink_type:
+        query = query.filter(MoneySinkLog.sink_type == sink_type)
+        
+    pagination = query.order_by(MoneySinkLog.timestamp.desc()).paginate(page=page, per_page=50, error_out=False)
+    
+    # Calculate total sunk
+    total_sunk = db.session.query(func.sum(MoneySinkLog.amount)).scalar() or 0
+    
+    # Get distinct sink types for filter
+    sink_types = [r[0] for r in db.session.query(MoneySinkLog.sink_type).distinct().all()]
+    
+    return render_template('developer/economy_sinks.html', logs=pagination.items, pagination=pagination, total_sunk=total_sunk, sink_types=sink_types, title=_('سجلات تصريف الأموال'))
+

@@ -1,0 +1,7630 @@
+{
+  "summary": {
+    "templates_arabic_strings": 1776,
+    "wrapped_missing_in_po": 0,
+    "unwrapped_arabic_strings": 0,
+    "po_empty_entries": 494,
+    "total_endpoints": 605
+  },
+  "endpoints": [
+    {
+      "endpoint": "admin.index",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
+      ],
+      "rule": "/admin/"
+    },
+    {
+      "endpoint": "admin.static",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
+      ],
+      "rule": "/admin/static/<path:filename>"
+    },
+    {
+      "endpoint": "announcement.action_view",
+      "methods": [
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/admin/announcement/action/"
+    },
+    {
+      "endpoint": "announcement.ajax_lookup",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
+      ],
+      "rule": "/admin/announcement/ajax/lookup/"
+    },
+    {
+      "endpoint": "announcement.ajax_update",
+      "methods": [
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/admin/announcement/ajax/update/"
+    },
+    {
+      "endpoint": "announcement.create_view",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/admin/announcement/new/"
+    },
+    {
+      "endpoint": "announcement.delete_view",
+      "methods": [
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/admin/announcement/delete/"
+    },
+    {
+      "endpoint": "announcement.details_view",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
+      ],
+      "rule": "/admin/announcement/details/"
+    },
+    {
+      "endpoint": "announcement.edit_view",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/admin/announcement/edit/"
+    },
+    {
+      "endpoint": "announcement.export",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
+      ],
+      "rule": "/admin/announcement/export/<export_type>/"
+    },
+    {
+      "endpoint": "announcement.index_view",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
+      ],
+      "rule": "/admin/announcement/"
+    },
+    {
+      "endpoint": "asset.action_view",
+      "methods": [
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/admin/asset/action/"
+    },
+    {
+      "endpoint": "asset.ajax_lookup",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
+      ],
+      "rule": "/admin/asset/ajax/lookup/"
+    },
+    {
+      "endpoint": "asset.ajax_update",
+      "methods": [
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/admin/asset/ajax/update/"
+    },
+    {
+      "endpoint": "asset.create_view",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/admin/asset/new/"
+    },
+    {
+      "endpoint": "asset.delete_view",
+      "methods": [
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/admin/asset/delete/"
+    },
+    {
+      "endpoint": "asset.details_view",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
+      ],
+      "rule": "/admin/asset/details/"
+    },
+    {
+      "endpoint": "asset.edit_view",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/admin/asset/edit/"
+    },
+    {
+      "endpoint": "asset.export",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
+      ],
+      "rule": "/admin/asset/export/<export_type>/"
+    },
+    {
+      "endpoint": "asset.index_view",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
+      ],
+      "rule": "/admin/asset/"
+    },
+    {
+      "endpoint": "bank.deposit",
+      "methods": [
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/bank/deposit"
+    },
+    {
+      "endpoint": "bank.index",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
+      ],
+      "rule": "/bank/"
+    },
+    {
+      "endpoint": "bank.transfer",
+      "methods": [
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/bank/transfer"
+    },
+    {
+      "endpoint": "bank.withdraw",
+      "methods": [
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/bank/withdraw"
+    },
+    {
+      "endpoint": "black_market.buy",
+      "methods": [
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/black_market/buy/<int:item_id>"
+    },
+    {
+      "endpoint": "black_market.buy_bullets",
+      "methods": [
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/black_market/buy_bullets"
+    },
+    {
+      "endpoint": "black_market.buy_service",
+      "methods": [
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/black_market/buy_service/<service_type>"
+    },
+    {
+      "endpoint": "black_market.buy_smuggling",
+      "methods": [
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/black_market/buy_smuggling/<int:item_id>"
+    },
+    {
+      "endpoint": "black_market.extend_contract",
+      "methods": [
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/black_market/extend_contract"
+    },
+    {
+      "endpoint": "black_market.index",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
+      ],
+      "rule": "/black_market/"
+    },
+    {
+      "endpoint": "black_market.repair_all_loot",
+      "methods": [
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/black_market/repair_all_loot"
+    },
+    {
+      "endpoint": "black_market.repair_loot",
+      "methods": [
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/black_market/repair_loot/<int:user_item_id>"
+    },
+    {
+      "endpoint": "black_market.sell_loot",
+      "methods": [
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/black_market/sell_loot/<int:user_item_id>"
+    },
+    {
+      "endpoint": "black_market.sell_smuggling",
+      "methods": [
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/black_market/sell_smuggling/<int:item_id>"
+    },
+    {
+      "endpoint": "black_market.spy",
+      "methods": [
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/black_market/spy"
+    },
+    {
+      "endpoint": "bounties.buy_off",
+      "methods": [
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/bounties/buy_off/<int:bounty_id>"
+    },
+    {
+      "endpoint": "bounties.index",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
+      ],
+      "rule": "/bounties/"
+    },
+    {
+      "endpoint": "bounties.place",
+      "methods": [
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/bounties/place"
+    },
+    {
+      "endpoint": "bounty.action_view",
+      "methods": [
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/admin/bounty/action/"
+    },
+    {
+      "endpoint": "bounty.ajax_lookup",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
+      ],
+      "rule": "/admin/bounty/ajax/lookup/"
+    },
+    {
+      "endpoint": "bounty.ajax_update",
+      "methods": [
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/admin/bounty/ajax/update/"
+    },
+    {
+      "endpoint": "bounty.create_view",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/admin/bounty/new/"
+    },
+    {
+      "endpoint": "bounty.delete_view",
+      "methods": [
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/admin/bounty/delete/"
+    },
+    {
+      "endpoint": "bounty.details_view",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
+      ],
+      "rule": "/admin/bounty/details/"
+    },
+    {
+      "endpoint": "bounty.edit_view",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/admin/bounty/edit/"
+    },
+    {
+      "endpoint": "bounty.export",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
+      ],
+      "rule": "/admin/bounty/export/<export_type>/"
+    },
+    {
+      "endpoint": "bounty.index_view",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
+      ],
+      "rule": "/admin/bounty/"
+    },
+    {
+      "endpoint": "casino.bar",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
+      ],
+      "rule": "/casino/bar"
+    },
+    {
+      "endpoint": "casino.blackjack_deal",
+      "methods": [
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/casino/blackjack/deal"
+    },
+    {
+      "endpoint": "casino.blackjack_hit",
+      "methods": [
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/casino/blackjack/hit"
+    },
+    {
+      "endpoint": "casino.blackjack_index",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
+      ],
+      "rule": "/casino/blackjack"
+    },
+    {
+      "endpoint": "casino.blackjack_reset",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
+      ],
+      "rule": "/casino/blackjack/reset"
+    },
+    {
+      "endpoint": "casino.blackjack_stand",
+      "methods": [
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/casino/blackjack/stand"
+    },
+    {
+      "endpoint": "casino.buy_drink",
+      "methods": [
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/casino/bar/buy/<int:drink_id>"
+    },
+    {
+      "endpoint": "casino.chat_hostess",
+      "methods": [
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/casino/hostess/chat"
+    },
+    {
+      "endpoint": "casino.hire_hostess",
+      "methods": [
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/casino/hostess/hire/<int:h_id>"
+    },
+    {
+      "endpoint": "casino.hostess",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
+      ],
+      "rule": "/casino/hostess"
+    },
+    {
+      "endpoint": "casino.index",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
+      ],
+      "rule": "/casino/"
+    },
+    {
+      "endpoint": "casino.roulette_index",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
+      ],
+      "rule": "/casino/roulette"
+    },
+    {
+      "endpoint": "casino.roulette_spin",
+      "methods": [
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/casino/roulette/spin"
+    },
+    {
+      "endpoint": "casino.slots_index",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
+      ],
+      "rule": "/casino/slots"
+    },
+    {
+      "endpoint": "casino.slots_spin",
+      "methods": [
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/casino/slots/spin"
+    },
+    {
+      "endpoint": "combat.attack",
+      "methods": [
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/combat/attack/<int:target_id>"
+    },
+    {
+      "endpoint": "combat.history",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
+      ],
+      "rule": "/combat/history"
+    },
+    {
+      "endpoint": "combat.index",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
+      ],
+      "rule": "/combat/"
+    },
+    {
+      "endpoint": "combatlog.action_view",
+      "methods": [
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/admin/combatlog/action/"
+    },
+    {
+      "endpoint": "combatlog.ajax_lookup",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
+      ],
+      "rule": "/admin/combatlog/ajax/lookup/"
+    },
+    {
+      "endpoint": "combatlog.ajax_update",
+      "methods": [
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/admin/combatlog/ajax/update/"
+    },
+    {
+      "endpoint": "combatlog.create_view",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/admin/combatlog/new/"
+    },
+    {
+      "endpoint": "combatlog.delete_view",
+      "methods": [
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/admin/combatlog/delete/"
+    },
+    {
+      "endpoint": "combatlog.details_view",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
+      ],
+      "rule": "/admin/combatlog/details/"
+    },
+    {
+      "endpoint": "combatlog.edit_view",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/admin/combatlog/edit/"
+    },
+    {
+      "endpoint": "combatlog.export",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
+      ],
+      "rule": "/admin/combatlog/export/<export_type>/"
+    },
+    {
+      "endpoint": "combatlog.index_view",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
+      ],
+      "rule": "/admin/combatlog/"
+    },
+    {
+      "endpoint": "crime.action_view",
+      "methods": [
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/admin/crime/action/"
+    },
+    {
+      "endpoint": "crime.ajax_lookup",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
+      ],
+      "rule": "/admin/crime/ajax/lookup/"
+    },
+    {
+      "endpoint": "crime.ajax_update",
+      "methods": [
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/admin/crime/ajax/update/"
+    },
+    {
+      "endpoint": "crime.create_view",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/admin/crime/new/"
+    },
+    {
+      "endpoint": "crime.delete_view",
+      "methods": [
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/admin/crime/delete/"
+    },
+    {
+      "endpoint": "crime.details_view",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
+      ],
+      "rule": "/admin/crime/details/"
+    },
+    {
+      "endpoint": "crime.edit_view",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/admin/crime/edit/"
+    },
+    {
+      "endpoint": "crime.export",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
+      ],
+      "rule": "/admin/crime/export/<export_type>/"
+    },
+    {
+      "endpoint": "crime.index_view",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
+      ],
+      "rule": "/admin/crime/"
+    },
+    {
+      "endpoint": "dailytask.action_view",
+      "methods": [
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/admin/dailytask/action/"
+    },
+    {
+      "endpoint": "dailytask.ajax_lookup",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
+      ],
+      "rule": "/admin/dailytask/ajax/lookup/"
+    },
+    {
+      "endpoint": "dailytask.ajax_update",
+      "methods": [
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/admin/dailytask/ajax/update/"
+    },
+    {
+      "endpoint": "dailytask.create_view",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/admin/dailytask/new/"
+    },
+    {
+      "endpoint": "dailytask.delete_view",
+      "methods": [
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/admin/dailytask/delete/"
+    },
+    {
+      "endpoint": "dailytask.details_view",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
+      ],
+      "rule": "/admin/dailytask/details/"
+    },
+    {
+      "endpoint": "dailytask.edit_view",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/admin/dailytask/edit/"
+    },
+    {
+      "endpoint": "dailytask.export",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
+      ],
+      "rule": "/admin/dailytask/export/<export_type>/"
+    },
+    {
+      "endpoint": "dailytask.index_view",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
+      ],
+      "rule": "/admin/dailytask/"
+    },
+    {
+      "endpoint": "economy.buy_gang_property",
+      "methods": [
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/economy/buy_gang_property/<int:asset_id>"
+    },
+    {
+      "endpoint": "economy.buy_property",
+      "methods": [
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/economy/buy_property/<int:asset_id>"
+    },
+    {
+      "endpoint": "economy.collect_income",
+      "methods": [
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/economy/collect_income/<int:asset_id>"
+    },
+    {
+      "endpoint": "economy.my_properties",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
+      ],
+      "rule": "/economy/my_properties"
+    },
+    {
+      "endpoint": "economy.properties",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
+      ],
+      "rule": "/economy/properties"
+    },
+    {
+      "endpoint": "factory.boost",
+      "methods": [
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/factory/boost/<int:job_id>"
+    },
+    {
+      "endpoint": "factory.claim",
+      "methods": [
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/factory/claim/<int:job_id>"
+    },
+    {
+      "endpoint": "factory.index",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
+      ],
+      "rule": "/factory/"
+    },
+    {
+      "endpoint": "factory.smelt",
+      "methods": [
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/factory/smelt"
+    },
+    {
+      "endpoint": "factory.start_job",
+      "methods": [
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/factory/start"
+    },
+    {
+      "endpoint": "farm.boost",
+      "methods": [
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/farm/boost/<int:job_id>"
+    },
+    {
+      "endpoint": "farm.buy_contract",
+      "methods": [
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/farm/contract/buy"
+    },
+    {
+      "endpoint": "farm.claim",
+      "methods": [
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/farm/claim/<int:job_id>"
+    },
+    {
+      "endpoint": "farm.index",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
+      ],
+      "rule": "/farm/"
+    },
+    {
+      "endpoint": "farm.start",
+      "methods": [
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/farm/start"
+    },
+    {
+      "endpoint": "farm.upgrade_facility",
+      "methods": [
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/farm/facility/upgrade/<facility_key>"
+    },
+    {
+      "endpoint": "farm.use_facility_perk",
+      "methods": [
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/farm/facility/perk/<facility_key>"
+    },
+    {
+      "endpoint": "forum.category",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
+      ],
+      "rule": "/forum/category/<int:id>"
+    },
+    {
+      "endpoint": "forum.create_topic",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/forum/create/<int:category_id>"
+    },
+    {
+      "endpoint": "forum.delete_post",
+      "methods": [
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/forum/post/<int:id>/delete"
+    },
+    {
+      "endpoint": "forum.delete_topic",
+      "methods": [
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/forum/topic/<int:id>/delete"
+    },
+    {
+      "endpoint": "forum.index",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
+      ],
+      "rule": "/forum/"
+    },
+    {
+      "endpoint": "forum.lock_topic",
+      "methods": [
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/forum/topic/<int:id>/lock"
+    },
+    {
+      "endpoint": "forum.pin_topic",
+      "methods": [
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/forum/topic/<int:id>/pin"
+    },
+    {
+      "endpoint": "forum.topic",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/forum/topic/<int:id>"
+    },
+    {
+      "endpoint": "forumcategory.action_view",
+      "methods": [
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/admin/forumcategory/action/"
+    },
+    {
+      "endpoint": "forumcategory.ajax_lookup",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
+      ],
+      "rule": "/admin/forumcategory/ajax/lookup/"
+    },
+    {
+      "endpoint": "forumcategory.ajax_update",
+      "methods": [
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/admin/forumcategory/ajax/update/"
+    },
+    {
+      "endpoint": "forumcategory.create_view",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/admin/forumcategory/new/"
+    },
+    {
+      "endpoint": "forumcategory.delete_view",
+      "methods": [
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/admin/forumcategory/delete/"
+    },
+    {
+      "endpoint": "forumcategory.details_view",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
+      ],
+      "rule": "/admin/forumcategory/details/"
+    },
+    {
+      "endpoint": "forumcategory.edit_view",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/admin/forumcategory/edit/"
+    },
+    {
+      "endpoint": "forumcategory.export",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
+      ],
+      "rule": "/admin/forumcategory/export/<export_type>/"
+    },
+    {
+      "endpoint": "forumcategory.index_view",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
+      ],
+      "rule": "/admin/forumcategory/"
+    },
+    {
+      "endpoint": "forumpost.action_view",
+      "methods": [
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/admin/forumpost/action/"
+    },
+    {
+      "endpoint": "forumpost.ajax_lookup",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
+      ],
+      "rule": "/admin/forumpost/ajax/lookup/"
+    },
+    {
+      "endpoint": "forumpost.ajax_update",
+      "methods": [
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/admin/forumpost/ajax/update/"
+    },
+    {
+      "endpoint": "forumpost.create_view",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/admin/forumpost/new/"
+    },
+    {
+      "endpoint": "forumpost.delete_view",
+      "methods": [
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/admin/forumpost/delete/"
+    },
+    {
+      "endpoint": "forumpost.details_view",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
+      ],
+      "rule": "/admin/forumpost/details/"
+    },
+    {
+      "endpoint": "forumpost.edit_view",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/admin/forumpost/edit/"
+    },
+    {
+      "endpoint": "forumpost.export",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
+      ],
+      "rule": "/admin/forumpost/export/<export_type>/"
+    },
+    {
+      "endpoint": "forumpost.index_view",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
+      ],
+      "rule": "/admin/forumpost/"
+    },
+    {
+      "endpoint": "forumtopic.action_view",
+      "methods": [
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/admin/forumtopic/action/"
+    },
+    {
+      "endpoint": "forumtopic.ajax_lookup",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
+      ],
+      "rule": "/admin/forumtopic/ajax/lookup/"
+    },
+    {
+      "endpoint": "forumtopic.ajax_update",
+      "methods": [
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/admin/forumtopic/ajax/update/"
+    },
+    {
+      "endpoint": "forumtopic.create_view",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/admin/forumtopic/new/"
+    },
+    {
+      "endpoint": "forumtopic.delete_view",
+      "methods": [
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/admin/forumtopic/delete/"
+    },
+    {
+      "endpoint": "forumtopic.details_view",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
+      ],
+      "rule": "/admin/forumtopic/details/"
+    },
+    {
+      "endpoint": "forumtopic.edit_view",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/admin/forumtopic/edit/"
+    },
+    {
+      "endpoint": "forumtopic.export",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
+      ],
+      "rule": "/admin/forumtopic/export/<export_type>/"
+    },
+    {
+      "endpoint": "forumtopic.index_view",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
+      ],
+      "rule": "/admin/forumtopic/"
+    },
+    {
+      "endpoint": "futuresposition.action_view",
+      "methods": [
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/admin/futuresposition/action/"
+    },
+    {
+      "endpoint": "futuresposition.ajax_lookup",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
+      ],
+      "rule": "/admin/futuresposition/ajax/lookup/"
+    },
+    {
+      "endpoint": "futuresposition.ajax_update",
+      "methods": [
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/admin/futuresposition/ajax/update/"
+    },
+    {
+      "endpoint": "futuresposition.create_view",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/admin/futuresposition/new/"
+    },
+    {
+      "endpoint": "futuresposition.delete_view",
+      "methods": [
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/admin/futuresposition/delete/"
+    },
+    {
+      "endpoint": "futuresposition.details_view",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
+      ],
+      "rule": "/admin/futuresposition/details/"
+    },
+    {
+      "endpoint": "futuresposition.edit_view",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/admin/futuresposition/edit/"
+    },
+    {
+      "endpoint": "futuresposition.export",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
+      ],
+      "rule": "/admin/futuresposition/export/<export_type>/"
+    },
+    {
+      "endpoint": "futuresposition.index_view",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
+      ],
+      "rule": "/admin/futuresposition/"
+    },
+    {
+      "endpoint": "gamelog.action_view",
+      "methods": [
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/admin/gamelog/action/"
+    },
+    {
+      "endpoint": "gamelog.ajax_lookup",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
+      ],
+      "rule": "/admin/gamelog/ajax/lookup/"
+    },
+    {
+      "endpoint": "gamelog.ajax_update",
+      "methods": [
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/admin/gamelog/ajax/update/"
+    },
+    {
+      "endpoint": "gamelog.create_view",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/admin/gamelog/new/"
+    },
+    {
+      "endpoint": "gamelog.delete_view",
+      "methods": [
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/admin/gamelog/delete/"
+    },
+    {
+      "endpoint": "gamelog.details_view",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
+      ],
+      "rule": "/admin/gamelog/details/"
+    },
+    {
+      "endpoint": "gamelog.edit_view",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/admin/gamelog/edit/"
+    },
+    {
+      "endpoint": "gamelog.export",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
+      ],
+      "rule": "/admin/gamelog/export/<export_type>/"
+    },
+    {
+      "endpoint": "gamelog.index_view",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
+      ],
+      "rule": "/admin/gamelog/"
+    },
+    {
+      "endpoint": "gang.accept_alliance",
+      "methods": [
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/gang/accept_alliance/<int:alliance_id>"
+    },
+    {
+      "endpoint": "gang.accept_invite",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/gang/accept_invite/<int:invite_id>"
+    },
+    {
+      "endpoint": "gang.alliances",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
+      ],
+      "rule": "/gang/alliances"
+    },
+    {
+      "endpoint": "gang.broadcast_invite_all",
+      "methods": [
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/gang/broadcast_invite_all"
+    },
+    {
+      "endpoint": "gang.create",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/gang/create"
+    },
+    {
+      "endpoint": "gang.dashboard",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
+      ],
+      "rule": "/gang/dashboard"
+    },
+    {
+      "endpoint": "gang.declare_war",
+      "methods": [
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/gang/declare_war/<int:target_gang_id>"
+    },
+    {
+      "endpoint": "gang.do_organized_crime",
+      "methods": [
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/gang/do_organized_crime/<int:crime_id>"
+    },
+    {
+      "endpoint": "gang.donate",
+      "methods": [
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/gang/donate"
+    },
+    {
+      "endpoint": "gang.edit",
+      "methods": [
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/gang/edit"
+    },
+    {
+      "endpoint": "gang.index",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
+      ],
+      "rule": "/gang/"
+    },
+    {
+      "endpoint": "gang.invites",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
+      ],
+      "rule": "/gang/invites"
+    },
+    {
+      "endpoint": "gang.kick_member",
+      "methods": [
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/gang/kick_member/<int:user_id>"
+    },
+    {
+      "endpoint": "gang.leave",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/gang/leave"
+    },
+    {
+      "endpoint": "gang.organized_crimes",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
+      ],
+      "rule": "/gang/organized_crimes"
+    },
+    {
+      "endpoint": "gang.reject_alliance",
+      "methods": [
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/gang/reject_alliance/<int:alliance_id>"
+    },
+    {
+      "endpoint": "gang.reject_invite",
+      "methods": [
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/gang/reject_invite/<int:invite_id>"
+    },
+    {
+      "endpoint": "gang.request_alliance",
+      "methods": [
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/gang/request_alliance/<int:target_gang_id>"
+    },
+    {
+      "endpoint": "gang.request_join",
+      "methods": [
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/gang/request_join/<int:gang_id>"
+    },
+    {
+      "endpoint": "gang.upgrade",
+      "methods": [
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/gang/upgrade"
+    },
+    {
+      "endpoint": "gang.view",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
+      ],
+      "rule": "/gang/view/<int:gang_id>"
+    },
+    {
+      "endpoint": "gang.withdraw",
+      "methods": [
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/gang/withdraw"
+    },
+    {
+      "endpoint": "gang_admin.action_view",
+      "methods": [
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/admin/gang_admin/action/"
+    },
+    {
+      "endpoint": "gang_admin.ajax_lookup",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
+      ],
+      "rule": "/admin/gang_admin/ajax/lookup/"
+    },
+    {
+      "endpoint": "gang_admin.ajax_update",
+      "methods": [
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/admin/gang_admin/ajax/update/"
+    },
+    {
+      "endpoint": "gang_admin.create_view",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/admin/gang_admin/new/"
+    },
+    {
+      "endpoint": "gang_admin.delete_view",
+      "methods": [
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/admin/gang_admin/delete/"
+    },
+    {
+      "endpoint": "gang_admin.details_view",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
+      ],
+      "rule": "/admin/gang_admin/details/"
+    },
+    {
+      "endpoint": "gang_admin.edit_view",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/admin/gang_admin/edit/"
+    },
+    {
+      "endpoint": "gang_admin.export",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
+      ],
+      "rule": "/admin/gang_admin/export/<export_type>/"
+    },
+    {
+      "endpoint": "gang_admin.index_view",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
+      ],
+      "rule": "/admin/gang_admin/"
+    },
+    {
+      "endpoint": "ganglog.action_view",
+      "methods": [
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/admin/ganglog/action/"
+    },
+    {
+      "endpoint": "ganglog.ajax_lookup",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
+      ],
+      "rule": "/admin/ganglog/ajax/lookup/"
+    },
+    {
+      "endpoint": "ganglog.ajax_update",
+      "methods": [
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/admin/ganglog/ajax/update/"
+    },
+    {
+      "endpoint": "ganglog.create_view",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/admin/ganglog/new/"
+    },
+    {
+      "endpoint": "ganglog.delete_view",
+      "methods": [
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/admin/ganglog/delete/"
+    },
+    {
+      "endpoint": "ganglog.details_view",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
+      ],
+      "rule": "/admin/ganglog/details/"
+    },
+    {
+      "endpoint": "ganglog.edit_view",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/admin/ganglog/edit/"
+    },
+    {
+      "endpoint": "ganglog.export",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
+      ],
+      "rule": "/admin/ganglog/export/<export_type>/"
+    },
+    {
+      "endpoint": "ganglog.index_view",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
+      ],
+      "rule": "/admin/ganglog/"
+    },
+    {
+      "endpoint": "gangwar.action_view",
+      "methods": [
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/admin/gangwar/action/"
+    },
+    {
+      "endpoint": "gangwar.ajax_lookup",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
+      ],
+      "rule": "/admin/gangwar/ajax/lookup/"
+    },
+    {
+      "endpoint": "gangwar.ajax_update",
+      "methods": [
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/admin/gangwar/ajax/update/"
+    },
+    {
+      "endpoint": "gangwar.create_view",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/admin/gangwar/new/"
+    },
+    {
+      "endpoint": "gangwar.delete_view",
+      "methods": [
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/admin/gangwar/delete/"
+    },
+    {
+      "endpoint": "gangwar.details_view",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
+      ],
+      "rule": "/admin/gangwar/details/"
+    },
+    {
+      "endpoint": "gangwar.edit_view",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/admin/gangwar/edit/"
+    },
+    {
+      "endpoint": "gangwar.export",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
+      ],
+      "rule": "/admin/gangwar/export/<export_type>/"
+    },
+    {
+      "endpoint": "gangwar.index_view",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
+      ],
+      "rule": "/admin/gangwar/"
+    },
+    {
+      "endpoint": "graveyard.index",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
+      ],
+      "rule": "/graveyard/"
+    },
+    {
+      "endpoint": "graveyard.request_resurrection",
+      "methods": [
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/graveyard/request_resurrection"
+    },
+    {
+      "endpoint": "graveyard.resurrect",
+      "methods": [
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/graveyard/resurrect"
+    },
+    {
+      "endpoint": "gym.index",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
+      ],
+      "rule": "/gym/"
+    },
+    {
+      "endpoint": "gym.train",
+      "methods": [
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/gym/train/<stat>"
+    },
+    {
+      "endpoint": "hospital.buy_energy",
+      "methods": [
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/hospital/buy_energy"
+    },
+    {
+      "endpoint": "hospital.experimental_surgery",
+      "methods": [
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/hospital/experimental_surgery"
+    },
+    {
+      "endpoint": "hospital.heal",
+      "methods": [
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/hospital/heal"
+    },
+    {
+      "endpoint": "hospital.index",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
+      ],
+      "rule": "/hospital/"
+    },
+    {
+      "endpoint": "hostess.action_view",
+      "methods": [
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/admin/hostess/action/"
+    },
+    {
+      "endpoint": "hostess.ajax_lookup",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
+      ],
+      "rule": "/admin/hostess/ajax/lookup/"
+    },
+    {
+      "endpoint": "hostess.ajax_update",
+      "methods": [
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/admin/hostess/ajax/update/"
+    },
+    {
+      "endpoint": "hostess.create_view",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/admin/hostess/new/"
+    },
+    {
+      "endpoint": "hostess.delete_view",
+      "methods": [
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/admin/hostess/delete/"
+    },
+    {
+      "endpoint": "hostess.details_view",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
+      ],
+      "rule": "/admin/hostess/details/"
+    },
+    {
+      "endpoint": "hostess.edit_view",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/admin/hostess/edit/"
+    },
+    {
+      "endpoint": "hostess.export",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
+      ],
+      "rule": "/admin/hostess/export/<export_type>/"
+    },
+    {
+      "endpoint": "hostess.index_view",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
+      ],
+      "rule": "/admin/hostess/"
+    },
+    {
+      "endpoint": "hostessknowledge.action_view",
+      "methods": [
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/admin/hostessknowledge/action/"
+    },
+    {
+      "endpoint": "hostessknowledge.ajax_lookup",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
+      ],
+      "rule": "/admin/hostessknowledge/ajax/lookup/"
+    },
+    {
+      "endpoint": "hostessknowledge.ajax_update",
+      "methods": [
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/admin/hostessknowledge/ajax/update/"
+    },
+    {
+      "endpoint": "hostessknowledge.create_view",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/admin/hostessknowledge/new/"
+    },
+    {
+      "endpoint": "hostessknowledge.delete_view",
+      "methods": [
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/admin/hostessknowledge/delete/"
+    },
+    {
+      "endpoint": "hostessknowledge.details_view",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
+      ],
+      "rule": "/admin/hostessknowledge/details/"
+    },
+    {
+      "endpoint": "hostessknowledge.edit_view",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/admin/hostessknowledge/edit/"
+    },
+    {
+      "endpoint": "hostessknowledge.export",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
+      ],
+      "rule": "/admin/hostessknowledge/export/<export_type>/"
+    },
+    {
+      "endpoint": "hostessknowledge.index_view",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
+      ],
+      "rule": "/admin/hostessknowledge/"
+    },
+    {
+      "endpoint": "inventory.equip",
+      "methods": [
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/inventory/equip/<int:item_id>"
+    },
+    {
+      "endpoint": "inventory.index",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
+      ],
+      "rule": "/inventory/"
+    },
+    {
+      "endpoint": "inventory.repair",
+      "methods": [
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/inventory/repair/<int:item_id>"
+    },
+    {
+      "endpoint": "inventory.unequip",
+      "methods": [
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/inventory/unequip/<int:item_id>"
+    },
+    {
+      "endpoint": "item.action_view",
+      "methods": [
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/admin/item/action/"
+    },
+    {
+      "endpoint": "item.ajax_lookup",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
+      ],
+      "rule": "/admin/item/ajax/lookup/"
+    },
+    {
+      "endpoint": "item.ajax_update",
+      "methods": [
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/admin/item/ajax/update/"
+    },
+    {
+      "endpoint": "item.create_view",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/admin/item/new/"
+    },
+    {
+      "endpoint": "item.delete_view",
+      "methods": [
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/admin/item/delete/"
+    },
+    {
+      "endpoint": "item.details_view",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
+      ],
+      "rule": "/admin/item/details/"
+    },
+    {
+      "endpoint": "item.edit_view",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/admin/item/edit/"
+    },
+    {
+      "endpoint": "item.export",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
+      ],
+      "rule": "/admin/item/export/<export_type>/"
+    },
+    {
+      "endpoint": "item.index_view",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
+      ],
+      "rule": "/admin/item/"
+    },
+    {
+      "endpoint": "jail.breakout",
+      "methods": [
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/jail/breakout/<int:prisoner_id>"
+    },
+    {
+      "endpoint": "jail.bribe",
+      "methods": [
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/jail/bribe"
+    },
+    {
+      "endpoint": "jail.index",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
+      ],
+      "rule": "/jail/"
+    },
+    {
+      "endpoint": "jail.pay_bail",
+      "methods": [
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/jail/pay_bail/<int:prisoner_id>"
+    },
+    {
+      "endpoint": "jasmin.chat",
+      "methods": [
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/hostesses/jasmin/chat"
+    },
+    {
+      "endpoint": "layla.chat",
+      "methods": [
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/hostesses/layla/chat"
+    },
+    {
+      "endpoint": "learninglog.action_view",
+      "methods": [
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/admin/learninglog/action/"
+    },
+    {
+      "endpoint": "learninglog.ajax_lookup",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
+      ],
+      "rule": "/admin/learninglog/ajax/lookup/"
+    },
+    {
+      "endpoint": "learninglog.ajax_update",
+      "methods": [
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/admin/learninglog/ajax/update/"
+    },
+    {
+      "endpoint": "learninglog.create_view",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/admin/learninglog/new/"
+    },
+    {
+      "endpoint": "learninglog.delete_view",
+      "methods": [
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/admin/learninglog/delete/"
+    },
+    {
+      "endpoint": "learninglog.details_view",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
+      ],
+      "rule": "/admin/learninglog/details/"
+    },
+    {
+      "endpoint": "learninglog.edit_view",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/admin/learninglog/edit/"
+    },
+    {
+      "endpoint": "learninglog.export",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
+      ],
+      "rule": "/admin/learninglog/export/<export_type>/"
+    },
+    {
+      "endpoint": "learninglog.index_view",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
+      ],
+      "rule": "/admin/learninglog/"
+    },
+    {
+      "endpoint": "location.action_view",
+      "methods": [
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/admin/location/action/"
+    },
+    {
+      "endpoint": "location.ajax_lookup",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
+      ],
+      "rule": "/admin/location/ajax/lookup/"
+    },
+    {
+      "endpoint": "location.ajax_update",
+      "methods": [
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/admin/location/ajax/update/"
+    },
+    {
+      "endpoint": "location.create_view",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/admin/location/new/"
+    },
+    {
+      "endpoint": "location.delete_view",
+      "methods": [
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/admin/location/delete/"
+    },
+    {
+      "endpoint": "location.details_view",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
+      ],
+      "rule": "/admin/location/details/"
+    },
+    {
+      "endpoint": "location.edit_view",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/admin/location/edit/"
+    },
+    {
+      "endpoint": "location.export",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
+      ],
+      "rule": "/admin/location/export/<export_type>/"
+    },
+    {
+      "endpoint": "location.index_view",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
+      ],
+      "rule": "/admin/location/"
+    },
+    {
+      "endpoint": "main.activate_car",
+      "methods": [
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/activate_car/<int:user_vehicle_id>"
+    },
+    {
+      "endpoint": "main.add_forum_category",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/developer/forum/category/add"
+    },
+    {
+      "endpoint": "main.admin_delete_message",
+      "methods": [
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/developer/message/delete/<int:msg_id>"
+    },
+    {
+      "endpoint": "main.admin_messages",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
+      ],
+      "rule": "/developer/messages"
+    },
+    {
+      "endpoint": "main.broadcast_lobby_invites",
+      "methods": [
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/broadcast_lobby_invites/<int:lobby_id>"
+    },
+    {
+      "endpoint": "main.bulk_delete_messages",
+      "methods": [
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/messages/bulk_delete"
+    },
+    {
+      "endpoint": "main.buy_car",
+      "methods": [
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/buy_car/<int:vehicle_id>"
+    },
+    {
+      "endpoint": "main.buy_diamonds",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/buy_diamonds"
+    },
+    {
+      "endpoint": "main.captcha_image",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
+      ],
+      "rule": "/captcha/image"
+    },
+    {
+      "endpoint": "main.collect_task_reward",
+      "methods": [
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/collect_task_reward/<int:task_id>"
+    },
+    {
+      "endpoint": "main.confirm_email",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
+      ],
+      "rule": "/confirm/<token>"
+    },
+    {
+      "endpoint": "main.create_backup",
+      "methods": [
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/developer/backup/create"
+    },
+    {
+      "endpoint": "main.create_lobby",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
+      ],
+      "rule": "/create_lobby/<int:crime_id>"
+    },
+    {
+      "endpoint": "main.crimes",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
+      ],
+      "rule": "/crimes"
+    },
+    {
+      "endpoint": "main.daily_reward",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
+      ],
+      "rule": "/daily_reward"
+    },
+    {
+      "endpoint": "main.daily_tasks",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
+      ],
+      "rule": "/daily_tasks"
+    },
+    {
+      "endpoint": "main.dealership",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
+      ],
+      "rule": "/dealership"
+    },
+    {
+      "endpoint": "main.delete_backup",
+      "methods": [
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/developer/backup/delete/<filename>"
+    },
+    {
+      "endpoint": "main.delete_forum_category",
+      "methods": [
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/developer/forum/category/delete_alias/<int:id>"
+    },
+    {
+      "endpoint": "main.delete_message",
+      "methods": [
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/messages/delete/<int:msg_id>"
+    },
+    {
+      "endpoint": "main.delete_notification",
+      "methods": [
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/notifications/delete/<int:id>"
+    },
+    {
+      "endpoint": "main.dev_achievement_delete",
+      "methods": [
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/developer/achievement/delete/<int:id>"
+    },
+    {
+      "endpoint": "main.dev_achievement_edit",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/developer/achievement/edit/<int:id>"
+    },
+    {
+      "endpoint": "main.dev_achievement_edit",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/developer/achievement/new"
+    },
+    {
+      "endpoint": "main.dev_achievements",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
+      ],
+      "rule": "/developer/achievements"
+    },
+    {
+      "endpoint": "main.dev_active_lobbies",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
+      ],
+      "rule": "/developer/lobbies"
+    },
+    {
+      "endpoint": "main.dev_announcement_delete",
+      "methods": [
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/developer/announcement/delete/<int:id>"
+    },
+    {
+      "endpoint": "main.dev_announcement_edit",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/developer/announcement/edit/<int:id>"
+    },
+    {
+      "endpoint": "main.dev_announcement_edit",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/developer/announcement/new"
+    },
+    {
+      "endpoint": "main.dev_announcements",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
+      ],
+      "rule": "/developer/announcements"
+    },
+    {
+      "endpoint": "main.dev_asset_delete",
+      "methods": [
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/developer/asset/delete/<int:id>"
+    },
+    {
+      "endpoint": "main.dev_asset_edit",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/developer/asset/edit/<int:id>"
+    },
+    {
+      "endpoint": "main.dev_asset_edit",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/developer/asset/new"
+    },
+    {
+      "endpoint": "main.dev_assets",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
+      ],
+      "rule": "/developer/assets"
+    },
+    {
+      "endpoint": "main.dev_bounties",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
+      ],
+      "rule": "/developer/bounties"
+    },
+    {
+      "endpoint": "main.dev_bounty_delete",
+      "methods": [
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/developer/bounty/delete/<int:id>"
+    },
+    {
+      "endpoint": "main.dev_clear_all_players_protection",
+      "methods": [
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/developer/protection/clear_all"
+    },
+    {
+      "endpoint": "main.dev_config",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/developer/config"
+    },
+    {
+      "endpoint": "main.dev_config_add",
+      "methods": [
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/developer/config/add"
+    },
+    {
+      "endpoint": "main.dev_config_reset_market_defaults",
+      "methods": [
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/developer/config/reset_market_defaults"
+    },
+    {
+      "endpoint": "main.dev_crime_delete",
+      "methods": [
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/developer/crime/delete/<int:id>"
+    },
+    {
+      "endpoint": "main.dev_crime_edit",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/developer/crime/edit/<int:id>"
+    },
+    {
+      "endpoint": "main.dev_crime_edit",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/developer/crime/new"
+    },
+    {
+      "endpoint": "main.dev_crimes",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
+      ],
+      "rule": "/developer/crimes"
+    },
+    {
+      "endpoint": "main.dev_dashboard",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
+      ],
+      "rule": "/developer"
+    },
+    {
+      "endpoint": "main.dev_delete_lobby",
+      "methods": [
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/developer/lobbies/delete/<int:lobby_id>"
+    },
+    {
+      "endpoint": "main.dev_factories",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
+      ],
+      "rule": "/developer/factories"
+    },
+    {
+      "endpoint": "main.dev_factory_job_cancel",
+      "methods": [
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/developer/factory/job/<int:id>/cancel"
+    },
+    {
+      "endpoint": "main.dev_factory_job_complete",
+      "methods": [
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/developer/factory/job/<int:id>/complete"
+    },
+    {
+      "endpoint": "main.dev_factory_job_delete",
+      "methods": [
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/developer/factory/job/delete/<int:id>"
+    },
+    {
+      "endpoint": "main.dev_factory_job_edit",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/developer/factory/job/edit/<int:id>"
+    },
+    {
+      "endpoint": "main.dev_factory_job_edit",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/developer/factory/job/new"
+    },
+    {
+      "endpoint": "main.dev_forum_category_delete",
+      "methods": [
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/developer/forum/category/delete/<int:id>"
+    },
+    {
+      "endpoint": "main.dev_forum_category_edit",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/developer/forum/category/edit/<int:id>"
+    },
+    {
+      "endpoint": "main.dev_forum_category_edit",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/developer/forum/category/new"
+    },
+    {
+      "endpoint": "main.dev_gang_delete",
+      "methods": [
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/developer/gang/delete/<int:id>"
+    },
+    {
+      "endpoint": "main.dev_gang_edit",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/developer/gang/edit/<int:id>"
+    },
+    {
+      "endpoint": "main.dev_gang_edit",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/developer/gang/new"
+    },
+    {
+      "endpoint": "main.dev_gangs",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
+      ],
+      "rule": "/developer/gangs"
+    },
+    {
+      "endpoint": "main.dev_heat",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
+      ],
+      "rule": "/developer/heat"
+    },
+    {
+      "endpoint": "main.dev_heat_clear_all",
+      "methods": [
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/developer/heat/clear_all"
+    },
+    {
+      "endpoint": "main.dev_heat_clear_user",
+      "methods": [
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/developer/heat/clear/<int:user_id>"
+    },
+    {
+      "endpoint": "main.dev_heist_history",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
+      ],
+      "rule": "/developer/heist_history"
+    },
+    {
+      "endpoint": "main.dev_hostess_delete",
+      "methods": [
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/developer/hostess/delete/<int:id>"
+    },
+    {
+      "endpoint": "main.dev_hostess_edit",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/developer/hostess/edit/<int:id>"
+    },
+    {
+      "endpoint": "main.dev_hostess_edit",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/developer/hostess/new"
+    },
+    {
+      "endpoint": "main.dev_hostess_trainer",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/developer/hostess/trainer/<int:id>"
+    },
+    {
+      "endpoint": "main.dev_hostesses",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
+      ],
+      "rule": "/developer/hostesses"
+    },
+    {
+      "endpoint": "main.dev_item_delete",
+      "methods": [
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/developer/item/delete/<int:id>"
+    },
+    {
+      "endpoint": "main.dev_item_edit",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/developer/item/edit/<int:id>"
+    },
+    {
+      "endpoint": "main.dev_item_edit",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/developer/item/new"
+    },
+    {
+      "endpoint": "main.dev_items",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
+      ],
+      "rule": "/developer/items"
+    },
+    {
+      "endpoint": "main.dev_knowledge",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
+      ],
+      "rule": "/developer/knowledge"
+    },
+    {
+      "endpoint": "main.dev_knowledge_delete",
+      "methods": [
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/developer/knowledge/delete/<int:id>"
+    },
+    {
+      "endpoint": "main.dev_knowledge_edit",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/developer/knowledge/edit/<int:id>"
+    },
+    {
+      "endpoint": "main.dev_knowledge_edit",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/developer/knowledge/new"
+    },
+    {
+      "endpoint": "main.dev_location_delete",
+      "methods": [
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/developer/location/delete/<int:id>"
+    },
+    {
+      "endpoint": "main.dev_location_edit",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/developer/location/edit/<int:id>"
+    },
+    {
+      "endpoint": "main.dev_location_edit",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/developer/location/new"
+    },
+    {
+      "endpoint": "main.dev_locations",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
+      ],
+      "rule": "/developer/locations"
+    },
+    {
+      "endpoint": "main.dev_logs",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
+      ],
+      "rule": "/developer/logs"
+    },
+    {
+      "endpoint": "main.dev_market",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
+      ],
+      "rule": "/developer/market"
+    },
+    {
+      "endpoint": "main.dev_market_delete",
+      "methods": [
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/developer/market/delete/<int:id>"
+    },
+    {
+      "endpoint": "main.dev_market_edit",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/developer/market/edit/<int:id>"
+    },
+    {
+      "endpoint": "main.dev_market_edit",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/developer/market/new"
+    },
+    {
+      "endpoint": "main.dev_market_update_price",
+      "methods": [
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/developer/market/update_price"
+    },
+    {
+      "endpoint": "main.dev_organized_crime_delete",
+      "methods": [
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/developer/organized_crime/delete/<int:id>"
+    },
+    {
+      "endpoint": "main.dev_organized_crime_edit",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/developer/organized_crime/edit/<int:id>"
+    },
+    {
+      "endpoint": "main.dev_organized_crime_edit",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/developer/organized_crime/new"
+    },
+    {
+      "endpoint": "main.dev_organized_crime_update",
+      "methods": [
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/developer/organized_crime/update/<int:id>"
+    },
+    {
+      "endpoint": "main.dev_organized_crimes",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
+      ],
+      "rule": "/developer/organized_crimes"
+    },
+    {
+      "endpoint": "main.dev_scenario_apply",
+      "methods": [
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/developer/scenario/apply/<int:scenario_id>/<int:hostess_id>"
+    },
+    {
+      "endpoint": "main.dev_scenario_delete",
+      "methods": [
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/developer/scenario/delete/<int:id>"
+    },
+    {
+      "endpoint": "main.dev_scenario_edit",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/developer/scenario/edit/<int:id>"
+    },
+    {
+      "endpoint": "main.dev_scenario_edit",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/developer/scenario/new"
+    },
+    {
+      "endpoint": "main.dev_scenario_new",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/developer/scenario/new_alias"
+    },
+    {
+      "endpoint": "main.dev_scenarios",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
+      ],
+      "rule": "/developer/scenarios"
+    },
+    {
+      "endpoint": "main.dev_settings",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
+      ],
+      "rule": "/developer/settings"
+    },
+    {
+      "endpoint": "main.dev_settings_delete",
+      "methods": [
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/developer/settings/delete/<int:id>"
+    },
+    {
+      "endpoint": "main.dev_settings_edit",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/developer/settings/edit/<int:id>"
+    },
+    {
+      "endpoint": "main.dev_settings_edit",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/developer/settings/new"
+    },
+    {
+      "endpoint": "main.dev_task_delete",
+      "methods": [
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/developer/task/delete/<int:id>"
+    },
+    {
+      "endpoint": "main.dev_task_edit",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/developer/task/edit/<int:id>"
+    },
+    {
+      "endpoint": "main.dev_task_edit",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/developer/task/new"
+    },
+    {
+      "endpoint": "main.dev_tasks",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
+      ],
+      "rule": "/developer/tasks"
+    },
+    {
+      "endpoint": "main.dev_user_achievements",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
+      ],
+      "rule": "/developer/user/<int:user_id>/achievements"
+    },
+    {
+      "endpoint": "main.dev_user_achievements_grant",
+      "methods": [
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/developer/user/<int:user_id>/achievements/grant"
+    },
+    {
+      "endpoint": "main.dev_user_achievements_revoke",
+      "methods": [
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/developer/user/<int:user_id>/achievements/revoke/<int:user_achievement_id>"
+    },
+    {
+      "endpoint": "main.dev_user_boost",
+      "methods": [
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/developer/user/boost/<int:id>"
+    },
+    {
+      "endpoint": "main.dev_user_clear_status",
+      "methods": [
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/developer/user/clear_status/<int:id>"
+    },
+    {
+      "endpoint": "main.dev_user_edit",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/developer/user/edit/<int:id>"
+    },
+    {
+      "endpoint": "main.dev_user_logs",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
+      ],
+      "rule": "/developer/user_logs"
+    },
+    {
+      "endpoint": "main.dev_user_protection_clear_all",
+      "methods": [
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/developer/user/<int:id>/protection/clear_all"
+    },
+    {
+      "endpoint": "main.dev_user_protection_disable",
+      "methods": [
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/developer/user/<int:id>/protection/disable"
+    },
+    {
+      "endpoint": "main.dev_user_protection_enable",
+      "methods": [
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/developer/user/<int:id>/protection/enable"
+    },
+    {
+      "endpoint": "main.dev_users",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
+      ],
+      "rule": "/developer/users"
+    },
+    {
+      "endpoint": "main.dev_vehicle_delete",
+      "methods": [
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/developer/vehicle/delete/<int:id>"
+    },
+    {
+      "endpoint": "main.dev_vehicle_edit",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/developer/vehicle/edit/<int:id>"
+    },
+    {
+      "endpoint": "main.dev_vehicle_edit",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/developer/vehicle/new"
+    },
+    {
+      "endpoint": "main.dev_vehicles",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
+      ],
+      "rule": "/developer/vehicles"
+    },
+    {
+      "endpoint": "main.do_crime",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
+      ],
+      "rule": "/do_crime/<int:crime_id>"
+    },
+    {
+      "endpoint": "main.edit_forum_category",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/developer/forum/category/edit_alias/<int:id>"
+    },
+    {
+      "endpoint": "main.edit_profile",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/profile/edit"
+    },
+    {
+      "endpoint": "main.empire",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
+      ],
+      "rule": "/empire"
+    },
+    {
+      "endpoint": "main.equip_item",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
+      ],
+      "rule": "/equip_item/<int:item_id>"
+    },
+    {
+      "endpoint": "main.forum_categories",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
+      ],
+      "rule": "/developer/forum"
+    },
+    {
+      "endpoint": "main.gangs",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
+      ],
+      "rule": "/gangs"
+    },
+    {
+      "endpoint": "main.garage",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
+      ],
+      "rule": "/garage"
+    },
+    {
+      "endpoint": "main.generate_test_users",
+      "methods": [
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/developer/generate_users"
+    },
+    {
+      "endpoint": "main.get_user_stats",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
+      ],
+      "rule": "/api/user/stats"
+    },
+    {
+      "endpoint": "main.guide",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
+      ],
+      "rule": "/guide"
+    },
+    {
+      "endpoint": "main.hack_bank",
+      "methods": [
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/hack_bank"
+    },
+    {
+      "endpoint": "main.hack_player",
+      "methods": [
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/hack_player"
+    },
+    {
+      "endpoint": "main.handle_resurrection_request",
+      "methods": [
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/developer/resurrection/handle/<int:req_id>/<action>"
+    },
+    {
+      "endpoint": "main.handle_verification",
+      "methods": [
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/developer/user/verify/<int:user_id>/<action>"
+    },
+    {
+      "endpoint": "main.hara",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
+      ],
+      "rule": "/hara"
+    },
+    {
+      "endpoint": "main.heist_history",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
+      ],
+      "rule": "/heist_history"
+    },
+    {
+      "endpoint": "main.heist_report",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
+      ],
+      "rule": "/heist_report/<int:history_id>"
+    },
+    {
+      "endpoint": "main.index",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
+      ],
+      "rule": "/"
+    },
+    {
+      "endpoint": "main.intel_center",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
+      ],
+      "rule": "/intel_center"
+    },
+    {
+      "endpoint": "main.inventory",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
+      ],
+      "rule": "/inventory"
+    },
+    {
+      "endpoint": "main.investigate",
+      "methods": [
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/investigate"
+    },
+    {
+      "endpoint": "main.join_lobby",
+      "methods": [
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/join_lobby/<int:lobby_id>"
+    },
+    {
+      "endpoint": "main.kick_member",
+      "methods": [
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/kick_member/<int:lobby_id>/<int:user_id>"
+    },
+    {
+      "endpoint": "main.leaderboard",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
+      ],
+      "rule": "/leaderboard"
+    },
+    {
+      "endpoint": "main.leave_lobby",
+      "methods": [
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/leave_lobby/<int:lobby_id>"
+    },
+    {
+      "endpoint": "main.lobby",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
+      ],
+      "rule": "/lobby/<int:lobby_id>"
+    },
+    {
+      "endpoint": "main.login",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/login"
+    },
+    {
+      "endpoint": "main.logout",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/logout"
+    },
+    {
+      "endpoint": "main.messages",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
+      ],
+      "rule": "/messages"
+    },
+    {
+      "endpoint": "main.notifications",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
+      ],
+      "rule": "/notifications"
+    },
+    {
+      "endpoint": "main.organized_crimes",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
+      ],
+      "rule": "/organized_crimes"
+    },
+    {
+      "endpoint": "main.profile",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
+      ],
+      "rule": "/profile/<int:user_id>"
+    },
+    {
+      "endpoint": "main.public_hostess_chat",
+      "methods": [
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/api/public/chat"
+    },
+    {
+      "endpoint": "main.react_refresh_noop",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
+      ],
+      "rule": "/@react-refresh"
+    },
+    {
+      "endpoint": "main.read_all_notifications",
+      "methods": [
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/notifications/read_all"
+    },
+    {
+      "endpoint": "main.read_notification",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/notifications/read/<int:id>"
+    },
+    {
+      "endpoint": "main.register",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/register"
+    },
+    {
+      "endpoint": "main.repair_car",
+      "methods": [
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/repair_car/<int:user_vehicle_id>"
+    },
+    {
+      "endpoint": "main.resend_confirmation",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
+      ],
+      "rule": "/resend_confirmation"
+    },
+    {
+      "endpoint": "main.restore_backup",
+      "methods": [
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/developer/backup/restore/<filename>"
+    },
+    {
+      "endpoint": "main.resurrection_requests",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
+      ],
+      "rule": "/developer/resurrection"
+    },
+    {
+      "endpoint": "main.search",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/search"
+    },
+    {
+      "endpoint": "main.sell_car",
+      "methods": [
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/sell_car/<int:user_vehicle_id>"
+    },
+    {
+      "endpoint": "main.send_message",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/messages/send"
+    },
+    {
+      "endpoint": "main.set_language",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
+      ],
+      "rule": "/set_language/<lang>"
+    },
+    {
+      "endpoint": "main.start_heist",
+      "methods": [
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/start_heist/<int:lobby_id>"
+    },
+    {
+      "endpoint": "main.story",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
+      ],
+      "rule": "/story"
+    },
+    {
+      "endpoint": "main.toggle_ready",
+      "methods": [
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/toggle_ready/<int:lobby_id>"
+    },
+    {
+      "endpoint": "main.tune_car",
+      "methods": [
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/tune_car/<int:user_vehicle_id>"
+    },
+    {
+      "endpoint": "main.unconfirmed",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
+      ],
+      "rule": "/unconfirmed"
+    },
+    {
+      "endpoint": "main.unequip_item",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
+      ],
+      "rule": "/unequip_item/<int:item_id>"
+    },
+    {
+      "endpoint": "main.unverified_users",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
+      ],
+      "rule": "/developer/unverified"
+    },
+    {
+      "endpoint": "main.view_message",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
+      ],
+      "rule": "/messages/view/<int:msg_id>"
+    },
+    {
+      "endpoint": "main.vite_client_noop",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
+      ],
+      "rule": "/@vite/client"
+    },
+    {
+      "endpoint": "market.buy",
+      "methods": [
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/market/buy/<int:asset_id>"
+    },
+    {
+      "endpoint": "market.buy_intel",
+      "methods": [
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/market/buy_intel"
+    },
+    {
+      "endpoint": "market.cancel_order",
+      "methods": [
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/market/spot/cancel/<int:order_id>"
+    },
+    {
+      "endpoint": "market.close_futures",
+      "methods": [
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/market/futures/close/<int:position_id>"
+    },
+    {
+      "endpoint": "market.guide",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
+      ],
+      "rule": "/market/guide"
+    },
+    {
+      "endpoint": "market.history",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
+      ],
+      "rule": "/market/history/<symbol>"
+    },
+    {
+      "endpoint": "market.index",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
+      ],
+      "rule": "/market/"
+    },
+    {
+      "endpoint": "market.open_futures",
+      "methods": [
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/market/futures/open/<int:asset_id>"
+    },
+    {
+      "endpoint": "market.place_order",
+      "methods": [
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/market/spot/order/<int:asset_id>"
+    },
+    {
+      "endpoint": "market.purchase_intel_report",
+      "methods": [
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/market/intel/buy"
+    },
+    {
+      "endpoint": "market.sell",
+      "methods": [
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/market/sell/<int:asset_id>"
+    },
+    {
+      "endpoint": "market.trade",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
+      ],
+      "rule": "/market/trade/<symbol>"
+    },
+    {
+      "endpoint": "marketasset.action_view",
+      "methods": [
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/admin/marketasset/action/"
+    },
+    {
+      "endpoint": "marketasset.ajax_lookup",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
+      ],
+      "rule": "/admin/marketasset/ajax/lookup/"
+    },
+    {
+      "endpoint": "marketasset.ajax_update",
+      "methods": [
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/admin/marketasset/ajax/update/"
+    },
+    {
+      "endpoint": "marketasset.create_view",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/admin/marketasset/new/"
+    },
+    {
+      "endpoint": "marketasset.delete_view",
+      "methods": [
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/admin/marketasset/delete/"
+    },
+    {
+      "endpoint": "marketasset.details_view",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
+      ],
+      "rule": "/admin/marketasset/details/"
+    },
+    {
+      "endpoint": "marketasset.edit_view",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/admin/marketasset/edit/"
+    },
+    {
+      "endpoint": "marketasset.export",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
+      ],
+      "rule": "/admin/marketasset/export/<export_type>/"
+    },
+    {
+      "endpoint": "marketasset.index_view",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
+      ],
+      "rule": "/admin/marketasset/"
+    },
+    {
+      "endpoint": "message.action_view",
+      "methods": [
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/admin/message/action/"
+    },
+    {
+      "endpoint": "message.ajax_lookup",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
+      ],
+      "rule": "/admin/message/ajax/lookup/"
+    },
+    {
+      "endpoint": "message.ajax_update",
+      "methods": [
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/admin/message/ajax/update/"
+    },
+    {
+      "endpoint": "message.create_view",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/admin/message/new/"
+    },
+    {
+      "endpoint": "message.delete_view",
+      "methods": [
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/admin/message/delete/"
+    },
+    {
+      "endpoint": "message.details_view",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
+      ],
+      "rule": "/admin/message/details/"
+    },
+    {
+      "endpoint": "message.edit_view",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/admin/message/edit/"
+    },
+    {
+      "endpoint": "message.export",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
+      ],
+      "rule": "/admin/message/export/<export_type>/"
+    },
+    {
+      "endpoint": "message.index_view",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
+      ],
+      "rule": "/admin/message/"
+    },
+    {
+      "endpoint": "news.detail",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
+      ],
+      "rule": "/news/<int:id>"
+    },
+    {
+      "endpoint": "news.index",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
+      ],
+      "rule": "/news/"
+    },
+    {
+      "endpoint": "organizedcrime.action_view",
+      "methods": [
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/admin/organizedcrime/action/"
+    },
+    {
+      "endpoint": "organizedcrime.ajax_lookup",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
+      ],
+      "rule": "/admin/organizedcrime/ajax/lookup/"
+    },
+    {
+      "endpoint": "organizedcrime.ajax_update",
+      "methods": [
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/admin/organizedcrime/ajax/update/"
+    },
+    {
+      "endpoint": "organizedcrime.create_view",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/admin/organizedcrime/new/"
+    },
+    {
+      "endpoint": "organizedcrime.delete_view",
+      "methods": [
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/admin/organizedcrime/delete/"
+    },
+    {
+      "endpoint": "organizedcrime.details_view",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
+      ],
+      "rule": "/admin/organizedcrime/details/"
+    },
+    {
+      "endpoint": "organizedcrime.edit_view",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/admin/organizedcrime/edit/"
+    },
+    {
+      "endpoint": "organizedcrime.export",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
+      ],
+      "rule": "/admin/organizedcrime/export/<export_type>/"
+    },
+    {
+      "endpoint": "organizedcrime.index_view",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
+      ],
+      "rule": "/admin/organizedcrime/"
+    },
+    {
+      "endpoint": "paymenttransaction.action_view",
+      "methods": [
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/admin/paymenttransaction/action/"
+    },
+    {
+      "endpoint": "paymenttransaction.ajax_lookup",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
+      ],
+      "rule": "/admin/paymenttransaction/ajax/lookup/"
+    },
+    {
+      "endpoint": "paymenttransaction.ajax_update",
+      "methods": [
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/admin/paymenttransaction/ajax/update/"
+    },
+    {
+      "endpoint": "paymenttransaction.create_view",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/admin/paymenttransaction/new/"
+    },
+    {
+      "endpoint": "paymenttransaction.delete_view",
+      "methods": [
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/admin/paymenttransaction/delete/"
+    },
+    {
+      "endpoint": "paymenttransaction.details_view",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
+      ],
+      "rule": "/admin/paymenttransaction/details/"
+    },
+    {
+      "endpoint": "paymenttransaction.edit_view",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/admin/paymenttransaction/edit/"
+    },
+    {
+      "endpoint": "paymenttransaction.export",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
+      ],
+      "rule": "/admin/paymenttransaction/export/<export_type>/"
+    },
+    {
+      "endpoint": "paymenttransaction.index_view",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
+      ],
+      "rule": "/admin/paymenttransaction/"
+    },
+    {
+      "endpoint": "police_chase.escape",
+      "methods": [
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/police_chase/escape/<method>"
+    },
+    {
+      "endpoint": "police_chase.index",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
+      ],
+      "rule": "/police_chase/"
+    },
+    {
+      "endpoint": "police_chase.start",
+      "methods": [
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/police_chase/start"
+    },
+    {
+      "endpoint": "racing.create",
+      "methods": [
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/casino/racing/create"
+    },
+    {
+      "endpoint": "racing.index",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
+      ],
+      "rule": "/casino/racing/"
+    },
+    {
+      "endpoint": "racing.join",
+      "methods": [
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/casino/racing/join/<int:race_id>"
+    },
+    {
+      "endpoint": "racing.room",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
+      ],
+      "rule": "/casino/racing/room/<int:race_id>"
+    },
+    {
+      "endpoint": "racing.start",
+      "methods": [
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/casino/racing/start/<int:race_id>"
+    },
+    {
+      "endpoint": "racing.train_driver",
+      "methods": [
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/casino/racing/train_driver"
+    },
+    {
+      "endpoint": "racing.upgrade_car",
+      "methods": [
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/casino/racing/upgrade_car/<part_type>"
+    },
+    {
+      "endpoint": "referral.action_view",
+      "methods": [
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/admin/referral/action/"
+    },
+    {
+      "endpoint": "referral.ajax_lookup",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
+      ],
+      "rule": "/admin/referral/ajax/lookup/"
+    },
+    {
+      "endpoint": "referral.ajax_update",
+      "methods": [
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/admin/referral/ajax/update/"
+    },
+    {
+      "endpoint": "referral.create_view",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/admin/referral/new/"
+    },
+    {
+      "endpoint": "referral.delete_view",
+      "methods": [
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/admin/referral/delete/"
+    },
+    {
+      "endpoint": "referral.details_view",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
+      ],
+      "rule": "/admin/referral/details/"
+    },
+    {
+      "endpoint": "referral.edit_view",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/admin/referral/edit/"
+    },
+    {
+      "endpoint": "referral.export",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
+      ],
+      "rule": "/admin/referral/export/<export_type>/"
+    },
+    {
+      "endpoint": "referral.index_view",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
+      ],
+      "rule": "/admin/referral/"
+    },
+    {
+      "endpoint": "ruby.chat",
+      "methods": [
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/hostesses/ruby/chat"
+    },
+    {
+      "endpoint": "sarah.chat",
+      "methods": [
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/hostesses/sarah/chat"
+    },
+    {
+      "endpoint": "spotorder.action_view",
+      "methods": [
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/admin/spotorder/action/"
+    },
+    {
+      "endpoint": "spotorder.ajax_lookup",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
+      ],
+      "rule": "/admin/spotorder/ajax/lookup/"
+    },
+    {
+      "endpoint": "spotorder.ajax_update",
+      "methods": [
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/admin/spotorder/ajax/update/"
+    },
+    {
+      "endpoint": "spotorder.create_view",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/admin/spotorder/new/"
+    },
+    {
+      "endpoint": "spotorder.delete_view",
+      "methods": [
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/admin/spotorder/delete/"
+    },
+    {
+      "endpoint": "spotorder.details_view",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
+      ],
+      "rule": "/admin/spotorder/details/"
+    },
+    {
+      "endpoint": "spotorder.edit_view",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/admin/spotorder/edit/"
+    },
+    {
+      "endpoint": "spotorder.export",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
+      ],
+      "rule": "/admin/spotorder/export/<export_type>/"
+    },
+    {
+      "endpoint": "spotorder.index_view",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
+      ],
+      "rule": "/admin/spotorder/"
+    },
+    {
+      "endpoint": "static",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
+      ],
+      "rule": "/static/<path:filename>"
+    },
+    {
+      "endpoint": "systemconfig.action_view",
+      "methods": [
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/admin/systemconfig/action/"
+    },
+    {
+      "endpoint": "systemconfig.ajax_lookup",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
+      ],
+      "rule": "/admin/systemconfig/ajax/lookup/"
+    },
+    {
+      "endpoint": "systemconfig.ajax_update",
+      "methods": [
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/admin/systemconfig/ajax/update/"
+    },
+    {
+      "endpoint": "systemconfig.create_view",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/admin/systemconfig/new/"
+    },
+    {
+      "endpoint": "systemconfig.delete_view",
+      "methods": [
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/admin/systemconfig/delete/"
+    },
+    {
+      "endpoint": "systemconfig.details_view",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
+      ],
+      "rule": "/admin/systemconfig/details/"
+    },
+    {
+      "endpoint": "systemconfig.edit_view",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/admin/systemconfig/edit/"
+    },
+    {
+      "endpoint": "systemconfig.export",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
+      ],
+      "rule": "/admin/systemconfig/export/<export_type>/"
+    },
+    {
+      "endpoint": "systemconfig.index_view",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
+      ],
+      "rule": "/admin/systemconfig/"
+    },
+    {
+      "endpoint": "travel.fly",
+      "methods": [
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/travel/fly/<int:location_id>"
+    },
+    {
+      "endpoint": "travel.index",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
+      ],
+      "rule": "/travel/"
+    },
+    {
+      "endpoint": "user.action_view",
+      "methods": [
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/admin/user/action/"
+    },
+    {
+      "endpoint": "user.ajax_lookup",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
+      ],
+      "rule": "/admin/user/ajax/lookup/"
+    },
+    {
+      "endpoint": "user.ajax_update",
+      "methods": [
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/admin/user/ajax/update/"
+    },
+    {
+      "endpoint": "user.create_view",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/admin/user/new/"
+    },
+    {
+      "endpoint": "user.delete_view",
+      "methods": [
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/admin/user/delete/"
+    },
+    {
+      "endpoint": "user.details_view",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
+      ],
+      "rule": "/admin/user/details/"
+    },
+    {
+      "endpoint": "user.edit_view",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/admin/user/edit/"
+    },
+    {
+      "endpoint": "user.export",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
+      ],
+      "rule": "/admin/user/export/<export_type>/"
+    },
+    {
+      "endpoint": "user.index_view",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
+      ],
+      "rule": "/admin/user/"
+    },
+    {
+      "endpoint": "userinvestment.action_view",
+      "methods": [
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/admin/userinvestment/action/"
+    },
+    {
+      "endpoint": "userinvestment.ajax_lookup",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
+      ],
+      "rule": "/admin/userinvestment/ajax/lookup/"
+    },
+    {
+      "endpoint": "userinvestment.ajax_update",
+      "methods": [
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/admin/userinvestment/ajax/update/"
+    },
+    {
+      "endpoint": "userinvestment.create_view",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/admin/userinvestment/new/"
+    },
+    {
+      "endpoint": "userinvestment.delete_view",
+      "methods": [
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/admin/userinvestment/delete/"
+    },
+    {
+      "endpoint": "userinvestment.details_view",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
+      ],
+      "rule": "/admin/userinvestment/details/"
+    },
+    {
+      "endpoint": "userinvestment.edit_view",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/admin/userinvestment/edit/"
+    },
+    {
+      "endpoint": "userinvestment.export",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
+      ],
+      "rule": "/admin/userinvestment/export/<export_type>/"
+    },
+    {
+      "endpoint": "userinvestment.index_view",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
+      ],
+      "rule": "/admin/userinvestment/"
+    },
+    {
+      "endpoint": "useritem.action_view",
+      "methods": [
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/admin/useritem/action/"
+    },
+    {
+      "endpoint": "useritem.ajax_lookup",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
+      ],
+      "rule": "/admin/useritem/ajax/lookup/"
+    },
+    {
+      "endpoint": "useritem.ajax_update",
+      "methods": [
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/admin/useritem/ajax/update/"
+    },
+    {
+      "endpoint": "useritem.create_view",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/admin/useritem/new/"
+    },
+    {
+      "endpoint": "useritem.delete_view",
+      "methods": [
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/admin/useritem/delete/"
+    },
+    {
+      "endpoint": "useritem.details_view",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
+      ],
+      "rule": "/admin/useritem/details/"
+    },
+    {
+      "endpoint": "useritem.edit_view",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/admin/useritem/edit/"
+    },
+    {
+      "endpoint": "useritem.export",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
+      ],
+      "rule": "/admin/useritem/export/<export_type>/"
+    },
+    {
+      "endpoint": "useritem.index_view",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
+      ],
+      "rule": "/admin/useritem/"
+    },
+    {
+      "endpoint": "userrank.action_view",
+      "methods": [
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/admin/userrank/action/"
+    },
+    {
+      "endpoint": "userrank.ajax_lookup",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
+      ],
+      "rule": "/admin/userrank/ajax/lookup/"
+    },
+    {
+      "endpoint": "userrank.ajax_update",
+      "methods": [
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/admin/userrank/ajax/update/"
+    },
+    {
+      "endpoint": "userrank.create_view",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/admin/userrank/new/"
+    },
+    {
+      "endpoint": "userrank.delete_view",
+      "methods": [
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/admin/userrank/delete/"
+    },
+    {
+      "endpoint": "userrank.details_view",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
+      ],
+      "rule": "/admin/userrank/details/"
+    },
+    {
+      "endpoint": "userrank.edit_view",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/admin/userrank/edit/"
+    },
+    {
+      "endpoint": "userrank.export",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
+      ],
+      "rule": "/admin/userrank/export/<export_type>/"
+    },
+    {
+      "endpoint": "userrank.index_view",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
+      ],
+      "rule": "/admin/userrank/"
+    },
+    {
+      "endpoint": "uservehicle.action_view",
+      "methods": [
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/admin/uservehicle/action/"
+    },
+    {
+      "endpoint": "uservehicle.ajax_lookup",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
+      ],
+      "rule": "/admin/uservehicle/ajax/lookup/"
+    },
+    {
+      "endpoint": "uservehicle.ajax_update",
+      "methods": [
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/admin/uservehicle/ajax/update/"
+    },
+    {
+      "endpoint": "uservehicle.create_view",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/admin/uservehicle/new/"
+    },
+    {
+      "endpoint": "uservehicle.delete_view",
+      "methods": [
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/admin/uservehicle/delete/"
+    },
+    {
+      "endpoint": "uservehicle.details_view",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
+      ],
+      "rule": "/admin/uservehicle/details/"
+    },
+    {
+      "endpoint": "uservehicle.edit_view",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/admin/uservehicle/edit/"
+    },
+    {
+      "endpoint": "uservehicle.export",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
+      ],
+      "rule": "/admin/uservehicle/export/<export_type>/"
+    },
+    {
+      "endpoint": "uservehicle.index_view",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
+      ],
+      "rule": "/admin/uservehicle/"
+    },
+    {
+      "endpoint": "vehicle.action_view",
+      "methods": [
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/admin/vehicle/action/"
+    },
+    {
+      "endpoint": "vehicle.ajax_lookup",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
+      ],
+      "rule": "/admin/vehicle/ajax/lookup/"
+    },
+    {
+      "endpoint": "vehicle.ajax_update",
+      "methods": [
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/admin/vehicle/ajax/update/"
+    },
+    {
+      "endpoint": "vehicle.create_view",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/admin/vehicle/new/"
+    },
+    {
+      "endpoint": "vehicle.delete_view",
+      "methods": [
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/admin/vehicle/delete/"
+    },
+    {
+      "endpoint": "vehicle.details_view",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
+      ],
+      "rule": "/admin/vehicle/details/"
+    },
+    {
+      "endpoint": "vehicle.edit_view",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/admin/vehicle/edit/"
+    },
+    {
+      "endpoint": "vehicle.export",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
+      ],
+      "rule": "/admin/vehicle/export/<export_type>/"
+    },
+    {
+      "endpoint": "vehicle.index_view",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
+      ],
+      "rule": "/admin/vehicle/"
+    },
+    {
+      "endpoint": "weeklywinner.action_view",
+      "methods": [
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/admin/weeklywinner/action/"
+    },
+    {
+      "endpoint": "weeklywinner.ajax_lookup",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
+      ],
+      "rule": "/admin/weeklywinner/ajax/lookup/"
+    },
+    {
+      "endpoint": "weeklywinner.ajax_update",
+      "methods": [
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/admin/weeklywinner/ajax/update/"
+    },
+    {
+      "endpoint": "weeklywinner.create_view",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/admin/weeklywinner/new/"
+    },
+    {
+      "endpoint": "weeklywinner.delete_view",
+      "methods": [
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/admin/weeklywinner/delete/"
+    },
+    {
+      "endpoint": "weeklywinner.details_view",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
+      ],
+      "rule": "/admin/weeklywinner/details/"
+    },
+    {
+      "endpoint": "weeklywinner.edit_view",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS",
+        "POST"
+      ],
+      "rule": "/admin/weeklywinner/edit/"
+    },
+    {
+      "endpoint": "weeklywinner.export",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
+      ],
+      "rule": "/admin/weeklywinner/export/<export_type>/"
+    },
+    {
+      "endpoint": "weeklywinner.index_view",
+      "methods": [
+        "GET",
+        "HEAD",
+        "OPTIONS"
+      ],
+      "rule": "/admin/weeklywinner/"
+    }
+  ],
+  "templates": {
+    "all_strings": {
+      "General": [
+        "، وتخسر العصابة جزءاً من خبرتها. فكر جيداً قبل الضم أو الطرد",
+        "، وسافر لمدينة أخرى لبيعها بسعر أعلى. احذر من الشرطة",
+        "آخر الأخبار",
+        "آخر التقارير",
+        "آخر معركة",
+        "أخبار الساحة",
+        "أخبار عاجلة",
+        "أخضر",
+        "أخطر عصابة",
+        "أداء المعارك",
+        "أدخل اسم الضحية",
+        "أدخل اسم المستخدم",
+        "أدخل اسم الهدف",
+        "أدخل المبلغ",
+        "أرض الأبطال",
+        "أسئلة شائعة",
+        "أسطولك الخاص للسيطرة على الشوارع",
+        "أسعار متغيرة",
+        "أسياد الشوارع",
+        "أصلح السيارة أولاً",
+        "أعضاء",
+        "أقوى الزعماء",
+        "أقوى لاعب",
+        "أماكن الحارة",
+        "أمان وراحة بال",
+        "أنا جاهز",
+        "أنت حر طليق",
+        "أنت مسجون",
+        "أنجز المهام واحصل على مكافآت قيمة",
+        "أهلاً بك في الجانب المظلم. البضاعة هنا مميزة ولكن الأسعار نار",
+        "أهلاً بك يا بطل! أنا هنا لمساعدتك. هل لديك أي استفسار عن اللعبة؟",
+        "أو اختر من القائمة",
+        "أو تدخل المطور",
+        "إجراءات",
+        "إجمالي اللاعبين",
+        "إحصائيات اللعبة",
+        "إحياء الآن بالماس",
+        "إخفاء هويتك",
+        "إخلاء مسؤولية",
+        "إدارة",
+        "إدارة المزارع والعقود",
+        "إدارة: م. أحمد غنام",
+        "إذا لم تجد الرسالة، تحقق من مجلد الرسائل المزعجة",
+        "إذا هربت ستكسب المال والخبرة، ولكن إذا قُبض عليك ستذهب للسجن",
+        "إذا واجهتك مشكلة أو تحتاج استثناء، ارسل طلب للمطور",
+        "إرسال",
+        "إرسال المخبر",
+        "إرسال دعوات لجميع اللاعبين",
+        "إرسال رسالة",
+        "إرسال رسالة جديدة",
+        "إصلاح",
+        "إصلاح السيارة",
+        "إصلاح الكل",
+        "إصلاح المسروقات",
+        "إعادة إرسال رابط التفعيل",
+        "إلغاء",
+        "إلغاء الجاهزية",
+        "إلى اللاعب",
+        "إمبراطوريتك",
+        "إمبراطوريتك العقارية",
+        "إنتاج",
+        "إنشاء حساب جديد",
+        "إنشاء رسالة",
+        "إنشاء مجموعة",
+        "إنشاء مجموعة يتطلب الوصول إلى رتبة",
+        "إنهاء فوري بالماس",
+        "إيداع",
+        "ابحث عن أصدقائك أو أعدائك بالاسم",
+        "ابحث عن العصابات للانضمام إليها أو استهدافها. النتائج تشمل اسم العصابة، قائدها، ومستواها",
+        "ابدأ المراقبة",
+        "ابدأ المطاردة",
+        "ابدأ تشغيل",
+        "ابدأ لعبة جديدة",
+        "ابدأ مشروعك الخاص",
+        "ابعث الرابط لصحابك واربح 50 ماسة",
+        "اجتماعي وحالة",
+        "اجمع الثروة",
+        "اجمع معلومات سرية عن لاعب آخر. اعرف قوته، فلوسه، ومستواه",
+        "اختر العملية",
+        "اختر دوراً للانضمام للفريق",
+        "اختر صورة",
+        "اختر ما يليق بمكانتك في العالم السفلي",
+        "اختر مدينة",
+        "اختر وسيلة الهرب بسرعة قبل أن يمسكوا بك",
+        "اختراق نظام البنك",
+        "اخترق حساب بنكي للاعب واسرق نسبة من أمواله",
+        "ادخل العالم",
+        "ادعمنا واشتري ماس لتصير أقوى",
+        "اذهب للسوق السوداء للبيع",
+        "اذهب للمصانع",
+        "اربح",
+        "ارفع مستواك لفتح هذا القسم",
+        "ازرع",
+        "استأجر مخبراً للتجسس على لاعب آخر. ستحصل على تقرير يتضمن موقعه، صحته، والذخيرة اللازمة للقضاء عليه",
+        "استئجار الآن",
+        "استثمر أموالك وسيطر على المدينة",
+        "استثمر في قوتك وسيطر على العالم السفلي",
+        "استثمر في مشروع تقني جاهز وابدأ بجني الأرباح من اليوم الأول",
+        "استعادة 50 نقطة طاقة",
+        "استعادة الصحة",
+        "استعادة الطاقة",
+        "استلام الإنتاج",
+        "استلام الدور",
+        "استلام الشحنة",
+        "استلام المكافأة",
+        "استلم اليومية",
+        "اسم الضحية",
+        "اسم اللاعب",
+        "اسم اللاعب الهدف",
+        "اسم المستخدم",
+        "اشتري عدة",
+        "اصنع مجدك... أو مُت وأنت تحاول",
+        "اقتصاد وأصول",
+        "اقرأ المزيد",
+        "اكتب اسم اللاعب هنا",
+        "اكتب الرمز الظاهر في الصورة",
+        "اكتب رسالتك هنا",
+        "الأخبار",
+        "الأدوار",
+        "الأسعار الحقيقية",
+        "الأسلحة",
+        "الأسلحة المهربة",
+        "الأعضاء",
+        "الأعلى مستوى",
+        "الأغنى",
+        "الأموال المتداولة",
+        "الإحصائيات",
+        "الإحصائيات والطاقة",
+        "الإشعارات",
+        "الإنشاء",
+        "الاختباء",
+        "الاستفادة من العقد في السوق السوداء",
+        "الاسم",
+        "الانتظار: يتم استعادة جزء من طاقتك تلقائياً مع الوقت",
+        "الانسحاب يسبب خسائر",
+        "البحث عن لاعبين",
+        "البريد الصادر",
+        "البريد الوارد",
+        "البقاء للأقوى... لا مكان للضعفاء هنا",
+        "البنك",
+        "البنك أمان، خبي قروشك واستثمر لليوم الأسود",
+        "البنك الوطني",
+        "البورصة",
+        "البيع",
+        "التاريخ",
+        "التالي",
+        "التحالفات",
+        "التشغيل",
+        "التطوير القادم",
+        "التفاصيل",
+        "التقدم",
+        "التكلفة",
+        "التكلفة المالية",
+        "التكلفة والوقت يعتمدان على مستواك ومستوى الهدف. التكلفة المبدئية",
+        "الثروة",
+        "الجائزة",
+        "الجرائم",
+        "الجرائم المنظمة",
+        "الجرائم المنظمة العامة",
+        "الجرائم المنظمة العامة غير مفعلة حالياً من قبل الإدارة",
+        "الجرائم هي المصدر الرئيسي للمال والخبرة. تعتمد نسبة نجاح الجريمة على عدة عوامل",
+        "الجنسية",
+        "الجيم",
+        "الحارة",
+        "الحالة",
+        "الحجم الأقصى 2 ميجابايت. الصيغ المدعومة",
+        "الحرارة",
+        "الحرب الاقتصادية",
+        "الحرب ليست مجرد قتال شوارع. هناك عدة أنواع",
+        "الحروب الحديثة",
+        "الحساب غير مفعل",
+        "الحظ",
+        "الحقيبة فاضية",
+        "الخبرة",
+        "الخطر",
+        "الخفة",
+        "الخفة المطلوبة",
+        "الخيار لك.. والموت يتربص بك عند كل زاوية",
+        "الدخل اليومي",
+        "الدروع",
+        "الدفاع",
+        "الدور",
+        "الدولة",
+        "الذخيرة تُنتج داخل المصانع من سبائك المعدن وتُشغّل بالماس",
+        "الذكاء",
+        "الذكاء المطلوب",
+        "الذهاب إلى المصانع",
+        "الذهاب لسوق العقارات",
+        "الذهاب للسوق",
+        "الذهاب للمعرض",
+        "الذهاب للنادي",
+        "الذي يهابه الجميع؟",
+        "الرئيسية",
+        "الرتب",
+        "الرتبة",
+        "الرسائل",
+        "الرشاقة",
+        "الرهان",
+        "الزعيم",
+        "الزيادة",
+        "السابق",
+        "الساحة هادئة... بشكل مريب",
+        "السجن",
+        "السجن المركزي",
+        "السجن فارغ تماماً",
+        "السجن للرجال، زور الشباب أو هربهم",
+        "السرعة",
+        "السفر",
+        "السمعة",
+        "السوق السوداء",
+        "السوق المالي هو المكان الأمثل لغسيل أموالك غير الشرعية واستثمارها في شركات عالمية حقيقية",
+        "السوق نايم اليوم، ارجع بعدين",
+        "السوق يرتفع وينخفض. اشترِ عند الانخفاض وبع عند الارتفاع",
+        "السيارة مشغولة",
+        "الشارع إلك، والقرار قرارك.. فرجينا شو طالع بإيدك اليوم",
+        "الشارع لا يرحم الضعفاء",
+        "الشارع هادئ... لا توجد مكافآت حالياً",
+        "الشجاعة",
+        "الشرطة تبحث عنك",
+        "الشرطة تقوم بعمل سيء، أو أن المجرمين أصبحوا أذكياء",
+        "الشرطة تلاحقك! هل تعتقد أنك سائق محترف وتستطيع الهرب؟",
+        "الشرطة خلفك! ماذا ستفعل؟",
+        "الصحة",
+        "الصنف",
+        "الطاقة",
+        "الطاقة الحالية",
+        "الطاقة والصحة",
+        "العب الآن",
+        "العدد",
+        "العدد غير مكتمل",
+        "العراب",
+        "العربية",
+        "العصابات",
+        "العصابة",
+        "العملية",
+        "العودة لتسجيل الدخول",
+        "الغنيمة",
+        "الفائز",
+        "الفلوس بتجيب فلوس، روح اشتريلك كم عقار واستثمر",
+        "القائد",
+        "القائمة الذهبية لأقوى اللاعبين في المدينة",
+        "القتال التقليدي بالأسلحة",
+        "القدرات القتالية",
+        "القصة: صراع البقاء",
+        "القوة",
+        "القوة المطلوبة",
+        "القيمة السوقية",
+        "الكازينو",
+        "الكاش",
+        "الكاش في جيبك",
+        "الكراج",
+        "الكراج فاضي",
+        "الكمية",
+        "الكمية المستهدفة",
+        "اللاعب",
+        "اللاعبين",
+        "اللعب الجماعي هو مفتاح السيطرة. يمكنك إنشاء عصابة أو الانضمام لواحدة",
+        "اللعبة مُصممة للترفيه فقط ولا تشجع على أي سلوك غير قانوني. يُحظر تطبيق محتواها في الواقع",
+        "الماس",
+        "المال",
+        "المال، السلاح، والاحترام",
+        "المبلغ للإيداع",
+        "المبلغ للسحب",
+        "المتصدرين",
+        "المتطلبات",
+        "المتوفر",
+        "المحافظ الإلكترونية",
+        "المخاطرة",
+        "المخزن فاضي! جيب مسروقات عشان نصهرها",
+        "المخزون",
+        "المخزون فارغ حالياً",
+        "المدينة الحالية",
+        "المرآب وإصلاح السيارات",
+        "المزارع",
+        "المستشفى",
+        "المستشفى للمجاريح، تعالج وارجع أقوى",
+        "المستوى",
+        "المستوى الصناعي",
+        "المشاركون",
+        "المشاريع والمرافق",
+        "المصانع",
+        "المصانع الحربية",
+        "المطلوب",
+        "المعادلة",
+        "المعلومات الحساسة",
+        "المعلومات هي القوة. تجسس على أعدائك أو اخترق حساباتهم",
+        "المكافآت",
+        "المكافآت اليومية",
+        "المكافأة",
+        "المكافأة المتوقعة",
+        "المكان الأكثر أماناً لأموالك.. ربما",
+        "الملف الشخصي",
+        "المنتدى",
+        "المهام اليومية",
+        "المهمة",
+        "المواجهة",
+        "المواد",
+        "المواد الخام",
+        "الموضوع",
+        "النادي الرياضي",
+        "النشاط الحديث",
+        "النظام معطل",
+        "الهجمات السيبرانية",
+        "الهدنة",
+        "الهروب",
+        "الوجهة",
+        "الوقت المتبقي",
+        "امتلك المشروع بالكامل",
+        "انتج",
+        "انتظار",
+        "انسحاب",
+        "انضم إلينا",
+        "بالساعات",
+        "بحاجة لإصلاح",
+        "بحث",
+        "بحث العصابات",
+        "بحث اللاعبين",
+        "بدء الإنتاج",
+        "بدء العملية",
+        "بدء الهجوم السيبراني",
+        "بدأت رحلتك كشاب طموح يبحث عن لقمة العيش، لكن الظروف قادتك إلى عالم الجريمة المظلم",
+        "بروفايل",
+        "بضائع التهريب",
+        "بطاقات الموزع",
+        "بطاقاتك",
+        "بلاك جاك",
+        "بلطجي",
+        "بنجاح",
+        "بنك فلسطين الدولي",
+        "بواسطة",
+        "بورصة الغسيل",
+        "بورصة غسيل الأموال",
+        "بيع",
+        "بيع السيارة",
+        "بيع المسروقات",
+        "بيع قطعة واحدة",
+        "تأكيد كلمة المرور",
+        "تابع",
+        "تابع آخر التحديثات والأحداث في المدينة",
+        "تاجر، اشتري عقارات، واجمع الشواكل والماس لتصبح الأغنى",
+        "تاريخ التسجيل",
+        "تبرع للمشروع",
+        "تتغير الأسعار كل ساعة حسب المدينة",
+        "تتناقص عند التعرض للهجوم أو الفشل في الجرائم الخطرة. إذا وصلت للصفر تدخل المستشفى",
+        "تجارة المخدرات والأسلحة للسيطرة على السوق السوداء",
+        "تجسس",
+        "تجسس على خصومك وقرصن حساباتهم البنكية",
+        "تجهيز",
+        "تحالف مع أصدقائك وادخل في حروب عصابات طاحنة",
+        "تحتاج تصليح بالمرآب",
+        "تحتاجها لتنفيذ الجرائم. يمكنك استعادة الطاقة عبر",
+        "تحدث معي",
+        "تحدى الموزع واكسب الذهب",
+        "تحديث",
+        "تحديد الكل",
+        "تحديد الكل كمقروء",
+        "تحديد حد أدنى للمستوى",
+        "تحكم العصابات",
+        "تحكم القائد",
+        "تخطي المقدمة",
+        "تدريب",
+        "تدمير استثمارات العدو في البورصة وانهيار أسهمهم",
+        "ترقيات دائمة بالماس: تقلل وقت الإنتاج وتزيد فرصة الإنتاج النادر",
+        "ترقية مستواك",
+        "تزيد فرصة المراوغة والهروب",
+        "تزيد من ضرر هجماتك",
+        "تسجيل الخروج",
+        "تسجيل الدخول",
+        "تسريع بالماس",
+        "تسييل المحفظة",
+        "تصليح",
+        "تصلّحها وتبيعها بالسوق السوداء",
+        "تطوير بالماس",
+        "تطوير ودعم",
+        "تعبئة كاملة",
+        "تعتمد على",
+        "تعديل المحرك سيكلفك",
+        "تعديل الملف الشخصي",
+        "تعديل وتزويد",
+        "تعرض لهجوم من",
+        "تغيير الرمز",
+        "تغيير الصورة",
+        "تغيير الصورة الشخصية",
+        "تغيير المدينة لتحسين الأسعار",
+        "تفعيل عقد بالماس",
+        "تفعيل هنا",
+        "تقدم الرتبة",
+        "تقدم المستوى",
+        "تقرير استخباراتي سري",
+        "تقرير العملية",
+        "تقلل من الضرر المتلقى",
+        "تكلفة الإحياء",
+        "تكلفة الإصلاح تعتمد على الضرر. هل أنت متأكد؟",
+        "تكلفة العلاج الكامل",
+        "تم الجمع - انتظر للغد",
+        "تم النسخ",
+        "تم حرق هذا التقرير بعد القراءة. المعلومات قد تتغير في أي لحظة",
+        "تم نسخ الـ",
+        "تمديد",
+        "تمديد الفترة",
+        "تمرين جاري",
+        "تنبيه: قتل الأعضاء الكبار",
+        "تنويه",
+        "تهدئة الحرارة",
+        "تهريب",
+        "تواجه مشكلة في التفعيل؟ يمكنك التواصل مع المطور لتفعيل حسابك يدوياً",
+        "تواصل عبر واتساب",
+        "تواصل لامتلاك المنصة",
+        "تواصل معنا",
+        "تواصل وتأكيد عبر واتساب",
+        "توزع المكافآت والخبرة وفق المساهمة والنجاح الجماعي",
+        "توزيع الأدوار",
+        "توزيع الأدوار بين المشاركين",
+        "توقف",
+        "ثانية",
+        "ج: اللاعبون الآخرون هم أشخاص حقيقيون. أما الشرطة وحراس الأمن في الجرائم فهم نظام اللعبة",
+        "ج: قم بإيداع أموالك في البنك، اشتري أسلحة ودروع قوية، وانضم لعصابة قوية",
+        "ج: نعم، يمكنك استعادة طاقتك تلقائياً مع الوقت، أو شراء مشروبات طاقة من المستشفى والسوق السوداء مقابل المال داخل اللعبة",
+        "جاري الإصلاح",
+        "جاري العمل",
+        "جاهز",
+        "جدول الرحلات المغادرة",
+        "جديد",
+        "جريمة مقفولة",
+        "جمع الدخل",
+        "جميع الحقوق محفوظة",
+        "جندي عصابة",
+        "جوال باي",
+        "حالة",
+        "حالتك",
+        "حالتك الصحية",
+        "حاول أن تبقى بعيداً عن المشاكل... أو لا، الخيار لك",
+        "حاول الوصول إلى 21 دون تجاوزها",
+        "حتى الحرية",
+        "حجز",
+        "حد إنشاء",
+        "حدث في السوق السوداء",
+        "حديدك يقويك، عشان ما توكل قتلة بالحارة",
+        "حذف",
+        "حذف المحدد",
+        "حرارتك",
+        "حرب الشوارع",
+        "حقوق الاستخدام والتعديل",
+        "حقيبة الأغراض",
+        "حل تقني جاهز",
+        "حول خردة السيارات والمسروقات إلى سبائك معدنية ثمينة",
+        "خاطر بحياتك من أجل المال والسلطة",
+        "خدمة مقفولة",
+        "خزينة العصابة لا تكفي",
+        "خسر",
+        "خط إنتاج الرصاص",
+        "خط إنتاج المتفجرات",
+        "خطر",
+        "خطر! الشرطة تبحث عنك",
+        "خفة",
+        "خفض حرارة الشرطة عندك فوراً. السعر يتغير حسب حرارتك الحالية",
+        "خليك نشيط باللعبة لتدخل السحب. كل أسبوع فائز جديد",
+        "دائماً هناك عنصر الحظ العشوائي، حتى المحترفين قد يفشلون أحياناً",
+        "دخول",
+        "دراسة",
+        "دروع ثقيلة",
+        "دفاع",
+        "دفع الفدية",
+        "دفع الفدية لإزالة المكافأة",
+        "دفع رشوة",
+        "دقيقة",
+        "دليل اللعبة",
+        "دليل اللعبة والاستخدام",
+        "دليل عصابات فلسطين",
+        "ذئب وحيد",
+        "ذخيرة حية",
+        "ذكاء الهدف",
+        "ذكائك",
+        "رتبة غير كافية",
+        "رتبتك الزراعية",
+        "رجوع",
+        "رخصة تشغيل تجارية شاملة",
+        "رخيص وقوي بس خطر",
+        "رد",
+        "رسالة جديدة",
+        "رشاقة",
+        "رشوة",
+        "رصاص",
+        "رصاص للمسدسات والرشاشات. السعر",
+        "رصاصة",
+        "رصيد البنك",
+        "رصيدك الحالي",
+        "رفع",
+        "رفع صورة جديدة",
+        "رقم التواصل",
+        "رقم الحساب",
+        "رقم الرحلة",
+        "رقم المحفظة",
+        "رمز التحقق البشري",
+        "روابط سريعة",
+        "زعماء أو مستوى",
+        "زعيم",
+        "زمن الإنتاج",
+        "زيادة البيع",
+        "س: كيف أحمي نفسي من الهجمات؟",
+        "س: هل ألعب ضد ذكاء اصطناعي؟",
+        "س: هل يمكنني شراء طاقة؟",
+        "ساحة القتال",
+        "ساعدنا في تطوير اللعبة لتبقى الأفضل",
+        "سبائك معدن",
+        "سبيكة",
+        "ستريك",
+        "سجل الآن",
+        "سجل العمليات",
+        "سجل العمليات السابقة",
+        "سجل دخولك",
+        "سجين",
+        "سحب",
+        "سحب الـ 100 دولار الأسبوعي",
+        "سعر البيع",
+        "سعر السوق",
+        "سوق البلد",
+        "سوق البلد مليان، سلاح وعدة وأكل يقويك",
+        "سوق العقارات",
+        "سوي شلة، أو انضم للكبار وسيطروا عالبلد",
+        "سيارات قانونية",
+        "سيارات مشطوبة",
+        "سيارة مسروقة",
+        "سياسات التجنيد",
+        "سيتم توفيره قريباً - تواصل معنا",
+        "سيطر",
+        "شاغر",
+        "شاهد العرض",
+        "شبكة التهريب",
+        "شبكة المواصلات",
+        "شجاعة",
+        "شراء",
+        "شراء آمن",
+        "شراء الآن",
+        "شراء الماس",
+        "شراء ثقيل",
+        "شراء ذخيرة",
+        "شراء سيارة جديدة",
+        "شراء شخصي",
+        "شراء عقار جديد",
+        "شراء قناع",
+        "شراء للعصابة",
+        "شراء ماس",
+        "شراء مشروبات طاقة من المستشفى أو السوق السوداء",
+        "شراء مهرب",
+        "شركة أزاد للأنظمة الذكية",
+        "شكراً لدعمك",
+        "شكلك ماشي ع رجليك يا زعيم. روح اشتريلك سيارة تحفظ هيبتك",
+        "شمر عن ذراعك، نفذ عمليات، وعبي جيبتك",
+        "شير واربح",
+        "شيكل",
+        "صحة",
+        "صحتك الحالية",
+        "صحتك تمام",
+        "صلاحية الدعوات ساعة ويمكن تجديدها إن لم يكتمل الفريق",
+        "صهر",
+        "ضد",
+        "طاقة",
+        "طاقتك",
+        "طرد",
+        "طرد الأعضاء ليس سهلاً! يكلف خزينة العصابة مبلغاً من المال كـ",
+        "طريقة الانضمام",
+        "طلب مساعدة من المطور",
+        "طلبك قيد المراجعة... يرجى الانتظار",
+        "طور مرافقك لفتح العقد",
+        "طور مرافقك لفتح عقد التوريد",
+        "طور مهاراتك القتالية والجسدية",
+        "طور نفسك لفتحها",
+        "عالج الآن",
+        "عالج جروحك واستعد طاقتك",
+        "عالم الجريمة",
+        "عالية",
+        "عالية جداً",
+        "عدتك وسلاحك، جاهز للطوشة؟",
+        "عدد المهام التاريخية",
+        "عرض",
+        "عرض صفحة العصابة",
+        "عش حياة الجريمة، وسيطر على الشوارع، وكن الزعيم الأقوى في فلسطين. اللعبة الاستراتيجية الأولى من نوعها التي تجمع بين الإثارة والتحدي",
+        "عصابات فلسطين",
+        "عصابات فلسطين - منصة",
+        "عصابات فلسطين هي لعبة استراتيجية نصية تتيح لك عيش حياة الجريمة المنظمة. تبدأ كلص صغير وتشق طريقك لتصبح",
+        "عضو نشط في هذه العصابة",
+        "عقاراتي المملوكة",
+        "عقد توريد",
+        "عقد نشط في مدينة",
+        "عقود التوريد الزراعي",
+        "علاج الجروح",
+        "على مسؤوليتك",
+        "عليك الانتظار حتى انتهاء التمرين الحالي لتتمكن من التدريب مجدداً",
+        "عمليات",
+        "عمليات فريق",
+        "عملية جارية",
+        "عملية كبرى ضد البنك المركزي. المخاطرة جنونية ولكن المكسب خيالي",
+        "عملية مقفولة",
+        "عن اللعبة",
+        "عنصر استهلاكي",
+        "عنوان الرسالة",
+        "عودة",
+        "عودة للأخبار",
+        "عودة للبريد",
+        "عودة للحارة",
+        "عودة للقائمة",
+        "عودة للملف الشخصي",
+        "عودة لمركز الاستخبارات",
+        "غرفة التخطيط",
+        "غير جاهز",
+        "غير متاح",
+        "غير معروف",
+        "غير نشط",
+        "فاز",
+        "فاشلة",
+        "فتح السوق السوداء",
+        "فرصة النادر",
+        "فرن الصهر",
+        "فشل",
+        "فلسطين",
+        "فوائد العصابة تشمل الحماية من الهجمات الفردية، المشاركة في الجرائم المنظمة",
+        "في أزقة المخيمات وشوارع المدن القديمة، حيث القانون هو قانون القوة",
+        "في الظل",
+        "في الكراج",
+        "في حال الفشل، قد تخسر الطاقة فقط، أو قد ينتهي بك المطاف في السجن",
+        "قائد، سائق، مخترق، مراقب",
+        "قائمة المساجين",
+        "قائمة المطلوبين",
+        "قاتل مأجور",
+        "قام بمهاجمة",
+        "قبل التحويل",
+        "قد يتم كشفك",
+        "قرصنة",
+        "قرصنة البنك المركزي",
+        "قم بالجرائم، وسيطر على مناطق جديدة في القدس ورام الله ونابلس",
+        "قناع التخفي",
+        "قوة",
+        "قيادة هذه السيارة",
+        "كابتن",
+        "كازينو بلاك جاك",
+        "كاش",
+        "كاش أسبوعياً",
+        "كراج السيارات",
+        "كراجك وسيارتك، دير بالك عليهم",
+        "كفالة",
+        "كل بضع دقائق",
+        "كل جريمة منظمة لها وقت هدنة",
+        "كل ما تحتاج معرفته لتصبح العراب",
+        "كل ما تحتاجه للسيطرة على الشارع، متوفر هنا... بالسعر المناسب",
+        "كلشي ممنوع مرغوب، بس فتح عينك",
+        "كلما زاد المستوى زادت التحديات",
+        "كلما زاد مستواك مقارنة بمستوى الجريمة، زادت فرصتك في النجاح",
+        "كلما زاد مستواك، حصلت على لقب جديد يعكس هيبتك في الحارة",
+        "كلمة المرور",
+        "كون تحالفات وسيطر على المناطق لتصبح الزعيم",
+        "كوّن عصابتك",
+        "كيف تعمل الجرائم؟",
+        "لا تطلع عالحارة وإيديك فاضية، الناس بتوكل وجهك",
+        "لا تملك ألماس كافٍ",
+        "لا تملك ألماس كافٍ حالياً",
+        "لا تملك المال الكافي",
+        "لا تملك حالياً أي بضائع تهريب في المخزون",
+        "لا تملك طاقة كافية",
+        "لا توجد أخبار حالياً",
+        "لا توجد صور رمزية متاحة حالياً. يرجى مراجعة الإدارة",
+        "لا توجد عقارات متاحة حالياً",
+        "لا توجد عقود نشطة حالياً",
+        "لا توجد منشطات متاحة حالياً",
+        "لا توجد مهام متاحة حالياً",
+        "لا توجد مهمة مصنع نشطة حالياً",
+        "لا توجد نشاطات حديثة",
+        "لا ينتمي لأي عصابة",
+        "لا يوجد",
+        "لا يوجد أحد لقتاله حالياً، استغل الوقت في التدريب",
+        "لا يوجد أسلحة مهربة متاحة حالياً",
+        "لا يوجد إشعارات جديدة",
+        "لا يوجد بضائع مهربة حالياً",
+        "لا يوجد دروع ثقيلة متاحة حالياً",
+        "لا يوجد رسائل",
+        "لا يوجد سجل عمليات حتى الآن",
+        "لا يوجد لاعبين في القائمة حالياً",
+        "لائحة المطلوبين",
+        "لاعب نشط",
+        "لديك حالياً",
+        "لديك حساب بالفعل؟",
+        "لص",
+        "لعب مرة أخرى",
+        "لعبة العصابات الفلسطينية الأولى - سيطر على الحارة، جمع الشواكل، وكن الزعيم",
+        "لف البلاد، من القدس لغزة ونابلس",
+        "لقد انتهت رحلتك هنا... لا عودة للحياة إلا بمعجزة",
+        "لقد تم القبض عليك أثناء قيامك بعمل غير قانوني",
+        "لكل دور متطلبات وإحصائيات مفضلة، ويجب أن يكون الجميع جاهزاً قبل البدء",
+        "لكل مستوى أعلى من المطلوب للجريمة، بحد أقصى",
+        "لكل نقطة",
+        "للحصول على مكافآت ضخمة، والسيطرة على الممتلكات",
+        "للرصاصة",
+        "لم تقم بتفعيل حسابك بعد. يرجى تفقد بريدك الإلكتروني والنقر على رابط التفعيل",
+        "لم يتم العثور على نتائج لـ",
+        "لوحة التحكم",
+        "لوحة المتصدرين",
+        "لوحة المطور",
+        "لوحة تحكم إدارية شاملة",
+        "ليس لديك حساب؟",
+        "ما عندك ولا عقار",
+        "ماس",
+        "مبلغ الرهان",
+        "مبلغ المكافأة",
+        "متبقي",
+        "متجر الماس",
+        "متشرد",
+        "متطلبات",
+        "متغيرة حسب الصعوبة",
+        "متفجرات",
+        "متكاملة",
+        "متوفر",
+        "مثال: تم تحويل 50 شيكل من حساب أحمد ... رقم العملية",
+        "مجرم",
+        "مجموع المعارك",
+        "مجموعات تبحث عن أعضاء",
+        "مجهز",
+        "مجهول",
+        "محترف",
+        "محتوى مقفول",
+        "محجوز حتى",
+        "محفظة العقارات",
+        "مخالفة قانونية",
+        "مخبر خاص",
+        "مدينة",
+        "مرة كل 24 ساعة",
+        "مرتفع",
+        "مرحباً، أرغب في التبرع للمشروع",
+        "مرحباً، أنا مستثمر ومهتم بشراء منصة عصابات فلسطين كنظام",
+        "مركز الأخبار",
+        "مركز الاستخبارات",
+        "مساهمتك تساعدنا في تطوير اللعبة وإضافة ميزات جديدة",
+        "مستشار",
+        "مستشفى",
+        "مستوى",
+        "مستوى المطاردة",
+        "مستوى معين، ويمكن تعديله من قبل الإدارة",
+        "مسروقات",
+        "مشروب طاقة",
+        "مشطوبة",
+        "مضيفة الاستقبال",
+        "مضيفتك",
+        "مطار القدس الدولي - صالة المغادرين",
+        "مطار فلسطين الدولي",
+        "مطاردة الشرطة",
+        "مطلوب",
+        "معارك",
+        "معدل الفوز",
+        "معدلة بالكامل",
+        "معرض السيارات",
+        "معطل",
+        "معلومات إضافية",
+        "معمل الذخيرة",
+        "معمل المتفجرات",
+        "مغلق",
+        "مفتوح، دعوات فقط، أو مغلق",
+        "مفعلة",
+        "مفعلة حالياً",
+        "مفلس",
+        "مقدمة",
+        "مقعدك محفوظ حتى",
+        "مقفول",
+        "مكافأة اليوم",
+        "مكافأة نهاية خدمة",
+        "مكان سري للاختباء. يمنع أي هجوم عليك لمدة 24 ساعة",
+        "مكان من يدفع ثمن جرائمه... أو ينتظر من يخرجه",
+        "مكتمل التطوير",
+        "ملاحظة",
+        "ملاحظة: اللعبة للمتعة فقط ولا تشجع على العنف الحقيقي",
+        "مملوك",
+        "من",
+        "من خلال تنفيذ الجرائم، تكوين العصابات، والسيطرة على المناطق",
+        "من رام الله إلى نابلس، ومن الخليل إلى جنين، تتصارع العائلات والعصابات للسيطرة على الموارد والنفوذ",
+        "منخفض",
+        "منزل آمن",
+        "منشطات ممنوعة",
+        "منصة ألعاب متكاملة",
+        "موجودة كجرائم تعتمد على الذكاء وتمنح مالاً وخبرة",
+        "موقعك الحالي",
+        "ميزة اليوم",
+        "ناجحة",
+        "نادي الحديد",
+        "نبذات سريعة",
+        "نتائج البحث",
+        "نجا",
+        "نجاح",
+        "نجاحها يعتمد على التخطيط والأدوار والمخاطرة",
+        "نداء أخير",
+        "نسبة النجاح",
+        "نسبة النجاح العامة",
+        "نسبة النجاح تبدأ من",
+        "نستخدم بيانات حية من البورصات العالمية",
+        "نسخ",
+        "نشاطات",
+        "نشال",
+        "نشر المكافأة",
+        "نشط",
+        "نشط حتى",
+        "نص الرسالة",
+        "نصيحة فلسطينية",
+        "نصيحة: اشترِ عندما يكون السعر منخفضاً",
+        "نصيحة: روح الجيم وطور مهاراتك",
+        "نصيحة: طور مستوى ذكائك عبر الدراسة في النادي الرياضي أو القيام بعمليات التجسس والقرصنة الناجحة",
+        "نصيحة: نفّذ المهام اليومية لتتطور أسرع",
+        "نظام البحث",
+        "نظام الجرائم",
+        "نظام الرتب",
+        "نظام الطرد الصارم",
+        "نظام العصابات والحروب",
+        "نظام قتال متطور وحماية خاصة للمبتدئين",
+        "نظام مدفوعات واشتراكات جاهز للربح",
+        "نظرة عامة",
+        "نفذ العملية",
+        "نمرة صفراء",
+        "نمرة فلسطينية",
+        "نموذج تأكيد التحويل",
+        "نورت الحارة يا معلم",
+        "نوع المهمة",
+        "هاجم أعداءك دون كشف هويتك لمدة ساعة واحدة",
+        "هجوم",
+        "هجوم الآن",
+        "هجوم كاسح",
+        "هذا اللاعب ذئب وحيد",
+        "هذه لعبة إلكترونية للتسلية فقط. السيناريوهات داخل اللعبة خيالية ولا يجوز تطبيقها في الحياة الواقعية بأي شكل. أي محاولات واقعية قد تؤدي إلى مخالفة القانون أو السجن الحقيقي. العب بمسؤولية واستمتع بالتجربة بأمان",
+        "هذه لعبة للتسلية فقط. المحتوى خيالي ولا يجوز تطبيقه في الحياة الواقعية حتى لا تقع تحت طائلة القانون أو المساءلة. العب بمسؤولية",
+        "هل أنت متأكد من الانسحاب؟",
+        "هل أنت متأكد من بيع السيارة بنصف سعرها الأصلي؟",
+        "هل أنت متأكد من حذف الرسائل المحددة؟",
+        "هل أنت متأكد من حذف هذه الرسالة؟",
+        "هل أنت متأكد؟",
+        "هل أنت مستعد للمخاطرة؟",
+        "هل أنت موافق؟",
+        "هل ستكون مجرد بيدق في يد الكبار، أم ستصنع اسمك بالدم والذكاء لتصبح",
+        "هي العملة الوحيدة هنا",
+        "وتزيد بنسبة",
+        "وسافر بين المدن لتبيع بسعر أعلى. نابلس والخليل وأريحا لكل واحدة طعمها بالسوق",
+        "وضع مكافأة",
+        "وكيل",
+        "يا صايب يا خايب، جرب حظك",
+        "يتطلب",
+        "يتم استعادة الطاقة كل 5 دقائق",
+        "يتم توزيع جوائز نقدية حقيقية لأقوى اللاعبين كل أسبوع",
+        "يجب أن تختبئ قليلاً. عد بعد",
+        "يجب أن يكون الجميع جاهزاً",
+        "يرجى الانتظار",
+        "يرجى التأكد من الشبكة",
+        "يرجى تحويل المبلغ المطلوب إلى أحد الحسابات التالية، ثم تعبئة النموذج أسفل الصفحة لتأكيد العملية",
+        "يزيد نجاح التجسس والقرصنة",
+        "يشعل الحرب تلقائياً",
+        "يعتمد على الذكاء",
+        "يعتمد على الرشاقة",
+        "يعتمد على القوة",
+        "يفعل زيادة بيع منتجات المزرعة داخل مدينة تختارها لمدة",
+        "يمكن تنفيذ الجرائم المنظمة دون الحاجة لعضوية عصابة عبر مجموعات مؤقتة يتم إنشاؤها من اللاعبين المؤهلين",
+        "يمكن حصر العصابة على دول معينة",
+        "يمكن لزعماء العصابات تحديد شروط خاصة للانضمام",
+        "يمكن للعصابات توقيع معاهدات سلام تمنع الهجوم المتبادل بين أعضائها",
+        "يمكنك أيضاً التواصل معنا لطرق تبرع أخرى",
+        "يمكنك إنشاء أو الانضمام لمجموعات الجرائم المنظمة من صفحة الجرائم المنظمة. إذا لم تصل بعد للرتبة المطلوبة للإنشاء، ابحث عن مجموعات لاعبين آخرين وانضم إليهم",
+        "يمكنك الآن البحث عن أي شيء داخل اللعبة",
+        "يمكنك بيع أسهمك في أي وقت للحصول على الكاش",
+        "يمنع إعادة بيع النظام",
+        "ينتهي",
+        "ينتهي في"
+      ],
+      "admin": [
+        "آخر المنضمين",
+        "آخر النشاطات",
+        "إجراء",
+        "إجراءات سريعة",
+        "إجمالي الأموال في اللعبة",
+        "إدارة العصابات",
+        "إدارة المستخدمين",
+        "إدارة محتوى اللعبة بسهولة",
+        "إصدار اللعبة",
+        "إضافة جريمة",
+        "إضافة غرض",
+        "إضافة مركبة",
+        "إضافة منطقة",
+        "إعلان جديد",
+        "الإعدادات",
+        "الاسم",
+        "الرتبة",
+        "الطريقة",
+        "العصابات النشطة",
+        "العودة للحارة",
+        "الماس",
+        "المبلغ",
+        "المستخدم",
+        "المستخدمين المسجلين",
+        "المستوى",
+        "الوقت",
+        "تاريخ الانضمام",
+        "تفاصيل الاقتصاد",
+        "جديد",
+        "حالة السيرفر",
+        "حالة النظام",
+        "طلبات دفع معلقة",
+        "طلبات شحن الرصيد المعلقة",
+        "عدد الأغراض",
+        "عدد الجرائم",
+        "عرض كل السجل",
+        "عرض كل المعاملات",
+        "لوحة القيادة والتحكم",
+        "متصل",
+        "مراجعة",
+        "مراجعة الطلبات"
+      ],
+      "casino": [
+        "أحمر",
+        "أسود",
+        "أنت",
+        "أهلاً يا روحي، اشتقت لك كثير. شو أخبارك اليوم؟",
+        "أهلاً يا عزيزي. كيف يمكنني مساعدتك؟",
+        "أي 2 متشابهة",
+        "أي 3 متشابهة",
+        "اختر رفيقتك في عالم الجريمة. كل واحدة تملك مهارات خاصة تساعدك",
+        "اختر رقم",
+        "استرخِ قليلاً واستعد طاقتك",
+        "استمتع بصحبة جميلة لزيادة حظك",
+        "اسحب",
+        "اشرب وارتاح واسترجع طاقتك",
+        "اضغط لتدوير العجلة",
+        "اكتب رسالتك",
+        "البار",
+        "الجوائز",
+        "الروليت",
+        "المضيفات",
+        "المكان الذي تصنع فيه الثروات... أو تخسرها",
+        "الموزع",
+        "انتظار الرهان",
+        "بلاك جاك",
+        "تجسس",
+        "تحدث معها الآن",
+        "تحدى الموزع وحاول الوصول لرقم",
+        "تدوير",
+        "تعاقد الآن",
+        "توزيع",
+        "توقف",
+        "جاري الاتصال",
+        "جديد",
+        "جرب حظك مع السلوتس واربح الجاكبوت",
+        "حدث خطأ في الاتصال. يرجى المحاولة مرة أخرى",
+        "حظ",
+        "حظ المضيفة مفعل",
+        "حلبة سباق السيارات",
+        "دخول البار",
+        "دخول الحلبة",
+        "دعم",
+        "دقيقة",
+        "دور العجلة",
+        "راهن على الأرقام والألوان",
+        "رقم محدد",
+        "رهان",
+        "سابق لاعبين حقيقين بسيارتك المعدلة! طور محركك، درب سائقك، واربح الملايين",
+        "شجاعة",
+        "شراء",
+        "شيكل",
+        "صالة",
+        "صحة",
+        "صفر",
+        "ضع رهانك لتبدأ",
+        "طاقة",
+        "عودة للكازينو",
+        "قيمة الرهان",
+        "كازينو الزعيم",
+        "لعب الآن",
+        "لعب جديد",
+        "ماكينات الحظ",
+        "متصل",
+        "محادثة خاصة",
+        "مرحباً بك في عالمي",
+        "مشغولة مع لاعب آخر",
+        "مطلوب مستوى",
+        "معك الآن",
+        "مكافأة نشطة",
+        "مكالمة صوتية",
+        "نادي كبار الزوار",
+        "نشطة حالياً",
+        "ينتهي",
+        "ينتهي في"
+      ],
+      "casino\\racing": [
+        "إجراء",
+        "إطارات",
+        "إنشاء التحدي",
+        "إنشاء سباق جديد",
+        "ابدأ السباق",
+        "الجائزة الكبرى",
+        "الحالة",
+        "الدروع",
+        "الرهان",
+        "السباقات المتاحة",
+        "السرعة الأساسية",
+        "العجلات",
+        "الكراج",
+        "المتسابقون",
+        "المتسابقين",
+        "المحرك",
+        "المنشئ",
+        "النقاط",
+        "انتهى السباق",
+        "انضمام",
+        "بانتظار المتحدين",
+        "بانتظار المنشئ لبدء السباق",
+        "بانتظار انضمام لاعبين آخرين",
+        "تدريب السائق",
+        "تطوير",
+        "تقرير الجاسوس",
+        "جاهز",
+        "حالة",
+        "حلبة السباق",
+        "دروع",
+        "سابق بسيارتك ضد لاعبين حقيقيين واربح الملايين",
+        "سباق التحدي",
+        "سيارتي",
+        "عودة للقائمة",
+        "لا يوجد سباقات حالياً. كن أول من ينشئ واحداً",
+        "لاعبين",
+        "ليس لديك سيارة مفعلة! اذهب للكراج واشترِ واحدة",
+        "مبلغ الرهان",
+        "مهارة",
+        "مهارة السائق"
+      ],
+      "combat": [
+        "أنت",
+        "إجراءات",
+        "إلغاء البحث",
+        "ابحث عن خصم",
+        "ابحث عن ضحية",
+        "ابدأ القتال لتسجيل انتصاراتك هنا",
+        "التاريخ",
+        "التحري",
+        "التحري عن لاعب",
+        "الخبرة",
+        "الذهاب للمستشفى",
+        "العصابة",
+        "الغنائم",
+        "المدافع",
+        "المستوى",
+        "المسروقات",
+        "المهاجم",
+        "النتيجة",
+        "الهدف",
+        "انتصار",
+        "بحث عن ضحية أخرى",
+        "بدون عصابة",
+        "تفجير",
+        "تفجير المنزل الآمن",
+        "جاري الهجوم",
+        "حاول تدريب نفسك في الجيم وشراء أسلحة أفضل",
+        "خسرت",
+        "سجل المعارك",
+        "عودة",
+        "عودة للقتال",
+        "في السجن",
+        "في السجن حتى",
+        "في المستشفى",
+        "في المستشفى حتى",
+        "قائمة الأهداف",
+        "لا يوجد أهداف متاحة حالياً. حاول البحث في وقت لاحق",
+        "لا يوجد سجلات معارك حتى الآن",
+        "لقد تم سحقك",
+        "لقد سحقت خصمك",
+        "هجوم",
+        "هزيمة",
+        "يحتاج"
+      ],
+      "developer": [
+        "آخر المحادثات",
+        "آخر تحديث",
+        "آخر تدريب",
+        "آخر نشاط",
+        "آمن",
+        "أدخل خريطة بالأدوار وقيم علاواتها. الحقول المدعومة",
+        "أدوار مخصصة",
+        "أسطر الحوار",
+        "أعضاء",
+        "أقصى",
+        "أقل مبلغ شراء سبوت",
+        "أقل مبلغ شراء فوري لتفادي السبام",
+        "أنماط جاهزة",
+        "أيام الدخول المتتالي",
+        "إجراءات",
+        "إجراءات سريعة",
+        "إجمالي الكاش",
+        "إجمالي اللاعبين",
+        "إجمالي الماس",
+        "إحصائيات",
+        "إخراج الكل من الحماية",
+        "إخراج اللاعب من كل الحماية",
+        "إخراج من كل الحماية",
+        "إخفاء المستخدم من قوائم المتصلين والترتيب",
+        "إدارة الأغراض",
+        "إدارة الإعلانات",
+        "إدارة الإنجازات",
+        "إدارة الجرائم",
+        "إدارة الجرائم المنظمة",
+        "إدارة الحساب",
+        "إدارة الحسابات غير المفعلة",
+        "إدارة الرسائل",
+        "إدارة السيارات",
+        "إدارة العصابات",
+        "إدارة العقارات",
+        "إدارة اللاعبين",
+        "إدارة المصانع والإنتاج",
+        "إدارة المضيفات",
+        "إدارة المطاردة",
+        "إدارة المكافآت",
+        "إدارة المواقع والمدن",
+        "إدارة النسخ الاحتياطية",
+        "إدارة سوق الأسهم",
+        "إدارة قاعدة البيانات",
+        "إدارة مستوى المطاردة",
+        "إزالة",
+        "إضافة",
+        "إضافة أصل جديد",
+        "إضافة إعداد جديد",
+        "إضافة إعلان",
+        "إضافة إنجاز",
+        "إضافة بوتات",
+        "إضافة جريمة جديدة",
+        "إضافة جريمة منظمة جديدة",
+        "إضافة سريعة",
+        "إضافة سطر",
+        "إضافة سيارة جديدة",
+        "إضافة سيناريو جديد",
+        "إضافة عصابة",
+        "إضافة عقار جديد",
+        "إضافة غرض جديد",
+        "إضافة لقطة",
+        "إضافة مثال",
+        "إضافة مضيفة جديدة",
+        "إضافة معرفة",
+        "إضافة مفتاح",
+        "إضافة مهمة جديدة",
+        "إضافة موقع جديد",
+        "إعادة إعدادات السوق الافتراضية",
+        "إعدادات الإثارة",
+        "إعدادات السوق",
+        "إعدادات الصوت",
+        "إعدادات الصوت والشخصية",
+        "إعدادات الفيديو",
+        "إعدادات النظام",
+        "إعدادات متقدمة",
+        "إغلاق",
+        "إلغاء",
+        "إلغاء الحماية",
+        "إلغاء حماية اللاعب؟",
+        "إلى",
+        "إنجازات اللاعب",
+        "إنشاء نسخة احتياطية جديدة",
+        "إنهاء فوري",
+        "احترافي",
+        "اختر ملف",
+        "استعادة",
+        "استيراد",
+        "اسم الإعداد باللغة الإنجليزية",
+        "اسم المسؤول",
+        "اسم المستخدم",
+        "اسم الملف",
+        "اضبطه حسب الأداء والدقة",
+        "افتراضي 60 ثانية",
+        "الأسلحة والدروع",
+        "الأسلوب",
+        "الأعضاء",
+        "الأغراض",
+        "الإجراء",
+        "الإجراءات",
+        "الإضاءة",
+        "الإعداد",
+        "الإعدادات",
+        "الإعلانات",
+        "الإنجازات",
+        "الإنجازات المفتوحة",
+        "الاسم",
+        "الانتظار",
+        "البريد الإلكتروني",
+        "التاريخ",
+        "التالي",
+        "التخصص",
+        "التصنيف",
+        "التغير",
+        "التفاصيل",
+        "التقدم والحرارة",
+        "التكلفة",
+        "الجرائم",
+        "الجرائم المنظمة",
+        "الجريمة",
+        "الحالة",
+        "الحجم",
+        "الحد الأعلى لمكافأة السلسلة",
+        "الحدة",
+        "الحرارة",
+        "الخاص بـ",
+        "الخام",
+        "الخبرة",
+        "الخبرة بنسبة محددة عند حدوث الحدث",
+        "الخجل",
+        "الخصائص القتالية",
+        "الدخل",
+        "الدفاع",
+        "الدقة",
+        "الدور",
+        "الدولة",
+        "الذاكرة",
+        "الرافعات المسموح بها للفيوتشر",
+        "الرتبة",
+        "الرصاص",
+        "الرصيد البنكي",
+        "الرمز",
+        "السؤال",
+        "السابق",
+        "السجلات",
+        "السرعة",
+        "السعر",
+        "السعر الحالي",
+        "السفر والمواقع",
+        "السيطرة",
+        "الشجاعة",
+        "الشخصية والصوت",
+        "الصحة",
+        "الصورة",
+        "الصيغة",
+        "الطاقة",
+        "العصابات",
+        "العصابة",
+        "العقارات",
+        "العنوان",
+        "الفيديو الحالي",
+        "القائد",
+        "القوة",
+        "القيم لا يجب أن تكون سالبة",
+        "القيمة",
+        "الكاش",
+        "الكل",
+        "الكمية",
+        "اللاعب",
+        "اللاعبين",
+        "اللغة",
+        "الماس",
+        "المال",
+        "المبلغ",
+        "المتطلبات",
+        "المجموعات النشطة",
+        "المحتوى",
+        "المدة",
+        "المرسل",
+        "المركبات",
+        "المزود",
+        "المسؤول",
+        "المستخدم",
+        "المستخدم غير محظور حالياً",
+        "المستقبل",
+        "المستوى",
+        "المستوى المطلوب",
+        "المشاركون",
+        "المصانع",
+        "المضيفات",
+        "المظهر والستايل",
+        "المعرف",
+        "المفتاح",
+        "المكافآت",
+        "المكافأة",
+        "المكافأة الكلية",
+        "المنتدى",
+        "المهام اليومية",
+        "المواقع",
+        "الموضوع",
+        "الموقع الحالي",
+        "النتيجة",
+        "النسبة تُطبّق على مكافأة الخبرة عند الحظ",
+        "النسبة تُطبّق على مكافأة المال عند الحظ",
+        "النقاط",
+        "النمط",
+        "النوع",
+        "الهدف",
+        "الوصف",
+        "الوقت",
+        "انتظار",
+        "بحث",
+        "بحث عن لاعب",
+        "بحث في التفاصيل",
+        "بدلة لاتكس لامعة مع أضواء نيون",
+        "بشرة لامعة، أحمر شفاه قوي",
+        "تأكد من صحة تنسيق",
+        "تاتو، مظهر رياضي",
+        "تاريخ الإنشاء",
+        "تاريخ التسجيل",
+        "تاريخ الطلب",
+        "تجربة الصوت",
+        "تجنب",
+        "تحدث",
+        "تحديث السعر",
+        "تحديد موديل",
+        "تحرير الإعدادات",
+        "تحويل لمطور وترقية لأقصى قوة؟",
+        "تدريب الآن",
+        "تدريب الشخصية",
+        "تدريب المضيفة",
+        "تذكر المحتوى",
+        "ترقية مطور",
+        "تصحيح الألوان",
+        "تصدير",
+        "تصفية",
+        "تصفير",
+        "تصفير الحالة",
+        "تصفير الحالة والكولداون؟",
+        "تصفير للكل",
+        "تطبيق على",
+        "تعديل",
+        "تعديل اللاعب",
+        "تعديل كامل",
+        "تعلم ذاتي",
+        "تفاصيل العملية",
+        "تفعيل",
+        "تفعيل أوامر الحد",
+        "تفعيل تداول السبوت",
+        "تفعيل تداول الفيوتشر",
+        "تفعيل حماية اللاعب؟",
+        "تكلفة خدمة المعلومات الداخلية",
+        "تكلفة شراء المعلومة",
+        "تلقين سلبي",
+        "تم الاستلام",
+        "توليد",
+        "تُخصم من فرص النجاح لكل مشارك قام بعملية حديثة",
+        "تُضاعف مكافآت اللاعب بنسبة صغيرة لكل نجاح متتالي",
+        "ثانية",
+        "جاري التنفيذ",
+        "جاري العمل",
+        "جينز ضيق وتيشيرت أبيض بسيط",
+        "حد أدنى",
+        "حد أقصى",
+        "حدث سلبي نادر يُقلّل النجاح ويزيد مخاطر السجن",
+        "حدث نادر",
+        "حذف",
+        "حذفها المرسل",
+        "حذفها المستقبل",
+        "حرب شوارع",
+        "حفظ",
+        "حفظ الإعدادات",
+        "حفظ التغييرات",
+        "حماية الإدارة",
+        "حماية اللاعب",
+        "حماية مبتدئ",
+        "خبرة",
+        "خصصي مظهر المضيفة لتكون أكثر جاذبية وتناسب ذوق اللاعبين",
+        "خصم نجاح",
+        "دورية مزدوجة",
+        "ذاكرة",
+        "رجوع",
+        "رجوع للحارة",
+        "رد المضيفة",
+        "رسائل النظام",
+        "رفض",
+        "رفع الحظر الآن",
+        "روابط إدارة النظام",
+        "زيادة",
+        "زيادة احتمال السجن",
+        "زيادة احتمال السجن بسبب الحرارة",
+        "زيادة الخبرة عند الحدث",
+        "زيادة المال عند الحدث",
+        "زيادة سجن",
+        "ساعات",
+        "ساعة",
+        "سايبر بانك",
+        "سبب الحظر",
+        "ستايل",
+        "سجل الأحداث",
+        "سجل الجرائم المنظمة",
+        "سجلات المستخدمين",
+        "سجلات النظام",
+        "سلسلة انتصارات",
+        "سمات الشخصية",
+        "سهرة فاخرة",
+        "سوق الأسهم",
+        "سوق سوداء",
+        "سياسة العقوبات عند الانسحاب",
+        "شعر مرفوع بأناقة",
+        "شعر ملون قصير",
+        "شعر مموج كثيف",
+        "شعر منسدل طبيعي",
+        "شورت جينز قصير وجاكيت جلد",
+        "صوت",
+        "صورة",
+        "ضع هنا دليل المستخدم أو المعلومات التي يجب أن تعرفها المضيفة عن اللعبة",
+        "ضفائر أو ذيل حصان",
+        "طاقة",
+        "طلبات الإحياء",
+        "طي",
+        "عام",
+        "عدد الساعات التي تُحسب فيها العمليات الحديثة لرفع الحرارة",
+        "عدد الفتح",
+        "عرض",
+        "عقوبة النجاح بسبب الحرارة",
+        "عقوبة النجاح عند الدورية",
+        "علاوات الأدوار",
+        "علاوات حسب الدور",
+        "عند التفعيل، سيتم عرض فيديو المضيفة بدلاً من الصورة الثابتة",
+        "عودة",
+        "عودة للوحة التحكم",
+        "عودة للوحة المطور",
+        "عيون عدسات ملونة، إكسسوارات تقنية",
+        "غرض محدد",
+        "غير مقرؤة",
+        "غير نشط",
+        "فاصل التحديث لا يجب أن يكون أقل من 15 ثانية",
+        "فاصل تحديث الأسعار بالثواني",
+        "فتح",
+        "فستان سهرة أحمر طويل بفتحة جانبية",
+        "فشل",
+        "فقط إذا كان نوع الجائزة",
+        "فيزياء",
+        "قائمة المهام اليومية",
+        "قائمة رافعات غير صالحة",
+        "قائمة مفصولة بفواصل، مثال",
+        "قاعدة المعرفة",
+        "قاعدة معرفة المضيفات",
+        "قبول",
+        "قيود",
+        "كاجوال شيك",
+        "كلمة مفتاحية",
+        "لا",
+        "لا تتجاوز مكافآت السلسلة هذا الحد",
+        "لا توجد",
+        "لا توجد أسهم متاحة",
+        "لا توجد إعدادات متاحة حالياً",
+        "لا توجد إعدادات مضافة",
+        "لا توجد إنجازات",
+        "لا توجد إنجازات مفتوحة لهذا اللاعب",
+        "لا توجد بيانات",
+        "لا توجد ذاكرة بعد",
+        "لا توجد رسائل",
+        "لا توجد سيناريوهات حالياً",
+        "لا توجد صورة",
+        "لا توجد طلبات إحياء معلقة حالياً",
+        "لا توجد عصابات",
+        "لا توجد عمليات إنتاج حالياً",
+        "لا توجد مجموعات نشطة حالياً",
+        "لا توجد محادثات محفوظة بعد",
+        "لا توجد مكافآت نشطة",
+        "لا توجد نسخ احتياطية حالياً",
+        "لا يوجد لاعبين تحت المطاردة حالياً",
+        "لا يوجد مستخدمين بانتظار التفعيل",
+        "لا يوجد مضيفات حالياً",
+        "لانجري",
+        "لانجري دانتيل أسود مثير",
+        "لتشغيل المحادثة الذكية",
+        "لقطات",
+        "للقائد",
+        "لوحة الألوان",
+        "لوحة التدريب",
+        "لوحة تحكم المطور",
+        "مال",
+        "مثال",
+        "مثال: 5 يعني",
+        "مثال: كيف حالك؟",
+        "مثال: يا هلا بالزين، نورت المكان",
+        "مثير",
+        "مجموعات الجرائم المنظمة النشطة",
+        "مجهول؟",
+        "محظور حتى",
+        "مخالفة القوانين",
+        "مخصص لـ",
+        "مدة الانتظار بعد المشاركة",
+        "مدة الحظر",
+        "مدخل المستخدم",
+        "مراقب",
+        "مزاج الموسيقى",
+        "مستوى",
+        "مستوى الحرارة",
+        "مستوى الدلع",
+        "مستوى عصابة",
+        "مسح",
+        "مسح الذاكرة بالكامل؟",
+        "مشارك",
+        "مطلوب جداً",
+        "معاينة حية",
+        "معرف الصوت",
+        "معرف المستخدم",
+        "معرفة المضيفات",
+        "مفتاح",
+        "مقرؤة",
+        "مكافأة",
+        "مكتبة سيناريوهات الفيديو",
+        "مكياج خفيف، مظهر طبيعي",
+        "مكياج سهرة، مجوهرات لامعة",
+        "ملخص الإعدادات الحالية",
+        "ملغي",
+        "من",
+        "منزل آمن",
+        "منشئ التدريب",
+        "منشئ سيناريو الفيديو",
+        "موديل الذكاء الاصطناعي",
+        "نافذة",
+        "نافذة الحرارة",
+        "نجاح",
+        "نسبة",
+        "نسبة إضافية تُزاد على احتمال السجن عند الفشل",
+        "نسبة إضافية تُزاد على احتمال السجن في حال ارتفاع الحرارة",
+        "نسبة التذبذب",
+        "نسبة تُخصم من فرص النجاح عند حدوث الدورية",
+        "نسبة حدث الحظ النادر",
+        "نسبة حدوث ٪",
+        "نسبة مكافأة السلسلة لكل نجاح",
+        "نشاط اليوم",
+        "نشط",
+        "نظام الحظر",
+        "نعم",
+        "نمط بصري",
+        "نوع الإجراء",
+        "هذه المعاينة تقريبية لما سيراه اللاعب",
+        "هل أنت متأكد من إخراج جميع اللاعبين الحاليين من الحماية؟",
+        "هل أنت متأكد من إضافة لاعبين وهميين؟",
+        "هل أنت متأكد من استعادة هذه النسخة؟ سيتم فقدان البيانات الحالية",
+        "هل أنت متأكد من الإزالة؟",
+        "هل أنت متأكد من الإلغاء؟",
+        "هل أنت متأكد من الإنهاء الفوري؟",
+        "هل أنت متأكد من الحذف؟",
+        "هل أنت متأكد من تصفير الحرارة لجميع اللاعبين؟",
+        "هل أنت متأكد من تفعيل هذا المستخدم؟",
+        "هل أنت متأكد من حذف المضيفة؟",
+        "هل أنت متأكد من حذف هذا المستخدم؟ لا يمكن التراجع عن هذا الإجراء",
+        "هل أنت متأكد من حذف هذه الرسالة نهائياً من قاعدة البيانات؟",
+        "هل أنت متأكد من حذف هذه المجموعة؟",
+        "هل أنت متأكد من حذف هذه النسخة؟",
+        "هل أنت متأكد من رفض الطلب؟",
+        "هل أنت متأكد من قبول الطلب؟",
+        "هل أنت متأكد؟",
+        "واضع المكافأة",
+        "وضع الشبح",
+        "وضع الصيانة",
+        "وضع المطور",
+        "وقت الانتهاء",
+        "ول",
+        "يا هلا بالزين، كيف حالك اليوم؟ اشتقت لك",
+        "يتم تحديث هذا الحقل تلقائياً عبر المنشئ أعلاه",
+        "يزيد المال",
+        "٪ لكل مشارك"
+      ],
+      "developer\\forum": [
+        "أقل رتبة",
+        "إجراءات",
+        "إدارة أقسام المنتدى",
+        "إضافة قسم جديد",
+        "إلغاء",
+        "الأرقام الأقل تظهر أولاً",
+        "الترتيب",
+        "العنوان",
+        "المواضيع",
+        "الوصف",
+        "عودة",
+        "لا يوجد أقسام حالياً",
+        "للجميع، 1 للمستخدمين المسجلين، الخ",
+        "هل أنت متأكد من حذف هذا القسم؟"
+      ],
+      "email": [
+        "إذا لم تقم بإنشاء هذا الحساب، يرجى تجاهل هذه الرسالة",
+        "شكراً لتسجيلك في عصابات فلسطين",
+        "لتفعيل حسابك، الرجاء النقر على الرابط التالي",
+        "مرحباً"
+      ],
+      "errors": [
+        "ارجع للحارة",
+        "الرئيسية",
+        "جرب كمان مرة",
+        "دخلت حارة غلط يا كبير",
+        "رجوع للخلف",
+        "شكلك بتحاول تدخل مكان مش من مستواك، أو ما معك تصريح. خليك في الحارة بتاعتك أحسن لك",
+        "شكلك ضيعت العنوان أو المنطقة هادي محظورة. دير بالك، التجول في المناطق المجهولة ممكن يعرضك للخطر",
+        "كمين! صار خلل في النظام",
+        "منطقة محظورة يا زعيم",
+        "يبدو إنو في حدا خرب العملية. الميكانيكي تبعنا شغال على تصليح الموضوع حالاً. خليك رايق وجرب كمان مرة"
+      ],
+      "forum": [
+        "آخر رد",
+        "آخر نشاط",
+        "إضافة رد",
+        "إغلاق",
+        "إلغاء",
+        "إلغاء التثبيت",
+        "اكتب ردك هنا",
+        "الأقسام",
+        "القسم",
+        "الكاتب",
+        "المحتوى",
+        "المشاهدات",
+        "المنتدى",
+        "المواضيع",
+        "الموضوع",
+        "تثبيت",
+        "حذف",
+        "حذف الرد؟",
+        "عنوان الموضوع",
+        "فتح",
+        "لا توجد أقسام حالياً",
+        "لا توجد مواضيع في هذا القسم",
+        "مغلق",
+        "موضوع جديد",
+        "موضوع جديد في",
+        "مُثبّت",
+        "هذا الموضوع مغلق",
+        "هل أنت متأكد من حذف الموضوع؟"
+      ],
+      "gang": [
+        "أدخل اسم العصابة",
+        "أدخل وصفاً مختصراً",
+        "أعضاء العصابة فقط",
+        "أقل مستوى",
+        "إجراءات",
+        "إرسال دعوة عامة لكل اللاعبين بدون عصابة",
+        "إعلان الحرب",
+        "إلغاء",
+        "إلغاء التحالف",
+        "إنشاء العصابة",
+        "إنشاء عصابة",
+        "إنشاء عصابة الآن",
+        "إنشاء عصابة جديدة",
+        "اتركه فارغاً للسماح للجميع. استخدم رموز الدول",
+        "اختر صورة",
+        "اختياري",
+        "استخدم رموز",
+        "اسم العصابة",
+        "الأعضاء",
+        "الإدارة",
+        "التأسيس",
+        "التاريخ",
+        "التبرع للعصابة",
+        "التحالفات القائمة",
+        "الترسانة",
+        "التكلفة",
+        "الجرائم المنظمة",
+        "الجرائم المنظمة تتطلب تعاون أعضاء العصابة. الأرباح تذهب لخزينة العصابة والخبرة توزع على جميع الأعضاء",
+        "الحد الأدنى للمستوى",
+        "الحد الأقصى",
+        "الحروب",
+        "الخبرة",
+        "الخزينة",
+        "الخصم",
+        "الدول المسموحة",
+        "الزعيم",
+        "السجلات",
+        "السعة الحالية",
+        "الشعار",
+        "العصابات",
+        "العصابة",
+        "الكمية",
+        "المستوى",
+        "المكافأة",
+        "النائب",
+        "النتيجة",
+        "النوع",
+        "الوصف",
+        "انتظر",
+        "انضم الآن",
+        "باب الانضمام مغلق حالياً",
+        "تبرع",
+        "تحالفات العصابة",
+        "ترقية المستوى",
+        "تطوير العصابة",
+        "تقييد حسب الدول",
+        "تكلفة إنشاء عصابة هي",
+        "تكلفة الطاقة",
+        "تنبيه",
+        "تنفيذ العملية",
+        "جاهز",
+        "حالة التجنيد",
+        "حفظ التغييرات",
+        "حليف",
+        "خبرة لكل عضو",
+        "دعوات الانضمام",
+        "دعوات فقط",
+        "دعوة الجميع",
+        "رصاص",
+        "رفض",
+        "زيادة السعة",
+        "زيادة سعة الأعضاء",
+        "ساعة",
+        "سحب",
+        "سحب من الخزينة",
+        "سياسات التجنيد",
+        "شروط الانضمام",
+        "طرد",
+        "طلب تحالف",
+        "طلبات التحالف الواردة",
+        "عدد الأعضاء",
+        "عدد الأعضاء المطلوب",
+        "عرض",
+        "عودة للقائمة",
+        "عودة للوحة التحكم",
+        "فقط الزعيم يمكنه البدء",
+        "فقط الزعيم يمكنه التعديل",
+        "قبول",
+        "كاش",
+        "كن أول من ينشئ عصابة ويسيطر على السوق",
+        "لا توجد تحالفات نشطة حالياً",
+        "لا توجد دعوات انضمام حالياً",
+        "لا توجد طلبات واردة حالياً",
+        "لا توجد عصابات حالياً",
+        "لا يمكن تغيير الاسم",
+        "لا يوجد حروب نشطة حالياً. السلام يعم المكان",
+        "لا يوجد وصف",
+        "للزعيم",
+        "مال",
+        "مستوى العصابة",
+        "مستوى العصابة منخفض",
+        "مع عواقب",
+        "معلومات",
+        "مغادرة العصابة",
+        "مغلق",
+        "مفتوح",
+        "مفتوح للجميع",
+        "مفصولة بفواصل",
+        "من حرفين مفصولة بفواصل",
+        "من خزينة العصابة",
+        "منذ",
+        "نطاق الدعوات",
+        "نظام العصابة",
+        "هل أنت متأكد من إعلان الحرب؟ سيكلفك ذلك",
+        "هل أنت متأكد من إلغاء التحالف؟",
+        "هل أنت متأكد من المغادرة؟",
+        "هل أنت متأكد؟ سيكلف هذا خزينة العصابة",
+        "هل تريد طلب التحالف مع هذه العصابة؟",
+        "وصف العصابة",
+        "وقت الانتظار",
+        "يجب أن تتلقى دعوة من الزعيم للانضمام",
+        "ينتهي في"
+      ],
+      "includes": [
+        "أهلاً! أنا ياسمين. كيف بقدر أساعدك اليوم؟",
+        "اكتبي رسالتك",
+        "اليوم",
+        "متصلة الآن"
+      ],
+      "market": [
+        "أدنى 24س",
+        "أساسيات التداول",
+        "أسهم شركات عالمية، أكثر استقراراً",
+        "أصولي",
+        "أعلى 24س",
+        "أكاديمية",
+        "أكاديمية غسيل الأموال",
+        "أملك",
+        "أنواع الأصول",
+        "أو لا",
+        "إغلاق",
+        "إلغاء",
+        "ابدأ التداول الآن",
+        "الأصل",
+        "البيع بأفضل سعر متاح حالياً في السوق",
+        "التداول هو شراء وبيع الأصول مثل الأسهم والعملات الرقمية",
+        "الخسارة",
+        "الرافعة",
+        "الربح",
+        "السعر",
+        "السوق",
+        "الشراء",
+        "القيمة",
+        "القيمة السوقية الحالية",
+        "الكاش المتوفر",
+        "الكل",
+        "الكمية",
+        "المبلغ بـ",
+        "النوع",
+        "الهامش",
+        "الوقت",
+        "بيع",
+        "بيع الآن",
+        "تبييض",
+        "تداول",
+        "تسييل",
+        "تعلم التداول",
+        "حجم 24س",
+        "دخول",
+        "رافعة",
+        "سجل الطلبات",
+        "شراء",
+        "شراء معلومة",
+        "صفقات فيوتشر",
+        "طلبات مفتوحة",
+        "عملات رقمية عالية المخاطرة والربح",
+        "عندما تتوقع ارتفاع السعر",
+        "عندما تشتري أصولاً بالكاش المتوفر لديك، يتم",
+        "غسيل الأموال",
+        "كاش",
+        "لا توجد أسهم",
+        "لا توجد صفقات مفتوحة",
+        "لا توجد طلبات مفتوحة",
+        "لا توجد عملات رقمية",
+        "لا يوجد استثمارات",
+        "لجني الأرباح أو وقف الخسارة",
+        "لدينا جواسيس في كل مكان. ادفع واحصل على تسريب مضمون",
+        "متاح",
+        "محفظة الغسيل",
+        "مرحباً بك في عالم المال",
+        "معلومات مسربة",
+        "مكتمل",
+        "نظرياً",
+        "هامش",
+        "هذه الأموال. عند البيع، تعود لك كأرباح شرعية",
+        "هنا تتعلم كيف تحول الكاش الوسخ لفلوس نظيفة وتستثمرها"
+      ]
+    },
+    "missing_in_po": {},
+    "unwrapped": {}
+  },
+  "po_empty": [
+    " (خصم %(percent)s%% من العصابة)",
+    " (خصم %(percent)s%% من المضيفة)",
+    " (مكافأة المضيفة: تدريب مضاعف!)",
+    " ووجدت في جيوبه %(bullets)s رصاصة!",
+    "#",
+    "*تتأمل ملامح وجهك بإعجاب* عيناك تسحرني... لا أستطيع التوقف عن النظر إليك.",
+    "*ترفع كأسها وتبتسم بابتسامة مغرية* دعنا نشرب شيئاً قوياً الليلة وننسى العالم. ماذا تفضل؟ 🍷",
+    "*تضحك بدلال وتلعب بشعرها* المال جيد، لكن لمسة يدك أغلى عندي من كنوز الدنيا.",
+    "*تضع يدها على صدرك* هل تشعر بقلبي يخفق؟ إنه ينبض لك وحدك.",
+    "*تضع يدها على كتفك* خذني في جولة بسيارتك، أريد أن أشعر بالأدرينالين معك.",
+    "*تقترب منك ببطء، وتنظر في عينيك بعمق* أنت تشعل ناري... اقترب مني أكثر لأهمس لك بشيء مثير. 🔥",
+    "*تقترب منك حتى تشعر بأنفاسها* أريد أن نكون وحدنا الليلة... بعيداً عن ضجيج الكازينو.",
+    "*تنحني قليلاً وتهمس* أنت لست مجرد لاعب، أنت سيدي وملكي. ❤️",
+    "*تهمس بصوت خافت وهي تتلفت حولها* السرعة تثيرني... لكن ليس بقدر ما تثيرني أنت. 😉",
+    "10$ - 250 ماسة",
+    "100",
+    "100$ - 4000 ماسة",
+    "2. أنواع الأصول",
+    "5$ - 100 ماسة",
+    "50$ - 1500 ماسة",
+    "Armor",
+    "Business",
+    "Buy Item",
+    "Camera Type",
+    "Combat",
+    "Consumable",
+    "Crime",
+    "Error: Jasmin not found in system.",
+    "Error: Layla not found in system.",
+    "Error: Ruby not found in system.",
+    "Error: Sarah not found in system.",
+    "Gym",
+    "House",
+    "IP",
+    "Key (e.g. xp_multiplier)",
+    "Lens",
+    "Long",
+    "Loot (Stealable)",
+    "Lv",
+    "Money Only",
+    "Mushtuba (Illegal)",
+    "PNL",
+    "PS,JO,EG",
+    "Specific Item",
+    "Spy: For racing intel. Luck: For gambling. Support: For morale.",
+    "Stylized, dreamy...",
+    "System Prompt (احترافي)",
+    "Total USD",
+    "Training Examples (JSON)",
+    "Value (e.g. 1.5)",
+    "Vehicle (Random Rank)",
+    "Weapon",
+    "White/Green Plate (Legal PAL)",
+    "YYYY-MM-DD HH:MM:SS",
+    "Yellow Plate (Legal IL)",
+    "bad quality, distorted...",
+    "e.g. Rachel, or Google US English",
+    "text, logos, blurry...",
+    "آخر التقارير",
+    "آخر المحادثات",
+    "آخر تدريب",
+    "آمن",
+    "أحب الرجل الغني 😉",
+    "أخبار عاجلة",
+    "أرسل دعوة عامة للانضمام للعصابة",
+    "أسطر الحوار (Dialogue Lines):",
+    "أسعار شراء وبيع بضائع التهريب أعلى من المعتاد في المناطق المتأثرة.",
+    "أسهم شركات عالمية، أكثر استقراراً.",
+    "أفاتار متحرك (MP4/WebM/GIF)",
+    "أكاديمية غسيل الأموال",
+    "أنا مشغولة حالياً، لازم تتعاقد معي عشان أقدر أساعدك.",
+    "أنت بطلي! كمل كمل! 🔥",
+    "أنت مريض أصلاً! استنى لما تتعالج.",
+    "أنماط جاهزة (Style Presets)",
+    "أهلاً بك يا بطل! أنا هنا لمساعدتك. هل لديك أي استفسار عن اللعبة؟",
+    "أهلاً يا روحي، اشتقت لك كثير. شو أخبارك اليوم؟",
+    "أهلاً يا قلبي. اشتقت لك كثيراً. 💋",
+    "أهلاً! أنا ياسمين. كيف بقدر أساعدك اليوم؟ 🌹",
+    "أيام الدخول المتتالي",
+    "إحياء الآن بالماس",
+    "إخراج الكل من الحماية",
+    "إخراج اللاعب من كل الحماية (منزل آمن + حماية مبتدئ + حماية الإدارة)؟",
+    "إخراج من كل الحماية",
+    "إدارة الإنجازات",
+    "إدارة المزارع والعقود",
+    "إدارة المصانع والإنتاج",
+    "إدارة المطاردة",
+    "إدارة المكافآت (Bounties)",
+    "إدارة المواقع والمدن",
+    "إدارة النسخ الاحتياطية",
+    "إدارة سوق الأسهم",
+    "إدارة مستوى المطاردة (Heat)",
+    "إذا واجهتك مشكلة أو تحتاج استثناء، ارسل طلب للمطور.",
+    "إرسال دعوة عامة لكل اللاعبين بدون عصابة",
+    "إصلاح",
+    "إضافة أصل جديد",
+    "إضافة إنجاز",
+    "إضافة سطر",
+    "إضافة سيناريو جديد",
+    "إضافة عصابة",
+    "إضافة لقطة",
+    "إضافة مثال",
+    "إضافة معرفة",
+    "إضافة موقع جديد",
+    "إعدادات الفيديو (Video Configuration)",
+    "إعدادات متقدمة",
+    "إلغاء الحماية",
+    "إلغاء حماية اللاعب؟",
+    "إمبراطوريتك",
+    "إنتاج",
+    "إنتاج نادر! راجع المزرعة بعد %(min)s دقيقة.",
+    "إنجازات اللاعب",
+    "إنشاء نسخة احتياطية جديدة",
+    "إنهاء فوري",
+    "إنهاء فوري بالماس",
+    "ابدأ تشغيل",
+    "اجتماعي وحالة",
+    "اختر العملية",
+    "اختر مدينة",
+    "اختيار أفاتار موجود",
+    "اذهب للسوق السوداء للبيع",
+    "اذهب للمصانع",
+    "ازرع… انتج… وسافر بين المدن لتبيع بسعر أعلى. نابلس والخليل وأريحا لكل واحدة طعمها بالسوق.",
+    "استعادة",
+    "استلام الإنتاج",
+    "استلام الشحنة",
+    "استيراد JSON",
+    "اسم الملف",
+    "اشتري في الانخفاض وبيع في الارتفاع... نصيحة بمليون دولار.",
+    "اقتصاد وأصول",
+    "الأسعار أقل من المعتاد وخطر الخسارة أعلى في المناطق المتأثرة.",
+    "الأسلوب",
+    "الإجابة / المعلومات",
+    "الإضاءة (Lighting)",
+    "الإنجازات",
+    "الإنجازات المفتوحة",
+    "الاستفادة من العقد في السوق السوداء",
+    "الانتظار: يتم استعادة جزء من طاقتك تلقائياً مع الوقت (كل بضع دقائق).",
+    "التخصص",
+    "التخصص (commerce, defense, etc.)",
+    "التداول هو شراء وبيع الأصول مثل الأسهم والعملات الرقمية.",
+    "التصنيف",
+    "التقدم والحرارة",
+    "التقلب (0-100%)",
+    "الجاذبية (Charm)",
+    "الحجم",
+    "الخجل (Shyness):",
+    "الخصم حاول يتفادى الضربة لكنك جبت أجله!",
+    "الدقة (Resolution)",
+    "الذاكرة",
+    "الذخيرة تُنتج داخل المصانع من سبائك المعدن وتُشغّل بالماس.",
+    "الذخيرة يتم إنتاجها من المصانع.",
+    "الذكاء (Intelligence)",
+    "الذهاب إلى المصانع",
+    "الذهب هو الملاذ الآمن يا صاحبي.",
+    "الرمز (Symbol)",
+    "السفر والمواقع",
+    "الشخصية والصوت (Personality & Voice)",
+    "الشرطة بتراقب سوق الكريبتو، خليك حذر.",
+    "الصنف",
+    "الصيغة: YYYY-MM-DD HH:MM:SS",
+    "الطلب غير موجود أو تمت معالجته مسبقاً.",
+    "العصابة \"%(gang)s\" تبحث عن أعضاء جدد. ادخل وشوف إذا تناسبك.",
+    "العقارات",
+    "العملية انتهت بالفعل.",
+    "العملية مكلفة جداً! تحتاج %(cost)s$.",
+    "المال يروح ويجي، أهم شي صحتك.",
+    "المخزن فاضي! جيب مسروقات عشان نصهرها.",
+    "المزارع",
+    "المزود (Provider):",
+    "المشاريع والمرافق",
+    "المصانع",
+    "المصانع الحربية",
+    "المظهر والستايل (Appearance & Style)",
+    "المكان الأكثر أماناً لأموالك.. ربما.",
+    "المهارة القتالية (Combat)",
+    "المواقع",
+    "الموقع الحالي",
+    "الوصف (Description)",
+    "الولاء (Loyalty)",
+    "انتهت صلاحية هذه العملية المنظمة لعدم اكتمال الفريق خلال 24 ساعة.",
+    "انتهت صلاحية هذه العملية المنظمة.",
+    "انتهت فترة تعاقدنا. بتمنى تكون استفدت.",
+    "بدء الإنتاج",
+    "بدأ التصنيع! راجع المصنع بعد %(min)s دقيقة.",
+    "بدلة لاتكس لامعة مع أضواء نيون (Shiny Latex Suit with Neon)",
+    "بدون",
+    "بدون فيديو",
+    "بسيطة، الجايات أكثر.",
+    "بشرة لامعة، أحمر شفاه قوي (Glowing skin, bold lipstick)",
+    "تأكد من صحة تنسيق JSON.",
+    "تابع",
+    "تاتو، مظهر رياضي (Tattoos, Athletic build)",
+    "تجربة الصوت (Test Voice)",
+    "تجسس (Spy)",
+    "تجنب (Avoid):",
+    "تحتاج ذكاء %(n)s.",
+    "تحتاج رتبة أعلى (%(tier)s).",
+    "تحتاج رشاقة %(n)s.",
+    "تحتاج قوة %(n)s.",
+    "تحتاج مستوى %(n)s.",
+    "تحدث",
+    "تحدث معها الآن",
+    "تحدث معي",
+    "تحديث السعر",
+    "تحويل بنكي (البنك الوطني/فلسطين)",
+    "تحويل لمطور وترقية لأقصى قوة؟",
+    "تدريب الآن",
+    "تدريب المضيفة",
+    "تذكر المحتوى (Memory)",
+    "تذكرني",
+    "ترقيات دائمة بالماس: تقلل وقت الإنتاج وتزيد فرصة الإنتاج النادر.",
+    "ترقية مطور",
+    "تسريع بالماس",
+    "تصحيح الألوان (Color Grade)",
+    "تصدير JSON",
+    "تصفير",
+    "تصفير الحالة",
+    "تصفير الحالة والكولداون؟",
+    "تصفير للكل",
+    "تصفير وقت انتظار الحركة الخاصة",
+    "تطبيق على...",
+    "تطوير بالماس",
+    "تعديل سيناريو",
+    "تعديل كامل",
+    "تعديل مهمة مصنع",
+    "تعلم ذاتي",
+    "تعلم ذاتي (Self Learning)",
+    "تغيير المدينة لتحسين الأسعار",
+    "تفاصيل التحويل (رقم الحوالة/المرسل)",
+    "تفضل، أنا سامعتك.",
+    "تفعيل حماية اللاعب؟",
+    "تفعيل عقد بالماس",
+    "تفعيل هنا",
+    "تفعيل وضع الافاتار الحقيقي (فيديو)",
+    "تقليدي / مطرز (Traditional)",
+    "تكوين المظهر الكامل (JSON)",
+    "تلقين الذكاء الاصطناعي (System Prompt)",
+    "تلقين سلبي (Negative Prompts):",
+    "تم إخراج اللاعب من كل الحماية",
+    "تم إخراج جميع اللاعبين الحاليين من الحماية",
+    "تم إرسال الدعوات بالفعل. انتظر حوالي %(m)d دقيقة قبل التجديد.",
+    "تم إرسال الدعوات لجميع اللاعبين. صلاحية الدعوات ساعة واحدة تقريباً.",
+    "تم إصلاح %(name)s وأصبح كالجديد.",
+    "تم إكمال مهمة المصنع فوراً",
+    "تم إنشاء حساب المطور الرئيسي وتسجيل الدخول.",
+    "تم إنهاء العملية فوراً مقابل %(cost)s ماسة.",
+    "تم استلام الإنتاج: %(qty)s × %(name)s.",
+    "تم الاستلام",
+    "تم تحديث سعر السهم",
+    "تم تسريع التصنيع وإنهاؤه فوراً مقابل %(cost)s ماسة.",
+    "تم تصفير عداد المطاردة للاعب",
+    "تم تطبيق السيناريو على المضيفة ",
+    "تم تطوير %(name)s للمستوى %(lvl)s.",
+    "تم تطوير هذا المرفق بالكامل.",
+    "تم تفعيل عقد توريد في %(city)s لمدة %(min)s دقيقة. زيادة بيع: %(pct)s%%",
+    "تم تفعيل ميزة %(name)s واستلام %(qty)s × %(item)s.",
+    "تم تمديد عقد التوريد. +%(pct)s%% لمدة %(min)s دقيقة.",
+    "تم صهر %(name)s وتحويله إلى %(qty)s سبائك معدن.",
+    "تم طرد العضو من المجموعة.",
+    "تم منح الإنجاز للاعب",
+    "تمديد",
+    "تهانينا! تمت الموافقة على طلبك وتم إحياؤك من جديد. حظاً موفقاً!",
+    "تهدئة الحرارة (رشوة)",
+    "توزيع الأدوار بين المشاركين (قائد، سائق، مخترق، مراقب...). لكل دور متطلبات وإحصائيات مفضلة، ويجب أن يكون الجميع جاهزاً قبل البدء.",
+    "توليد JSON",
+    "ج: نعم، يمكنك استعادة طاقتك تلقائياً مع الوقت، أو شراء مشروبات طاقة من المستشفى والسوق السوداء مقابل المال داخل اللعبة.",
+    "جاري العمل",
+    "جينز ضيق وتيشيرت أبيض بسيط (Tight Jeans & White T-shirt)",
+    "حالة",
+    "حد إنشاء",
+    "حدث في السوق السوداء",
+    "حرارتك صفر… خليك هادي.",
+    "حرب شوارع (Street Fighter)",
+    "حظ (Luck)",
+    "حماية اللاعب",
+    "حملة تفتيش على المعابر",
+    "حول خردة السيارات والمسروقات إلى سبائك معدنية ثمينة.",
+    "حيوي (Energetic)",
+    "خدمة مقفولة",
+    "خصصي مظهر المضيفة لتكون أكثر جاذبية وتناسب ذوق اللاعبين.",
+    "خط إنتاج الرصاص",
+    "خط إنتاج المتفجرات",
+    "خفض حرارة الشرطة عندك فوراً. السعر يتغير حسب حرارتك الحالية.",
+    "خلص الوقت يا قمر. جدد خلينا نكمل.",
+    "دعم نفسي (Support)",
+    "دفعت رشوة ونظفت آثارك. الحرارة انخفضت.",
+    "ذاكرة",
+    "رد المضيفة (Hostess Response):",
+    "رسائل النظام",
+    "رسمي / فستان سهرة (Evening Gown)",
+    "روابط إدارة النظام",
+    "س",
+    "سايبر بانك (Cyberpunk)",
+    "سبائك معدن",
+    "سبيكة",
+    "ستايل (Style)",
+    "ستريت وير / شورت جينز (Street/Shorts)",
+    "ستريك",
+    "سلعة (Commodity)",
+    "سمعت أن البيتكوين رح يطير اليوم... بس مش أكيد.",
+    "سهرة فاخرة (Elegant Evening)",
+    "سهم (Stock)",
+    "سوق الأسهم",
+    "شبكة التهريب",
+    "شعر مرفوع بأناقة (Elegant Updo)",
+    "شعر ملون قصير (Short Colored Hair)",
+    "شعر مموج كثيف (Voluminous Wavy Hair)",
+    "شعر منسدل طبيعي (Natural loose hair)",
+    "شو يا حلو، ما سمعتك؟",
+    "شورت جينز قصير وجاكيت جلد (Denim Shorts & Leather Jacket)",
+    "صهر",
+    "صوت (Audio)",
+    "صيغة JSON غير صحيحة في علاوات الأدوار",
+    "ضع هنا دليل المستخدم أو المعلومات التي يجب أن تعرفها المضيفة عن اللعبة.",
+    "ضفائر أو ذيل حصان (Braids or Ponytail)",
+    "طلب مساعدة من المطور",
+    "طور مرافقك لفتح العقد",
+    "طور مرافقك لفتح عقد التوريد.",
+    "طور مهاراتك لفتحها.",
+    "طور نفسك لفتحها",
+    "طور نفسك لفتحها.",
+    "طور نفسك لفتحها: %(reason)s",
+    "طور نفسك لفتحها…",
+    "عام (General)",
+    "عدد الفتح",
+    "عذراً، هذه المضيفة مشغولة مع لاعب آخر حالياً!",
+    "عقد نشط في مدينة:",
+    "عقود التوريد الزراعي",
+    "عملات رقمية عالية المخاطرة والربح.",
+    "عملة رقمية (Crypto)",
+    "عمليات",
+    "عمليات فريق… نجاحها يعتمد على التخطيط والأدوار والمخاطرة.",
+    "عملية مقفولة",
+    "عناصر المصنع غير مكتملة في قاعدة البيانات.",
+    "عند التفعيل، سيتم عرض فيديو المضيفة بدلاً من الصورة الثابتة (Loop Video).",
+    "عندما تشتري أصولاً بالكاش المتوفر لديك، يتم \"تبييض\" هذه الأموال. عند البيع، تعود لك كأرباح شرعية (نظرياً).",
+    "عنصر المعدن غير موجود في قاعدة البيانات.",
+    "عيون عدسات ملونة، إكسسوارات تقنية (Colored contacts, tech accessories)",
+    "غامض (Mysterious)",
+    "غير متاح",
+    "فتح السوق السوداء",
+    "فرن الصهر",
+    "فستان سهرة أحمر طويل بفتحة جانبية (Red Evening Gown with slit)",
+    "فشل استعادة النسخة الاحتياطية: %(error)s",
+    "فشلت العملية! الطبيب كان سكران... خسرت فلوسك وصحتك تدهورت.",
+    "فوضى على الحدود",
+    "في حيتان ببيعوا أسهم تسلا، دير بالك.",
+    "فيزياء (Physics):",
+    "قاعدة المعرفة",
+    "قاعدة معرفة المضيفات",
+    "قيود (Constraints)",
+    "كاجوال (Casual)",
+    "كاجوال شيك (Casual Chic)",
+    "كارثة طبية! العضلات ضمرت... (-%(loss)s قوة)",
+    "كارثة طبية! جسمك صار أضعف... (-%(loss)s دفاع)",
+    "كلمات مفتاحية (مفصولة بفاصلة)",
+    "كلمة المرور يجب أن تكون 8 خانات على الأقل",
+    "لا تزعل يا عمري، معوضة.",
+    "لا تملك حالياً أي بضائع تهريب في المخزون.",
+    "لا توجد أسهم متاحة",
+    "لا توجد إنجازات",
+    "لا توجد إنجازات مفتوحة لهذا اللاعب",
+    "لا توجد بيانات",
+    "لا توجد سيناريوهات حالياً",
+    "لا توجد عصابات",
+    "لا توجد عمليات إنتاج حالياً",
+    "لا توجد مكافآت نشطة",
+    "لا يوجد لاعبين تحت المطاردة حالياً",
+    "لانجري / مثير (Lingerie/Sexy)",
+    "لانجري دانتيل أسود مثير (Sexy Black Lace Lingerie)",
+    "لجني الأرباح أو وقف الخسارة.",
+    "لديك عملية مزرعة جارية بالفعل.",
+    "لسه بدري! العملية لم تنته بعد.",
+    "لم يتم العثور على أداة pg_dump. تأكد من تثبيت PostgreSQL.",
+    "لم يتم العثور على أداة psql. تأكد من تثبيت PostgreSQL.",
+    "لوحة الألوان (Palette)",
+    "لوحة التدريب",
+    "مؤشر (Index)",
+    "متصل (Connected)",
+    "متصلة الآن",
+    "متفجرات",
+    "مثال: commerce, defense, health",
+    "مثال: كيف حالك؟",
+    "مثال: يا هلا بالزين، نورت المكان!",
+    "مثير / لانجري (Sexy Lingerie)",
+    "مجهول؟",
+    "محتوى مقفول",
+    "محجوز حتى",
+    "مخصص لـ",
+    "مخصص لمضيفة (اختياري)",
+    "مدخل المستخدم (User Input):",
+    "مدينة",
+    "مرافقة (Companion)",
+    "مراقب",
+    "مرحباً بك في عالمي...",
+    "مرحباً بك! تم تفعيل حسابك بنجاح. استمتع باللعب!",
+    "مزاج الموسيقى (Music Mood)",
+    "مستشفى",
+    "مستواك لا يسمح بالجلوس مع هذه المضيفة! (مطلوب مستوى %(lvl)s)",
+    "مستوى الحرارة",
+    "مستوى الدلع (Flirtation):",
+    "مستوى المطاردة",
+    "مسح",
+    "مسح الذاكرة بالكامل؟",
+    "مشغولة مع لاعب آخر",
+    "مضيفة الاستقبال",
+    "مضيفتك",
+    "مطلوب جداً",
+    "معاينة حية (Live Preview)",
+    "معرف الصوت / الاسم (Voice ID):",
+    "معرف المستخدم (User ID) للقائد",
+    "معرفة المضيفات",
+    "معمل الذخيرة",
+    "معمل الذخيرة (مغلق)",
+    "معمل المتفجرات",
+    "معمل المتفجرات (مغلق)",
+    "مغازل (Flirty)",
+    "مفتاح API الخاص بـ OpenAI لتشغيل المحادثة الذكية",
+    "مفيد؟",
+    "مقفول",
+    "مكافأة اليوم",
+    "مكافأة نشطة",
+    "مكالمة صوتية (Voice Call)",
+    "مكتبة سيناريوهات الفيديو",
+    "مكتبة سيناريوهات الفيديو (Video Scenarios)",
+    "مكياج خفيف، مظهر طبيعي (Light makeup, natural look)",
+    "مكياج سهرة، مجوهرات لامعة (Evening makeup, shiny jewelry)",
+    "ملابس سباحة (Bikini)",
+    "ملغي",
+    "منشئ التدريب (Interactive Trainer)",
+    "منشئ سيناريو الفيديو (Video Prompt Builder)",
+    "مواصفات الجسم",
+    "موجه الفيديو",
+    "موجه النظام (Prompt)",
+    "موجودة كجرائم تعتمد على الذكاء وتمنح مالاً وخبرة.",
+    "موديل الذكاء الاصطناعي (مثال: gpt-3.5-turbo, gpt-4)",
+    "موظفة استقبال (Greeter)",
+    "ميزة اليوم (مرة كل 24 ساعة)",
+    "نجا",
+    "نجحت العملية! زاد دفاعك بمقدار %(gain)s.",
+    "نجحت العملية! زادت قوتك بمقدار %(gain)s.",
+    "نسبة التذبذب (مثال: 5 يعني 5%)",
+    "نصيحة فلسطينية",
+    "نصيحة: افتح صفحة العصابات وانضم لواحدة.",
+    "نصيحة: روح الجيم ودرّب الذكاء.",
+    "نصيحة: روح الجيم ودرّب الرشاقة.",
+    "نصيحة: روح الجيم ودرّب القوة.",
+    "نصيحة: روح الجيم وطور مهاراتك.",
+    "نصيحة: طوّر عصابتك عبر التبرعات والنشاط.",
+    "نصيحة: نفّذ المهام اليومية لتتطور أسرع.",
+    "نظرة عامة",
+    "نمط بصري (Visual Style)",
+    "هذا الإنجاز ممنوح مسبقاً",
+    "هذا الاسم مستخدم بالفعل. الرجاء اختيار اسم آخر.",
+    "هذه المعاينة تقريبية لما سيراه اللاعب.",
+    "هذه الميزة غير مفعلة حالياً في البيئة الحية.",
+    "هروب ناجح",
+    "هل أنت متأكد من إخراج جميع اللاعبين الحاليين من الحماية؟",
+    "هل أنت متأكد من استعادة هذه النسخة؟ سيتم فقدان البيانات الحالية!",
+    "هل أنت متأكد من الإزالة؟",
+    "هل أنت متأكد من الإلغاء؟",
+    "هل أنت متأكد من الإنهاء الفوري؟",
+    "هل أنت متأكد من تصفير الحرارة لجميع اللاعبين؟",
+    "هل أنت متأكد من حذف المضيفة؟",
+    "هل أنت متأكد من حذف هذه النسخة؟",
+    "هنا تتعلم كيف تحول الكاش الوسخ لفلوس نظيفة وتستثمرها.",
+    "واو! أنت مذهل يا حبيبي! 🤑",
+    "ودود (Friendly)",
+    "وصف الملابس (تخصيص)",
+    "وضع المطور",
+    "وقت الانتهاء",
+    "وقت الانتهاء (YYYY-MM-DD HH:MM:SS)",
+    "يا سلام على الفلوس! 💰",
+    "يا عمري، لازم تدفع عشان نحكي.",
+    "يا هلا بالزين، كيف حالك اليوم؟ اشتقت لك.",
+    "يتم تحديث هذا الحقل تلقائياً عبر المنشئ أعلاه.",
+    "يفعل زيادة بيع منتجات المزرعة داخل مدينة تختارها لمدة",
+    "يمكن إصلاح الأسلحة والدروع فقط من هنا.",
+    "يمكنك إنشاء أو الانضمام لمجموعات الجرائم المنظمة من صفحة الجرائم المنظمة. إذا لم تصل بعد للرتبة المطلوبة للإنشاء، ابحث عن مجموعات لاعبين آخرين وانضم إليهم.",
+    "⚔️ %(attacker)s هاجم %(defender)s",
+    "⚠️ السائق {user} لا يملك سيارة مجهزة! الهروب سيكون صعباً. (-10%)",
+    "⛔ دخلت في شارع عكس السير!",
+    "🎯 ضربة حرجة (Critical Hit)!",
+    "🏎️ السائق {user} يستخدم سيارة {car} المعدلة! (+{bonus}%)",
+    "💡 نصيحة: انضم لعصابة لتحصل على حماية إضافية.",
+    "💡 نصيحة: قم بزيارة الجيم لزيادة قوتك!",
+    "💨 رميت عليهم قنبلة دخانية!",
+    "😡 حالة هيجان (Berserk)!",
+    "🚀 المشروب كان أصلي! دبل طاقة! (+%(energy)s طاقة)",
+    "🚓 صدمت سيارة دورية على الماشي!",
+    "🚕 استخدمت زحمة السير لصالحك!",
+    "🚗 الفريق يستخدم سيارة {user} ({car}) للهروب! (+{bonus}%)",
+    "🚧 قفزت فوق حاجز شرطة!"
+  ]
+}

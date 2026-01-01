@@ -1,7 +1,7 @@
 from flask import render_template, redirect, url_for, flash, request, abort, session, current_app
 from flask_login import login_required, current_user
 from extensions import db, limiter
-from models import Crime, Item, WeeklyWinner, UserItem, DailyTask, UserDailyTask, Gang, GangLog, User, Announcement, SystemConfig, OrganizedCrime, CrimeLobby, LobbyParticipant, HeistHistory, UserCrimeCooldown, Vehicle, UserVehicle, InvestigationLog, Location, FactoryJob, FarmSupplyContract
+from models import Crime, Item, WeeklyWinner, UserItem, DailyTask, UserDailyTask, Gang, GangLog, User, Announcement, SystemConfig, OrganizedCrime, CrimeLobby, LobbyParticipant, HeistHistory, UserCrimeCooldown, Vehicle, UserVehicle, InvestigationLog, Location, FactoryJob, FarmSupplyContract, UserLog
 from models.hostess import Hostess
 from . import bp
 import random
@@ -9,8 +9,10 @@ from datetime import datetime, timedelta, timezone
 from flask_babel import _
 from .utils import update_daily_task_progress, send_notification
 from services.requirements import check_requirements
+from services.resource_service import ResourceService
 from sqlalchemy import select
 from sqlalchemy.orm import selectinload, joinedload
+from decorators import check_maintenance, player_only
 
 _broadcast_cache = {}
 
@@ -302,11 +304,15 @@ def collect_task_reward(task_id):
         flash(_('لم تكمل المهمة بعد!'), 'warning')
         return redirect(url_for('main.daily_tasks'))
         
-    # Grant Reward using atomic update on User (optional if we trust the lock, but safer to be atomic)
-    User.query.filter_by(id=current_user.id).update({
-        'money': User.money + user_task.task.reward_money,
-        'exp': User.exp + user_task.task.reward_exp
-    })
+    # Grant Reward using atomic update via ResourceService
+    changes = {
+        'money': user_task.task.reward_money,
+        'exp': user_task.task.reward_exp
+    }
+    
+    if not ResourceService.modify_resources(current_user.id, changes, 'daily_task_reward', auto_commit=False, expected_version=current_user.version):
+        flash(_('حدث خطأ أثناء استلام المكافأة.'), 'danger')
+        return redirect(url_for('main.daily_tasks'))
     
     user_task.is_completed = True
     db.session.commit()
@@ -364,13 +370,31 @@ def daily_reward():
         diamonds_reward = 1
         money_reward += user.level * 200
     
-    user.money += money_reward
-    user.energy = min(user.energy + energy_reward, user.max_energy)
-    user.exp += exp_reward
-    if diamonds_reward:
-        user.diamonds += diamonds_reward
     user.last_daily_reward = now.replace(tzinfo=None)
     
+    # Atomic Resource Update
+    changes = {
+        'money': money_reward,
+        'energy': energy_reward,
+        'exp': exp_reward
+    }
+    if diamonds_reward:
+        changes['diamonds'] = diamonds_reward
+    
+    set_fields = {
+        'last_daily_reward': now.replace(tzinfo=None),
+        'daily_streak': streak
+    }
+        
+    if not ResourceService.modify_resources(user.id, changes, 'daily_reward', auto_commit=False, expected_version=user.version, set_fields=set_fields):
+        flash(_('حدث خطأ أثناء استلام المكافأة. حاول مرة أخرى.'), 'danger')
+        return redirect(url_for('main.hara'))
+
+    # Update non-resource fields (ResourceService holds the lock now)
+    # Re-fetch user to ensure we are working on the locked instance in this session
+    locked_user = db.session.get(User, user.id)
+    # Fields already set by ResourceService via set_fields
+
     db.session.commit()
     
     if diamonds_reward:
@@ -564,18 +588,27 @@ def crimes():
     cooldowns = UserCrimeCooldown.query.filter_by(user_id=current_user.id).all()
     cooldown_map = {}
     now = datetime.now(timezone.utc)
-    now_naive = now.replace(tzinfo=None)
+    
+    # Global Cooldown Logic
     global_cooldown_until_ms = None
-    if current_user.crime_cooldown_until and current_user.crime_cooldown_until > now_naive:
-        global_cooldown_until_ms = int(current_user.crime_cooldown_until.replace(tzinfo=timezone.utc).timestamp() * 1000)
+    if current_user.crime_cooldown_until:
+        until = current_user.crime_cooldown_until
+        # Ensure 'until' is timezone-aware (UTC) for comparison and timestamp calculation
+        if until.tzinfo is None:
+            until = until.replace(tzinfo=timezone.utc)
+            
+        if until > now:
+            global_cooldown_until_ms = int(until.timestamp() * 1000)
     
     for c in cooldowns:
         # Check if still active
-        if c.cooldown_until.tzinfo is None:
-            c.cooldown_until = c.cooldown_until.replace(tzinfo=timezone.utc)
-            
-        if c.cooldown_until > now:
-            cooldown_map[c.crime_id] = c.cooldown_until
+        if c.cooldown_until:
+            c_until = c.cooldown_until
+            if c_until.tzinfo is None:
+                c_until = c_until.replace(tzinfo=timezone.utc)
+                
+            if c_until > now:
+                cooldown_map[c.crime_id] = c_until
 
     return render_template('crimes.html', crimes=all_crimes, user=current_user, cooldown_map=cooldown_map, now=now, reward_previews=reward_previews, global_cooldown_until_ms=global_cooldown_until_ms)
 
@@ -598,6 +631,9 @@ def story():
 
 @bp.route('/do_crime/<int:crime_id>')
 @login_required
+@check_maintenance('crimes')
+@player_only
+@limiter.limit("5 per second")
 def do_crime(crime_id):
     # 1. Anti-Bot Check
     if 'check_bot_activity' in globals() and not check_bot_activity():
@@ -680,29 +716,51 @@ def do_crime(crime_id):
         flash(_('ما عندك طاقة كافية!'), 'danger')
         return redirect(url_for('main.crimes'))
 
+    # Daily Limit Check
+    daily_limit = getattr(crime, 'daily_limit', None) or 0
+    if daily_limit > 0:
+        if user_cooldown and user_cooldown.last_reset_date == now.date():
+            if user_cooldown.daily_count >= daily_limit:
+                flash(_('لقد وصلت للحد اليومي لهذه الجريمة! (%(limit)s مرة يومياً)', limit=daily_limit), 'danger')
+                return redirect(url_for('main.crimes'))
+        
     # Cooldown Check (Specific Crime)
     user_cooldown = UserCrimeCooldown.query.filter_by(user_id=current_user.id, crime_id=crime.id).first()
     if user_cooldown:
         cooldown_until = user_cooldown.cooldown_until
-        # Always treat DB value as Naive UTC (as stored by .replace(tzinfo=None))
+        # Ensure aware UTC for comparison
         if cooldown_until.tzinfo is None:
             cooldown_until = cooldown_until.replace(tzinfo=timezone.utc)
             
-        if cooldown_until > datetime.now(timezone.utc):
-            remaining = (cooldown_until - datetime.now(timezone.utc)).total_seconds()
+        if cooldown_until > now:
+            remaining = (cooldown_until - now).total_seconds()
             flash(_('عليك الانتظار %(time)s ثانية قبل القيام بهذه الجريمة مرة أخرى!', time=int(remaining)), 'danger')
             return redirect(url_for('main.crimes'))
 
     # Execute
-    current_user.energy -= crime.energy_cost
+    # Atomic deduction for energy
+    if not ResourceService.modify_resources(current_user.id, {'energy': -crime.energy_cost}, 'crime_cost', auto_commit=False, expected_version=current_user.version):
+        flash(_('لا تملك طاقة كافية!'), 'danger')
+        return redirect(url_for('main.crimes'))
     
-    # Set Cooldown (Specific Crime)
+    # Set Cooldown (Specific Crime) & Update Daily Count
     new_cooldown_time = (datetime.now(timezone.utc) + timedelta(seconds=crime.cooldown)).replace(tzinfo=None)
     
     if user_cooldown:
         user_cooldown.cooldown_until = new_cooldown_time
+        if user_cooldown.last_reset_date != now.date():
+            user_cooldown.daily_count = 1
+            user_cooldown.last_reset_date = now.date()
+        else:
+            user_cooldown.daily_count += 1
     else:
-        new_record = UserCrimeCooldown(user_id=current_user.id, crime_id=crime.id, cooldown_until=new_cooldown_time)
+        new_record = UserCrimeCooldown(
+            user_id=current_user.id, 
+            crime_id=crime.id, 
+            cooldown_until=new_cooldown_time,
+            daily_count=1,
+            last_reset_date=now.date()
+        )
         db.session.add(new_record)
 
     base_global_cd_seconds = 20
@@ -724,11 +782,15 @@ def do_crime(crime_id):
     reward_max = int(getattr(crime, "money_reward_max", 0) or 0)
     reward_bump = min(25, int(reward_max / 5000))
 
-    global_cd_seconds = base_global_cd_seconds + int(crime_cd * 0.03) + int(crime_min_level / 5) + reward_bump
-    if getattr(crime, "reward_type", "money") in {"item", "vehicle"}:
-        global_cd_seconds += 5
-    global_cd_seconds = max(base_global_cd_seconds, min(max_global_cd_seconds, global_cd_seconds))
-    current_user.crime_cooldown_until = (now + timedelta(seconds=global_cd_seconds)).replace(tzinfo=None)
+    # Simplified Global Cooldown to respect "Each crime has its own counter"
+    # Just a small breathing room between actions
+    global_cd_seconds = 1
+    
+    if current_user.is_suspicious:
+        # Soft Anti-Cheat: Increase global cooldown
+        global_cd_seconds = int(global_cd_seconds * 1.5)
+    
+    current_user.crime_cooldown_until = now + timedelta(seconds=global_cd_seconds)
     
     # Success/Fail Logic
     # Dynamic Success Chance
@@ -743,6 +805,11 @@ def do_crime(crime_id):
     # Intelligence bonus (smart criminals plan better)
     intel_bonus = min(10, current_user.intelligence / 10)
     
+    if current_user.is_suspicious:
+        # Soft Anti-Cheat: Reduce base chance silently
+        intel_bonus = 0
+        bonus_chance = bonus_chance / 2
+
     hostess_bonus = 0
     hostess = None
     if current_user.active_hostess_id and current_user.casino_luck_until:
@@ -764,14 +831,32 @@ def do_crime(crime_id):
         heat_penalty_per_point = float(SystemConfig.get_value("heat_success_penalty_per_point", "0.15") or 0.15)
     except Exception:
         heat_penalty_per_point = 0.15
-    final_chance = max(5, int(final_chance - (heat * heat_penalty_per_point)))
+        
+    # Smart Ceiling: As heat approaches 100, success drops drastically but never hits 0 purely by heat (min 5%)
+    heat_penalty = heat * heat_penalty_per_point
+    
+    # Nonlinear penalty at high heat (>80)
+    if heat > 80:
+        heat_penalty += (heat - 80) * 0.5
+        
+    final_chance = max(5, int(final_chance - heat_penalty))
     roll = random.randint(1, 100)
     
     if roll <= final_chance:
-        level_multiplier = 1 + (current_user.level * 0.02)
+        try:
+            level_mult_factor = float(SystemConfig.get_value("crime_level_money_multiplier", "0.02") or 0.02)
+        except:
+            level_mult_factor = 0.02
+        level_multiplier = 1 + (current_user.level * level_mult_factor)
         base_money = random.randint(crime.money_reward_min, crime.money_reward_max)
         money = int(base_money * level_multiplier)
         xp_reward = int(crime.exp_reward * level_multiplier)
+        
+        if current_user.is_suspicious:
+            # Soft Anti-Cheat: Reduce rewards
+            money = int(money * 0.6)
+            xp_reward = int(xp_reward * 0.5)
+
         story_item_name = None
         story_item_condition = None
         story_vehicle_name = None
@@ -853,12 +938,19 @@ def do_crime(crime_id):
                  story_item_name = item_reward.name
                  story_item_condition = item_condition
 
-        # Add Money
-        current_user.money += money
-        current_user.exp += xp_reward
+        # Add Money using ResourceService for atomicity
+        changes = {
+            'money': money,
+            'exp': xp_reward
+        }
+        ResourceService.modify_resources(current_user.id, changes, 'crime_success', auto_commit=False, expected_version=current_user.version)
         current_user.add_rank_points(1)
         try:
-            heat_gain = 2 + int(crime.min_level / 10) + int(crime.energy_cost / 20)
+            try:
+                heat_base = int(SystemConfig.get_value("crime_heat_gain_base", "2") or 2)
+            except:
+                heat_base = 2
+            heat_gain = heat_base + int(crime.min_level / 10) + int(crime.energy_cost / 20)
             if getattr(crime, "reward_type", "money") in {"item", "vehicle"}:
                 heat_gain += 1
             current_user.add_heat(heat_gain, now=now)
@@ -868,6 +960,15 @@ def do_crime(crime_id):
         if current_user.check_level_up():
             leveled_up = True
             
+        log = UserLog(
+            user_id=current_user.id, 
+            action='CRIME_SUCCESS', 
+            details=f"Crime: {crime.name}, Money: {money}, XP: {xp_reward}", 
+            result='success', 
+            ip_address=request.remote_addr,
+            user_agent=request.user_agent.string
+        )
+        db.session.add(log)
         db.session.commit()
         
         update_daily_task_progress(current_user, 'crime')
@@ -961,6 +1062,16 @@ def do_crime(crime_id):
             current_user.add_heat(heat_gain, now=now)
         except Exception:
             pass
+        
+        log = UserLog(
+            user_id=current_user.id, 
+            action='CRIME_FAIL', 
+            details=f"Crime: {crime.name} failed, started chase", 
+            result='fail', 
+            ip_address=request.remote_addr,
+            user_agent=request.user_agent.string
+        )
+        db.session.add(log)
         db.session.commit() # Save cooldown/energy usage
         
         # Setup Chase Session
@@ -1061,6 +1172,7 @@ def intel_center():
 
 @bp.route('/investigate', methods=['POST'])
 @login_required
+@limiter.limit("10 per minute")
 def investigate():
     # Status Check
     now = datetime.now(timezone.utc)
@@ -1112,8 +1224,9 @@ def investigate():
         return redirect(url_for('main.intel_center'))
         
     # Process
-    current_user.energy -= energy_cost
-    current_user.money -= money_cost
+    if not ResourceService.modify_resources(current_user.id, {'energy': -energy_cost, 'money': -money_cost}, 'investigate_cost', auto_commit=False, expected_version=current_user.version):
+        flash(_('حدث خطأ أثناء العملية.'), 'danger')
+        return redirect(url_for('main.intel_center'))
     
     # Success Chance
     # Base 50% + (My Intel - Target Intel) * 2
@@ -1145,7 +1258,7 @@ def investigate():
 
         # Chance to improve intelligence
         if random.random() < 0.2: # 20% chance
-            current_user.intelligence += 1
+            ResourceService.modify_resources(current_user.id, {'intelligence': 1}, 'investigate_skill_gain', auto_commit=False, expected_version=current_user.version)
             flash(_('تطورت مهاراتك الاستخباراتية! (+1 ذكاء)'), 'success')
 
         db.session.commit()
@@ -1167,6 +1280,7 @@ def investigate():
 
 @bp.route('/hack_player', methods=['POST'])
 @login_required
+@limiter.limit("10 per minute")
 def hack_player():
     target_username = request.form.get('username')
     target = User.query.filter_by(username=target_username).first()
@@ -1182,12 +1296,12 @@ def hack_player():
     # Cost
     energy_cost = 20
     
-    if current_user.energy < energy_cost:
+    # Atomic Deduction
+    if not ResourceService.modify_resources(current_user.id, {'energy': -energy_cost}, 'hack_player_cost', auto_commit=False, expected_version=current_user.version):
         flash(_('ما عندك طاقة كافية!'), 'danger')
         return redirect(url_for('main.intel_center'))
         
     # Logic
-    current_user.energy -= energy_cost
     
     # Must have higher intel to even try effectively
     if current_user.intelligence < target.intelligence:
@@ -1209,20 +1323,45 @@ def hack_player():
         if target.money < stolen:
             stolen = target.money
             
-        target.money -= stolen
-        current_user.money += stolen
-        
-        # XP Reward
-        current_user.exp += 20
-        # Intel XP? Maybe increase intel slightly on success?
-        if random.random() < 0.1: # 10% chance to gain intel
-            current_user.intelligence += 1
-            flash(_('تطورت مهارتك في القرصنة! (+1 ذكاء)'), 'success')
+        # Atomic Transfer
+        try:
+            # Deduct from target
+            if not ResourceService.modify_resources(target.id, {'money': -stolen}, f'hacked_by_{current_user.id}', auto_commit=False, expected_version=target.version):
+                raise Exception("Failed to deduct from target")
             
-        db.session.commit()
-        flash(_('تم اختراق الحساب! سرقت %(amount)s شيكل من %(user)s', amount=stolen, user=target.username), 'success')
+            # Add to hacker
+            changes = {'money': stolen, 'exp': 20}
+            if random.random() < 0.1: # 10% chance to gain intel
+                changes['intelligence'] = 1
+                flash(_('تطورت مهارتك في القرصنة! (+1 ذكاء)'), 'success')
+                
+            if not ResourceService.modify_resources(current_user.id, changes, f'hack_player_success_{target.id}', auto_commit=False, expected_version=current_user.version):
+                raise Exception("Failed to add to hacker")
+                
+            log = UserLog(
+                user_id=current_user.id,
+                action='HACK_PLAYER_SUCCESS',
+                details=f"Hacked {target.username} for {stolen} money",
+                result='success',
+                ip_address=request.remote_addr
+            )
+            db.session.add(log)
+            db.session.commit()
+            flash(_('تم اختراق الحساب! سرقت %(amount)s شيكل من %(user)s', amount=stolen, user=target.username), 'success')
+        except Exception:
+            db.session.rollback()
+            flash(_('حدث خطأ أثناء العملية.'), 'danger')
+            return redirect(url_for('main.intel_center'))
     else:
         # Fail
+        log = UserLog(
+            user_id=current_user.id,
+            action='HACK_PLAYER_FAIL',
+            details=f"Failed to hack {target.username}",
+            result='fail',
+            ip_address=request.remote_addr
+        )
+        db.session.add(log)
         flash(_('فشل الاختراق! الحماية كشفتك.'), 'danger')
         db.session.commit()
         
@@ -1230,6 +1369,7 @@ def hack_player():
 
 @bp.route('/hack_bank', methods=['POST'])
 @login_required
+@limiter.limit("5 per minute")
 def hack_bank():
     # PvE Hacking
     # High risk, High reward
@@ -1238,10 +1378,14 @@ def hack_bank():
         flash(_('تحتاج 50 طاقة لقرصنة البنك!'), 'danger')
         return redirect(url_for('main.intel_center'))
         
-    current_user.energy -= energy_cost
+    # Atomic Deduction
+    if not ResourceService.modify_resources(current_user.id, {'energy': -energy_cost}, 'hack_bank_cost', auto_commit=False, expected_version=current_user.version):
+        flash(_('حدث خطأ أثناء العملية.'), 'danger')
+        return redirect(url_for('main.intel_center'))
     
     # Required Intel
     if current_user.intelligence < 50:
+        db.session.rollback()
         flash(_('ذكاؤك لا يكفي لاختراق البنك المركزي! تحتاج 50 ذكاء على الأقل.'), 'danger')
         return redirect(url_for('main.intel_center'))
         
@@ -1252,13 +1396,44 @@ def hack_bank():
     if random.randint(1, 100) <= chance:
         # Success
         reward = random.randint(10000, 50000)
-        current_user.money += reward
-        current_user.exp += 500
-        current_user.intelligence += 2 # Gain intel
+        
+        # Atomic Reward
+        changes = {
+            'money': reward,
+            'exp': 500,
+            'intelligence': 2
+        }
+        
+        # Refresh user to get latest version after cost deduction
+        db.session.refresh(current_user)
+        
+        if not ResourceService.modify_resources(current_user.id, changes, 'hack_bank_success', auto_commit=False, expected_version=current_user.version):
+            db.session.rollback()
+            flash(_('حدث خطأ أثناء إضافة المكافأة. اتصل بالدعم الفني.'), 'error')
+            return redirect(url_for('main.intel_center'))
+
+        log = UserLog(
+            user_id=current_user.id,
+            action='HACK_BANK_SUCCESS',
+            details=f"Hacked Central Bank for {reward} money",
+            result='success',
+            ip_address=request.remote_addr,
+            user_agent=request.user_agent.string
+        )
+        db.session.add(log)
         db.session.commit()
         flash(_('عملية أسطورية! اخترقت البنك وسرقت %(amt)s شيكل!', amt=reward), 'success')
     else:
         # Fail -> Jail? For now just fail and lose energy
+        log = UserLog(
+            user_id=current_user.id,
+            action='HACK_BANK_FAIL',
+            details="Failed to hack Central Bank",
+            result='fail',
+            ip_address=request.remote_addr,
+            user_agent=request.user_agent.string
+        )
+        db.session.add(log)
         flash(_('نظام الحماية كشفك! هربت بأعجوبة ولم تحصل على شيء.'), 'danger')
         db.session.commit()
         
@@ -1266,6 +1441,7 @@ def hack_bank():
 
 @bp.route('/create_lobby/<int:crime_id>')
 @login_required
+@limiter.limit("5 per minute")
 def create_lobby(crime_id):
     if not current_user.is_verified:
         flash(_('يجب تفعيل الحساب قبل المشاركة في الجرائم المنظمة.'), 'warning')
@@ -1356,10 +1532,13 @@ def create_lobby(crime_id):
         is_ready=True
     )
     db.session.add(participant)
-    try:
-        current_user.energy = max(0, current_user.energy - crime.energy_cost)
-    except Exception:
-        pass
+    
+    # Atomic Energy Deduction
+    if not ResourceService.modify_resources(current_user.id, {'energy': -crime.energy_cost}, 'create_lobby_cost', auto_commit=False, expected_version=current_user.version):
+        db.session.rollback()
+        flash(_('فشلت العملية! ربما تغيرت بياناتك أو لا تملك طاقة كافية.'), 'danger')
+        return redirect(url_for('main.organized_crimes'))
+    
     db.session.commit()
     
     flash(_('تم إنشاء المجموعة بنجاح!'), 'success')
@@ -1689,18 +1868,16 @@ def leave_lobby(lobby_id):
         except Exception:
             pass
         
-        try:
-            current_user.money = max(0, current_user.money - money_penalty)
-        except:
-            pass
-        try:
-            current_user.exp = max(0, current_user.exp - exp_penalty)
-        except:
-            pass
-        try:
-            current_user.energy = max(0, current_user.energy - energy_penalty)
-        except:
-            pass
+        changes = {}
+        if money_penalty > 0:
+            changes['money'] = -money_penalty
+        if exp_penalty > 0:
+            changes['exp'] = -exp_penalty
+        if energy_penalty > 0:
+            changes['energy'] = -energy_penalty
+
+        if changes:
+            ResourceService.modify_resources(current_user.id, changes, 'organized_crime_leave_penalty', auto_commit=False, expected_version=current_user.version)
         
         db.session.delete(participant)
         db.session.commit()
@@ -1818,7 +1995,7 @@ def start_heist(lobby_id):
         if item and item.type == 'consumable':
             # Find a donor
             for p in participants:
-                user_item = UserItem.query.filter_by(user_id=p.user_id, item_id=item.id).first()
+                user_item = UserItem.query.filter_by(user_id=p.user_id, item_id=item.id).with_for_update().first()
                 if user_item and user_item.quantity > 0:
                     user_item.quantity -= 1
                     if user_item.quantity <= 0:
@@ -1841,7 +2018,7 @@ def start_heist(lobby_id):
              r_item_name = role_reqs['item']
              r_item = Item.query.filter_by(name=r_item_name).first()
              if r_item and r_item.type == 'consumable':
-                 u_item = UserItem.query.filter_by(user_id=p.user_id, item_id=r_item.id).first()
+                 u_item = UserItem.query.filter_by(user_id=p.user_id, item_id=r_item.id).with_for_update().first()
                  if u_item and u_item.quantity > 0:
                      u_item.quantity -= 1
                      if u_item.quantity <= 0:
@@ -1956,6 +2133,7 @@ def start_heist(lobby_id):
 
     # 5. Random Events & Health Risks (The "Chaos" Factor)
     chaos_roll = random.randint(1, 20)
+    injuries = {} # Store injuries to apply transactionally
     if chaos_roll <= 5:
         success_probability -= 15
         story_log.append(_("🚨 كارثة! الشرطة نصبت كميناً محكماً! (-15%)"))
@@ -1963,7 +2141,7 @@ def start_heist(lobby_id):
         for p in participants:
             if random.random() < 0.3: # 30% chance of injury
                 hospital_time = 30 # 30 minutes
-                p.user.hospital_until = (datetime.now(timezone.utc) + timedelta(minutes=hospital_time)).replace(tzinfo=None)
+                injuries[p.user_id] = (datetime.now(timezone.utc) + timedelta(minutes=hospital_time)).replace(tzinfo=None)
                 story_log.append(_("🚑 {user} أصيب بطلق ناري! تم نقله للمستشفى.").format(user=p.user.username))
 
     elif chaos_roll >= 18:
@@ -2086,18 +2264,59 @@ def start_heist(lobby_id):
                     pass
             except Exception:
                 pass
-            p.user.money += (share + bonus_money)
-            p.user.exp += (reward_exp + bonus_exp)
-            p.user.add_rank_points(5)
+            # Atomic update via ResourceService
+            changes = {
+                'money': (share + bonus_money),
+                'exp': (reward_exp + bonus_exp)
+            }
+            
+            set_fields_dict = {
+                'organized_crime_cooldown_until': cooldown_until
+            }
+            
+            if p.user_id in injuries:
+                set_fields_dict['hospital_until'] = injuries[p.user_id]
+            
+            # Note: Using expected_version to ensure data consistency.
+            # ResourceService.modify_resources uses with_for_update() for locking.
+            
+            # Add last_crime to set_fields to ensure atomic update
+            set_fields_dict['last_crime'] = datetime.now(timezone.utc).replace(tzinfo=None)
+            
+            if not ResourceService.modify_resources(
+                p.user_id, 
+                changes, 
+                'organized_crime_reward', 
+                auto_commit=False,
+                expected_version=p.user.version,
+                set_fields=set_fields_dict
+            ):
+                 db.session.rollback()
+                 flash(_('حدث خطأ أثناء توزيع الجوائز. حاول مرة أخرى.'), 'error')
+                 return redirect(url_for('main.lobby', lobby_id=lobby.id))
+
+            # Refresh user object to reflect DB changes made by ResourceService (important for check_level_up)
+            db.session.refresh(p.user)
+
+            # Manually update rank points to avoid rollback in add_rank_points
+            try:
+                from models.gameplay import UserProgress
+                # Lock the progress row to prevent race conditions
+                progress = UserProgress.query.filter_by(user_id=p.user_id).with_for_update().first()
+                if progress:
+                    progress.rank_points += 5
+                else:
+                    progress = UserProgress(user_id=p.user_id, rank_points=5)
+                    db.session.add(progress)
+            except Exception:
+                pass
+
             p.user.organized_crime_cooldown_until = cooldown_until
             try:
                 p.user.check_level_up()
             except Exception:
                 pass
-            try:
-                p.user.last_crime = datetime.now(timezone.utc).replace(tzinfo=None)
-            except Exception:
-                pass
+            # last_crime updated via ResourceService
             update_daily_task_progress(p.user, 'organized_crime')
             
             participants_snapshot.append({
@@ -2110,7 +2329,12 @@ def start_heist(lobby_id):
             
         # Leader bonus (10%)
         leader_bonus = int(reward_money * 0.1)
-        current_user.money += leader_bonus
+        # Refresh current_user to get latest version after loop updates
+        db.session.refresh(current_user)
+        if not ResourceService.modify_resources(current_user.id, {'money': leader_bonus}, 'heist_leader_bonus', auto_commit=False, expected_version=current_user.version):
+            db.session.rollback()
+            flash(_('حدث خطأ أثناء توزيع مكافأة القائد.'), 'error')
+            return redirect(url_for('main.lobby', lobby_id=lobby.id))
         story_log.append(_("👑 القائد {user} حصل على مكافأة إضافية: {bonus} شيكل.").format(user=current_user.username, bonus=leader_bonus))
         
     else:
@@ -2118,13 +2342,22 @@ def start_heist(lobby_id):
         
         # Fail Consequences
         for p in participants:
-            p.user.organized_crime_cooldown_until = cooldown_until
+            set_fields_dict = {
+                'organized_crime_cooldown_until': cooldown_until
+            }
+            try:
+                set_fields_dict['last_crime'] = datetime.now(timezone.utc).replace(tzinfo=None)
+            except Exception:
+                pass
             
             # Check if already hospitalized from chaos
             status = 'failed'
-            now_naive_utc = datetime.now(timezone.utc).replace(tzinfo=None)
-            if p.user.hospital_until and p.user.hospital_until > now_naive_utc:
+            if p.user_id in injuries:
                 status = 'hospitalized'
+                set_fields_dict['hospital_until'] = injuries[p.user_id]
+            elif p.user.hospital_until and p.user.hospital_until > datetime.now(timezone.utc).replace(tzinfo=None):
+                 # Already hospitalized before heist (should not happen due to check, but safe to keep)
+                 status = 'hospitalized'
             
             participants_snapshot.append({
                 'name': p.user.username,
@@ -2156,7 +2389,8 @@ def start_heist(lobby_id):
                     pass
                 if random.random() < min(0.9, max(0.05, jail_chance)):
                     jail_time = 10 * crime.min_gang_level # Minutes
-                    p.user.jail_until = (datetime.now(timezone.utc) + timedelta(minutes=jail_time)).replace(tzinfo=None)
+                    jail_until_dt = (datetime.now(timezone.utc) + timedelta(minutes=jail_time)).replace(tzinfo=None)
+                    set_fields_dict['jail_until'] = jail_until_dt
                     story_log.append(_("👮 {user} تم القبض عليه! ({time} دقيقة سجن)").format(user=p.user.username, time=jail_time))
                 else:
                     # Trigger Chase for Leader ONLY (others just escape)
@@ -2167,10 +2401,19 @@ def start_heist(lobby_id):
                         story_log.append(_("🚔 {user} الشرطة تطاردك! استعد للهروب!").format(user=p.user.username))
                     else:
                         story_log.append(_("🏃 {user} تمكن من الهروب بأعجوبة.").format(user=p.user.username))
-            try:
-                p.user.last_crime = datetime.now(timezone.utc).replace(tzinfo=None)
-            except Exception:
-                pass
+            
+            # Apply updates via ResourceService
+            if not ResourceService.modify_resources(
+                p.user_id, 
+                {}, 
+                'organized_crime_fail', 
+                auto_commit=False,
+                expected_version=p.user.version,
+                set_fields=set_fields_dict
+            ):
+                db.session.rollback()
+                flash(_('حدث خطأ أثناء معالجة النتائج. حاول مرة أخرى.'), 'error')
+                return redirect(url_for('main.lobby', lobby_id=lobby.id))
 
     # 6. Save History
     history = HeistHistory(

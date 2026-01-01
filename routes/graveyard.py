@@ -57,11 +57,16 @@ def resurrect():
     except Exception:
         cost_diamonds = 10
 
-    if current_user.diamonds < cost_diamonds:
+    # Atomic Deduction using ResourceService
+    if not ResourceService.modify_resources(
+        current_user.id,
+        {'diamonds': -cost_diamonds},
+        'resurrection_cost',
+        auto_commit=False,
+        expected_version=current_user.version
+    ):
         flash(_('ليس لديك ما يكفي من الماس! تحتاج إلى %(cost)s ماسة.', cost=cost_diamonds), 'danger')
         return redirect(url_for('graveyard.index'))
-
-    User.query.filter_by(id=current_user.id).update({'diamonds': User.diamonds - cost_diamonds})
 
     current_user.health = current_user.max_health
     current_user.energy = current_user.max_energy

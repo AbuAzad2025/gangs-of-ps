@@ -92,3 +92,44 @@ class SpotOrder(db.Model):
         if self.quantity > 0:
             return (self.filled_quantity / self.quantity) * 100
         return 0.0
+
+class Auction(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    item_type = db.Column(db.String(20), nullable=False) # 'item', 'title', 'vehicle', 'special'
+    item_id = db.Column(db.String(50), nullable=True) # ID or Key of the item
+    seller_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True) # Null = System Auction
+    
+    start_price = db.Column(db.BigInteger, nullable=False)
+    current_price = db.Column(db.BigInteger, nullable=False)
+    min_bid_increment = db.Column(db.BigInteger, default=1000)
+    
+    start_time = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
+    end_time = db.Column(db.DateTime, nullable=False)
+    status = db.Column(db.String(20), default='active') # active, completed, cancelled
+    
+    winner_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True)
+    
+    # Relationships
+    seller = db.relationship('User', foreign_keys=[seller_id], backref='auctions_sold')
+    winner = db.relationship('User', foreign_keys=[winner_id], backref='auctions_won')
+    bids = db.relationship('AuctionBid', backref='auction', lazy=True, cascade='all, delete-orphan')
+
+    def __repr__(self):
+        return f'<Auction {self.id} - {self.item_type}:{self.item_id}>'
+        
+    @property
+    def is_active(self):
+        return self.status == 'active' and self.end_time > datetime.now(timezone.utc)
+
+class AuctionBid(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    auction_id = db.Column(db.Integer, db.ForeignKey('auction.id'), nullable=False, index=True)
+    bidder_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False, index=True)
+    amount = db.Column(db.BigInteger, nullable=False)
+    timestamp = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
+    is_refunded = db.Column(db.Boolean, default=False)
+    
+    bidder = db.relationship('User', backref='auction_bids')
+    
+    def __repr__(self):
+        return f'<Bid {self.amount} on Auction {self.auction_id}>'

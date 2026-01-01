@@ -10,6 +10,7 @@ class Asset(db.Model):
     gang_id = db.Column(db.Integer, db.ForeignKey('gang.id'), nullable=True)
     value = db.Column(db.Integer, default=0) # Buying Price
     income = db.Column(db.Integer, default=0) # Daily income or benefit
+    maintenance_cost = db.Column(db.Integer, default=0) # Daily maintenance tax
     last_collected = db.Column(db.DateTime, nullable=True)
     image = db.Column(db.String(255))
     is_active = db.Column(db.Boolean, default=True)

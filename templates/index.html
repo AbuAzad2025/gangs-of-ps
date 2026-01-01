@@ -62,6 +62,18 @@
                     <i class="fas fa-play mr-2"></i> {{ _('شاهد العرض') }}
                 </button>
             </div>
+            
+            <div class="mt-4 text-center">
+                <p class="text-white-50 mb-3">{{ _('ساعدنا في تطوير اللعبة لتبقى الأفضل!') }}</p>
+                <div class="d-flex justify-content-center gap-2 flex-wrap">
+                    <button type="button" class="donate-btn border-0 m-1" data-toggle="modal" data-target="#donationModal">
+                        <i class="fas fa-heart mr-2"></i> {{ _('تبرع للمشروع') }}
+                    </button>
+                    <button type="button" class="buy-code-btn border-0 m-1" data-toggle="modal" data-target="#buyCodeModal">
+                        <i class="fas fa-rocket mr-2"></i> {{ _('ابدأ مشروعك الخاص') }}
+                    </button>
+                </div>
+            </div>
             <div class="mt-3">
                 <div class="alert alert-dark border border-warning py-2 px-3 alert-disclaimer">
                     <span class="text-gold font-weight-bold mr-1">{{ _('تنويه') }}:</span>
@@ -195,6 +207,92 @@
 {% endblock %}
 
 {% block scripts %}
+{% if jasmin %}
+    {% with hostess=jasmin %}
+        {% include 'includes/hostess_widget.html' %}
+    {% endwith %}
+{% endif %}
+
+<!-- Buy Code Modal -->
+<div class="modal fade" id="buyCodeModal" tabindex="-1" role="dialog" aria-labelledby="buyCodeModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content luxury-card border-info" style="border-color: #17a2b8 !important;">
+            <div class="modal-header luxury-header border-bottom-info" style="border-bottom: 1px solid #17a2b8;">
+                <h5 class="modal-title text-info" id="buyCodeModalLabel"><i class="fas fa-gem mr-2"></i> {{ _('امتلك المشروع بالكامل') }}</h5>
+                <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body text-white text-center">
+                <div class="mb-4">
+                    <i class="fas fa-cubes fa-4x text-info mb-3"></i>
+                    <h3 class="text-white font-weight-bold">{{ _('عصابات فلسطين - منصة SaaS متكاملة') }}</h3>
+                </div>
+                
+                <div class="stat-box mb-4 border-info" style="border-left: 3px solid #17a2b8;">
+                    <h2 class="text-gold font-weight-bold mb-0">10,000 $</h2>
+                    <p class="text-muted small">{{ _('رخصة تشغيل تجارية شاملة') }}</p>
+                </div>
+
+                <ul class="list-unstyled text-left d-inline-block mb-4 text-light">
+                    <li class="mb-2"><i class="fas fa-check text-success mr-2"></i> {{ _('منصة ألعاب متكاملة (حل تقني جاهز)') }}</li>
+                    <li class="mb-2"><i class="fas fa-check text-success mr-2"></i> {{ _('لوحة تحكم إدارية شاملة') }}</li>
+                    <li class="mb-2"><i class="fas fa-check text-success mr-2"></i> {{ _('نظام مدفوعات واشتراكات جاهز للربح') }}</li>
+                    <li class="mb-2"><i class="fas fa-check text-success mr-2"></i> {{ _('حقوق الاستخدام والتعديل (يمنع إعادة بيع النظام)') }}</li>
+                </ul>
+
+                <p class="text-white-50 mb-4 small">{{ _('استثمر في مشروع تقني جاهز وابدأ بجني الأرباح من اليوم الأول.') }}</p>
+
+                <a href="https://wa.me/972562150193?text={{ _('مرحباً، أنا مستثمر ومهتم بشراء منصة عصابات فلسطين كنظام SaaS') }}" target="_blank" class="btn btn-info btn-lg w-100 font-weight-bold text-white" style="background-color: #17a2b8; border: none;">
+                    <i class="fab fa-whatsapp mr-2"></i> {{ _('تواصل لامتلاك المنصة') }}
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Donation Modal -->
+<div class="modal fade" id="donationModal" tabindex="-1" role="dialog" aria-labelledby="donationModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content luxury-card border-warning" style="border-color: #d4af37 !important;">
+            <div class="modal-header luxury-header border-bottom-warning" style="border-bottom: 1px solid #d4af37;">
+                <h5 class="modal-title text-gold" id="donationModalLabel"><i class="fas fa-heart mr-2"></i> {{ _('تبرع للمشروع') }}</h5>
+                <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body text-white text-center">
+                <div class="mb-4">
+                    <i class="fas fa-hand-holding-heart fa-4x text-gold mb-3"></i>
+                    <h3 class="text-white font-weight-bold">{{ _('شكراً لدعمك!') }}</h3>
+                </div>
+                
+                <p class="text-muted mb-4">{{ _('مساهمتك تساعدنا في تطوير اللعبة وإضافة ميزات جديدة.') }}</p>
+
+                <div class="form-group">
+                    <label class="text-gold">{{ _('رقم المحفظة / IBAN (USDT - TRC20)') }}</label>
+                    <div class="input-group">
+                        <input type="text" class="form-control bg-dark text-white border-warning" id="donationIBAN" value="{{ _('سيتم توفيره قريباً - تواصل معنا') }}" readonly>
+                        <div class="input-group-append">
+                            <button class="btn btn-warning" type="button" onclick="copyToClipboard('donationIBAN')">
+                                <i class="fas fa-copy"></i> {{ _('نسخ') }}
+                            </button>
+                        </div>
+                    </div>
+                    <small class="text-muted mt-2 d-block">{{ _('يرجى التأكد من الشبكة (TRC20) قبل التحويل.') }}</small>
+                </div>
+
+                <div class="mt-4">
+                    <p class="text-white-50 small">{{ _('يمكنك أيضاً التواصل معنا لطرق تبرع أخرى:') }}</p>
+                    <a href="https://wa.me/972562150193?text={{ _('مرحباً، أرغب في التبرع للمشروع') }}" target="_blank" class="btn btn-outline-warning btn-block">
+                        <i class="fab fa-whatsapp mr-2"></i> {{ _('تواصل معنا') }}
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script>
     function playIntro() {
         console.log('Starting playIntro with CSS transitions...');

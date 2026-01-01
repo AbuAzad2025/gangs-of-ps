@@ -2,6 +2,7 @@ from flask import Blueprint, render_template, redirect, url_for, flash, session,
 from flask_login import login_required, current_user
 from flask_babel import _
 from extensions import db
+from services.resource_service import ResourceService
 from datetime import datetime, timedelta, timezone
 import random
 
@@ -48,7 +49,19 @@ def start():
     # Start Active Chase Session
     session['active_chase'] = True
     session['chase_difficulty'] = 1 # Standard difficulty for manual start
-    current_user.last_chase = datetime.now(timezone.utc).replace(tzinfo=None)
+    
+    # Use ResourceService to update last_chase atomically
+    if not ResourceService.modify_resources(
+        current_user.id,
+        {}, # No resource changes
+        'police_chase_start',
+        auto_commit=False,
+        expected_version=current_user.version,
+        set_fields={'last_chase': datetime.now(timezone.utc).replace(tzinfo=None)}
+    ):
+        flash(_('حدث خطأ أثناء بدء المطاردة.'), 'error')
+        return redirect(url_for('police_chase.index'))
+        
     db.session.commit()
     
     return redirect(url_for('police_chase.index'))
@@ -112,17 +125,21 @@ def escape(method):
 
     if user_score >= required_score:
         winnings = random.randint(150, 850) * difficulty
-        current_user.money += winnings
-        current_user.exp += 5 * difficulty
-        try:
-            if method == 'hide':
-                current_user.add_heat(-20)
-            elif method == 'run':
-                current_user.add_heat(-10)
-            else:
-                current_user.add_heat(5)
-        except Exception:
-            pass
+        xp_gain = 5 * difficulty
+        
+        heat_change = 5
+        if method == 'hide':
+            heat_change = -20
+        elif method == 'run':
+            heat_change = -10
+            
+        ResourceService.modify_resources(
+            current_user.id, 
+            {'money': winnings, 'exp': xp_gain, 'heat': heat_change}, 
+            'police_chase_escape', 
+            auto_commit=False, 
+            expected_version=current_user.version
+        )
 
         session.pop('active_chase', None)
         session.pop('chase_difficulty', None)
@@ -145,12 +162,22 @@ def escape(method):
         return redirect(url_for('main.story'))
     else:
         jail_time = 60 * difficulty
-        current_user.jail_until = (datetime.now(timezone.utc) + timedelta(seconds=jail_time)).replace(tzinfo=None)
-        try:
-            current_user.clear_heat()
-        except Exception:
-            pass
-
+        jail_until_dt = (datetime.now(timezone.utc) + timedelta(seconds=jail_time)).replace(tzinfo=None)
+        
+        # Use ResourceService to safely update status and clear heat
+        ResourceService.modify_resources(
+            current_user.id, 
+            {}, 
+            'police_chase_fail', 
+            auto_commit=False, 
+            expected_version=current_user.version,
+            set_fields={
+                'jail_until': jail_until_dt,
+                'heat_points': 0,
+                'heat_updated_at': None
+            }
+        )
+        
         session.pop('active_chase', None)
         session.pop('chase_difficulty', None)
         db.session.commit()

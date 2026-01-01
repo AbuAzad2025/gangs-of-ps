@@ -26,22 +26,28 @@
                         </div>
                     </div>
                     <div class="row">
-                        <div class="col-md-4">
+                        <div class="col-md-3">
                             <div class="form-group mb-3">
                                 <label class="text-gold">{{ form.level.label }}</label>
                                 {{ form.level(class="form-control form-control-luxury") }}
                             </div>
                         </div>
-                        <div class="col-md-4">
+                        <div class="col-md-3">
                             <div class="form-group mb-3">
                                 <label class="text-gold">{{ form.money.label }}</label>
                                 {{ form.money(class="form-control form-control-luxury") }}
                             </div>
                         </div>
-                        <div class="col-md-4">
+                        <div class="col-md-3">
                             <div class="form-group mb-3">
                                 <label class="text-gold">{{ form.bullets.label }}</label>
                                 {{ form.bullets(class="form-control form-control-luxury") }}
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="form-group mb-3">
+                                <label class="text-gold">{{ form.max_members.label }}</label>
+                                {{ form.max_members(class="form-control form-control-luxury") }}
                             </div>
                         </div>
                     </div>
@@ -60,6 +66,92 @@
                 </div>
             </form>
         </div>
+
+        {% if active_wars %}
+        <div class="luxury-card fade-in-up mt-4">
+            <div class="card-header">
+                <h3 class="card-title text-danger"><i class="fas fa-skull-crossbones mr-2"></i> {{ _('الحروب النشطة') }}</h3>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover table-dark mb-0">
+                        <thead>
+                            <tr>
+                                <th>{{ _('العدو') }}</th>
+                                <th>{{ _('تاريخ البدء') }}</th>
+                                <th>{{ _('إجراءات') }}</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for war in active_wars %}
+                            <tr>
+                                <td>
+                                    {% if war.gang1_id == gang.id %}
+                                        {{ war.gang2.name }}
+                                    {% else %}
+                                        {{ war.gang1.name }}
+                                    {% endif %}
+                                </td>
+                                <td>{{ war.start_time.strftime('%Y-%m-%d %H:%M') }}</td>
+                                <td>
+                                    <form action="{{ url_for('main.dev_gang_war_end', war_id=war.id) }}" method="POST" class="d-inline">
+                                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                        <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('{{ _('هل أنت متأكد من إنهاء هذه الحرب قسرياً؟') }}')">
+                                            <i class="fas fa-stop-circle"></i> {{ _('إنهاء الحرب') }}
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        {% if active_alliances %}
+        <div class="luxury-card fade-in-up mt-4">
+            <div class="card-header">
+                <h3 class="card-title text-info"><i class="fas fa-handshake mr-2"></i> {{ _('التحالفات النشطة') }}</h3>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover table-dark mb-0">
+                        <thead>
+                            <tr>
+                                <th>{{ _('الحليف') }}</th>
+                                <th>{{ _('تاريخ البدء') }}</th>
+                                <th>{{ _('إجراءات') }}</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for alliance in active_alliances %}
+                            <tr>
+                                <td>
+                                    {% if alliance.gang1_id == gang.id %}
+                                        {{ alliance.gang2.name }}
+                                    {% else %}
+                                        {{ alliance.gang1.name }}
+                                    {% endif %}
+                                </td>
+                                <td>{{ alliance.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
+                                <td>
+                                    <form action="{{ url_for('main.dev_gang_alliance_break', alliance_id=alliance.id) }}" method="POST" class="d-inline">
+                                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                        <button type="submit" class="btn btn-sm btn-warning" onclick="return confirm('{{ _('هل أنت متأكد من فسخ هذا التحالف قسرياً؟') }}')">
+                                            <i class="fas fa-cut"></i> {{ _('فسخ التحالف') }}
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        {% endif %}
     </div>
 </div>
 {% endblock %}

@@ -26,6 +26,8 @@ class Crime(db.Model):
     min_agility = db.Column(db.Integer, default=0)
     min_intelligence = db.Column(db.Integer, default=0)
     
+    daily_limit = db.Column(db.Integer, default=0)  # 0 means unlimited
+    
     def __repr__(self):
         return f'<Crime {self.name}>'
 
@@ -165,6 +167,10 @@ class UserCrimeCooldown(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     crime_id = db.Column(db.Integer, db.ForeignKey('crime.id'), nullable=False)
     cooldown_until = db.Column(db.DateTime, nullable=False)
+    
+    # Daily limit tracking
+    daily_count = db.Column(db.Integer, default=0)
+    last_reset_date = db.Column(db.Date, default=lambda: datetime.now(timezone.utc).date())
     
     user = db.relationship('User', backref=db.backref('crime_cooldowns', lazy=True, cascade='all, delete-orphan'))
     crime = db.relationship('Crime')

@@ -9,7 +9,7 @@ from .economy import Asset
 from .events import WeeklyWinner
 from .vehicle import Vehicle, UserVehicle
 from .referral import Referral
-from .log import GameLog
+from .log import GameLog, UserLog, MoneySinkLog, EconomySnapshot
 from .system import SystemConfig, Announcement, SecurityLog
 from .combat import CombatLog
 from .market import MarketAsset, UserInvestment, SpotOrder, FuturesPosition

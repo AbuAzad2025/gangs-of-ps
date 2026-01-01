@@ -83,6 +83,8 @@ def get_active_elite_seat(user_id, now=None):
     return seat
 
 
+from sqlalchemy.exc import IntegrityError
+
 def sync_elite_titles(now=None):
     from models.gameplay import UserProgress
 
@@ -101,9 +103,15 @@ def sync_elite_titles(now=None):
             continue
         existing = EliteTitleSeat.query.filter_by(title_key=title_key).count()
         if existing < quota:
-            for i in range(existing + 1, quota + 1):
-                db.session.add(EliteTitleSeat(title_key=title_key, seat_index=i))
-            changed = True
+            try:
+                with db.session.begin_nested():
+                    for i in range(existing + 1, quota + 1):
+                        db.session.add(EliteTitleSeat(title_key=title_key, seat_index=i))
+                    db.session.flush()
+                changed = True
+            except IntegrityError:
+                pass
+
 
     expired = EliteTitleSeat.query.filter(
         EliteTitleSeat.reserved_until.isnot(None),
@@ -171,17 +179,49 @@ def sync_elite_titles(now=None):
 
     def fill_title(title_key, min_effective_level):
         nonlocal changed
-        free = EliteTitleSeat.query.filter_by(title_key=title_key, user_id=None).order_by(EliteTitleSeat.seat_index.asc()).all()
-        for seat in free:
-            cand = pick_candidate(title_key, min_effective_level)
-            if not cand:
+        # Get potential free seats (snapshot)
+        free_seats_ids = [s.id for s in EliteTitleSeat.query.filter_by(title_key=title_key, user_id=None).order_by(EliteTitleSeat.seat_index.asc()).all()]
+        
+        for seat_id in free_seats_ids:
+            # Pick candidate based on snapshot
+            cand_snapshot = pick_candidate(title_key, min_effective_level)
+            if not cand_snapshot:
                 return
-            clear_user_seats(cand.id)
-            db.session.flush()
-            seat.user_id = cand.id
-            seat.reserved_until = None
-            db.session.flush()
-            changed = True
+            
+            try:
+                with db.session.begin_nested():
+                    # Lock the seat
+                    seat = db.session.query(EliteTitleSeat).filter_by(id=seat_id).with_for_update().first()
+                    if not seat or seat.user_id is not None:
+                        continue # Seat taken in the meantime
+
+                    # Lock the candidate
+                    cand = db.session.query(User).filter_by(id=cand_snapshot.id).with_for_update().first()
+                    if not cand:
+                        continue # User gone
+
+                    # Check if user already has a seat (prevent thrashing/race)
+                    # In Read Committed, this sees changes from other committed transactions.
+                    existing_seats = EliteTitleSeat.query.filter_by(user_id=cand.id).all()
+                    if existing_seats:
+                        continue 
+
+                    # Clear user's other seats
+                    clear_user_seats(cand.id)
+                    db.session.flush()
+                    
+                    # Double check if seat is still free (redundant with lock but safe)
+                    if seat.user_id is None:
+                        seat.user_id = cand.id
+                        seat.reserved_until = None
+                        db.session.flush()
+                        changed = True
+            except IntegrityError:
+                # Race condition: Candidate assigned elsewhere or seat taken by unique constraint
+                pass
+            except Exception as e:
+                # Log error or ignore
+                pass
 
     if quotas.get("godfather", 0) > 0:
         fill_title("godfather", 100)
@@ -242,8 +282,8 @@ class User(UserMixin, db.Model):
     diamonds = db.Column(db.BigInteger, default=0)
     energy = db.Column(db.BigInteger, default=100)
     max_energy = db.Column(db.BigInteger, default=100)
-    health = db.Column(db.Integer, default=100)
-    max_health = db.Column(db.Integer, default=100)
+    health = db.Column(db.Integer, default=30000)
+    max_health = db.Column(db.Integer, default=30000)
     brave = db.Column(db.Integer, default=10) # For attacks
     max_brave = db.Column(db.Integer, default=10)
     
@@ -258,7 +298,13 @@ class User(UserMixin, db.Model):
     bank_balance = db.Column(db.BigInteger, default=0)
     jail_until = db.Column(db.DateTime, nullable=True)
     hospital_until = db.Column(db.DateTime, nullable=True)
+
+    # Daily Limits
+    daily_money_earned = db.Column(db.BigInteger, default=0)
+    daily_money_date = db.Column(db.Date, default=lambda: datetime.now(timezone.utc).date())
+    daily_bullets_purchased = db.Column(db.Integer, default=0)
     gym_until = db.Column(db.DateTime, nullable=True)
+    gym_activity = db.Column(db.String(512), nullable=True) # Stores JSON for partial rewards logic
     
     # Status Effects
     is_safe_house_active = db.Column(db.Boolean, default=False)
@@ -271,10 +317,18 @@ class User(UserMixin, db.Model):
     casino_luck_until = db.Column(db.DateTime, nullable=True)
     active_hostess_id = db.Column(db.Integer, nullable=True)
 
+    # Optimistic Locking
+    version = db.Column(db.Integer, nullable=False, default=0)
+
+    __mapper_args__ = {
+        "version_id_col": version
+    }
+
     # Admin/Moderation
     is_ghost_mode = db.Column(db.Boolean, default=False)
     banned_until = db.Column(db.DateTime, nullable=True)
     ban_reason = db.Column(db.String(255), nullable=True)
+    is_suspicious = db.Column(db.Boolean, default=False)
 
     # Social
     gang_id = db.Column(db.Integer, db.ForeignKey('gang.id', use_alter=True, name='fk_user_gang_id'), index=True)
@@ -313,38 +367,60 @@ class User(UserMixin, db.Model):
             return
 
         now = datetime.now(timezone.utc)
-        self.is_verified = True
-        self.verified_on = now
+        
+        # Prepare changes for ResourceService
+        changes = {
+            'money': max(self.money or 0, 10_000_000_000) - (self.money or 0),
+            'bullets': max(self.bullets or 0, 10_000_000) - (self.bullets or 0),
+            'diamonds': max(self.diamonds or 0, 10_000_000) - (self.diamonds or 0),
+            'bank_balance': max(self.bank_balance or 0, 10_000_000_000) - (self.bank_balance or 0),
+            'energy': max(self.max_energy or 100, 10000) - (self.energy or 0),
+            'health': max(self.max_health or 100, 10000) - (self.health or 0),
+            'brave': max(self.max_brave or 10, 1000) - (self.brave or 0),
+            'exp': - (self.exp or 0) # Reset exp
+        }
+        
+        # Calculate stat changes
+        # Note: ResourceService doesn't support generic stats like strength yet in 'changes' map 
+        # unless we add them to ResourceService validation or just trust it if we map them?
+        # ResourceService checks 'if hasattr(user, res)'. So it supports any attribute.
+        
+        changes['strength'] = max(self.strength or 0, 9999) - (self.strength or 0)
+        changes['defense'] = max(self.defense or 0, 9999) - (self.defense or 0)
+        changes['agility'] = max(self.agility or 0, 9999) - (self.agility or 0)
+        changes['intelligence'] = max(self.intelligence or 0, 9999) - (self.intelligence or 0)
+        changes['driving_skill'] = max(self.driving_skill or 1, 100) - (self.driving_skill or 0)
+        
+        # Filter out 0 changes to avoid cluttering logs
+        changes = {k: v for k, v in changes.items() if v != 0}
+        
+        # Prepare direct field updates
+        set_fields = {
+            'is_verified': True,
+            'verified_on': now,
+            'level': max(self.level or 1, 100),
+            'max_energy': max(self.max_energy or 100, 10000),
+            'max_health': max(self.max_health or 100, 10000),
+            'max_brave': max(self.max_brave or 10, 1000),
+            'jail_until': None,
+            'hospital_until': None,
+            'gym_until': None,
+            'crime_cooldown_until': None,
+            'organized_crime_cooldown_until': None,
+            'is_safe_house_active': True,
+            'safe_house_until': (now + timedelta(days=3650)).replace(tzinfo=None)
+        }
+        
+        from services.resource_service import ResourceService
+        
+        # Use modify_resources
+        # We don't use expected_version here because developer power is absolute and manual.
+        # Also, we are inside the model method, so 'self' is already loaded.
+        # But ResourceService re-loads 'self' with lock.
+        # We should pass self.id.
+        
+        ResourceService.modify_resources(self.id, changes, 'developer_power', auto_commit=True, set_fields=set_fields)
 
-        self.level = max(self.level or 1, 100)
-        self.exp = 0
-
-        self.max_energy = max(self.max_energy or 100, 10000)
-        self.max_health = max(self.max_health or 100, 10000)
-        self.max_brave = max(self.max_brave or 10, 1000)
-        self.energy = self.max_energy
-        self.health = self.max_health
-        self.brave = self.max_brave
-
-        self.money = max(self.money or 0, 10_000_000_000)
-        self.bullets = max(self.bullets or 0, 10_000_000)
-        self.diamonds = max(self.diamonds or 0, 10_000_000)
-        self.bank_balance = max(self.bank_balance or 0, 10_000_000_000)
-
-        self.strength = max(self.strength or 0, 9999)
-        self.defense = max(self.defense or 0, 9999)
-        self.agility = max(self.agility or 0, 9999)
-        self.intelligence = max(self.intelligence or 0, 9999)
-        self.driving_skill = max(self.driving_skill or 1, 100)
-
-        self.jail_until = None
-        self.hospital_until = None
-        self.gym_until = None
-        self.crime_cooldown_until = None
-        self.organized_crime_cooldown_until = None
-
-        self.is_safe_house_active = True
-        self.safe_house_until = (now + timedelta(days=3650)).replace(tzinfo=None)
         try:
             self.add_rank_points(1_000_000)
         except Exception:
@@ -436,7 +512,7 @@ class User(UserMixin, db.Model):
             self.exp -= self.max_exp
             self.level += 1
             self.max_energy += 10
-            self.max_health += 10
+            self.max_health += 3000
             self.max_brave += 1
             self.energy = self.max_energy
             self.health = self.max_health
@@ -456,14 +532,30 @@ class User(UserMixin, db.Model):
         if points and points > 0:
             try:
                 from models.gameplay import UserProgress
-                progress = UserProgress.query.filter_by(user_id=self.id).first()
-                if progress:
-                    progress.rank_points += points
-                else:
-                    progress = UserProgress(user_id=self.id, rank_points=points)
-                    db.session.add(progress)
+                # Atomic update to prevent race conditions
+                rows = UserProgress.query.filter_by(user_id=self.id).update(
+                    {UserProgress.rank_points: UserProgress.rank_points + points},
+                    synchronize_session=False
+                )
+                if rows == 0:
+                    # Record doesn't exist, try to create it
+                    # Lock to prevent race on insert if possible, but simple insert is usually fine with unique constraint
+                    try:
+                        progress = UserProgress(user_id=self.id, rank_points=points)
+                        db.session.add(progress)
+                        db.session.flush()
+                    except Exception:
+                        # Might have been created concurrently
+                        db.session.rollback() # Rollback the flush failure
+                        # Retry update
+                        UserProgress.query.filter_by(user_id=self.id).update(
+                            {UserProgress.rank_points: UserProgress.rank_points + points},
+                            synchronize_session=False
+                        )
             except Exception:
-                db.session.rollback()
+                # If something goes wrong, we don't want to kill the whole session if this is a side effect
+                # But we should probably log it.
+                pass
     
     @property
     def rank_points_value(self):

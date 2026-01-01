@@ -74,7 +74,8 @@ def index():
     top_players = User.query.order_by(User.level.desc(), User.exp.desc()).limit(5).all()
     
     # Fetch Jasmin for Landing
-    jasmin = Hostess.query.filter(Hostess.name.ilike('%Jasmin%')).first()
+    # Search for both English 'Jasmin' and Arabic 'ياسمين'
+    jasmin = Hostess.query.filter(or_(Hostess.name.ilike('%Jasmin%'), Hostess.name == 'ياسمين')).first()
 
     return render_template('index.html', 
                            total_users=total_users,

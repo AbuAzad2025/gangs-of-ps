@@ -17,6 +17,14 @@
                 <h3 class="text-gradient-gold mb-3"><i class="fas fa-dumbbell fa-spin mr-2"></i>{{ _('تمرين جاري...') }}</h3>
                 <div id="countdown" class="display-4 font-weight-bold text-white font-mono"></div>
                 <p class="text-muted mt-2">{{ _('عليك الانتظار حتى انتهاء التمرين الحالي لتتمكن من التدريب مجدداً') }}</p>
+                
+                <form action="{{ url_for('gym.cancel_training') }}" method="POST" class="mt-3">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                    <button type="submit" class="btn btn-outline-danger">
+                        <i class="fas fa-sign-out-alt mr-2"></i> {{ _('إنهاء التمرين والخروج') }}
+                    </button>
+                    <p class="small text-muted mt-1">{{ _('تحذير: الخروج يسمح لك بالقيام بمهام أخرى لكن لا يمكنك استعادة الطاقة المصروفة.') }}</p>
+                </form>
             </div>
         </div>
     </div>
@@ -55,7 +63,7 @@
                 <form action="{{ url_for('gym.train', stat='strength') }}" method="POST">
                     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
                     <button type="submit" class="train-btn" {% if remaining_seconds > 0 %}disabled{% endif %}>
-                        <i class="fas fa-plus-circle mr-2"></i>{{ _('تدريب (10E | 100$)') }}
+                        <i class="fas fa-plus-circle mr-2"></i>{{ _('تدريب (5E | 100$)') }}
                     </button>
                 </form>
             </div>
@@ -73,7 +81,7 @@
                 <form action="{{ url_for('gym.train', stat='defense') }}" method="POST" class="train-form">
                     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
                     <button type="submit" class="train-btn" {% if remaining_seconds > 0 %}disabled{% endif %}>
-                        <i class="fas fa-plus-circle mr-2"></i>{{ _('تدريب (10E | 100$)') }}
+                        <i class="fas fa-plus-circle mr-2"></i>{{ _('تدريب (5E | 100$)') }}
                     </button>
                 </form>
             </div>
@@ -91,7 +99,7 @@
                 <form action="{{ url_for('gym.train', stat='agility') }}" method="POST">
                     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
                     <button type="submit" class="train-btn" {% if remaining_seconds > 0 %}disabled{% endif %}>
-                        <i class="fas fa-plus-circle mr-2"></i>{{ _('تدريب (10E | 100$)') }}
+                        <i class="fas fa-plus-circle mr-2"></i>{{ _('تدريب (5E | 100$)') }}
                     </button>
                 </form>
             </div>

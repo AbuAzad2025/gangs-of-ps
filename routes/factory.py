@@ -6,8 +6,9 @@ import random
 import json
 
 from extensions import db, limiter
-from models import Item, UserItem, FactoryJob, SystemConfig, User
+from models import Item, UserItem, FactoryJob, SystemConfig, User, MoneySinkLog
 from services.requirements import check_requirements
+from services.resource_service import ResourceService
 
 
 bp = Blueprint('factory', __name__, url_prefix='/factory')
@@ -37,13 +38,32 @@ def _add_user_item(user_id, item, qty):
 
 
 def _consume_user_item(user_id, item_id, qty):
-    ui = UserItem.query.filter_by(user_id=user_id, item_id=item_id).first()
-    if not ui or ui.quantity < qty:
-        return False
-    ui.quantity -= qty
-    if ui.quantity <= 0:
-        db.session.delete(ui)
-    return True
+    # Atomic consumption using update with criteria
+    result = UserItem.query.filter(
+        UserItem.user_id == user_id,
+        UserItem.item_id == item_id,
+        UserItem.quantity >= qty
+    ).update({
+        UserItem.quantity: UserItem.quantity - qty
+    }, synchronize_session=False)
+    
+    if result > 0:
+        # Cleanup empty items if needed, though 0 quantity is often fine to keep
+        # But to match previous logic (delete if <= 0):
+        # We can't easily delete in the same query. 
+        # We can do a second query to clean up, or just leave it at 0.
+        # Previous logic:
+        # if ui.quantity <= 0: db.session.delete(ui)
+        
+        # Let's clean up zero quantity items
+        UserItem.query.filter(
+            UserItem.user_id == user_id,
+            UserItem.item_id == item_id,
+            UserItem.quantity <= 0
+        ).delete(synchronize_session=False)
+        return True
+        
+    return False
 
 
 def _effective_level(user):
@@ -88,15 +108,15 @@ def _get_factory_config():
             ("سلاح مهرب (M16)", 2.0),
         ],
         "tiers": {
-            "t1": {"bullet_diamonds": 1, "bullet_metal": 1, "bullet_out": (10, 18), "bullet_minutes": (3, 6),
+            "t1": {"bullet_diamonds": 0, "bullet_metal": 2, "bullet_out": (10, 15), "bullet_minutes": (5, 10),
                    "expl_diamonds": 3, "expl_metal": 3, "expl_out": (1, 1), "expl_minutes": (10, 16)},
-            "t2": {"bullet_diamonds": 2, "bullet_metal": 2, "bullet_out": (20, 35), "bullet_minutes": (5, 10),
+            "t2": {"bullet_diamonds": 0, "bullet_metal": 4, "bullet_out": (20, 30), "bullet_minutes": (8, 14),
                    "expl_diamonds": 5, "expl_metal": 4, "expl_out": (1, 2), "expl_minutes": (12, 18)},
-            "t3": {"bullet_diamonds": 3, "bullet_metal": 3, "bullet_out": (35, 55), "bullet_minutes": (8, 14),
+            "t3": {"bullet_diamonds": 0, "bullet_metal": 6, "bullet_out": (35, 50), "bullet_minutes": (12, 18),
                    "expl_diamonds": 7, "expl_metal": 5, "expl_out": (2, 3), "expl_minutes": (15, 22)},
-            "t4": {"bullet_diamonds": 4, "bullet_metal": 4, "bullet_out": (55, 85), "bullet_minutes": (10, 18),
+            "t4": {"bullet_diamonds": 0, "bullet_metal": 8, "bullet_out": (55, 80), "bullet_minutes": (15, 24),
                    "expl_diamonds": 10, "expl_metal": 7, "expl_out": (3, 5), "expl_minutes": (18, 28)},
-            "t5": {"bullet_diamonds": 6, "bullet_metal": 6, "bullet_out": (85, 130), "bullet_minutes": (14, 24),
+            "t5": {"bullet_diamonds": 0, "bullet_metal": 10, "bullet_out": (85, 120), "bullet_minutes": (20, 30),
                    "expl_diamonds": 14, "expl_metal": 9, "expl_out": (5, 8), "expl_minutes": (22, 35)},
         },
         "requirements": {
@@ -211,6 +231,32 @@ def index():
 @login_required
 @limiter.limit("20 per minute")
 def smelt():
+    # Status Check
+    now = _now_utc()
+    if current_user.jail_until:
+        jail_until = current_user.jail_until
+        if jail_until.tzinfo is None:
+            jail_until = jail_until.replace(tzinfo=timezone.utc)
+        if jail_until > now:
+             flash(_('أنت في السجن ولا يمكنك استخدام المصنع!'), 'danger')
+             return redirect(url_for('jail.index'))
+             
+    if current_user.hospital_until:
+        hospital_until = current_user.hospital_until
+        if hospital_until.tzinfo is None:
+            hospital_until = hospital_until.replace(tzinfo=timezone.utc)
+        if hospital_until > now:
+             flash(_('أنت في المستشفى ولا يمكنك استخدام المصنع!'), 'danger')
+             return redirect(url_for('hospital.index'))
+
+    if current_user.gym_until:
+        gym_until = current_user.gym_until
+        if gym_until.tzinfo is None:
+            gym_until = gym_until.replace(tzinfo=timezone.utc)
+        if gym_until > now:
+             flash(_('أنت تتدرب ولا يمكنك استخدام المصنع!'), 'danger')
+             return redirect(url_for('gym.index'))
+
     cfg = _get_factory_config()
     metal_item = _get_material_item(cfg["metal_item_name"])
     if not metal_item:
@@ -232,9 +278,32 @@ def smelt():
         flash(_('لا يمكنك صهر هذا العنصر.'), 'warning')
         return redirect(url_for('factory.index'))
 
+    smelt_cost = 5000
+    if current_user.money < smelt_cost:
+        flash(_('لا تملك كاش كافي للصهر! التكلفة: %(cost)s$', cost=smelt_cost), 'danger')
+        return redirect(url_for('factory.index'))
+
     if not _consume_user_item(current_user.id, src_item.id, 1):
         flash(_('لا تملك هذا العنصر.'), 'danger')
         return redirect(url_for('factory.index'))
+
+    # Atomic deduction via ResourceService
+    if not ResourceService.modify_resources(current_user.id, {'money': -smelt_cost}, 'factory_smelt_cost', auto_commit=False, expected_version=current_user.version):
+        # Rollback item consumption if money deduction failed (edge case)
+        # Re-add item
+        _add_user_item(current_user.id, src_item, 1)
+        db.session.commit()
+        flash(_('لا تملك كاش كافي للصهر!'), 'danger')
+        return redirect(url_for('factory.index'))
+
+    sink_log = MoneySinkLog(
+        user_id=current_user.id,
+        sink_type='factory_smelt_cost',
+        amount=smelt_cost,
+        details=f"Smelted {src_item.name}"
+    )
+    db.session.add(sink_log)
+
 
     lvl = _effective_level(current_user)
     tier = _tier_for_level(lvl)
@@ -319,8 +388,17 @@ def start_job():
         flash(_('لا تملك سبائك معدن كافية للتصنيع.'), 'danger')
         return redirect(url_for('factory.index'))
 
-    _consume_user_item(current_user.id, metal_item.id, metal_cost)
-    current_user.diamonds = max(0, int(current_user.diamonds) - diamonds_cost)
+    # Atomic deduction for diamonds via ResourceService
+    if not ResourceService.modify_resources(current_user.id, {'diamonds': -diamonds_cost}, 'factory_start_job', auto_commit=False, expected_version=current_user.version):
+        flash(_('ليس لديك ما يكفي من الماس!'), 'danger')
+        return redirect(url_for('factory.index'))
+
+    # Consume items after ensuring diamonds are deducted
+    if not _consume_user_item(current_user.id, metal_item.id, metal_cost):
+        # Rollback transaction
+        db.session.rollback()
+        flash(_('لا تملك سبائك معدن كافية للتصنيع.'), 'danger')
+        return redirect(url_for('factory.index'))
 
     minutes = _weighted_int(int(min_m), int(max_m), w_low=0.6, w_mid=0.3)
     output_amount = _weighted_int(int(out_min), int(out_max), w_low=0.7, w_mid=0.25)
@@ -350,7 +428,8 @@ def claim(job_id):
     cfg = _get_factory_config()
     explosive_item = _get_material_item(cfg["explosive_item_name"])
 
-    job = FactoryJob.query.filter_by(id=job_id, user_id=current_user.id).first()
+    # Lock the job row to prevent double claiming
+    job = FactoryJob.query.filter_by(id=job_id, user_id=current_user.id).with_for_update().first()
     if not job or job.status != 'running':
         flash(_('هذه العملية غير موجودة.'), 'danger')
         return redirect(url_for('factory.index'))
@@ -360,7 +439,9 @@ def claim(job_id):
         return redirect(url_for('factory.index'))
 
     if job.job_type == 'bullets':
-        current_user.bullets += int(job.output_amount)
+        if not ResourceService.modify_resources(current_user.id, {'bullets': int(job.output_amount)}, 'factory_claim_bullets', auto_commit=False, expected_version=current_user.version):
+            flash(_('حدث خطأ أثناء استلام الموارد. حاول مرة أخرى.'), 'danger')
+            return redirect(url_for('factory.index'))
     else:
         if not explosive_item:
             flash(_('عنصر المتفجرات غير موجود.'), 'danger')
@@ -368,7 +449,7 @@ def claim(job_id):
         _add_user_item(current_user.id, explosive_item, int(job.output_amount))
 
     job.status = 'claimed'
-    job.claimed_at = _now_utc()
+    job.claimed_at = _now_utc().replace(tzinfo=None)
     db.session.add(job)
     db.session.commit()
 
@@ -380,6 +461,32 @@ def claim(job_id):
 @login_required
 @limiter.limit("10 per minute")
 def boost(job_id):
+    # Status Check
+    now = _now_utc()
+    if current_user.jail_until:
+        jail_until = current_user.jail_until
+        if jail_until.tzinfo is None:
+            jail_until = jail_until.replace(tzinfo=timezone.utc)
+        if jail_until > now:
+             flash(_('أنت في السجن ولا يمكنك استخدام المصنع!'), 'danger')
+             return redirect(url_for('jail.index'))
+             
+    if current_user.hospital_until:
+        hospital_until = current_user.hospital_until
+        if hospital_until.tzinfo is None:
+            hospital_until = hospital_until.replace(tzinfo=timezone.utc)
+        if hospital_until > now:
+             flash(_('أنت في المستشفى ولا يمكنك استخدام المصنع!'), 'danger')
+             return redirect(url_for('hospital.index'))
+
+    if current_user.gym_until:
+        gym_until = current_user.gym_until
+        if gym_until.tzinfo is None:
+            gym_until = gym_until.replace(tzinfo=timezone.utc)
+        if gym_until > now:
+             flash(_('أنت تتدرب ولا يمكنك استخدام المصنع!'), 'danger')
+             return redirect(url_for('gym.index'))
+
     job = FactoryJob.query.filter_by(id=job_id, user_id=current_user.id).first()
     if not job or job.status != 'running':
         flash(_('هذه العملية غير موجودة.'), 'danger')
@@ -415,7 +522,11 @@ def boost(job_id):
         flash(_('ليس لديك ما يكفي من الماس! تحتاج إلى %(cost)s ماسة.', cost=diamonds_cost), 'danger')
         return redirect(url_for('factory.index'))
 
-    current_user.diamonds = max(0, int(current_user.diamonds) - diamonds_cost)
+    # Atomic deduction via ResourceService
+    if not ResourceService.modify_resources(current_user.id, {'diamonds': -diamonds_cost}, 'factory_boost_job', auto_commit=False, expected_version=current_user.version):
+        flash(_('ليس لديك ما يكفي من الماس!'), 'danger')
+        return redirect(url_for('factory.index'))
+
     job.ends_at = now.replace(tzinfo=None)
     db.session.add(job)
     db.session.commit()

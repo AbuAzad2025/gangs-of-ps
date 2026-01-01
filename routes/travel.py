@@ -7,6 +7,7 @@ from datetime import datetime, timedelta, timezone
 from sqlalchemy import select
 from models import User
 import random
+from services.resource_service import ResourceService
 
 bp = Blueprint('travel', __name__, url_prefix='/travel')
 
@@ -41,31 +42,31 @@ def fly(location_id):
     if not target_location:
         abort(404)
 
-    db.session.execute(
+    user = db.session.execute(
         select(User).where(User.id == current_user.id).with_for_update()
     ).scalar_one()
     
     # Check Status (Jail/Hospital/Gym)
     now = datetime.now(timezone.utc)
     
-    if current_user.jail_until:
-        jail_until = current_user.jail_until
+    if user.jail_until:
+        jail_until = user.jail_until
         if jail_until.tzinfo is None:
             jail_until = jail_until.replace(tzinfo=timezone.utc)
         if jail_until > now:
             flash(_('أنت في السجن ولا يمكنك السفر!'), 'danger')
             return redirect(url_for('jail.index'))
 
-    if current_user.hospital_until:
-        hospital_until = current_user.hospital_until
+    if user.hospital_until:
+        hospital_until = user.hospital_until
         if hospital_until.tzinfo is None:
             hospital_until = hospital_until.replace(tzinfo=timezone.utc)
         if hospital_until > now:
             flash(_('أنت في المستشفى ولا يمكنك السفر!'), 'danger')
             return redirect(url_for('hospital.index'))
 
-    if current_user.gym_until:
-        gym_until = current_user.gym_until
+    if user.gym_until:
+        gym_until = user.gym_until
         if gym_until.tzinfo is None:
             gym_until = gym_until.replace(tzinfo=timezone.utc)
         if gym_until > now:
@@ -73,27 +74,27 @@ def fly(location_id):
             return redirect(url_for('gym.index'))
 
     # Check if already there
-    if current_user.location_id == target_location.id:
+    if user.location_id == target_location.id:
         flash(_('أنت موجود هنا بالفعل!'), 'warning')
         return redirect(url_for('travel.index'))
 
     # Check Cooldown
-    if current_user.last_travel and current_user.location_id:
-        current_loc = db.session.get(Location, current_user.location_id)
+    if user.last_travel and user.location_id:
+        current_loc = db.session.get(Location, user.location_id)
         if current_loc:
-            elapsed = datetime.now(timezone.utc) - current_user.last_travel.replace(tzinfo=timezone.utc) if current_user.last_travel.tzinfo is None else datetime.now(timezone.utc) - current_user.last_travel
+            elapsed = datetime.now(timezone.utc) - user.last_travel.replace(tzinfo=timezone.utc) if user.last_travel.tzinfo is None else datetime.now(timezone.utc) - user.last_travel
             if elapsed.total_seconds() < current_loc.cooldown:
                 flash(_('عليك الانتظار قبل السفر مرة أخرى!'), 'danger')
                 return redirect(url_for('travel.index'))
 
     # Check Money
-    if current_user.money < target_location.cost:
+    if user.money < target_location.cost:
         flash(_('ليس لديك مال كافٍ للسفر!'), 'danger')
         return redirect(url_for('travel.index'))
 
     # --- SMUGGLING CHECK ---
     # Check if user has smuggling items
-    smuggling_items = UserItem.query.filter_by(user_id=current_user.id).join(Item).filter(Item.type == 'smuggling').all()
+    smuggling_items = UserItem.query.filter_by(user_id=user.id).join(Item).filter(Item.type == 'smuggling').all()
     smuggling_risk_base = 0
     total_smuggling_qty = 0
     
@@ -105,7 +106,7 @@ def fly(location_id):
         smuggling_risk_base = 15 + (total_smuggling_qty * 2)
         
         # Intelligence reduces risk
-        intel_factor = current_user.intelligence * 0.1
+        intel_factor = user.intelligence * 0.1
         smuggling_risk = max(5, smuggling_risk_base - intel_factor) # Min 5% risk always
         
         risk_roll = random.randint(1, 100)
@@ -113,14 +114,17 @@ def fly(location_id):
         if risk_roll <= smuggling_risk:
             # BUSTED!
             jail_time = 30 # minutes
-            fine_amount = int(current_user.money * 0.2) # 20% fine
+            fine_amount = int(user.money * 0.2) # 20% fine
             
             # Confiscate items
             for ui in smuggling_items:
                 db.session.delete(ui)
-                
-            current_user.money -= fine_amount
-            current_user.jail_until = (datetime.now(timezone.utc) + timedelta(minutes=jail_time)).replace(tzinfo=None)
+            
+            # Atomic Fine via ResourceService
+            ResourceService.modify_resources(user.id, {'money': -fine_amount}, 'smuggling_bust_fine', auto_commit=False, expected_version=user.version)
+            
+            # current_user.money -= fine_amount # Removed
+            user.jail_until = datetime.now(timezone.utc) + timedelta(minutes=jail_time)
             
             db.session.commit()
             
@@ -138,14 +142,18 @@ def fly(location_id):
     # 1. Checkpoint (10% chance) - Only if not smuggling (smuggling check already happened)
     if event_roll <= 10:
         bribe = int(travel_cost * 0.5)
-        if current_user.money >= (travel_cost + bribe):
-            current_user.money -= bribe
+        if user.money >= (travel_cost + bribe):
+            # Atomic Bribe via ResourceService
+            ResourceService.modify_resources(user.id, {'money': -bribe}, 'travel_bribe', auto_commit=False, expected_version=user.version)
             msg_extra = _(" 👮 صادفك حاجز ودققت عليك، دفعت %(bribe)s رشوة لتمشي أمورك.", bribe=bribe)
         else:
             # Jail!
             jail_time = 15 # minutes
-            current_user.jail_until = (datetime.now(timezone.utc) + timedelta(minutes=jail_time)).replace(tzinfo=None)
-            current_user.money -= travel_cost
+            user.jail_until = datetime.now(timezone.utc) + timedelta(minutes=jail_time)
+            
+            # Atomic deduction for travel cost
+            ResourceService.modify_resources(user.id, {'money': -travel_cost}, 'travel_cost_jail', auto_commit=False, expected_version=user.version)
+
             db.session.commit()
             flash(_('👮 مسكوك عالمانع! معكش تدفع الرشوة. 15 دقيقة سجن.'), 'danger')
             return redirect(url_for('jail.index'))
@@ -155,9 +163,17 @@ def fly(location_id):
         travel_cost = 0
         msg_extra = _(" 🚕 طلع الشوفير ابن عمك! التوصيلة ببلاش.")
 
-    current_user.money -= travel_cost
-    current_user.location_id = target_location.id
-    current_user.last_travel = datetime.now(timezone.utc).replace(tzinfo=None)
+    # Atomic deduction
+    # Note: travel_cost might be 0.
+    if travel_cost > 0:
+        if not ResourceService.modify_resources(user.id, {'money': -travel_cost}, 'travel_cost', auto_commit=False, expected_version=user.version):
+            # Should not happen if checks passed and no intervening deductions, but possible.
+            flash(_('ليس لديك مال كافٍ للسفر!'), 'danger')
+            return redirect(url_for('travel.index'))
+
+    # current_user.money -= travel_cost # Removed
+    user.location_id = target_location.id
+    user.last_travel = datetime.now(timezone.utc)
     
     db.session.commit()
     

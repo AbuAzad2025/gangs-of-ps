@@ -67,6 +67,7 @@ class AssetForm(FlaskForm):
     description = TextAreaField('Description')
     value = IntegerField('Price/Value', validators=[DataRequired()])
     income = IntegerField('Daily Income/Benefit', validators=[DataRequired()])
+    maintenance_cost = IntegerField('Daily Maintenance Cost', default=0)
     image = FileField('Property Image', validators=[FileAllowed(['jpg', 'png', 'jpeg'], 'Images only!')])
     is_active = BooleanField('Active')
     submit = SubmitField('Save Property')
@@ -199,6 +200,7 @@ class GangForm(FlaskForm):
     level = IntegerField(_l('المستوى'), validators=[Optional()])
     money = IntegerField(_l('مال الخزينة'), validators=[Optional()])
     bullets = IntegerField(_l('ذخيرة الخزينة'), validators=[Optional()])
+    max_members = IntegerField(_l('الحد الأقصى للأعضاء'), validators=[Optional()])
     image = FileField(_l('شعار العصابة'), validators=[FileAllowed(['jpg', 'png', 'jpeg'], 'Images only!')])
     submit = SubmitField(_l('حفظ العصابة'))
 

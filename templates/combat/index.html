@@ -79,6 +79,10 @@
                                                 <i class="fas fa-bomb mr-1"></i> {{ _('تفجير (C4)') }}
                                             </button>
                                         </form>
+                                    {% elif target.id not in intel_target_ids %}
+                                        <a href="{{ url_for('black_market.index') }}" class="btn btn-outline-warning btn-sm px-3" title="{{ _('تحتاج لمعلومات استخباراتية للهجوم') }}">
+                                            <i class="fas fa-user-secret mr-1"></i> {{ _('مطلوب مخبر') }}
+                                        </a>
                                     {% else %}
                                         <form action="{{ url_for('combat.attack', target_id=target.id) }}" method="POST" class="d-inline attack-form">
                                             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
