@@ -1,8 +1,9 @@
 from flask import Blueprint, render_template, redirect, url_for, flash, request, session, jsonify
 from flask_login import login_required, current_user
-from extensions import db
+from extensions import db, limiter
 from models.user import User
 from models.hostess import Hostess
+from models.casino_game import CasinoGame
 from services.ai_hostess_service import AIHostessService
 from services.resource_service import ResourceService
 from flask_babel import _
@@ -97,12 +98,23 @@ def index():
 @bp.route('/blackjack')
 @login_required
 def blackjack_index():
-    game_state = session.get('blackjack_game')
+    # Load active game from DB
+    game = CasinoGame.query.filter_by(user_id=current_user.id, game_type='blackjack', status='active').first()
+    game_state = game.state if game else None
+    
+    # If game is completed but we want to show result (flash message handled, but maybe show state?)
+    # For now, if no active game, show empty state.
+    # We can check for recently completed game to show result if we want, but flash is enough.
+    
     return render_template('casino/blackjack.html', game_state=game_state, now=datetime.now(timezone.utc).replace(tzinfo=None))
 
 @bp.route('/blackjack/deal', methods=['POST'])
 @login_required
+@limiter.limit("20 per minute")
 def blackjack_deal():
+    # Lock user to prevent race conditions (starting multiple games)
+    db.session.query(User).filter_by(id=current_user.id).with_for_update().first()
+
     # Status Check
     now = datetime.now(timezone.utc)
     if current_user.jail_until:
@@ -129,6 +141,12 @@ def blackjack_deal():
             flash(_('أنت تتدرب ولا يمكنك اللعب!'), 'danger')
             return redirect(url_for('gym.index'))
 
+    # Check existing game
+    active_game = CasinoGame.query.filter_by(user_id=current_user.id, game_type='blackjack', status='active').first()
+    if active_game:
+        flash(_('لديك لعبة جارية بالفعل!'), 'warning')
+        return redirect(url_for('casino.blackjack_index'))
+
     bet = request.form.get('bet', type=int)
     if not bet or bet < 10:
         flash(_('أقل رهان هو 10!'), 'danger')
@@ -140,10 +158,11 @@ def blackjack_deal():
         changes={'money': -bet},
         reason='casino_blackjack_bet',
         auto_commit=False,
-        expected_version=current_user.version
+        expected_version=None
     )
     
     if not success:
+        db.session.rollback()
         flash(_('ليس لديك مال كافٍ!'), 'danger')
         return redirect(url_for('casino.blackjack_index'))
 
@@ -160,6 +179,16 @@ def blackjack_deal():
         'message': ''
     }
     
+    # Create Game Record
+    new_game = CasinoGame(
+        user_id=current_user.id,
+        game_type='blackjack',
+        bet_amount=bet,
+        state=game_state,
+        status='active'
+    )
+    db.session.add(new_game)
+    
     # Check for initial Blackjack
     player_score = calculate_score(player_hand)
     if player_score == 21:
@@ -173,16 +202,28 @@ def blackjack_deal():
         )
         game_state['status'] = 'player_win'
         game_state['message'] = _('بلاك جاك! ربحت %(amount)s!', amount=winnings)
-        session.pop('blackjack_game', None)
+        
+        new_game.status = 'completed'
+        new_game.result = 'win'
+        new_game.winnings = winnings
+        new_game.state = game_state # Update state
     
     db.session.commit()
-    session['blackjack_game'] = game_state
+    # session['blackjack_game'] = game_state # Removed
     return redirect(url_for('casino.blackjack_index'))
 
 @bp.route('/blackjack/hit', methods=['POST'])
 @login_required
+@limiter.limit("30 per minute")
 def blackjack_hit():
-    game_state = session.get('blackjack_game')
+    # Lock user to serialize moves and prevent state corruption
+    db.session.query(User).filter_by(id=current_user.id).with_for_update().first()
+
+    game = CasinoGame.query.filter_by(user_id=current_user.id, game_type='blackjack', status='active').first()
+    if not game:
+        return redirect(url_for('casino.blackjack_index'))
+    
+    game_state = game.state
     if not game_state or game_state['status'] != 'playing':
         return redirect(url_for('casino.blackjack_index'))
 
@@ -208,19 +249,37 @@ def blackjack_hit():
     if score > 21:
         game_state['status'] = 'player_bust'
         game_state['message'] = _('تجاوزت 21! خسرت الرهان.')
-        session.pop('blackjack_game', None) # Game over
-        # We want to show the bust state though. 
-        # So maybe keep it in session but don't allow actions.
-        session['blackjack_game'] = game_state
-    else:
-        session['blackjack_game'] = game_state
+        
+        game.status = 'completed'
+        game.result = 'loss'
+        game.winnings = 0
+        
+        # Force version update to prevent replay attacks (even on loss)
+        ResourceService.modify_resources(
+             user_id=current_user.id,
+             changes={}, # No resource change
+             reason='casino_blackjack_loss',
+             auto_commit=False,
+             expected_version=None
+        )
+        
+    game.state = game_state
+    db.session.commit()
         
     return redirect(url_for('casino.blackjack_index'))
 
 @bp.route('/blackjack/stand', methods=['POST'])
 @login_required
+@limiter.limit("30 per minute")
 def blackjack_stand():
-    game_state = session.get('blackjack_game')
+    # Lock user to prevent race conditions
+    db.session.query(User).filter_by(id=current_user.id).with_for_update().first()
+
+    game = CasinoGame.query.filter_by(user_id=current_user.id, game_type='blackjack', status='active').first()
+    if not game:
+        return redirect(url_for('casino.blackjack_index'))
+    
+    game_state = game.state
     if not game_state or game_state['status'] != 'playing':
         return redirect(url_for('casino.blackjack_index'))
         
@@ -250,9 +309,13 @@ def blackjack_stand():
     
     player_score = calculate_score(game_state['player_hand'])
     
+    winnings = 0
+    result_status = 'loss'
+    
     if dealer_score > 21:
         game_state['status'] = 'dealer_bust'
         winnings = game_state['bet'] * 2
+        result_status = 'win'
         
         # Hostess Bonus
         if current_user.active_hostess_id:
@@ -261,7 +324,7 @@ def blackjack_stand():
                 bonus_mult = hostess.buff_value if hostess.buff_value else 0.1
                 winnings = int(winnings * (1 + bonus_mult))
         
-        # Legacy support (optional, can be removed if strictly using new system)
+        # Legacy support
         elif current_user.casino_luck_until and current_user.casino_luck_until.replace(tzinfo=timezone.utc) > datetime.now(timezone.utc):
             winnings = int(winnings * 1.1) # 10% Bonus
             
@@ -270,21 +333,20 @@ def blackjack_stand():
             changes={'money': winnings},
             reason='casino_blackjack_dealer_bust',
             auto_commit=False,
-            expected_version=current_user.version
+            expected_version=None
         )
-        db.session.commit()
         game_state['message'] = _('الموزع تجاوز 21! ربحت %(amount)s!', amount=winnings)
         trigger_hostess_reaction(current_user, winnings, True)
     elif dealer_score > player_score:
         game_state['status'] = 'dealer_win'
         game_state['message'] = _('الموزع فاز! حظاً أوفر.')
+        result_status = 'loss'
         
         # Hostess Second Chance
         saved_by_hostess = False
         if current_user.active_hostess_id:
             hostess = db.session.get(Hostess, current_user.active_hostess_id)
             if hostess and hostess.buff_type == 'casino_luck':
-                # Base 20% chance, maybe scale with buff_value? Let's keep it simple for now or use buff_value * 2
                 chance = 0.2 + (hostess.buff_value if hostess.buff_value else 0)
                 if random.random() < chance:
                     saved_by_hostess = True
@@ -295,21 +357,31 @@ def blackjack_stand():
 
         if saved_by_hostess:
                 game_state['status'] = 'push'
+                result_status = 'push'
+                winnings = game_state['bet']
                 ResourceService.modify_resources(
                     user_id=current_user.id,
                     changes={'money': game_state['bet']},
                     reason='casino_blackjack_hostess_save',
                     auto_commit=False,
-                    expected_version=current_user.version
+                    expected_version=None
                 )
-                db.session.commit()
                 game_state['message'] = _('المضيفة أنقذتك! استرجعت رهانك.')
         else:
             trigger_hostess_reaction(current_user, game_state['bet'], False)
+            # Force version update on loss
+            ResourceService.modify_resources(
+                 user_id=current_user.id,
+                 changes={},
+                 reason='casino_blackjack_loss',
+                 auto_commit=False,
+                 expected_version=current_user.version
+            )
 
     elif dealer_score < player_score:
         game_state['status'] = 'player_win'
         winnings = game_state['bet'] * 2
+        result_status = 'win'
         
         # Hostess Bonus
         if current_user.active_hostess_id:
@@ -327,27 +399,35 @@ def blackjack_stand():
             changes={'money': winnings},
             reason='casino_blackjack_win',
             auto_commit=False,
-            expected_version=current_user.version
+            expected_version=None
         )
         game_state['message'] = _('مبروك! ربحت %(amount)s!', amount=winnings)
         trigger_hostess_reaction(current_user, winnings, True)
     else:
         game_state['status'] = 'push'
+        result_status = 'push'
+        winnings = game_state['bet']
         ResourceService.modify_resources(
             user_id=current_user.id,
             changes={'money': game_state['bet']},
             reason='casino_blackjack_push',
             auto_commit=False,
-            expected_version=current_user.version
+            expected_version=None
         )
         game_state['message'] = _('تعادل! استرجعت رهانك.')
         
+    game.status = 'completed'
+    game.result = result_status
+    game.winnings = winnings
+    game.state = game_state
+    
     db.session.commit()
-    session['blackjack_game'] = game_state
+    # session['blackjack_game'] = game_state # Removed
     return redirect(url_for('casino.blackjack_index'))
 
 @bp.route('/blackjack/reset')
 @login_required
+@limiter.limit("30 per minute")
 def blackjack_reset():
     session.pop('blackjack_game', None)
     return redirect(url_for('casino.blackjack_index'))
@@ -357,11 +437,19 @@ def blackjack_reset():
 @bp.route('/slots')
 @login_required
 def slots_index():
-    return render_template('casino/slots.html', user=current_user, now=datetime.now(timezone.utc))
+    last_result = session.pop('slots_result', None)
+    result = last_result.get('result') if last_result else None
+    winnings = last_result.get('winnings', 0) if last_result else 0
+    message = last_result.get('message') if last_result else None
+    return render_template('casino/slots.html', user=current_user, result=result, winnings=winnings, message=message, now=datetime.now(timezone.utc))
 
 @bp.route('/slots/spin', methods=['POST'])
 @login_required
+@limiter.limit("20 per minute")
 def slots_spin():
+    # Lock user to prevent race conditions
+    db.session.query(User).filter_by(id=current_user.id).with_for_update().first()
+
     # Status Check
     now = datetime.now(timezone.utc)
     if current_user.jail_until:
@@ -403,7 +491,7 @@ def slots_spin():
         changes={'money': -bet},
         reason='casino_slots_bet',
         auto_commit=False,
-        expected_version=current_user.version
+        expected_version=None
     )
 
     if not success:
@@ -421,7 +509,7 @@ def slots_spin():
     
     winnings = 0
     message = ""
-    status = "lose"
+    status = "loss"
     
     # Win Logic
     if result[0] == result[1] == result[2]:
@@ -431,52 +519,71 @@ def slots_spin():
             message = _("JACKPOT!!! 777")
         elif result[0] == '💎':
             winnings = bet * 50
-        elif result[0] == '🔔':
-            winnings = bet * 20
+            message = _("DIAMONDS!!!")
         else:
             winnings = bet * 10
+            message = _("Big Win!")
         status = "win"
     elif result[0] == result[1] or result[1] == result[2] or result[0] == result[2]:
-        # 2 matches
+        # Small win (2 matching)
         winnings = int(bet * 1.5)
+        message = _("Nice Match!")
         status = "win"
-        message = _("تطابق رمزين!")
     
-    # Hostess Luck Bonus
-    if current_user.casino_luck_until:
-         luck_until = current_user.casino_luck_until
-         if luck_until.tzinfo is None:
-             luck_until = luck_until.replace(tzinfo=timezone.utc)
-             
-         if luck_until > datetime.now(timezone.utc):
-             if status == "lose" and random.random() < 0.2: # 20% second chance
-                 # Give small consolation
-                 winnings = int(bet * 0.5)
-                 status = "win"
-                 message = _("المضيفة ابتسمت لك! استرجعت نصف رهانك.")
-
-    if winnings > 0:
-        # Atomic Update
+    # Hostess Buff
+    if status == "win":
+        if current_user.active_hostess_id:
+            hostess = db.session.get(Hostess, current_user.active_hostess_id)
+            if hostess and hostess.buff_type == 'casino_luck':
+                 bonus_mult = hostess.buff_value if hostess.buff_value else 0.1
+                 winnings = int(winnings * (1 + bonus_mult))
+        
+        # Legacy
+        elif current_user.casino_luck_until and current_user.casino_luck_until.replace(tzinfo=timezone.utc) > datetime.now(timezone.utc):
+            winnings = int(winnings * 1.1)
+            
         ResourceService.modify_resources(
             user_id=current_user.id,
             changes={'money': winnings},
             reason='casino_slots_win',
             auto_commit=False,
-            expected_version=current_user.version
+            expected_version=None
         )
-        # current_user.money += winnings # Removed
-
-        if not message:
-            message = _('ربحت %(amount)s!', amount=winnings)
+        flash(f"{message} " + _("ربحت %(amount)s!", amount=winnings), 'success')
         trigger_hostess_reaction(current_user, winnings, True)
     else:
-        message = _('حظاً أوفر!')
-        # Check if loss was big (bet amount)
+        # Hostess Second Chance? (Maybe for slots too?)
+        flash(_("حظاً أوفر! ") + "".join(result), 'warning')
         trigger_hostess_reaction(current_user, bet, False)
-        
+        # Force version update on loss
+        ResourceService.modify_resources(
+             user_id=current_user.id,
+             changes={},
+             reason='casino_slots_loss',
+             auto_commit=False,
+             expected_version=None
+        )
+
+    # Record Game
+    new_game = CasinoGame(
+        user_id=current_user.id,
+        game_type='slots',
+        bet_amount=bet,
+        state={'result': result, 'message': message},
+        status='completed',
+        result=status,
+        winnings=winnings
+    )
+    db.session.add(new_game)
     db.session.commit()
     
-    return render_template('casino/slots.html', user=current_user, result=result, winnings=winnings, message=message, now=datetime.now(timezone.utc))
+    session['slots_result'] = {
+        'result': result,
+        'winnings': winnings,
+        'message': message
+    }
+    
+    return redirect(url_for('casino.slots_index'))
 
 
 # --- Roulette Logic ---
@@ -490,8 +597,35 @@ def roulette_index():
 @bp.route('/roulette/spin', methods=['POST'])
 @login_required
 def roulette_spin():
+    # Lock user to prevent race conditions
+    db.session.query(User).filter_by(id=current_user.id).with_for_update().first()
+
+    # Status Checks (Jail/Hospital/Gym)
+    now = datetime.now(timezone.utc)
+    if current_user.jail_until:
+        jail_until = current_user.jail_until
+        if jail_until.tzinfo is None:
+            jail_until = jail_until.replace(tzinfo=timezone.utc)
+        if jail_until > now:
+            flash(_('أنت في السجن!'), 'danger')
+            return redirect(url_for('jail.index'))
+    if current_user.hospital_until:
+        hospital_until = current_user.hospital_until
+        if hospital_until.tzinfo is None:
+            hospital_until = hospital_until.replace(tzinfo=timezone.utc)
+        if hospital_until > now:
+            flash(_('أنت في المستشفى!'), 'danger')
+            return redirect(url_for('hospital.index'))
+    if current_user.gym_until:
+        gym_until = current_user.gym_until
+        if gym_until.tzinfo is None:
+            gym_until = gym_until.replace(tzinfo=timezone.utc)
+        if gym_until > now:
+            flash(_('أنت تتدرب!'), 'danger')
+            return redirect(url_for('gym.index'))
+
     bet_amount = request.form.get('bet_amount', type=int)
-    bet_type = request.form.get('bet_type') # red, black, number
+    bet_type = request.form.get('bet_type') # red, black, number, green
     bet_number = request.form.get('bet_number', type=int) # if number
     
     if not bet_amount or bet_amount < 10:
@@ -508,7 +642,7 @@ def roulette_spin():
         changes={'money': -bet_amount},
         reason='casino_roulette_bet',
         auto_commit=False,
-        expected_version=current_user.version
+        expected_version=None
     ):
         flash(_('ليس لديك مال كافٍ!'), 'danger')
         return redirect(url_for('casino.roulette_index'))
@@ -516,13 +650,6 @@ def roulette_spin():
     # current_user.money -= bet_amount # Removed
     
     # Spin
-    # 0 (Green), 1-36
-    # 18 Red, 18 Black
-    # Simplification:
-    # 0: Green
-    # 1-10, 19-28: Odd=Red, Even=Black
-    # 11-18, 29-36: Odd=Black, Even=Red
-    
     landing = random.randint(0, 36)
     
     color = 'green'
@@ -553,9 +680,20 @@ def roulette_spin():
             winnings = bet_amount * 35
             won = True
             
+    status_str = 'loss'
+    message = ""
+    
     if won:
+        status_str = 'win'
         # Hostess Bonus
-        if current_user.casino_luck_until and current_user.casino_luck_until.replace(tzinfo=timezone.utc) > datetime.now(timezone.utc):
+        if current_user.active_hostess_id:
+            hostess = db.session.get(Hostess, current_user.active_hostess_id)
+            if hostess and hostess.buff_type == 'casino_luck':
+                 bonus_mult = hostess.buff_value if hostess.buff_value else 0.1
+                 winnings = int(winnings * (1 + bonus_mult))
+
+        # Legacy
+        elif current_user.casino_luck_until and current_user.casino_luck_until.replace(tzinfo=timezone.utc) > datetime.now(timezone.utc):
             winnings = int(winnings * 1.1)
             
         # Atomic Update
@@ -567,10 +705,11 @@ def roulette_spin():
         )
 
         trigger_hostess_reaction(current_user, winnings, True)
-        flash(_('الكرة وقفت على %(num)s (%(col)s). مبروك! ربحت %(win)s!', num=landing, col=color, win=winnings), 'success')
-        db.session.commit()
+        message = _('الكرة وقفت على %(num)s (%(col)s). مبروك! ربحت %(win)s!', num=landing, col=color, win=winnings)
+        flash(message, 'success')
     else:
         # Hostess Second Chance
+        saved = False
         if current_user.casino_luck_until and current_user.casino_luck_until.replace(tzinfo=timezone.utc) > datetime.now(timezone.utc):
             if random.random() < 0.2:
                 refund = int(bet_amount * 0.5)
@@ -580,16 +719,46 @@ def roulette_spin():
                     changes={'money': refund},
                     reason='casino_roulette_refund',
                     auto_commit=False,
-                    expected_version=current_user.version
+                    expected_version=None
                 )
-                
-                flash(_('الكرة وقفت على %(num)s. لكن المضيفة عوضتك بـ %(ref)s!', num=landing, ref=refund), 'warning')
-                return redirect(url_for('casino.roulette_index'))
-                
-        db.session.commit()
-        trigger_hostess_reaction(current_user, bet_amount, False)
-        flash(_('الكرة وقفت على %(num)s (%(col)s). حظاً أوفر!', num=landing, col=color), 'danger')
+                message = _('الكرة وقفت على %(num)s. لكن المضيفة عوضتك بـ %(ref)s!', num=landing, ref=refund)
+                flash(message, 'warning')
+                status_str = 'refund'
+                winnings = refund
+                saved = True
         
+        if not saved:
+            trigger_hostess_reaction(current_user, bet_amount, False)
+            message = _('الكرة وقفت على %(num)s (%(col)s). حظاً أوفر!', num=landing, col=color)
+            flash(message, 'danger')
+            # Force version update on loss
+            ResourceService.modify_resources(
+                 user_id=current_user.id,
+                 changes={},
+                 reason='casino_roulette_loss',
+                 auto_commit=False,
+                 expected_version=None
+            )
+
+    # Record Game
+    new_game = CasinoGame(
+        user_id=current_user.id,
+        game_type='roulette',
+        bet_amount=bet_amount,
+        state={
+            'landing': landing, 
+            'color': color, 
+            'bet_type': bet_type, 
+            'bet_number': bet_number,
+            'message': message
+        },
+        status='completed',
+        result=status_str,
+        winnings=winnings
+    )
+    db.session.add(new_game)
+    db.session.commit()
+
     return redirect(url_for('casino.roulette_index'))
 
 # --- Bar Logic ---
@@ -608,6 +777,9 @@ def bar():
 @bp.route('/bar/buy/<int:drink_id>', methods=['POST'])
 @login_required
 def buy_drink(drink_id):
+    # Lock user to prevent race conditions
+    db.session.query(User).filter_by(id=current_user.id).with_for_update().first()
+
     # Status Check
     now = datetime.now(timezone.utc)
     if current_user.jail_until:
@@ -744,7 +916,11 @@ def hostess():
 @bp.route('/hostess/hire/<int:h_id>', methods=['POST'])
 @login_required
 def hire_hostess(h_id):
-    h = db.session.get(Hostess, h_id)
+    # Lock User first to prevent race conditions on active_hostess_id
+    db.session.query(User).filter_by(id=current_user.id).with_for_update().first()
+
+    # Use with_for_update to prevent race conditions on exclusivity
+    h = Hostess.query.filter_by(id=h_id).with_for_update().first()
     
     if not h:
         return redirect(url_for('casino.hostess'))
@@ -771,7 +947,7 @@ def hire_hostess(h_id):
         if prev_h:
             prev_h.current_player_id = None
 
-    if not ResourceService.modify_resources(current_user.id, {'money': -h.price}, 'hire_hostess', auto_commit=False, expected_version=current_user.version):
+    if not ResourceService.modify_resources(current_user.id, {'money': -h.price}, 'hire_hostess', auto_commit=False, expected_version=None):
         flash(_('ما معك كاش يكفي لجلوس مع هذه الجميلة!'), 'danger')
         return redirect(url_for('casino.hostess'))
     
@@ -806,6 +982,7 @@ def hire_hostess(h_id):
 
 @bp.route('/hostess/chat', methods=['POST'])
 @login_required
+@limiter.limit("10 per minute")
 def chat_hostess():
     msg = request.form.get('message')
     if not msg:

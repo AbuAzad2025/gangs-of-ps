@@ -1,0 +1,176 @@
+{% extends "base.html" %}
+
+{% block title %}{{ _('دعوة الأصدقاء') }}{% endblock %}
+
+{% block content %}
+<div class="content-wrapper">
+    <!-- Content Header -->
+    <div class="content-header">
+        <div class="container-fluid">
+            <div class="row mb-2">
+                <div class="col-sm-6">
+                    <h1 class="m-0 gold-text title-font">{{ _('دعوة الأصدقاء') }}</h1>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <section class="content">
+        <div class="container-fluid">
+            
+            <!-- Rewards Info -->
+            <div class="row">
+                <div class="col-md-12">
+                    <div class="card card-outline card-warning luxury-card">
+                        <div class="card-header">
+                            <h3 class="card-title text-gold">{{ _('برنامج الإحالة') }} 🤝</h3>
+                        </div>
+                        <div class="card-body">
+                            <p class="lead">
+                                {{ _('ادعُ أصدقاءك للانضمام إلى عصابات فلسطين واحصل على مكافآت قيمة!') }}
+                            </p>
+                            <ul>
+                                <li>{{ _('عند تسجيل صديقك: يحصل هو على 10 ماسات 💎 كهدية ترحيبية!') }}</li>
+                                <li>{{ _('عند وصول صديقك للمستوى 5: تحصل أنت على 50,000$ كاش 💵 و 50 ماسة 💎') }}</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Share Link Section -->
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="card card-outline card-primary luxury-card">
+                        <div class="card-header">
+                            <h3 class="card-title">{{ _('رابط الدعوة الخاص بك') }}</h3>
+                        </div>
+                        <div class="card-body text-center">
+                            <div class="input-group mb-3">
+                                <input type="text" class="form-control text-center" id="referralLink" value="{{ link }}" readonly>
+                                <div class="input-group-append">
+                                    <button class="btn btn-warning" type="button" onclick="copyLink()">
+                                        <i class="fas fa-copy"></i> {{ _('نسخ') }}
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <hr>
+                            <p>{{ _('شارك الرابط مباشرة:') }}</p>
+                            
+                            <div class="d-flex justify-content-center gap-2">
+                                <a href="https://wa.me/?text={{ _('انضم لي في عصابات فلسطين وسيطر على المدينة!') }} {{ link }}" target="_blank" class="btn btn-success mx-1">
+                                    <i class="fab fa-whatsapp"></i> WhatsApp
+                                </a>
+                                <a href="https://www.facebook.com/sharer/sharer.php?u={{ link }}" target="_blank" class="btn btn-primary mx-1">
+                                    <i class="fab fa-facebook-f"></i> Facebook
+                                </a>
+                                <a href="https://twitter.com/intent/tweet?text={{ _('انضم لي في عصابات فلسطين!') }}&url={{ link }}" target="_blank" class="btn btn-info mx-1">
+                                    <i class="fab fa-twitter"></i> Twitter
+                                </a>
+                                <a href="https://t.me/share/url?url={{ link }}&text={{ _('انضم لي في عصابات فلسطين وسيطر على المدينة!') }}" target="_blank" class="btn btn-info mx-1" style="background-color: #0088cc; border-color: #0088cc;">
+                                    <i class="fab fa-telegram-plane"></i> Telegram
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Stats Section -->
+                <div class="col-md-6">
+                    <div class="small-box bg-gold-gradient">
+                        <div class="inner">
+                            <h3>{{ pending + completed }}</h3>
+                            <p>{{ _('إجمالي الدعوات') }}</p>
+                        </div>
+                        <div class="icon">
+                            <i class="fas fa-users"></i>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-6">
+                            <div class="info-box bg-dark">
+                                <span class="info-box-icon bg-warning"><i class="fas fa-clock"></i></span>
+                                <div class="info-box-content">
+                                    <span class="info-box-text">{{ _('قيد الانتظار') }}</span>
+                                    <span class="info-box-number">{{ pending }}</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="info-box bg-dark">
+                                <span class="info-box-icon bg-success"><i class="fas fa-check"></i></span>
+                                <div class="info-box-content">
+                                    <span class="info-box-text">{{ _('مكتملة') }}</span>
+                                    <span class="info-box-number">{{ completed }}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Referrals List -->
+            <div class="row">
+                <div class="col-12">
+                    <div class="card card-dark luxury-card">
+                        <div class="card-header">
+                            <h3 class="card-title">{{ _('سجل الدعوات') }}</h3>
+                        </div>
+                        <div class="card-body table-responsive p-0">
+                            <table class="table table-hover text-nowrap">
+                                <thead>
+                                    <tr>
+                                        <th>{{ _('اللاعب') }}</th>
+                                        <th>{{ _('تاريخ التسجيل') }}</th>
+                                        <th>{{ _('الحالة') }}</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for ref in referrals %}
+                                    <tr>
+                                        <td>{{ ref.referred.username }}</td>
+                                        <td>{{ ref.created_at.strftime('%Y-%m-%d') }}</td>
+                                        <td>
+                                            {% if ref.status == 'completed' %}
+                                                <span class="badge badge-success">{{ _('مكتمل (تم استلام المكافأة)') }}</span>
+                                            {% else %}
+                                                <span class="badge badge-warning">{{ _('قيد الانتظار') }} - {{ _('مستوى') }} {{ ref.referred.level }}/5</span>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                    {% else %}
+                                    <tr>
+                                        <td colspan="3" class="text-center">{{ _('لم تقم بدعوة أي شخص بعد.') }}</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </section>
+</div>
+
+<script>
+function copyLink() {
+    var copyText = document.getElementById("referralLink");
+    copyText.select();
+    copyText.setSelectionRange(0, 99999); /* For mobile devices */
+    navigator.clipboard.writeText(copyText.value);
+    
+    Swal.fire({
+        icon: 'success',
+        title: '{{ _("تم النسخ!") }}',
+        text: '{{ _("تم نسخ رابط الدعوة إلى الحافظة.") }}',
+        timer: 2000,
+        showConfirmButton: false
+    });
+}
+</script>
+{% endblock %}

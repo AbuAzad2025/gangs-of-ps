@@ -1,0 +1,373 @@
+/* Trix Game CSS - Professional Design */
+.trix-table {
+    background: radial-gradient(circle at center, #35654d 0%, #1e3c2f 70%, #152a21 100%);
+    border: 20px solid #5d4037;
+    border-radius: 40px;
+    height: 650px; /* Slightly taller for better spacing */
+    position: relative;
+    box-shadow: inset 0 0 100px rgba(0,0,0,0.9), 0 20px 60px rgba(0,0,0,0.6);
+    overflow: hidden;
+}
+
+/* Felt Texture Effect */
+.trix-table::before {
+    content: "";
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background-image: url("data:image/svg+xml,%3Csvg width='200' height='200' viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.05'/%3E%3C/svg%3E");
+    opacity: 0.4;
+    pointer-events: none;
+    z-index: 1;
+}
+
+.player-area {
+    position: absolute;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    transition: all 0.5s ease;
+    z-index: 10;
+}
+
+.active-turn {
+    /* Golden Glow for active player */
+    box-shadow: 0 0 30px 10px rgba(255, 215, 0, 0.4);
+    background-color: rgba(255, 215, 0, 0.05);
+    border-radius: 20px;
+    padding: 15px;
+}
+
+/* Refined Positions */
+.player-bottom { bottom: 30px; left: 50%; transform: translateX(-50%); width: 70%; height: 140px; }
+.player-top { top: 30px; left: 50%; transform: translateX(-50%); }
+.player-left { left: 30px; top: 50%; transform: translateY(-50%) rotate(90deg); }
+.player-right { right: 30px; top: 50%; transform: translateY(-50%) rotate(-90deg); }
+
+.card-hand {
+    display: flex;
+    justify-content: center;
+    height: 100%;
+    margin-top: 10px;
+    perspective: 1000px; /* For 3D feel */
+}
+
+.trix-card {
+    width: 80px;
+    height: 115px;
+    background: linear-gradient(135deg, #ffffff 0%, #f0f0f0 100%);
+    border-radius: 8px;
+    box-shadow: -2px 2px 5px rgba(0,0,0,0.2);
+    border: 1px solid #ddd;
+    margin-left: -45px;
+    position: relative;
+    cursor: pointer;
+    transition: transform 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94), box-shadow 0.2s;
+    user-select: none;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 8px;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    font-weight: 700;
+    z-index: 100; /* Base z-index */
+}
+
+/* Action Panels (Bidding/Doubling/Contract) */
+.action-panel {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 200;
+    background: rgba(0,0,0,0.9);
+    padding: 20px;
+    border-radius: 10px;
+    border: 2px solid #ffc107;
+    text-align: center;
+    min-width: 300px;
+    box-shadow: 0 0 30px rgba(0,0,0,0.8);
+}
+
+.trix-card-back {
+    width: 60px; /* Smaller width */
+    height: 90px; /* Smaller height */
+    background: linear-gradient(135deg, #000, #333);
+    border-radius: 6px;
+    box-shadow: -1px 1px 4px rgba(0,0,0,0.4);
+    margin-left: -50px; /* More overlap */
+    position: relative;
+    border: 1px solid #555;
+}
+
+.player-area.player-left .trix-card-back,
+.player-area.player-right .trix-card-back {
+    margin-left: -52px; /* Even tighter for sides */
+}
+
+/* Status Overlay */
+.status-overlay {
+    position: absolute;
+    top: 55%; /* Slightly below center */
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba(0, 0, 0, 0.6);
+    color: #fff;
+    padding: 10px 20px;
+    border-radius: 20px;
+    font-size: 1.2rem;
+    z-index: 150;
+    pointer-events: none;
+    white-space: nowrap;
+}
+
+
+.trix-card:hover {
+    transform: translateY(-25px) scale(1.1);
+    z-index: 200 !important; /* Always on top on hover */
+    box-shadow: 0 15px 30px rgba(0,0,0,0.4);
+}
+.trix-card.selected { transform: translateY(-30px); border: 2px solid gold; }
+.trix-card.disabled { filter: brightness(0.5); cursor: not-allowed; }
+.trix-card.flippable { outline: 2px dashed #ffc107; }
+.trix-card.flipped { transform: rotateY(180deg) translateY(-10px) !important; }
+.trix-card.playable { box-shadow: 0 0 12px rgba(0, 255, 127, 0.6); }
+
+/* Suits */
+.suit-hearts, .suit-diamonds { color: #d32f2f; }
+.suit-spades, .suit-clubs { color: #212121; }
+
+.card-val-top { align-self: flex-start; font-size: 16px; line-height: 1; }
+.card-suit-center { align-self: center; font-size: 32px; }
+.card-val-bottom { align-self: flex-end; transform: rotate(180deg); font-size: 16px; line-height: 1; }
+
+/* Center Trick Area - Enlarged for clarity */
+.trick-area {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 320px;
+    height: 320px;
+    border-radius: 50%;
+    z-index: 100;
+    /* Optional: faint guide circles */
+    background: radial-gradient(circle, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0) 70%);
+    border: 1px dashed rgba(255,255,255,0.1);
+}
+
+/* Slot markers to indicate ownership */
+.trick-area::before {
+    content: "P-Top";
+    position: absolute;
+    top: 10px; left: 50%; transform: translateX(-50%);
+    font-size: 10px; color: rgba(255,255,255,0.3);
+}
+.trick-area::after {
+    content: "P-Bottom";
+    position: absolute;
+    bottom: 10px; left: 50%; transform: translateX(-50%);
+    font-size: 10px; color: rgba(255,255,255,0.3);
+}
+
+/* Slow Card Animations - Adjusted for larger table */
+@keyframes slideInBottom { from { transform: translate(-50%, 350px); opacity: 0; } to { transform: translate(-50%, 0); opacity: 1; } }
+@keyframes slideInTop    { from { transform: translate(-50%, -350px); opacity: 0; } to { transform: translate(-50%, 0); opacity: 1; } }
+@keyframes slideInLeft   { from { transform: translateY(-50%) translateX(-350px) rotate(90deg); opacity: 0; } to { transform: translateY(-50%) rotate(90deg); opacity: 1; } }
+@keyframes slideInRight  { from { transform: translateY(-50%) translateX(350px) rotate(-90deg); opacity: 0; } to { transform: translateY(-50%) rotate(-90deg); opacity: 1; } }
+
+.played-card {
+    position: absolute;
+    z-index: 110;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.5); /* Stronger shadow for depth */
+}
+
+/* Distinct Positions - Spaced out */
+.played-bottom { bottom: 30px; left: 50%; transform: translateX(-50%); }
+.played-top    { top: 30px; left: 50%; transform: translateX(-50%); }
+.played-left   { left: 30px; top: 50%; transform: translateY(-50%) rotate(90deg); }
+.played-right  { right: 30px; top: 50%; transform: translateY(-50%) rotate(-90deg); }
+
+.animate-bottom { animation: slideInBottom 1.0s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
+.animate-top    { animation: slideInTop 1.0s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
+.animate-left   { animation: slideInLeft 1.0s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
+.animate-right  { animation: slideInRight 1.0s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
+
+/* Doubled Cards on Table */
+.doubled-cards-container {
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    pointer-events: none; /* Let clicks pass through */
+    z-index: 50;
+}
+
+.doubled-card-display {
+    position: absolute;
+    background: #fff;
+    border: 2px solid #dc3545; /* Red border for danger/double */
+    border-radius: 5px;
+    padding: 5px;
+    width: 40px;
+    height: 60px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.5);
+    font-weight: bold;
+    font-size: 14px;
+}
+
+/* When inside a group, use relative positioning */
+.doubled-group .doubled-card-display {
+    position: relative;
+}
+
+.doubled-card-display .suit { font-size: 20px; }
+
+/* Positioning doubled cards near players */
+.doubled-pos-bottom { bottom: 180px; left: 65%; } /* Near me */
+.doubled-pos-top { top: 120px; right: 65%; } /* Partner/Opponent Top */
+.doubled-pos-left { top: 40%; left: 100px; }
+.doubled-pos-right { top: 40%; right: 100px; }
+
+.lead-glow { box-shadow: 0 0 20px rgba(255,215,0,0.6); animation: glowPulse 1.2s ease-in-out infinite alternate; }
+@keyframes glowPulse { from { box-shadow: 0 0 10px rgba(255,215,0,0.4); } to { box-shadow: 0 0 30px rgba(255,215,0,0.9); } }
+.player-avatar { width: 56px; height: 56px; border-radius: 50%; overflow: hidden; border: 2px solid rgba(255,255,255,0.6); box-shadow: 0 6px 18px rgba(0,0,0,0.5); background: linear-gradient(135deg, rgba(255,255,255,0.1), rgba(255,255,255,0)); display: flex; align-items: center; justify-content: center; }
+.player-name { background: linear-gradient(135deg, rgba(0,0,0,0.85), rgba(0,0,0,0.6)); color: #fff; padding: 4px 10px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.4); font-weight: 600; letter-spacing: 0.3px; }
+.trix-card { background: linear-gradient(135deg, #ffffff 0%, #f7f7f7 40%, #ededed 100%); border: 1px solid rgba(0,0,0,0.08); box-shadow: -2px 6px 12px rgba(0,0,0,0.25); }
+.trix-card:hover { box-shadow: 0 18px 36px rgba(0,0,0,0.45); transform: translateY(-25px) scale(1.08); }
+.game-info { backdrop-filter: blur(6px); border: 1px solid rgba(255,255,255,0.15); box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+.contract-selector { backdrop-filter: blur(8px); box-shadow: 0 16px 40px rgba(0,0,0,0.7); }
+.winner-overlay { backdrop-filter: blur(2px); }
+
+/* Score Table Improvements */
+.score-table {
+    width: 100%;
+    background: rgba(0,0,0,0.5);
+    border-collapse: collapse;
+    margin-bottom: 5px;
+}
+.score-table th, .score-table td {
+    padding: 4px;
+    border: 1px solid rgba(255,255,255,0.2);
+    text-align: center;
+}
+.score-table th { background: rgba(0,0,0,0.8); color: #ffc107; }
+.score-val { font-family: monospace; font-size: 1.2em; font-weight: bold; }
+.player-name { color: #fff; }
+
+.trick-player-label {
+    position: absolute;
+    bottom: -30px; /* Below the card */
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0,0,0,0.8);
+    color: white;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 11px;
+    white-space: nowrap;
+    z-index: 120;
+    font-weight: bold;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.5);
+}
+
+/* Counter-rotate labels for side players so text is horizontal */
+.played-left .trick-player-label {
+    transform: translateX(-50%) rotate(-90deg);
+    bottom: auto;
+    top: 50%;
+    left: -40px; /* Position to the left of the card */
+}
+
+.played-right .trick-player-label {
+    transform: translateX(-50%) rotate(90deg);
+    bottom: auto;
+    top: 50%;
+    right: -40px; /* Position to the right of the card */
+    left: auto;
+}
+
+.played-top .trick-player-label {
+    bottom: auto;
+    top: -30px; /* Above the card for top player */
+}
+
+/* Dashboard */
+.game-info {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    background: rgba(0,0,0,0.7);
+    color: white;
+    padding: 10px;
+    border-radius: 5px;
+    font-size: 12px;
+}
+
+.contract-selector {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 200;
+    background: rgba(0,0,0,0.9);
+    padding: 20px;
+    border-radius: 10px;
+    border: 2px solid #ffc107;
+}
+
+.winner-overlay {
+    position: absolute;
+    top: 40%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba(40, 167, 69, 0.9);
+    color: white;
+    padding: 20px 40px;
+    border-radius: 50px;
+    font-size: 24px;
+    font-weight: bold;
+    z-index: 300;
+    box-shadow: 0 0 20px rgba(0,0,0,0.5);
+    animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+@keyframes popIn {
+    from { transform: translate(-50%, -50%) scale(0.5); opacity: 0; }
+    to { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+}
+
+/* Doubled Cards on Table */
+.doubled-cards-container {
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    pointer-events: none; /* Let clicks pass through */
+    z-index: 50;
+}
+
+.doubled-card-display {
+    position: absolute;
+    background: #fff;
+    border: 2px solid #dc3545; /* Red border for danger/double */
+    border-radius: 5px;
+    padding: 5px;
+    width: 40px;
+    height: 60px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.5);
+    font-weight: bold;
+    font-size: 14px;
+}
+
+.doubled-card-display .suit { font-size: 20px; }
+
+/* Positioning doubled cards near players */
+.doubled-pos-bottom { bottom: 180px; left: 65%; } /* Near me */
+.doubled-pos-top { top: 120px; right: 65%; } /* Partner/Opponent Top */
+.doubled-pos-left { top: 40%; left: 100px; }
+.doubled-pos-right { top: 40%; right: 100px; }

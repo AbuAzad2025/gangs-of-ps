@@ -1,10 +1,13 @@
 from flask import Blueprint, request, jsonify, session, current_app
 from flask_login import login_required, current_user
 from flask_babel import _
-from extensions import db
+from extensions import db, limiter
 from models.hostess import Hostess
+from models.combat import CombatLog
+from models.log import UserLog
 from services.ai_hostess_service import AIHostessService
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
+from sqlalchemy import or_
 
 bp = Blueprint('jasmin', __name__, url_prefix='/hostesses/jasmin')
 
@@ -30,6 +33,34 @@ def chat():
     hostess_context = jasmin.to_dict()
     
     if current_user.is_authenticated:
+        # Check Status
+        now = datetime.now(timezone.utc)
+        is_in_jail = current_user.jail_until and current_user.jail_until > now
+        is_in_hospital = current_user.hospital_until and current_user.hospital_until > now
+        
+        # Check Last Battle (Last 1 hour)
+        last_battle = CombatLog.query.filter(
+            or_(CombatLog.attacker_id == current_user.id, CombatLog.defender_id == current_user.id),
+            CombatLog.timestamp >= now - timedelta(hours=1)
+        ).order_by(CombatLog.timestamp.desc()).first()
+        
+        last_battle_info = None
+        if last_battle:
+            if last_battle.winner_id == current_user.id:
+                last_battle_info = "won"
+            else:
+                last_battle_info = "lost"
+
+        # Check Last Crime (Last 10 minutes)
+        last_crime = UserLog.query.filter_by(
+            user_id=current_user.id, 
+            action='CRIME'
+        ).filter(
+            UserLog.timestamp >= now - timedelta(minutes=10)
+        ).order_by(UserLog.timestamp.desc()).first()
+
+        last_crime_result = last_crime.result if last_crime else None
+
         user_context = {
             'id': current_user.id,
             'name': current_user.username,
@@ -37,8 +68,14 @@ def chat():
             'level': current_user.level,
             'health': current_user.health,
             'energy': current_user.energy,
+            'bullets': current_user.bullets,
+            'diamonds': current_user.diamonds,
             'rank': current_user.rank_title,
-            'is_voice': request.form.get('is_voice') == 'true'
+            'is_voice': request.form.get('is_voice') == 'true',
+            'is_in_jail': is_in_jail,
+            'is_in_hospital': is_in_hospital,
+            'last_battle_result': last_battle_info,
+            'last_crime_result': last_crime_result
         }
     else:
         user_context = {

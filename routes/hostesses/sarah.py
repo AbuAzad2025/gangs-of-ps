@@ -1,7 +1,7 @@
 from flask import Blueprint, request, jsonify, session, current_app
 from flask_login import login_required, current_user
 from flask_babel import _
-from extensions import db
+from extensions import db, limiter
 from models.hostess import Hostess
 from services.ai_hostess_service import AIHostessService
 from datetime import datetime, timezone
@@ -10,6 +10,7 @@ bp = Blueprint('sarah', __name__, url_prefix='/hostesses/sarah')
 
 @bp.route('/chat', methods=['POST'])
 @login_required
+@limiter.limit("5 per minute")
 def chat():
     # 1. Validation
     msg = request.form.get('message')

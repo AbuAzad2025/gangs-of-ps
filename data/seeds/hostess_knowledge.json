@@ -1,0 +1,268 @@
+[
+    {
+        "question": "كيف ألعب؟ كيف أبدأ؟",
+        "answer": "ابدأ بالجرائم لجمع المال والخبرة. زر الجيم لتقوية نفسك. اشترِ سلاحاً ودرعاً للحماية.",
+        "category": "gameplay",
+        "keywords": "لعب, بداية, كيف, start, play, ابدا, بلش, لعب, العب, مبتدئ",
+        "language": "ar"
+    },
+    {
+        "question": "How to play? How to start?",
+        "answer": "Start with crimes to earn cash and exp. Visit the gym to train stats. Buy weapons and armor for protection.",
+        "category": "gameplay",
+        "keywords": "start, play, begin, guide, tutorial, newbie",
+        "language": "en"
+    },
+    {
+        "question": "ما هي الجرائم؟",
+        "answer": "الجرائم هي المصدر الأساسي للمال والخبرة في البداية. تحتاج إلى 'جرأة' (Nerve) لتنفيذها.",
+        "category": "gameplay",
+        "keywords": "جرائم, جريمة, crime, crimes, سرقة, نصب, احتيال, اسرق, انهب",
+        "language": "ar"
+    },
+    {
+        "question": "What are crimes?",
+        "answer": "Crimes are the main source of money and exp early on. You need 'Nerve' to commit them.",
+        "category": "gameplay",
+        "keywords": "crime, crimes, money, exp, steal, rob, theft",
+        "language": "en"
+    },
+    {
+        "question": "ما فائدة الجيم؟",
+        "answer": "الجيم يرفع قوتك (للهجوم)، دفاعك (للتحمل)، سرعتك (للهروب)، وخفتك (للسرقة). التدريب يحتاج طاقة.",
+        "category": "gameplay",
+        "keywords": "جيم, تدريب, قوة, gym, train, stats, عضلات, تمرين, حديد, اتدرب, اقوي",
+        "language": "ar"
+    },
+    {
+        "question": "Why use the gym?",
+        "answer": "The gym boosts Strength (attack), Defense (survival), Speed (escape), and Dexterity (stealth). Training costs Energy.",
+        "category": "gameplay",
+        "keywords": "gym, train, stats, strength, defense, workout, muscle",
+        "language": "en"
+    },
+    {
+        "question": "كيف أنشئ عصابة؟",
+        "answer": "لإنشاء عصابة تحتاج إلى مستوى 10 ومبلغ من المال. اذهب إلى قائمة العصابات واختر 'إنشاء عصابة'.",
+        "category": "gangs",
+        "keywords": "عصابة, إنشاء, gang, create, كلان, فريق, شلة, اسس, انضم",
+        "language": "ar"
+    },
+    {
+        "question": "How to create a gang?",
+        "answer": "To create a gang, you need Level 10 and some cash. Go to the Gangs menu and select 'Create Gang'.",
+        "category": "gangs",
+        "keywords": "gang, create, clan, team, faction, guild",
+        "language": "en"
+    },
+    {
+        "question": "ما هو السوق السوداء؟",
+        "answer": "السوق السوداء مكان لبيع وشراء الممنوعات والأسلحة النادرة. الأسعار تتغير باستمرار.",
+        "category": "market",
+        "keywords": "سوق, سوداء, black, market, بيع, شراء, ممنوعات, مخدرات, حشيش, كوكايين",
+        "language": "ar"
+    },
+    {
+        "question": "What is the Black Market?",
+        "answer": "The Black Market is for trading illegal goods and rare weapons. Prices fluctuate constantly.",
+        "category": "market",
+        "keywords": "black market, trade, illegal, buy, sell, drugs",
+        "language": "en"
+    },
+    {
+        "question": "كيف أربح من البورصة؟",
+        "answer": "يمكنك تداول الأسهم (Spot) أو المضاربة (Futures). اشترِ بسعر منخفض وبع بسعر مرتفع. راقب الأخبار!",
+        "category": "economy",
+        "keywords": "بورصة, اسهم, تداول, market, stock, trade, استثمار, ربح, اخسر, اكسب",
+        "language": "ar"
+    },
+    {
+        "question": "How to earn from the Stock Market?",
+        "answer": "You can trade Spot or Futures. Buy low, sell high. Watch the news for market trends!",
+        "category": "economy",
+        "keywords": "market, stock, trade, futures, spot, invest, profit",
+        "language": "en"
+    },
+    {
+        "question": "ما فائدة المستشفى؟",
+        "answer": "المستشفى يعالجك عند الإصابة أو انخفاض الصحة. يمكنك دفع مال للتعافي الفوري.",
+        "category": "gameplay",
+        "keywords": "مستشفى, علاج, صحة, hospital, heal, health, دكتور, طبيب, مريض, تصاوبت, مستشفي, اتعالج",
+        "language": "ar"
+    },
+    {
+        "question": "What is the Hospital for?",
+        "answer": "The Hospital heals you when injured or low on health. You can pay cash for instant recovery.",
+        "category": "gameplay",
+        "keywords": "hospital, heal, health, recover, doctor, injured, sick",
+        "language": "en"
+    },
+    {
+        "question": "ما هي السباقات؟",
+        "answer": "السباقات تتيح لك منافسة لاعبين آخرين بسيارتك. الفوز يعطيك مال وشهرة. طوّر سيارتك لتفوز.",
+        "category": "gameplay",
+        "keywords": "سباق, سيارة, racing, race, car, تفحيط, سباقات, سرعة, اسابق, سيارتي",
+        "language": "ar"
+    },
+    {
+        "question": "What is Racing?",
+        "answer": "Racing lets you compete against other players with your car. Winning gives cash and fame. Upgrade your car to win.",
+        "category": "gameplay",
+        "keywords": "racing, race, car, vehicle, speed, drift, drive",
+        "language": "en"
+    },
+    {
+        "question": "كيف أحصل على وظيفة؟",
+        "answer": "حالياً لا توجد وظائف تقليدية، أنت مجرم! لكن يمكنك امتلاك مصانع أو مزارع لإنتاج موارد وبيعها.",
+        "category": "economy",
+        "keywords": "وظيفة, عمل, job, work, factory, farm, شغل, راتب, اشتغل, اتوظف",
+        "language": "ar"
+    },
+    {
+        "question": "How to get a job?",
+        "answer": "No traditional jobs here, you're a criminal! But you can own Factories or Farms to produce and sell resources.",
+        "category": "economy",
+        "keywords": "job, work, factory, farm, business, salary, employment",
+        "language": "en"
+    },
+    {
+        "question": "ما هو البنك؟",
+        "answer": "البنك يحفظ مالك من السرقة ويعطيك فائدة يومية. يمكنك أيضاً أخذ قروض.",
+        "category": "economy",
+        "keywords": "بنك, فائدة, قرض, bank, interest, loan, فلوس, مصاري, خبي, وديعة, احفظ",
+        "language": "ar"
+    },
+    {
+        "question": "What is the Bank?",
+        "answer": "The Bank protects your cash from theft and gives daily interest. You can also take loans.",
+        "category": "economy",
+        "keywords": "bank, interest, loan, save, deposit, cash, vault",
+        "language": "en"
+    },
+    {
+        "question": "ما هي المضيفات؟",
+        "answer": "المضيفات (مثلي!) يساعدنك في اللعب، يعطينك نصائح، وبعضنا يعطيك ميزات خاصة (Buffs) مثل زيادة الحظ أو القوة.",
+        "category": "hostess",
+        "keywords": "مضيفة, مضيفات, ياسمين, hostess, jasmin, بنات, مساعدة, بنت, صبية",
+        "language": "ar"
+    },
+    {
+        "question": "What are Hostesses?",
+        "answer": "Hostesses (like me!) help you play, give tips, and some provide special Buffs like extra luck or strength.",
+        "category": "hostess",
+        "keywords": "hostess, hostesses, jasmin, buff, girls, help, assistant",
+        "language": "en"
+    },
+    {
+        "question": "كيف حالك؟ شو أخبارك؟",
+        "answer": "أنا بخير ما دمت أنت هنا! 😉 كيف يمكنني مساعدتك اليوم؟",
+        "category": "chat",
+        "keywords": "حالك, اخبارك, كيفك, عاملة, ايه, مرحبا, هلا, سلام, تمام",
+        "language": "ar"
+    },
+    {
+        "question": "How are you?",
+        "answer": "I'm great as long as you're here! 😉 How can I help you today?",
+        "category": "chat",
+        "keywords": "how are you, doing, whats up, hi, hello, hey, greeting",
+        "language": "en"
+    },
+    {
+        "question": "أين أنت؟ وينك؟",
+        "answer": "أنا دائماً هنا في الكازينو، أنتظرك. لا تتأخر علي! ❤️",
+        "category": "chat",
+        "keywords": "اين, وينك, مكانك, غايبة, مختفية, وين, ارضك",
+        "language": "ar"
+    },
+    {
+        "question": "Where are you?",
+        "answer": "I'm always here at the Casino, waiting for you. Don't be late! ❤️",
+        "category": "chat",
+        "keywords": "where are you, location, place, missing",
+        "language": "en"
+    },
+    {
+        "question": "كيف أهجم على لاعب؟",
+        "answer": "ابحث عن اللاعب في صفحة 'البحث' أو 'قائمة المتواجدين'، واضغط على اسمه ثم اختر 'هجوم'. تحتاج لطاقة وسلاح.",
+        "category": "combat",
+        "keywords": "هجوم, اهجم, قتال, ضرب, طوشة, اقتل, attack, fight, kill, اضرب, هوشة",
+        "language": "ar"
+    },
+    {
+        "question": "How to attack a player?",
+        "answer": "Find the player in 'Search' or 'Online List', click their name, and select 'Attack'. You need Energy and a Weapon.",
+        "category": "combat",
+        "keywords": "attack, fight, kill, pvp, assault, hit",
+        "language": "en"
+    },
+    {
+        "question": "انحبست! كيف أطلع من السجن؟",
+        "answer": "يمكنك محاولة الهروب (صعب!)، أو دفع كفالة، أو انتظار صديق ليهربك، أو الانتظار حتى انتهاء الوقت.",
+        "category": "jail",
+        "keywords": "سجن, حبس, انحبست, مسجون, هروب, كفالة, jail, prison, escape, bail, محبوس, اطلع",
+        "language": "ar"
+    },
+    {
+        "question": "I'm in Jail! How to get out?",
+        "answer": "You can try to Escape (hard!), pay Bail, wait for a friend to Bust you out, or just wait for the time to pass.",
+        "category": "jail",
+        "keywords": "jail, prison, escape, bail, bust, stuck, free",
+        "language": "en"
+    },
+    {
+        "question": "كيف أجيب مصاري بسرعة؟",
+        "answer": "أسرع طريقة هي الجرائم المستمرة. بعدها التجارة في السوق السوداء، أو سباقات السيارات إذا كانت سيارتك قوية.",
+        "category": "economy",
+        "keywords": "مصاري, فلوس, مال, فقر, طفرت, غني, ربح, money, cash, rich, ليرة, شيكل, دولار",
+        "language": "ar"
+    },
+    {
+        "question": "How to make money fast?",
+        "answer": "The fastest way is consistent Crimes. Then trading in the Black Market, or Car Racing if you have a good car.",
+        "category": "economy",
+        "keywords": "money, cash, rich, fast, earn, profit, broke",
+        "language": "en"
+    },
+    {
+        "question": "من وين أشتري سلاح؟",
+        "answer": "الأسلحة تباع في 'السوق السوداء'. تأكد من توفر المال الكافي ومستوى مناسب لاستخدامها.",
+        "category": "items",
+        "keywords": "سلاح, مسدس, رشاش, كلاشن, درع, رصاص, weapon, gun, armor, ammo, بارودة, فرد",
+        "language": "ar"
+    },
+    {
+        "question": "Where to buy weapons?",
+        "answer": "Weapons are sold in the 'Black Market'. Make sure you have enough cash and the required level.",
+        "category": "items",
+        "keywords": "weapon, gun, armor, ammo, buy, shop, store, pistol, rifle",
+        "language": "en"
+    },
+    {
+        "question": "شو يعني الاحترام (Respect)؟",
+        "answer": "الاحترام يحدد ترتيبك بين العصابات واللاعبين. تكسبه من الهجوم الناجح والجرائم المنظمة.",
+        "category": "gameplay",
+        "keywords": "احترام, رسبكت, سمعة, respect, rank, reputation, جاه, هيبة",
+        "language": "ar"
+    },
+    {
+        "question": "What is Respect?",
+        "answer": "Respect determines your rank among gangs and players. You earn it from successful attacks and organized crimes.",
+        "category": "gameplay",
+        "keywords": "respect, rank, reputation, fame, status",
+        "language": "en"
+    },
+    {
+        "question": "كيف أسافر؟",
+        "answer": "اذهب إلى 'المطار' من القائمة الرئيسية. السفر يحتاج تذكرة أو طائرة خاصة، ويسمح لك بتجارة الموارد بين المدن.",
+        "category": "travel",
+        "keywords": "سفر, مطار, طيارة, تذكرة, travel, airport, plane, fly, اسافر, مسافر, رحلة",
+        "language": "ar"
+    },
+    {
+        "question": "How to travel?",
+        "answer": "Go to the 'Airport' from the main menu. Traveling requires a ticket or private plane, and lets you trade resources between cities.",
+        "category": "travel",
+        "keywords": "travel, airport, plane, fly, ticket, city, trip",
+        "language": "en"
+    }
+]

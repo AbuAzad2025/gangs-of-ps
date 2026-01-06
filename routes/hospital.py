@@ -1,7 +1,7 @@
 from flask import Blueprint, render_template, redirect, url_for, flash, request
 from flask_login import login_required, current_user
 from flask_babel import _
-from extensions import db
+from extensions import db, limiter
 from models import User
 from models.hostess import Hostess
 from services.resource_service import ResourceService
@@ -32,6 +32,7 @@ def index():
 
 @bp.route('/heal', methods=['POST'])
 @login_required
+@limiter.limit("10 per minute")
 def heal():
     # Lock user row
     user = db.session.query(User).filter_by(id=current_user.id).with_for_update().first()
@@ -72,7 +73,7 @@ def heal():
             changes={'money': -cost_real, 'health': affordable_health},
             reason='hospital_heal_partial',
             auto_commit=False,
-            expected_version=user.version
+            expected_version=None
         )
 
         if not success:
@@ -109,6 +110,7 @@ def heal():
 
 @bp.route('/buy_energy', methods=['POST'])
 @login_required
+@limiter.limit("5 per minute")
 def buy_energy():
     cost = 500
     energy_gain = 50
@@ -135,10 +137,6 @@ def buy_energy():
         flash(_('طاقتك مفولة يا وحش!'), 'info')
         return redirect(url_for('hospital.index'))
         
-    if current_user.energy >= current_user.max_energy:
-        flash(_('طاقتك مفولة يا وحش!'), 'info')
-        return redirect(url_for('hospital.index'))
-        
     # Lock user to calculate actual energy gain respecting max_energy
     user = db.session.query(User).filter_by(id=current_user.id).with_for_update().first()
     if user.money < cost:
@@ -161,10 +159,11 @@ def buy_energy():
         changes={'money': -cost, 'energy': actual_gain},
         reason='hospital_buy_energy',
         auto_commit=True,
-        expected_version=user.version
+        expected_version=None
     )
 
     if not success:
+        db.session.rollback()
         flash(_('حدث خطأ أثناء الشراء، يرجى المحاولة مرة أخرى.'), 'danger')
         return redirect(url_for('hospital.index'))
     
@@ -256,7 +255,7 @@ def experimental_surgery():
         changes=changes,
         reason='hospital_experimental_surgery',
         auto_commit=False,
-        expected_version=user.version
+        expected_version=None
     )
     
     if not success:

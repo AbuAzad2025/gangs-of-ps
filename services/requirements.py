@@ -5,7 +5,6 @@ def effective_level(user):
     try:
         return int(user.level + (user.rank_points_value // 50))
     except Exception as e:
-        # print(f"DEBUG: effective_level failed: {e}")
         from extensions import db
         try:
             db.session.rollback()
@@ -55,7 +54,7 @@ def check_requirements(user, req):
         missing.append("tier")
 
     min_level = _as_int(req.get("min_level"))
-    if min_level is not None and int(user.level) < min_level:
+    if min_level is not None and effective_level(user) < min_level:
         reasons.append(_('تحتاج مستوى %(n)s.', n=min_level))
         missing.append("level")
 

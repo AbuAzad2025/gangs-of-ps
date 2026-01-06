@@ -6,7 +6,8 @@ import random
 import json
 
 from extensions import db, limiter
-from models import Item, UserItem, FarmJob, SystemConfig, UserFacility
+from sqlalchemy import select
+from models import Item, UserItem, FarmJob, SystemConfig, UserFacility, User
 from models.location import Location
 from models.contract import FarmSupplyContract
 from services.requirements import check_requirements
@@ -393,6 +394,9 @@ def index():
 @login_required
 @limiter.limit("10 per minute")
 def upgrade_facility(facility_key):
+    # Lock user to prevent race conditions on facility upgrades
+    db.session.query(User).filter_by(id=current_user.id).with_for_update().first()
+
     fcfg = _get_facilities_config()
     meta = (fcfg.get("facilities") or {}).get(facility_key)
     if not meta:
@@ -423,7 +427,7 @@ def upgrade_facility(facility_key):
         return redirect(url_for('farm.index'))
 
     # Atomic deduction via ResourceService
-    if not ResourceService.modify_resources(current_user.id, {'diamonds': -cost}, 'farm_facility_upgrade', auto_commit=False, expected_version=current_user.version):
+    if not ResourceService.modify_resources(current_user.id, {'diamonds': -cost}, 'farm_facility_upgrade', auto_commit=False, expected_version=None):
         flash(_('ليس لديك ما يكفي من الماس!'), 'danger')
         return redirect(url_for('farm.index'))
 
@@ -445,6 +449,9 @@ def upgrade_facility(facility_key):
 @login_required
 @limiter.limit("10 per minute")
 def use_facility_perk(facility_key):
+    # Lock UserFacility row
+    uf = db.session.query(UserFacility).filter_by(user_id=current_user.id, facility_key=facility_key).with_for_update().first()
+
     fcfg = _get_facilities_config()
     meta = (fcfg.get("facilities") or {}).get(facility_key)
     if not meta:
@@ -456,13 +463,13 @@ def use_facility_perk(facility_key):
     cooldown_hours = int(perk.get("cooldown_hours") or 24)
     qty = int(perk.get("qty") or 1)
 
-    level = _get_user_facility_level(current_user.id, facility_key)
+    level = int(uf.level) if uf else 0
     if level < unlock_level:
         flash(_('هذه الميزة غير متاحة بعد.'), 'warning')
         return redirect(url_for('farm.index'))
 
-    uf = UserFacility.query.filter_by(user_id=current_user.id, facility_key=facility_key).first()
     if not uf:
+        # Should be covered by level check (0 < unlock_level usually), but safe to create if logic allows
         uf = UserFacility(user_id=current_user.id, facility_key=facility_key, level=level)
         db.session.add(uf)
         db.session.flush()
@@ -497,6 +504,9 @@ def use_facility_perk(facility_key):
 @login_required
 @limiter.limit("10 per minute")
 def buy_contract():
+    # Lock user to prevent race conditions on contract purchase
+    db.session.query(User).filter_by(id=current_user.id).with_for_update().first()
+
     location_id = request.form.get("location_id", type=int)
     if not location_id:
         flash(_('اختر المدينة.'), 'warning')
@@ -548,12 +558,16 @@ def buy_contract():
         db.session.commit()
         active = None
 
-    # Atomic Deduction
-    rows = User.query.filter(User.id == current_user.id, User.diamonds >= cost).update({
-        User.diamonds: User.diamonds - cost
-    }, synchronize_session=False)
+    # Atomic Deduction using ResourceService
+    success = ResourceService.modify_resources(
+        user_id=current_user.id,
+        changes={'diamonds': -cost},
+        reason='farm_buy_contract',
+        auto_commit=False,
+        expected_version=current_user.version
+    )
 
-    if rows == 0:
+    if not success:
         flash(_('ليس لديك ما يكفي من الماس! تحتاج إلى %(cost)s ماسة.', cost=cost), 'danger')
         return redirect(url_for('farm.index'))
 
@@ -647,7 +661,10 @@ def start():
         flash(_('ليس لديك ما يكفي من الماس! تحتاج إلى %(cost)s ماسة.', cost=diamonds_cost), 'danger')
         return redirect(url_for('farm.index'))
 
-    current_user.diamonds = max(0, int(current_user.diamonds) - diamonds_cost)
+    # Atomic deduction via ResourceService
+    if not ResourceService.modify_resources(current_user.id, {'diamonds': -diamonds_cost}, 'farm_start_job', auto_commit=False, expected_version=None):
+        flash(_('ليس لديك ما يكفي من الماس!'), 'danger')
+        return redirect(url_for('farm.index'))
 
     minutes = _weighted_int(int(min_m), int(max_m), w_low=0.65, w_mid=0.3)
     output_amount = _weighted_int(int(out_min), int(out_max), w_low=0.7, w_mid=0.25)
@@ -718,7 +735,8 @@ def claim(job_id):
 @login_required
 @limiter.limit("10 per minute")
 def boost(job_id):
-    job = FarmJob.query.filter_by(id=job_id, user_id=current_user.id).first()
+    # Lock job row to prevent double boosting
+    job = FarmJob.query.filter_by(id=job_id, user_id=current_user.id).with_for_update().first()
     if not job or job.status != 'running':
         flash(_('هذه العملية غير موجودة.'), 'danger')
         return redirect(url_for('farm.index'))
@@ -747,7 +765,7 @@ def boost(job_id):
         return redirect(url_for('farm.index'))
 
     # Atomic deduction via ResourceService
-    if not ResourceService.modify_resources(current_user.id, {'diamonds': -diamonds_cost}, 'farm_boost_job', auto_commit=False, expected_version=current_user.version):
+    if not ResourceService.modify_resources(current_user.id, {'diamonds': -diamonds_cost}, 'farm_boost_job', auto_commit=False, expected_version=None):
         flash(_('ليس لديك ما يكفي من الماس!'), 'danger')
         return redirect(url_for('farm.index'))
 

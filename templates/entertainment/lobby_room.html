@@ -1,0 +1,98 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container fade-in">
+    <div class="card bg-dark text-white border-warning shadow-lg">
+        <div class="card-header bg-warning text-dark d-flex justify-content-between align-items-center">
+            <h3 class="mb-0">{{ room.name }}</h3>
+            <span class="badge badge-dark">{{ room.game_type|upper }}</span>
+        </div>
+        <div class="card-body text-center">
+            <h4 class="mb-4 text-light">{{ _('في انتظار اللاعبين...') }}</h4>
+            
+            <div class="row justify-content-center mb-5">
+                {% for p in room.players %}
+                <div class="col-md-3">
+                    <div class="card bg-secondary mb-3 {{ 'border-success' if p.is_ready else 'border-danger' }}">
+                        <div class="card-body">
+                            <div class="display-4 mb-2">👤</div>
+                            <h5 class="card-title">{{ p.user.username }}</h5>
+                            <span class="badge badge-{{ 'success' if p.is_ready else 'danger' }}">
+                                {{ _('جاهز') if p.is_ready else _('غير جاهز') }}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+                
+                {% set max_players = 2 if room.game_type == 'chess' else 4 %}
+                {% for i in range(max_players - room.players.count()) %}
+                <div class="col-md-3">
+                    <div class="card bg-dark border-secondary mb-3" style="border-style: dashed !important; opacity: 0.5;">
+                        <div class="card-body">
+                            <div class="display-4 mb-2 text-muted">Waiting</div>
+                            <h5 class="card-title text-muted">...</h5>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            
+            <div class="alert alert-info">
+                {{ _('ستبدأ اللعبة تلقائياً عندما يكون الجميع جاهزاً.') }}
+            </div>
+            
+            <button id="readyBtn" class="btn btn-lg btn-success px-5" onclick="toggleReady()">
+                {{ _('أنا جاهز!') if not player.is_ready else _('إلغاء الجاهزية') }}
+            </button>
+            {% if player.seat_index == 0 %}
+            <button class="btn btn-lg btn-primary ml-3" onclick="startGame()">{{ _('بدء اللعبة') }}</button>
+            <button class="btn btn-lg btn-danger ml-3" onclick="finishGame()">{{ _('إنهاء') }}</button>
+            <button class="btn btn-lg btn-outline-warning ml-3" onclick="deleteRoom()">{{ _('حذف الغرفة') }}</button>
+            {% endif %}
+            <a href="{{ url_for('entertainment.index') }}" class="btn btn-lg btn-outline-light ml-3">{{ _('خروج') }}</a>
+        </div>
+    </div>
+</div>
+
+<script>
+    function toggleReady() {
+        const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+        fetch("{{ url_for('entertainment.toggle_ready', room_id=room.id) }}", {
+            method: 'POST',
+            headers: { 
+                'Content-Type': 'application/json',
+                'X-CSRFToken': csrfToken
+            }
+        }).then(res => res.json()).then(data => {
+            if (data.status === 'ok') location.reload();
+        });
+    }
+    
+    // Auto refresh to check status
+    setInterval(() => {
+        location.reload();
+    }, 3000);
+    function startGame() {
+        const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+        fetch("{{ url_for('entertainment.start_room', room_id=room.id) }}", {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrfToken }
+        }).then(r => r.json()).then(() => location.reload());
+    }
+    function finishGame() {
+        const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+        fetch("{{ url_for('entertainment.finish_room', room_id=room.id) }}", {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrfToken }
+        }).then(r => r.json()).then(() => location.reload());
+    }
+    function deleteRoom() {
+        const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+        fetch("{{ url_for('entertainment.delete_room', room_id=room.id) }}", {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrfToken }
+        }).then(r => r.json()).then(() => window.location.href = "{{ url_for('entertainment.index') }}");
+    }
+</script>
+{% endblock %}

@@ -62,6 +62,7 @@
 <div class="graveyard-bg"></div>
 
 <div class="container fade-in">
+    {% if is_dead_viewer %}
     <div class="row justify-content-center">
         <div class="col-md-8 text-center">
             <div class="tombstone-card p-5">
@@ -107,5 +108,48 @@
             </div>
         </div>
     </div>
+    {% else %}
+    <div class="row justify-content-center mb-5">
+        <div class="col-md-8 text-center pt-5">
+            <h1 class="text-white font-weight-bold" style="text-shadow: 2px 2px 4px #000;">{{ _('مقبرة المدينة') }}</h1>
+            <p class="text-muted lead">{{ _('هنا يرقد من خسروا كل شيء... تذكرهم واعتبر.') }}</p>
+            {% if not current_user.is_authenticated %}
+            <a href="{{ url_for('main.login') }}" class="btn btn-outline-light mt-3">{{ _('تسجيل الدخول') }}</a>
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
+
+    {% if dead_users %}
+    <div class="row justify-content-center mt-5">
+        <div class="col-md-10">
+            <div class="card bg-dark text-white border-secondary">
+                <div class="card-header border-secondary">
+                    <h5 class="mb-0"><i class="fas fa-book-dead mr-2"></i> {{ _('سجل الوفيات الحديثة') }}</h5>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-dark table-hover mb-0">
+                        <thead>
+                            <tr>
+                                <th>{{ _('الاسم') }}</th>
+                                <th>{{ _('المستوى') }}</th>
+                                <th>{{ _('اللقب') }}</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for dead in dead_users %}
+                            <tr>
+                                <td class="text-danger font-weight-bold">{{ dead.username }}</td>
+                                <td>{{ dead.level }}</td>
+                                <td>{{ dead.rank_title }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
 </div>
 {% endblock %}

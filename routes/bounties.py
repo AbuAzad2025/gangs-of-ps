@@ -1,9 +1,9 @@
 from flask import Blueprint, render_template, redirect, url_for, flash, request, abort
 from flask_login import login_required, current_user
-from extensions import db
+from extensions import db, limiter
 from flask_babel import _
 from models import Bounty, User
-from sqlalchemy import func
+from sqlalchemy import func, select
 from services.resource_service import ResourceService
 from datetime import datetime, timezone
 
@@ -46,7 +46,7 @@ def place():
         return redirect(url_for('bounties.index'))
 
     # Atomic Deduction
-    if not ResourceService.modify_resources(current_user.id, {'money': -amount}, 'place_bounty', auto_commit=False, expected_version=current_user.version):
+    if not ResourceService.modify_resources(current_user.id, {'money': -amount}, 'place_bounty', auto_commit=False, expected_version=None):
         flash(_('ليس لديك مال كافٍ!'), 'danger')
         return redirect(url_for('bounties.index'))
     
@@ -65,6 +65,7 @@ def place():
 
 @bp.route('/buy_off/<int:bounty_id>', methods=['POST'])
 @login_required
+@limiter.limit("5 per minute")
 def buy_off(bounty_id):
     # Status Check
     now = datetime.now(timezone.utc)
@@ -102,12 +103,22 @@ def buy_off(bounty_id):
         flash(_('يمكنك فقط إزالة المكافآت الموضوعة عليك!'), 'danger')
         return redirect(url_for('bounties.index'))
 
+    # Lock user to prevent race conditions (Global Lock Order: User -> Bounty)
+    db.session.query(User).filter_by(id=current_user.id).with_for_update().first()
+
+    # Lock Bounty
+    bounty = db.session.query(Bounty).filter_by(id=bounty_id).with_for_update().first()
+    if not bounty:
+        flash(_('المكافأة لم تعد موجودة!'), 'warning')
+        return redirect(url_for('bounties.index'))
+
     if current_user.money < bounty.amount:
         flash(_('ليس لديك مال كافٍ لإزالة المكافأة!'), 'danger')
         return redirect(url_for('bounties.index'))
 
     # Atomic Deduction
-    if not ResourceService.modify_resources(current_user.id, {'money': -bounty.amount}, 'buy_off_bounty', auto_commit=False, expected_version=current_user.version):
+    if not ResourceService.modify_resources(current_user.id, {'money': -bounty.amount}, 'buy_off_bounty', auto_commit=False, expected_version=None):
+        db.session.rollback()
         flash(_('ليس لديك مال كافٍ لإزالة المكافأة!'), 'danger')
         return redirect(url_for('bounties.index'))
 

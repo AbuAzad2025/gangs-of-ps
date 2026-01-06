@@ -42,6 +42,12 @@
                 </div>
 
                 <div class="mt-4">
+                    {% if result == 'win' %}
+                    <a href="https://wa.me/?text={{ _('لقد سحقت %(target)s في عصابات فلسطين! وسرقت منه $%(money)s! انضم لي الآن وسيطر على المدينة!', target=target.username, money=money) }} {{ url_for('main.register', ref=current_user.referral_code, _external=True) }}" target="_blank" class="btn btn-success btn-block btn-action mb-2">
+                        <i class="fab fa-whatsapp mr-2"></i> {{ _('شارك انتصارك') }}
+                    </a>
+                    {% endif %}
+
                     <a href="{{ url_for('combat.index') }}" class="btn btn-primary btn-block btn-action mb-2 btn-gold">
                         <i class="fas fa-search mr-2"></i> {{ _('بحث عن ضحية أخرى') }}
                     </a>

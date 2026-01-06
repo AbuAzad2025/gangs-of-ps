@@ -33,6 +33,11 @@
                     <div class="profile-rank-badge">
                         <i class="fas fa-crown mr-2"></i> {{ _(user.rank_title) }}
                     </div>
+                    {% if user.jail_until and user.jail_until > now %}
+                    <div class="badge bg-danger text-white mt-2 p-2 shadow-sm rounded-pill">
+                        <i class="fas fa-lock mr-1"></i> {{ _('سجين في عوفر') }}
+                    </div>
+                    {% endif %}
                     {% if user.health <= 0 and user.elite_reservation_until %}
                         <div class="text-warning small">
                             {{ _('مقعدك محفوظ حتى') }} {{ user.elite_reservation_until.strftime('%Y-%m-%d %H:%M') }}

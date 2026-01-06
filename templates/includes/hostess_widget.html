@@ -44,7 +44,7 @@
             <div class="d-flex align-items-end">
                 <img src="{{ url_for('static', filename='images/hostesses/' + (hostess.image or 'default_hostess.jpg')) }}" class="rounded-circle mr-2 shadow-sm w-30px h-30px object-fit-cover" onerror="this.onerror=null; this.src='{{ url_for('static', filename='images/hostesses/default_hostess.jpg') }}';">
                 <div class="bg-dark border border-secondary p-3 text-white shadow-sm hostess-msg-bubble-received">
-                    {{ hostess.intro_message.replace('\n', '<br>')|safe if hostess.intro_message else _('أهلاً! أنا ياسمين. كيف بقدر أساعدك اليوم؟ 🌹') }}
+                    {{ _(hostess.intro_message).replace('\n', '<br>')|safe if hostess.intro_message else _('أهلاً! أنا ياسمين. كيف بقدر أساعدك اليوم؟ 🌹') }}
                 </div>
             </div>
         </div>

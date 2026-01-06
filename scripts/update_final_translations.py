@@ -13,6 +13,25 @@ RECOVERED_PO_FILE = os.path.join('translations', 'en', 'LC_MESSAGES', 'messages_
 
 # Dictionary of Arabic to English translations
 TRANSLATIONS = {
+    # --- Entertainment & Betting Settings ---
+    "إعدادات الترفيه والرهانات": "Entertainment & Betting Settings",
+    "تفعيل قسم الترفيه": "Enable Entertainment Module",
+    "تفعيل الرهانات": "Enable Betting",
+    "العملات المسموحة للرهان": "Allowed Betting Currencies",
+    "مثال: money,diamonds": "Example: money,diamonds",
+    "نسبة بيت Azad (%)": "House Cut for Azad (%)",
+    "الحد الأدنى للرهان": "Minimum Stake",
+    "الحد الأقصى للرهان": "Maximum Stake",
+    "تفعيل الشطرنج": "Enable Chess",
+    "تفعيل التريكس": "Enable Trix",
+    "تفعيل الطرنيب": "Enable Tarneeb",
+    "حفظ الإعدادات": "Save Settings",
+    "قسم الترفيه معطل حالياً": "Entertainment section is currently disabled",
+    "هذه اللعبة معطلة حالياً": "This game is currently disabled",
+    "الرهان أقل من الحد الأدنى": "Stake is below minimum",
+    "الرهان يتجاوز الحد الأقصى": "Stake exceeds maximum",
+    "تم تحديث إعدادات الترفيه والرهانات": "Entertainment and betting settings updated",
+    "فشل التحديث: %(error)s": "Update failed: %(error)s",
 
     # --- Symbols/Numbers ---
     "(10$ لكل نقطة)": "($10 per point)",

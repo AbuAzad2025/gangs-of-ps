@@ -1,0 +1,193 @@
+{% extends "base.html" %}
+
+{% block content %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/trix.css') }}">
+
+<div class="container-fluid fade-in p-0">
+    <div class="d-flex justify-content-between align-items-center bg-dark p-2 text-white border-bottom border-warning">
+        <h4 class="m-0"><i class="fas fa-crown text-warning"></i> {{ _('لعبة التريكس') }}</h4>
+        <div>
+            <span class="badge badge-info mr-2" id="contract-name">--</span>
+            <button class="btn btn-sm btn-danger" onclick="location.reload()"><i class="fas fa-redo"></i> {{ _('إعادة اللعب') }}</button>
+        </div>
+    </div>
+
+    <div class="trix-table mt-3 mx-auto" id="trix-table">
+        <div class="game-info">
+            <div id="scores">
+                <div class="text-warning">You: <span id="score-0">0</span></div>
+                <div>Bot 1: <span id="score-1">0</span></div>
+                <div>Bot 2: <span id="score-2">0</span></div>
+                <div>Bot 3: <span id="score-3">0</span></div>
+            </div>
+            <div id="status-msg" class="mt-2 text-info">Waiting to start...</div>
+        </div>
+
+        <!-- Contract Selector -->
+        <div class="contract-selector" id="contract-selector">
+            <h3 class="text-warning mb-3">{{ _('اختر اللعبة') }}</h3>
+            <div class="d-flex flex-wrap justify-content-center">
+                <button class="btn btn-outline-danger contract-btn" onclick="selectGame('king')">{{ _('شيخ الكبة') }}</button>
+                <button class="btn btn-outline-danger contract-btn" onclick="selectGame('queens')">{{ _('بنات') }}</button>
+                <button class="btn btn-outline-danger contract-btn" onclick="selectGame('diamonds')">{{ _('ديناري') }}</button>
+                <button class="btn btn-outline-danger contract-btn" onclick="selectGame('slapping')">{{ _('لطوش') }}</button>
+                <button class="btn btn-outline-warning contract-btn" onclick="selectGame('complex')">{{ _('كومبلكس') }}</button>
+            </div>
+        </div>
+
+        <!-- Players -->
+        <div class="player-area player-top" id="player-2">
+            <div class="player-avatar">B2</div>
+            <div class="card-hand"></div>
+        </div>
+        
+        <div class="player-area player-left" id="player-1">
+            <div class="player-avatar">B1</div>
+            <div class="card-hand"></div>
+        </div>
+        
+        <div class="player-area player-right" id="player-3">
+            <div class="player-avatar">B3</div>
+            <div class="card-hand"></div>
+        </div>
+        
+        <div class="player-area player-bottom" id="player-0">
+            <div class="card-hand" id="my-hand">
+                <!-- Cards injected here -->
+            </div>
+        </div>
+
+        <!-- Trick Area -->
+        <div class="trick-area">
+            <div class="played-card played-bottom" id="trick-0"></div>
+            <div class="played-card played-left" id="trick-1"></div>
+            <div class="played-card played-top" id="trick-2"></div>
+            <div class="played-card played-right" id="trick-3"></div>
+        </div>
+    </div>
+</div>
+
+<script src="{{ url_for('static', filename='js/trix_engine.js') }}"></script>
+<script>
+    const game = new TrixGame();
+    
+    // UI Callback
+    function uiUpdate(action, data) {
+        if (action === 'showContractSelector') {
+            if (data.player.id === 0) {
+                $('#contract-selector').fadeIn();
+            } else {
+                $('#status-msg').text(data.player.name + ' {{ _("يختار اللعبة...") }}');
+            }
+        }
+        else if (action === 'updateBoard') {
+            renderHand(data.players[0].hand);
+            renderOpponents(data.players);
+            renderTrick(data.trick);
+            $('#contract-name').text(game.contracts[data.contract].nameAr);
+        }
+        else if (action === 'message') {
+            $('#status-msg').text(data);
+        }
+        else if (action === 'highlightPlayer') {
+            $('.player-avatar').removeClass('current-turn');
+            // Map player ID to UI position
+            // 0=bottom, 1=left, 2=top, 3=right
+            const pos = ['player-0', 'player-1', 'player-2', 'player-3']; // Actually IDs match
+            // But avatars are inside .player-area. Not directly accessible easily with just ID on parent.
+            // Let's just highlight the name in score box for simplicity or add border to avatar
+            $(`#player-${data} .player-avatar`).addClass('current-turn');
+        }
+        else if (action === 'enableInput') {
+            $('.trix-card').removeClass('disabled');
+        }
+        else if (action === 'playCardAnim') {
+            // Animate card moving to center
+            // Simple re-render for now via updateBoard
+        }
+        else if (action === 'trickComplete') {
+            setTimeout(() => {
+                $('.played-card').empty(); // Clear table
+            }, 1000);
+        }
+        else if (action === 'updateScore') {
+            data.forEach(p => {
+                $(`#score-${p.id}`).text(p.score);
+            });
+        }
+        else if (action === 'invalidMove') {
+            // Flash red or shake
+            alert('{{ _("حركة غير مسموحة! يجب عليك لعب نفس نوع الورقة إذا كنت تملكها.") }}');
+        }
+    }
+
+    function renderHand(hand) {
+        const container = $('#my-hand');
+        container.empty();
+        hand.forEach((card, index) => {
+            const suitClass = getSuitClass(card.suit);
+            const colorClass = (card.suit === '♥' || card.suit === '♦') ? 'text-danger' : 'text-dark';
+            const html = `
+                <div class="trix-card ${colorClass}" onclick="playCard(${index})">
+                    <div class="card-val-top">${card.rank}</div>
+                    <div class="card-suit-center">${card.suit}</div>
+                    <div class="card-val-bottom">${card.rank}</div>
+                </div>
+            `;
+            container.append(html);
+        });
+    }
+
+    function renderOpponents(players) {
+        // Just render backs of cards
+        [1, 2, 3].forEach(pid => {
+            const container = $(`#player-${pid} .card-hand`);
+            container.empty();
+            const count = players[pid].hand.length;
+            for(let i=0; i<count; i++) {
+                // Simplified back view
+                container.append('<div class="trix-card" style="background:navy; border:1px solid white; margin-left:-50px;"></div>');
+            }
+        });
+    }
+
+    function renderTrick(trick) {
+        // Clear all first
+        $('.played-card').empty();
+        trick.forEach(t => {
+            const card = t.card;
+            const colorClass = (card.suit === '♥' || card.suit === '♦') ? 'text-danger' : 'text-dark';
+            const html = `
+                <div class="trix-card ${colorClass}" style="margin:0;">
+                    <div class="card-val-top">${card.rank}</div>
+                    <div class="card-suit-center">${card.suit}</div>
+                    <div class="card-val-bottom">${card.rank}</div>
+                </div>
+            `;
+            $(`#trick-${t.player}`).html(html);
+        });
+    }
+
+    function getSuitClass(suit) {
+        if (suit === '♥') return 'suit-hearts';
+        if (suit === '♦') return 'suit-diamonds';
+        if (suit === '♣') return 'suit-clubs';
+        return 'suit-spades';
+    }
+
+    function playCard(index) {
+        if (game.turn !== 0) return;
+        game.playCard(0, index);
+    }
+
+    function selectGame(name) {
+        $('#contract-selector').fadeOut();
+        game.selectContract(name);
+    }
+
+    // Start
+    $(document).ready(() => {
+        game.init(uiUpdate);
+    });
+</script>
+{% endblock %}

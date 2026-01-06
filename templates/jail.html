@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}{{ _('السجن المركزي') }}{% endblock %}
+{% block title %}{{ _('سجن عوفر العسكري') }}{% endblock %}
 
 {% block content %}
 <div class="container-fluid">
@@ -9,44 +9,109 @@
     <div class="jail-header fade-in-down">
         <div class="jail-bars"></div>
         <div class="jail-header-content">
-            <h2 class="gold-text-gradient mb-2 display-4 font-weight-bold"><i class="fas fa-dungeon mr-2"></i> {{ _('السجن المركزي') }}</h2>
-            <p class="text-light opacity-75">{{ _('مكان من يدفع ثمن جرائمه... أو ينتظر من يخرجه') }}</p>
+            <h2 class="gold-text-gradient mb-2 display-4 font-weight-bold"><i class="fas fa-dungeon mr-2"></i> {{ _('سجن عوفر العسكري') }}</h2>
+            <p class="text-light opacity-75">{{ _('مقبرة الأحياء... وقلعة الصمود والتحدي') }}</p>
         </div>
     </div>
 
     <!-- User Status -->
     <div class="row justify-content-center fade-in-up delay-1">
-        <div class="col-md-8">
+        <div class="col-md-10">
             {% if user.jail_until and user.jail_until > now %}
-                <div class="status-card jailed">
-                    <div class="mb-3">
-                        <div class="d-inline-block p-3 rounded-circle jail-icon-bg">
+                <div class="status-card jailed p-4">
+                    <div class="text-center mb-4">
+                        <div class="d-inline-block p-3 rounded-circle jail-icon-bg mb-2">
                             <i class="fas fa-lock fa-3x text-danger"></i>
                         </div>
-                    </div>
-                    <h3 class="text-white mb-2">{{ _('أنت مسجون!') }}</h3>
-                    <p class="text-muted mb-4">{{ _('لقد تم القبض عليك أثناء قيامك بعمل غير قانوني.') }}</p>
-                    
-                    <div class="d-flex justify-content-center align-items-center p-3 rounded jail-timer-container">
-                        <div class="display-4 text-danger fw-bold mx-3" id="jail-timer" data-until="{{ user.jail_until.timestamp() }}">
-                            {{ ((user.jail_until - now).seconds / 60) | int }}:{{ ((user.jail_until - now).seconds % 60) | int }}
+                        <h3 class="text-white mb-2">{{ _('أنت رهن الاعتقال!') }}</h3>
+                        <p class="text-muted">{{ _('تم احتجازك بموجب أمر إداري. الصبر مفتاح الفرج.') }}</p>
+                        
+                        <div class="d-flex justify-content-center align-items-center p-3 rounded jail-timer-container mx-auto" style="max-width: 400px;">
+                            <div class="display-4 text-danger fw-bold mx-3" id="jail-timer" data-until="{{ user.jail_until.timestamp() }}">
+                                {{ ((user.jail_until - now).seconds / 60) | int }}:{{ ((user.jail_until - now).seconds % 60) | int }}
+                            </div>
+                            <div class="text-left">
+                                <div class="text-white fw-bold">{{ _('الحكم المتبقي') }}</div>
+                                <div class="text-muted small">{{ _('حتى الحرية') }}</div>
+                            </div>
                         </div>
-                        <div class="text-left">
-                            <div class="text-white fw-bold">{{ _('الوقت المتبقي') }}</div>
-                            <div class="text-muted small">{{ _('حتى الحرية') }}</div>
+                    </div>
+
+                    <!-- Actions Grid -->
+                    <div class="row g-3">
+                        <!-- Resistance Section -->
+                        <div class="col-md-6 mb-3">
+                            <div class="card bg-dark border-danger h-100">
+                                <div class="card-header border-danger text-danger font-weight-bold">
+                                    <i class="fas fa-fist-raised mr-2"></i> {{ _('المقاومة والصمود') }}
+                                </div>
+                                <div class="card-body">
+                                    <!-- Hunger Strike -->
+                                    <form action="{{ url_for('jail.hunger_strike') }}" method="POST" class="mb-3">
+                                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                        <button type="submit" class="btn btn-outline-danger btn-block font-weight-bold" 
+                                                onclick="return confirm('{{ _('تحذير: الإضراب عن الطعام سيؤدي إلى فقدان 20%% من صحتك! هل أنت متأكد؟') }}')">
+                                            <i class="fas fa-utensils-slash mr-2"></i> {{ _('معركة الأمعاء الخاوية') }}
+                                        </button>
+                                        <small class="text-muted d-block mt-1">{{ _('خطر: فقدان صحة | فرصة: تخفيض الحكم') }}</small>
+                                    </form>
+
+                                    <!-- Riot -->
+                                    <form action="{{ url_for('jail.riot') }}" method="POST">
+                                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                        <button type="submit" class="btn btn-danger btn-block font-weight-bold" {% if user.energy < 30 %}disabled{% endif %}>
+                                            <i class="fas fa-fire mr-2"></i> {{ _('انتفاضة السجون (شغب)') }} <span class="badge bg-light text-danger ml-2">30 <i class="fas fa-bolt"></i></span>
+                                        </button>
+                                        <small class="text-muted d-block mt-1">{{ _('خطر عالي! نجاح جماعي أو عزل انفرادي') }}</small>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Daily Life & Freedom Section -->
+                        <div class="col-md-6 mb-3">
+                            <div class="card bg-dark border-secondary h-100">
+                                <div class="card-header border-secondary text-white font-weight-bold">
+                                    <i class="fas fa-sun mr-2"></i> {{ _('الحياة والحرية') }}
+                                </div>
+                                <div class="card-body">
+                                    <!-- Hard Labor -->
+                                    <form action="{{ url_for('jail.hard_labor') }}" method="POST" class="mb-3">
+                                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                        <button type="submit" class="btn btn-outline-light btn-block" {% if user.energy < 10 %}disabled{% endif %}>
+                                            <i class="fas fa-broom mr-2"></i> {{ _('العمل في "المردوان"') }} <span class="badge bg-secondary ml-2">10 <i class="fas fa-bolt"></i></span>
+                                        </button>
+                                        <small class="text-muted d-block mt-1">{{ _('تنظيف وخدمة: تخفيض بسيط + مال') }}</small>
+                                    </form>
+
+                                    <div class="row">
+                                        <!-- Lawyer -->
+                                        <div class="col-6 pr-1">
+                                            <form action="{{ url_for('jail.lawyer_visit') }}" method="POST">
+                                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                                <button type="submit" class="btn btn-info btn-block btn-sm py-2" title="{{ _('تكلفة عالية، نتيجة مضمونة') }}">
+                                                    <i class="fas fa-briefcase mr-1"></i> {{ _('محامي') }}
+                                                </button>
+                                            </form>
+                                        </div>
+                                        
+                                        <!-- Bribe -->
+                                        {% if enable_bribe %}
+                                        <div class="col-6 pl-1">
+                                            <form action="{{ url_for('jail.bribe') }}" method="POST">
+                                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                                <button type="submit" class="btn btn-warning btn-block btn-sm py-2" title="{{ bribe_cost }}$">
+                                                    <i class="fas fa-coins mr-1"></i> {{ _('رشوة') }}
+                                                </button>
+                                            </form>
+                                        </div>
+                                        {% endif %}
+                                    </div>
+                                    <small class="text-muted d-block mt-2">{{ _('طرق الخروج المبكر') }}</small>
+                                </div>
+                            </div>
                         </div>
                     </div>
-                    
-                    {% if enable_bribe %}
-                    <div class="mt-4">
-                        <form action="{{ url_for('jail.bribe') }}" method="POST">
-                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                            <button type="submit" class="btn btn-outline-warning rounded-pill px-4">
-                                <i class="fas fa-coins mr-2"></i> {{ _('دفع رشوة') }} ({{ bribe_cost }})
-                            </button>
-                        </form>
-                    </div>
-                    {% endif %}
                 </div>
             {% else %}
                 <div class="status-card free">

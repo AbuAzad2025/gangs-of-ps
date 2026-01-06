@@ -1,5 +1,5 @@
 from .user import User, UserRole, UserRank, EliteTitleSeat
-from .gameplay import Crime, DailyTask, UserDailyTask, OrganizedCrime, CrimeLobby, LobbyParticipant, UserProgress, HeistHistory, ResurrectionRequest, UserCrimeCooldown, InvestigationLog
+from .gameplay import Crime, DailyTask, UserDailyTask, OrganizedCrime, CrimeLobby, LobbyParticipant, UserProgress, HeistHistory, ResurrectionRequest, UserCrimeCooldown, InvestigationLog, UserOrganizedCrimeCooldown
 from .item import Item, UserItem
 from .location import Location
 from .bounty import Bounty
@@ -22,3 +22,5 @@ from .factory import FactoryJob
 from .farm import FarmJob
 from .facility import UserFacility
 from .contract import FarmSupplyContract
+from .casino_game import CasinoGame
+from .entertainment import GameRoom, GamePlayer

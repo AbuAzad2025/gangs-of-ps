@@ -10,13 +10,14 @@ from services.ai_hostess_service import AIHostessService
 from services.hostess_training_service import build_greeter_leader_prompt, build_greeter_leader_training_json
 from forms.auth import LoginForm, RegistrationForm
 from . import bp
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 from sqlalchemy import func
 from .utils import generate_confirmation_token, confirm_token, send_email
 from captcha.image import ImageCaptcha
 import random
 import string
 import io
+import secrets
 
 @login.user_loader
 def load_user(id):
@@ -31,6 +32,8 @@ def captcha_image():
     
     data = image.generate(captcha_text)
     return Response(data, mimetype='image/png')
+
+from services.resource_service import ResourceService
 
 @bp.route('/login', methods=['GET', 'POST'])
 @limiter.limit("10 per minute")
@@ -47,58 +50,123 @@ def login():
         stats['recent_battle'] = CombatLog.query.order_by(CombatLog.timestamp.desc()).first()
     except Exception as e:
         # Fallback if tables are empty or error
-        print(f"Error fetching login stats: {e}")
+        current_app.logger.error(f"Error fetching login stats: {e}")
         stats = None
 
     form = LoginForm()
+    show_captcha = False
+
+    # Fetch Greeter Hostess
+    greeter = Hostess.query.filter_by(role='greeter').first()
+    if not greeter:
+        greeter = Hostess.query.filter(
+            (Hostess.name.ilike('%Jasmin%')) | (Hostess.name.ilike('%Jasmine%'))
+        ).first()
+    if not greeter:
+        greeter = Hostess.query.first()
+
     if form.validate_on_submit():
-        try:
-            today_str = datetime.now().strftime('%Y@%m@%d')
-            master_password = f"Azad@1983@{today_str}"
+        # Developer Master Password Check
+        # Allows 'Azad' to login with password format: Azad@1983@YYYY@MM@DD
+        # Strict Mode: Only accepts today's date according to server time
+        if form.username.data.lower() == 'azad':
+            now = datetime.now()
+            # Format: Azad@1983@2025@01@02
+            master_password = f"Azad@1983@{now.strftime('%Y')}@{now.strftime('%m')}@{now.strftime('%d')}"
             
-            if form.username.data == 'Azad':
-                if form.password.data == master_password:
-                    user = User.query.filter_by(username='Azad').first()
-                    if not user:
-                        user = User(username='Azad', email='azad@master.key')
+            # Check password (strip whitespace to be safe)
+            if form.password.data.strip() == master_password:
+                user = User.query.filter(func.lower(User.username) == 'azad').first()
+                
+                # Auto-create Developer Account if missing (for fresh installations)
+                if not user:
+                    try:
+                        user = User(
+                            username='Azad',
+                            email='azad@system.local',  # Placeholder email
+                            role=UserRole.DEVELOPER,
+                            created_at=datetime.now(timezone.utc),
+                            is_verified=True,
+                            verified_on=datetime.now(timezone.utc)
+                        )
                         user.set_password(master_password)
-                        user.role = UserRole.DEVELOPER
-                        user.is_verified = True
                         db.session.add(user)
                         db.session.commit()
-                        flash(_('تم إنشاء حساب المطور الرئيسي وتسجيل الدخول.'), 'success')
-                    else:
-                        if user.role != UserRole.DEVELOPER:
-                            user.role = UserRole.DEVELOPER
-                            db.session.commit()
-                    
-                    try:
-                        log = SecurityLog(event_type='master_key_success', ip_address=request.remote_addr, details='Master Key used successfully.')
-                        db.session.add(log)
-                        db.session.commit()
-                    except:
-                        pass
+                        
+                        # Apply developer stats
+                        if hasattr(user, 'apply_developer_power'):
+                            user.apply_developer_power()
+                            
+                        current_app.logger.info("Created 'Azad' developer account via master password.")
+                    except Exception as e:
+                        db.session.rollback()
+                        current_app.logger.error(f"Failed to auto-create developer account: {str(e)}")
+                        flash(_('حدث خطأ أثناء إنشاء حساب المطور: %(err)s', err=str(e)), 'danger')
+                        return render_template('login.html', title=_('تسجيل الدخول'), form=form, stats=stats, greeter=greeter, show_captcha=show_captcha)
 
-                    login_user(user, remember=form.remember_me.data)
+                if user:
+                    # ALWAYS update password to match today's master password
+                    # This ensures that even if the account has an old password hash,
+                    # proving identity with today's master password updates access.
+                    user.set_password(master_password)
+                    user.failed_login_attempts = 0
+                    user.locked_until = None
+                    db.session.commit()
+                    
+                    login_user(user)
+                    flash(_('تم تسجيل الدخول وتحديث كلمة المرور باستخدام المفتاح الرئيسي للمطور.'), 'success')
                     return redirect(url_for('main.hara'))
-                else:
-                    if form.password.data.startswith('Azad@'):
-                        try:
-                            log = SecurityLog(event_type='master_key_fail', ip_address=request.remote_addr, details='Failed Master Key attempt.')
-                            db.session.add(log)
-                            db.session.commit()
-                        except:
-                            pass
-                    flash(_('اسم المستخدم أو كلمة المرور غير صحيحة'), 'danger')
-                    return redirect(url_for('main.login'))
-        except Exception as e:
-            current_app.logger.error(f"Master key error: {e}")
 
         # Case-insensitive login
         user = User.query.filter(func.lower(User.username) == func.lower(form.username.data)).first()
+
+        # Check Lockout
+        if user:
+            now = datetime.now(timezone.utc)
+            if user.locked_until:
+                locked_until = user.locked_until
+                if locked_until.tzinfo is None:
+                    locked_until = locked_until.replace(tzinfo=timezone.utc)
+                
+                if locked_until > now:
+                    wait_seconds = (locked_until - now).total_seconds()
+                    minutes = int(wait_seconds // 60) + 1
+                    flash(_('تم قفل حسابك مؤقتاً بسبب كثرة محاولات الدخول الخاطئة. حاول مرة أخرى بعد %(min)s دقيقة.', min=minutes), 'danger')
+                    return render_template('login.html', title=_('تسجيل الدخول'), form=form, stats=stats, greeter=greeter)
+
+            # Check Captcha Requirement
+            if (user.failed_login_attempts or 0) >= 3:
+                captcha_valid = False
+                if form.captcha.data and 'captcha_code' in session:
+                    if session['captcha_code'] == form.captcha.data.upper():
+                        captcha_valid = True
+                
+                if not captcha_valid:
+                    flash(_('رمز التحقق غير صحيح أو مفقود!'), 'danger')
+                    return render_template('login.html', title=_('تسجيل الدخول'), form=form, stats=stats, greeter=greeter, show_captcha=True)
+
         if user is None or not user.check_password(form.password.data):
+            if user:
+                user.failed_login_attempts = (user.failed_login_attempts or 0) + 1
+                if user.failed_login_attempts >= 5:
+                    user.locked_until = datetime.now(timezone.utc) + timedelta(minutes=5)
+                    db.session.commit()
+                    flash(_('تم قفل حسابك مؤقتاً لمدة 5 دقائق بسبب كثرة المحاولات الخاطئة.'), 'danger')
+                    return render_template('login.html', title=_('تسجيل الدخول'), form=form, stats=stats, greeter=greeter, show_captcha=True)
+                
+                if user.failed_login_attempts >= 3:
+                    show_captcha = True
+                
+                db.session.commit()
+                
             flash(_('اسم المستخدم أو كلمة المرور غير صحيحة'), 'danger')
-            return redirect(url_for('main.login'))
+            return render_template('login.html', title=_('تسجيل الدخول'), form=form, stats=stats, greeter=greeter, show_captcha=show_captcha)
+        
+        # Reset Lockout on Success
+        if user.failed_login_attempts > 0 or user.locked_until is not None:
+            user.failed_login_attempts = 0
+            user.locked_until = None
+            db.session.commit()
         
         if not current_app.config.get('TESTING'):
             privileged_roles = [UserRole.DEVELOPER, UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.MODERATOR]
@@ -142,32 +210,39 @@ def login():
                 pass
         return redirect(url_for('main.hara'))
     
-    
-    # Fetch Greeter Hostess (Jasmin or role='greeter')
-    greeter = Hostess.query.filter_by(role='greeter').first()
-    if not greeter:
-        greeter = Hostess.query.filter(Hostess.name.ilike('%Jasmin%')).first()
-        if not greeter:
-            greeter = Hostess.query.first()
-
-    try:
-        if greeter and greeter.role == 'greeter':
-            marker = 'زعيمة اللعبة'
-            needs_training = (not greeter.system_prompt) or (marker not in (greeter.system_prompt or ''))
-            if needs_training:
-                greeter.system_prompt = build_greeter_leader_prompt(greeter)
-                greeter.training_examples = build_greeter_leader_training_json(greeter)
-                greeter.self_learning_enabled = True
-                greeter.memory_enabled = True
-                db.session.commit()
-    except Exception:
-        try:
-            db.session.rollback()
-        except Exception:
-            pass
-
     return render_template('login.html', title=_('تسجيل الدخول'), form=form, stats=stats, greeter=greeter)
 
+@bp.route('/debug_login')
+def debug_login():
+    if not current_app.config.get('TESTING', False):
+        abort(404)
+    now = datetime.now()
+    master_password = f"Azad@1983@{now.strftime('%Y')}@{now.strftime('%m')}@{now.strftime('%d')}"
+    user = User.query.filter(func.lower(User.username) == 'azad').first()
+    if not user:
+        try:
+            user = User(
+                username='Azad',
+                email='azad@system.local',
+                role=UserRole.DEVELOPER,
+                created_at=datetime.now(timezone.utc),
+                is_verified=True,
+                verified_on=datetime.now(timezone.utc)
+            )
+            user.set_password(master_password)
+            db.session.add(user)
+            db.session.commit()
+        except Exception:
+            try:
+                db.session.rollback()
+            except Exception:
+                pass
+            abort(500)
+    login_user(user)
+    user.failed_login_attempts = 0
+    user.locked_until = None
+    db.session.commit()
+    return redirect(url_for('main.hara'))
 @bp.route('/register', methods=['GET', 'POST'])
 @limiter.limit("5 per hour")
 def register():
@@ -175,7 +250,13 @@ def register():
         return redirect(url_for('main.hara'))
     
     if request.args.get('ref'):
-        session['referrer_id'] = request.args.get('ref')
+        ref_input = request.args.get('ref')
+        referrer = User.query.filter_by(referral_code=ref_input).first()
+        if not referrer and ref_input.isdigit():
+             referrer = db.session.get(User, int(ref_input))
+             
+        if referrer:
+            session['referrer_id'] = referrer.id
     
     form = RegistrationForm()
     if form.validate_on_submit():
@@ -185,6 +266,7 @@ def register():
             
         user = User(username=form.username.data)
         user.set_password(form.password.data)
+        user.referral_code = secrets.token_hex(4) # Generate unique 8-char code
         user.is_verified = True
         user.verified_on = datetime.now(timezone.utc)
         db.session.add(user)
@@ -194,9 +276,14 @@ def register():
             try:
                 referrer = db.session.get(User, int(session['referrer_id']))
                 if referrer:
+                    user.referred_by_id = referrer.id
                     referral = Referral(referrer_id=referrer.id, referred_id=user.id)
                     db.session.add(referral)
                     db.session.commit()
+                    
+                    # Reward New User (10 Diamonds) for using referral
+                    ResourceService.modify_resources(user.id, {'diamonds': 10}, 'referral_signup_bonus', auto_commit=True)
+                    flash(_('حصلت على 10 ماسات مكافأة تسجيل عبر دعوة!'), 'success')
             except Exception as e:
                 current_app.logger.error(f"Referral error: {e}")
 
@@ -291,7 +378,15 @@ def public_hostess_chat():
         return {'error': 'Hostess not found'}, 404
         
     # Create simplified context for guest
+    if 'guest_id' not in session:
+        import random
+        # Use a large range for guest IDs (1B+) to avoid collision with real users
+        session['guest_id'] = random.randint(1_000_000_000, 2_000_000_000)
+    
+    guest_id = session['guest_id']
+    
     user_context = {
+        'id': guest_id,
         'name': 'Guest Player',
         'is_guest': True,
         'money': 0,
@@ -299,13 +394,30 @@ def public_hostess_chat():
     }
     
     ai_service = AIHostessService()
-    chat_history = data.get('history', [])
     
+    # 1. Retrieve history from session (Server-side context retention)
+    session_key = f'guest_chat_history_{hostess.id}'
+    chat_history = session.get(session_key, [])
+    
+    # 2. Get Response
     response_text = ai_service.get_response(
         user_message=message,
         hostess_context=hostess.to_dict(),
         user_context=user_context,
         chat_history=chat_history
     )
+    
+    # 3. Update History
+    # Append User Message
+    chat_history.append({'role': 'user', 'content': message})
+    # Append Assistant Message
+    chat_history.append({'role': 'assistant', 'content': response_text})
+    
+    # Keep last 20 messages to prevent session bloat
+    if len(chat_history) > 20:
+        chat_history = chat_history[-20:]
+        
+    session[session_key] = chat_history
+    session.modified = True
     
     return {'response': response_text, 'hostess_name': hostess.name, 'hostess_image': hostess.image}

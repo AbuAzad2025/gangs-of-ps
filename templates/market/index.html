@@ -84,8 +84,13 @@
                         {% for inv in investments %}
                         <tr>
                             <td>
-                                <strong>{{ inv.asset.symbol }}</strong><br>
-                                <small class="text-muted">{{ "{:.4f}".format(inv.quantity) }}</small>
+                                <div class="d-flex align-items-center">
+                                    <img src="{{ url_for('static', filename=inv.asset.image_path) }}" alt="{{ inv.asset.symbol }}" class="mr-2 rounded-circle" style="width: 24px; height: 24px;">
+                                    <div>
+                                        <strong>{{ inv.asset.symbol }}</strong><br>
+                                        <small class="text-muted">{{ "{:.4f}".format(inv.quantity) }}</small>
+                                    </div>
+                                </div>
                             </td>
                             <td>
                                 <span class="text-gold">{{ "{:,.0f}".format(inv.current_value()) }}$</span><br>

@@ -74,6 +74,93 @@ def update_db():
                         "gym_until",
                         'ALTER TABLE "user" ADD COLUMN gym_until TIMESTAMP WITHOUT TIME ZONE',
                     )
+                    ensure_column(
+                        conn,
+                        "user",
+                        "failed_login_attempts",
+                        'ALTER TABLE "user" ADD COLUMN failed_login_attempts INTEGER DEFAULT 0',
+                    )
+                    ensure_column(
+                        conn,
+                        "user",
+                        "locked_until",
+                        'ALTER TABLE "user" ADD COLUMN locked_until TIMESTAMP WITHOUT TIME ZONE',
+                    )
+                    ensure_column(
+                        conn,
+                        "user",
+                        "driving_skill",
+                        'ALTER TABLE "user" ADD COLUMN driving_skill INTEGER DEFAULT 1',
+                    )
+                    ensure_column(
+                        conn,
+                        "user",
+                        "gym_activity",
+                        'ALTER TABLE "user" ADD COLUMN gym_activity VARCHAR(512)',
+                    )
+                    ensure_column(
+                        conn,
+                        "user",
+                        "is_ghost_mode",
+                        'ALTER TABLE "user" ADD COLUMN is_ghost_mode BOOLEAN DEFAULT FALSE',
+                    )
+                    ensure_column(
+                        conn,
+                        "user",
+                        "banned_until",
+                        'ALTER TABLE "user" ADD COLUMN banned_until TIMESTAMP WITHOUT TIME ZONE',
+                    )
+                    ensure_column(
+                        conn,
+                        "user",
+                        "ban_reason",
+                        'ALTER TABLE "user" ADD COLUMN ban_reason VARCHAR(255)',
+                    )
+                    ensure_column(
+                        conn,
+                        "user",
+                        "is_suspicious",
+                        'ALTER TABLE "user" ADD COLUMN is_suspicious BOOLEAN DEFAULT FALSE',
+                    )
+                    ensure_column(
+                        conn,
+                        "user",
+                        "referral_code",
+                        'ALTER TABLE "user" ADD COLUMN referral_code VARCHAR(16)',
+                    )
+                    ensure_column(
+                        conn,
+                        "user",
+                        "referred_by_id",
+                        'ALTER TABLE "user" ADD COLUMN referred_by_id INTEGER REFERENCES "user"(id)',
+                    )
+                    
+                    ensure_index(
+                        conn,
+                        'CREATE UNIQUE INDEX IF NOT EXISTS ix_user_referral_code ON "user" (referral_code)',
+                        "ix_user_referral_code",
+                    )
+
+                if "game_rooms" in existing_tables:
+                    print("Checking game_rooms table columns...")
+                    ensure_column(
+                        conn,
+                        "game_rooms",
+                        "currency_type",
+                        "ALTER TABLE game_rooms ADD COLUMN currency_type VARCHAR(20) DEFAULT 'money'",
+                    )
+                    ensure_column(
+                        conn,
+                        "game_rooms",
+                        "stake_amount",
+                        "ALTER TABLE game_rooms ADD COLUMN stake_amount BIGINT DEFAULT 0",
+                    )
+                    ensure_column(
+                        conn,
+                        "game_rooms",
+                        "pot_amount",
+                        "ALTER TABLE game_rooms ADD COLUMN pot_amount BIGINT DEFAULT 0",
+                    )
 
                 if "hostesses" in existing_tables:
                     print("Checking hostesses table columns...")

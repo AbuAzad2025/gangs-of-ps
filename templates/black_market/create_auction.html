@@ -1,0 +1,80 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>{{ _('إضافة مزاد جديد') }}</h2>
+        <a href="{{ url_for('black_market.auctions') }}" class="btn btn-secondary">
+            <i class="fas fa-arrow-right"></i> {{ _('عودة للمزادات') }}
+        </a>
+    </div>
+
+    <div class="card shadow-sm">
+        <div class="card-body">
+            <form method="POST" action="{{ url_for('black_market.create_auction') }}">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+                <div class="form-group mb-3">
+                    <label for="user_item_id" class="form-label">{{ _('اختر الغرض للبيع') }}</label>
+                    <select class="form-control" id="user_item_id" name="user_item_id" required onchange="updateMaxPrice(this)">
+                        <option value="" disabled selected data-max="0">{{ _('-- اختر غرضاً --') }}</option>
+                        {% for u_item in user_items %}
+                            <option value="{{ u_item.id }}" data-max="{{ u_item.item.cost * 3 }}" data-cost="{{ u_item.item.cost }}">
+                                {{ u_item.item.name }} ({{ _('الكمية:') }} {{ u_item.quantity }}) - {{ _('السعر الأصلي:') }} {{ u_item.item.cost }} ₪
+                            </option>
+                        {% endfor %}
+                    </select>
+                    <small class="form-text text-muted">{{ _('لا يمكنك بيع الأغراض المجهزة أو التي لا تملكها.') }}</small>
+                </div>
+
+                <div class="form-group mb-3">
+                    <label for="start_price" class="form-label">{{ _('سعر البداية') }}</label>
+                    <div class="input-group">
+                        <input type="number" class="form-control" id="start_price" name="start_price" min="1" placeholder="1000" required>
+                        <span class="input-group-text">₪</span>
+                    </div>
+                    <small id="price_hint" class="form-text text-warning font-weight-bold" style="display:none;"></small>
+                </div>
+
+                <div class="form-group mb-3">
+                    <label for="duration" class="form-label">{{ _('مدة المزاد') }}</label>
+                    <select class="form-control" id="duration" name="duration" required>
+                        <option value="1">1 {{ _('ساعة') }}</option>
+                        <option value="6" selected>6 {{ _('ساعات') }}</option>
+                        <option value="12">12 {{ _('ساعة') }}</option>
+                        <option value="24">24 {{ _('ساعة') }}</option>
+                    </select>
+                </div>
+
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle"></i> {{ _('ملاحظة: يتم خصم ضريبة سوق بنسبة %%15 من قيمة البيع النهائية.') }}
+                </div>
+
+                <button type="submit" class="btn btn-success btn-block">
+                    <i class="fas fa-gavel"></i> {{ _('إنشاء المزاد') }}
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+function updateMaxPrice(selectElement) {
+    var selectedOption = selectElement.options[selectElement.selectedIndex];
+    var maxPrice = selectedOption.getAttribute('data-max');
+    var originalCost = selectedOption.getAttribute('data-cost');
+    var priceInput = document.getElementById('start_price');
+    var priceHint = document.getElementById('price_hint');
+
+    if (maxPrice && maxPrice != "0") {
+        priceInput.max = maxPrice;
+        priceInput.min = 1; // Or allow flexible min
+        priceHint.style.display = 'block';
+        priceHint.textContent = "{{ _('الحد الأقصى المسموح به لهذا الغرض هو:') }} " + maxPrice + " ₪ " + "({{ _('3 أضعاف السعر الأصلي') }})";
+    } else {
+        priceInput.removeAttribute('max');
+        priceHint.style.display = 'none';
+    }
+}
+</script>
+{% endblock %}

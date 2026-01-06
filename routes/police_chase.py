@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, redirect, url_for, flash, session, abort
+from flask import Blueprint, render_template, redirect, url_for, flash, session, abort, current_app
 from flask_login import login_required, current_user
 from flask_babel import _
 from extensions import db
@@ -56,7 +56,7 @@ def start():
         {}, # No resource changes
         'police_chase_start',
         auto_commit=False,
-        expected_version=current_user.version,
+        expected_version=None,
         set_fields={'last_chase': datetime.now(timezone.utc).replace(tzinfo=None)}
     ):
         flash(_('حدث خطأ أثناء بدء المطاردة.'), 'error')
@@ -138,7 +138,7 @@ def escape(method):
             {'money': winnings, 'exp': xp_gain, 'heat': heat_change}, 
             'police_chase_escape', 
             auto_commit=False, 
-            expected_version=current_user.version
+            expected_version=None
         )
 
         session.pop('active_chase', None)
@@ -161,6 +161,46 @@ def escape(method):
 
         return redirect(url_for('main.story'))
     else:
+        # Gang Buff (Security Detail) - Chance to avoid jail
+        saved_by_buff = False
+        try:
+            from services.gang_service import GangService
+            gang_buff = GangService.get_gang_buff(current_user.gang_id, 'security_detail')
+            if gang_buff > 0 and random.randint(1, 100) <= gang_buff:
+                saved_by_buff = True
+        except Exception as e:
+            current_app.logger.error(f"Error applying gang buff: {e}")
+
+        if saved_by_buff:
+            # Saved by Security Detail
+            session.pop('active_chase', None)
+            session.pop('chase_difficulty', None)
+            
+            # Reduce heat slightly as they covered tracks
+            ResourceService.modify_resources(
+                current_user.id,
+                {'heat': -5},
+                'police_chase_saved',
+                auto_commit=False,
+                expected_version=None
+            )
+            db.session.commit()
+
+            session['story'] = {
+                'title': _('مطاردة الشرطة'),
+                'subtitle': _('تدخل العصابة'),
+                'text': msg + " " + _('مسكوك الشرطة، بس فرقة الحماية تدخلت وهربوك بآخر لحظة! نفذت بريشك.'),
+                'image': image,
+                'animation': 'shield',
+                'status': 'warning',
+                'badge': _('نجاة'),
+                'next_url': url_for('main.crimes'),
+                'alt_url': url_for('police_chase.index'),
+                'alt_label': _('رجوع'),
+                'stats': None
+            }
+            return redirect(url_for('main.story'))
+
         jail_time = 60 * difficulty
         jail_until_dt = (datetime.now(timezone.utc) + timedelta(seconds=jail_time)).replace(tzinfo=None)
         
@@ -170,7 +210,7 @@ def escape(method):
             {}, 
             'police_chase_fail', 
             auto_commit=False, 
-            expected_version=current_user.version,
+            expected_version=None,
             set_fields={
                 'jail_until': jail_until_dt,
                 'heat_points': 0,

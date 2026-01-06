@@ -1,0 +1,168 @@
+{% extends "base.html" %}
+{% block title %}{{ _('الترند - أحداث مباشرة') }}{% endblock %}
+
+{% block content %}
+<div class="content-wrapper">
+    <div class="content-header">
+        <div class="container-fluid">
+            <h1 class="m-0 text-danger title-font"><i class="fas fa-fire"></i> {{ _('الترند - نبض الشارع') }}</h1>
+        </div>
+    </div>
+
+    <section class="content">
+        <div class="container-fluid">
+            
+            <!-- Stats Widgets -->
+            <div class="row">
+                <div class="col-lg-3 col-6">
+                    <div class="small-box bg-danger">
+                        <div class="inner">
+                            <h3>{{ battles|length }}</h3>
+                            <p>{{ _('معارك ساخنة') }}</p>
+                        </div>
+                        <div class="icon">
+                            <i class="fas fa-skull-crossbones"></i>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-3 col-6">
+                    <div class="small-box bg-warning">
+                        <div class="inner">
+                            <h3>{{ top_gangs|length }}</h3>
+                            <p>{{ _('عصابات مسيطرة') }}</p>
+                        </div>
+                        <div class="icon">
+                            <i class="fas fa-crown"></i>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-3 col-6">
+                    <div class="small-box bg-success">
+                        <div class="inner">
+                            <h3>{{ total_users }}</h3>
+                            <p>{{ _('مجرم في المدينة') }}</p>
+                        </div>
+                        <div class="icon">
+                            <i class="fas fa-users"></i>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-3 col-6">
+                    <div class="small-box bg-info">
+                        <div class="inner">
+                            <h3>{{ total_gangs }}</h3>
+                            <p>{{ _('عصابة نشطة') }}</p>
+                        </div>
+                        <div class="icon">
+                            <i class="fas fa-fist-raised"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+                <!-- Recent Battles -->
+                <div class="col-md-8">
+                    <div class="card card-danger card-outline luxury-card">
+                        <div class="card-header">
+                            <h3 class="card-title">{{ _('آخر المعارك الطاحنة') }} 🔥</h3>
+                            <div class="card-tools">
+                                <span class="badge badge-danger">{{ _('مباشر') }}</span>
+                            </div>
+                        </div>
+                        <div class="card-body p-0">
+                            <ul class="products-list product-list-in-card pl-2 pr-2">
+                                {% for battle in battles %}
+                                <li class="item">
+                                    <div class="product-img">
+                                        <div class="img-circle img-size-50 bg-dark d-flex align-items-center justify-content-center text-danger">
+                                            <i class="fas fa-skull fa-2x"></i>
+                                        </div>
+                                    </div>
+                                    <div class="product-info">
+                                        <a href="{{ url_for('combat.index') }}" class="product-title">
+                                            {{ battle.attacker.username }} 
+                                            <span class="text-muted">VS</span>
+                                            {{ battle.defender.username }}
+                                            <span class="badge float-right {{ 'badge-success' if battle.winner_id == battle.attacker_id else 'badge-danger' }}">
+                                                {% if battle.winner_id == battle.attacker_id %}
+                                                    {{ _('انتصار المهاجم') }}
+                                                {% else %}
+                                                    {{ _('فشل الهجوم') }}
+                                                {% endif %}
+                                            </span>
+                                        </a>
+                                        <span class="product-description">
+                                            {{ _('خسارة المدافع:') }} <span class="text-danger">{{ battle.defender_hp_loss }} HP</span> | 
+                                            {{ _('الوقت:') }} {{ battle.timestamp.strftime('%H:%M') }}
+                                        </span>
+                                    </div>
+                                </li>
+                                {% else %}
+                                <li class="item">
+                                    <div class="text-center p-3 text-muted">{{ _('لا توجد معارك حديثة.. الهدوء الذي يسبق العاصفة؟') }}</div>
+                                </li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Top Gangs Sidebar -->
+                <div class="col-md-4">
+                    <div class="card card-warning card-outline luxury-card">
+                        <div class="card-header">
+                            <h3 class="card-title">{{ _('أخطر العصابات') }} 👑</h3>
+                        </div>
+                        <div class="card-body p-0">
+                            <ul class="users-list clearfix">
+                                {% for gang in top_gangs %}
+                                <li>
+                                    <img src="{{ url_for('static', filename='images/gang_icon.png') }}" alt="Gang" style="width: 60px; height: 60px; border-radius: 50%;">
+                                    <a class="users-list-name" href="#">{{ gang.name }}</a>
+                                    <span class="users-list-date">{{ _('مستوى') }} {{ gang.level }}</span>
+                                </li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                        <div class="card-footer text-center">
+                            <a href="{{ url_for('gang.index') }}">{{ _('عرض كل العصابات') }}</a>
+                        </div>
+                    </div>
+
+                    <!-- Top Players -->
+                    <div class="card card-primary card-outline luxury-card mt-3">
+                        <div class="card-header">
+                            <h3 class="card-title">{{ _('أساطير الإجرام') }} 🌟</h3>
+                        </div>
+                        <div class="card-body p-0">
+                            <ul class="products-list product-list-in-card pl-2 pr-2">
+                                {% for player in top_players %}
+                                <li class="item">
+                                    <div class="product-img">
+                                        {% if player.avatar and player.avatar != 'default.png' %}
+                                            <img src="{{ url_for('static', filename='avatars/' + player.avatar) }}" class="img-circle img-size-50">
+                                        {% else %}
+                                            <img src="https://ui-avatars.com/api/?name={{ player.username }}&background=random" class="img-circle img-size-50">
+                                        {% endif %}
+                                    </div>
+                                    <div class="product-info">
+                                        <a href="{{ url_for('main.profile', user_id=player.id) }}" class="product-title">
+                                            {{ player.username }}
+                                            <span class="badge badge-info float-right">Lv.{{ player.level }}</span>
+                                        </a>
+                                        <span class="product-description">
+                                            {{ _('اللقب:') }} {{ _(player.rank_title) }}
+                                        </span>
+                                    </div>
+                                </li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+</div>
+{% endblock %}

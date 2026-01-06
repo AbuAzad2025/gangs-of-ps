@@ -1,8 +1,11 @@
 from flask import render_template, redirect, url_for, flash, abort
 from flask_babel import _
 from flask_login import login_required, current_user
-from extensions import db
-from models import Vehicle, UserVehicle
+from extensions import db, limiter
+import random
+from models import Vehicle, UserVehicle, User
+from models.system import SystemConfig
+from sqlalchemy import select
 from . import bp
 from datetime import datetime, timedelta, timezone
 from services.resource_service import ResourceService
@@ -38,7 +41,11 @@ def dealership():
 
 @bp.route('/buy_car/<int:vehicle_id>', methods=['POST'])
 @login_required
+@limiter.limit("5 per minute")
 def buy_car(vehicle_id):
+    # Lock user to prevent race conditions (e.g. buying multiple active cars)
+    db.session.query(User).filter_by(id=current_user.id).with_for_update().first()
+    
     # Status Check
     now = datetime.now(timezone.utc)
     if current_user.jail_until:
@@ -72,7 +79,7 @@ def buy_car(vehicle_id):
         return redirect(url_for('main.dealership'))
     
     # Atomic Update via ResourceService
-    if not ResourceService.modify_resources(current_user.id, {'money': -vehicle.price}, 'buy_vehicle', auto_commit=False, expected_version=current_user.version):
+    if not ResourceService.modify_resources(current_user.id, {'money': -vehicle.price}, 'buy_vehicle', auto_commit=False, expected_version=None):
         flash(_('معكش مصاري كفاية يا زعيم!'), 'danger')
         return redirect(url_for('main.dealership'))
     
@@ -92,7 +99,11 @@ def buy_car(vehicle_id):
 
 @bp.route('/repair_car/<int:user_vehicle_id>', methods=['POST'])
 @login_required
+@limiter.limit("10 per minute")
 def repair_car(user_vehicle_id):
+    # Lock user to prevent concurrent repairs/double spending
+    db.session.query(User).filter_by(id=current_user.id).with_for_update().first()
+
     # Status Check
     now = datetime.now(timezone.utc)
     if current_user.jail_until:
@@ -146,7 +157,7 @@ def repair_car(user_vehicle_id):
         return redirect(url_for('main.garage'))
         
     # Atomic Update via ResourceService
-    if not ResourceService.modify_resources(current_user.id, {'money': -cost}, 'repair_car', auto_commit=False, expected_version=current_user.version):
+    if not ResourceService.modify_resources(current_user.id, {'money': -cost}, 'repair_car', auto_commit=False, expected_version=None):
         flash(_('تحتاج %(cost)s شيكل لإصلاح السيارة بالكامل!', cost=cost), 'danger')
         return redirect(url_for('main.garage'))
     
@@ -161,7 +172,11 @@ def repair_car(user_vehicle_id):
 
 @bp.route('/sell_car/<int:user_vehicle_id>', methods=['POST'])
 @login_required
+@limiter.limit("5 per minute")
 def sell_car(user_vehicle_id):
+    # Lock user to prevent double selling
+    db.session.query(User).filter_by(id=current_user.id).with_for_update().first()
+
     # Status Check
     now = datetime.now(timezone.utc)
     if current_user.jail_until:
@@ -202,7 +217,8 @@ def sell_car(user_vehicle_id):
     sell_price = int(car.vehicle.price * 0.5)
     
     # Atomic Update via ResourceService
-    if not ResourceService.modify_resources(current_user.id, {'money': sell_price}, 'sell_car', auto_commit=False, expected_version=current_user.version):
+    if not ResourceService.modify_resources(current_user.id, {'money': sell_price}, 'sell_car', auto_commit=False, expected_version=None):
+        db.session.rollback()
         flash(_('حدث خطأ أثناء بيع السيارة. حاول مرة أخرى.'), 'danger')
         return redirect(url_for('main.garage'))
     
@@ -219,12 +235,33 @@ def sell_car(user_vehicle_id):
 @bp.route('/activate_car/<int:user_vehicle_id>', methods=['POST'])
 @login_required
 def activate_car(user_vehicle_id):
+    # Lock user to prevent concurrent sell/modification
+    db.session.execute(select(User).where(User.id == current_user.id).with_for_update()).scalar()
+    
     car = db.session.get(UserVehicle, user_vehicle_id)
     if not car:
         abort(404)
     if car.user_id != current_user.id:
         return redirect(url_for('main.garage'))
+    
+    # --- Mashtoub Campaign Check ---
+    # If car price is low (< 30,000), it's considered "Mashtoub" or "Illegal" risk.
+    if car.vehicle.price < 30000:
+        is_campaign_active = SystemConfig.get_value('mashtoub_campaign_active', 'false') == 'true'
+        base_risk = 0.50 if is_campaign_active else 0.10
         
+        if random.random() < base_risk: # 10% normally, 50% during campaign
+            # Seize car
+            vehicle_name = car.vehicle.name
+            
+            # Deactivate if it was active (it wasn't yet, but just in case)
+            # Delete user vehicle
+            db.session.delete(car)
+            db.session.commit()
+            
+            flash(_('🚓 حملة على المشطوب! الشرطة صادرت سيارة %(name)s لأنها مش قانونية. "القانون فوق الجميع" قال.', name=vehicle_name), 'danger')
+            return redirect(url_for('main.garage'))
+
     # Deactivate others
     existing_cars = UserVehicle.query.filter_by(user_id=current_user.id).all()
     for c in existing_cars:
@@ -238,8 +275,14 @@ def activate_car(user_vehicle_id):
 
 @bp.route('/tune_car/<int:user_vehicle_id>', methods=['POST'])
 @login_required
+@limiter.limit("5 per minute")
 def tune_car(user_vehicle_id):
-    car = db.session.get(UserVehicle, user_vehicle_id)
+    # Lock user first to prevent deadlock (User -> UserVehicle order)
+    db.session.query(User).filter_by(id=current_user.id).with_for_update().first()
+    
+    # Lock user vehicle row
+    car = db.session.query(UserVehicle).filter_by(id=user_vehicle_id).with_for_update().first()
+    
     if not car:
         abort(404)
     if car.user_id != current_user.id:
@@ -260,9 +303,11 @@ def tune_car(user_vehicle_id):
         return redirect(url_for('main.garage'))
         
     # Atomic Update via ResourceService
-    if not ResourceService.modify_resources(current_user.id, {'money': -cost}, 'tune_vehicle', auto_commit=False, expected_version=current_user.version):
+    # We already locked User, so this is safe/re-entrant in same transaction
+    if not ResourceService.modify_resources(current_user.id, {'money': -cost}, 'tune_vehicle', auto_commit=False, expected_version=None):
         flash(_('معكش مصاري للتعديل يا كبير!'), 'danger')
         return redirect(url_for('main.garage'))
+        
     # We use condition > 100 to represent "Tuned" status
     # Normal max is 100. Tuned max is 200.
     car.condition = min(car.condition + 20, 200)

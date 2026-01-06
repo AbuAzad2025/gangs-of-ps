@@ -203,12 +203,7 @@
                 </div>
                 
                 {% set cooldown_end = cooldown_map.get(crime.id) %}
-                {% if global_cooldown_until_ms and not is_locked %}
-                    <button class="btn btn-secondary btn-block btn-lg" disabled>
-                        <i class="fas fa-hourglass-half mr-2"></i>
-                        <span class="crime-countdown" data-until-ms="{{ global_cooldown_until_ms }}">{{ _('متبقي...') }}</span>
-                    </button>
-                {% elif cooldown_end %}
+                {% if cooldown_end %}
                     <button class="btn btn-secondary btn-block btn-lg" disabled>
                         <i class="fas fa-clock mr-2"></i> 
                         <span class="crime-countdown" data-until-ms="{{ (cooldown_end.timestamp() * 1000)|int }}">{{ _('متبقي...') }}</span>
@@ -248,13 +243,20 @@
 </div>
 
 <script>
+    // Server time sync
+    const serverTimeStart = {{ (now.timestamp() * 1000)|int }};
+    const clientTimeStart = Date.now();
+
     // Crime Countdown Timer
     function updateCountdowns() {
-        const now = Date.now();
+        const nowClient = Date.now();
+        const elapsed = nowClient - clientTimeStart;
+        const nowServer = serverTimeStart + elapsed;
+
         document.querySelectorAll('.crime-countdown').forEach(el => {
             const untilMsStr = el.getAttribute('data-until-ms');
             const untilMs = parseInt(untilMsStr || "0", 10);
-            const distance = untilMs - now;
+            const distance = untilMs - nowServer;
 
             if (distance < 0) {
                 el.innerHTML = "{{ _('جاهز!') }}";

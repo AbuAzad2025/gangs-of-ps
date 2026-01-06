@@ -45,10 +45,18 @@ def collect_income(asset_id):
             flash(_('أنت تتدرب ولا يمكنك جمع الإيجارات!'), 'danger')
             return redirect(url_for('gym.index'))
 
-    asset = db.session.get(Asset, asset_id)
     if not asset:
         abort(404)
     
+    # Lock User first to prevent race conditions (Consistent Order: User -> Asset)
+    db.session.query(User).filter_by(id=current_user.id).with_for_update().first()
+    
+    # Lock asset
+    asset = db.session.query(Asset).filter_by(id=asset_id).with_for_update().first()
+    
+    if not asset: # Re-check existence
+        abort(404)
+
     if asset.owner_id != current_user.id:
         flash(_('هذا العقار ليس ملكك!'), 'danger')
         return redirect(url_for('economy.my_properties'))
@@ -138,7 +146,8 @@ def collect_gang_income(asset_id):
         flash(_('فقط الزعيم أو نائبه يمكنهم جمع إيجارات العصابة!'), 'danger')
         return redirect(url_for('gang.dashboard'))
 
-    asset = db.session.get(Asset, asset_id)
+    # Lock asset
+    asset = db.session.query(Asset).filter_by(id=asset_id).with_for_update().first()
     if not asset:
         abort(404)
     
@@ -154,6 +163,18 @@ def collect_gang_income(asset_id):
     maintenance = asset.maintenance_cost or 0
     net_income = asset.income - maintenance
     
+    # Gang Buff (Street Kings) - Money Multiplier
+    try:
+        from services.gang_service import GangService
+        gang_buff = GangService.get_gang_buff(gang.id, 'street_kings')
+        if gang_buff > 0:
+            bonus = int(net_income * (gang_buff / 100))
+            net_income += bonus
+            if bonus > 0:
+                flash(_('مكافأة ملوك الشوارع: +%(bonus)s$', bonus="{:,}".format(bonus)), 'success')
+    except Exception:
+        pass
+
     # Update Gang Money Atomic
     Gang.query.filter(Gang.id == gang.id).update({
         Gang.money: Gang.money + net_income
@@ -200,14 +221,18 @@ def buy_property(asset_id):
         flash(_('معكش مصاري كفاية يا معلم!'), 'danger')
         return redirect(url_for('economy.properties'))
         
+    # Lock user to prevent race conditions
+    db.session.query(User).filter_by(id=current_user.id).with_for_update().first()
+
     # Atomic deduction via ResourceService
     if not ResourceService.modify_resources(
         current_user.id, 
         {'money': -asset_template.value}, 
         'buy_property', 
         auto_commit=False, 
-        expected_version=current_user.version
+        expected_version=None
     ):
+        db.session.rollback()
         flash(_('معكش مصاري كفاية يا معلم! أو حدث خطأ.'), 'danger')
         return redirect(url_for('economy.properties'))
     
@@ -261,7 +286,12 @@ def buy_gang_property(asset_id):
         flash(_('أنت لست في عصابة!'), 'danger')
         return redirect(url_for('economy.properties'))
         
-    gang = db.session.get(Gang, current_user.gang_id)
+    # Lock gang to prevent race conditions
+    gang = Gang.query.filter_by(id=current_user.gang_id).with_for_update().first()
+    if not gang:
+        flash(_('العصابة غير موجودة!'), 'danger')
+        return redirect(url_for('economy.properties'))
+
     if current_user.id != gang.leader_id: # Only leader for now
         flash(_('فقط الزعيم يمكنه شراء ممتلكات للعصابة!'), 'danger')
         return redirect(url_for('economy.properties'))
@@ -278,14 +308,8 @@ def buy_gang_property(asset_id):
         flash(_('خزينة العصابة لا تكفي!'), 'danger')
         return redirect(url_for('economy.properties'))
         
-    # Atomic deduction
-    rows = Gang.query.filter(Gang.id == gang.id, Gang.money >= asset_template.value).update({
-        Gang.money: Gang.money - asset_template.value
-    }, synchronize_session=False)
-    
-    if rows == 0:
-        flash(_('خزينة العصابة لا تكفي!'), 'danger')
-        return redirect(url_for('economy.properties'))
+    # Deduct money (we have the lock, so normal update is fine, but atomic is safer/cleaner)
+    gang.money -= asset_template.value
     
     new_asset = Asset(
         name=asset_template.name,

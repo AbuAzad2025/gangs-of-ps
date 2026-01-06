@@ -1,13 +1,13 @@
 from flask import render_template, redirect, url_for, flash, request, abort, session, current_app
 from flask_login import login_required, current_user
 from extensions import db, limiter
-from models import Crime, Item, WeeklyWinner, UserItem, DailyTask, UserDailyTask, Gang, GangLog, User, Announcement, SystemConfig, OrganizedCrime, CrimeLobby, LobbyParticipant, HeistHistory, UserCrimeCooldown, Vehicle, UserVehicle, InvestigationLog, Location, FactoryJob, FarmSupplyContract, UserLog
+from models import Crime, Item, WeeklyWinner, UserItem, DailyTask, UserDailyTask, Gang, GangLog, User, Announcement, SystemConfig, OrganizedCrime, CrimeLobby, LobbyParticipant, HeistHistory, UserCrimeCooldown, Vehicle, UserVehicle, InvestigationLog, Location, FactoryJob, FarmSupplyContract, UserLog, UserOrganizedCrimeCooldown
 from models.hostess import Hostess
 from . import bp
 import random
 from datetime import datetime, timedelta, timezone
 from flask_babel import _
-from .utils import update_daily_task_progress, send_notification
+from .utils import update_daily_task_progress, send_notification, sync_daily_tasks
 from services.requirements import check_requirements
 from services.resource_service import ResourceService
 from sqlalchemy import select
@@ -18,9 +18,39 @@ _broadcast_cache = {}
 
 
 @bp.route('/organized_crimes')
-@login_required
 @limiter.limit("30 per minute")
 def organized_crimes():
+    if not current_user.is_authenticated:
+        enabled = SystemConfig.get_value('organized_crimes_enabled', 'true') == 'true'
+        if not enabled:
+            flash(_('الجرائم المنظمة غير مفعلة حالياً.'), 'warning')
+            return redirect(url_for('main.index'))
+            
+        crimes = OrganizedCrime.query.filter_by(is_active=True).order_by(OrganizedCrime.min_level).all()
+        meta_description = _("سيناريوهات الجرائم المنظمة في عصابات فلسطين. خطط ونفذ عمليات سطو مسلح مع فريقك.")
+        
+        crime_access = {}
+        crime_meta = {}
+        for c in crimes:
+             crime_access[c.id] = {"unlocked": False, "reason": _("يجب تسجيل الدخول للعب"), "hint_text": _("سجل دخولك الآن"), "hint_url": url_for('main.login')}
+             # Basic meta
+             reqs = {}
+             try:
+                 import json
+                 reqs = json.loads(c.requirements) if c.requirements else {}
+             except:
+                 pass
+             crime_meta[c.id] = {
+                'required_item': reqs.get('required_item'),
+                'heat_window_hours': reqs.get('heat_window_hours'),
+                'double_patrol_pct': reqs.get('double_patrol_pct'),
+                'lucky_event_pct': reqs.get('lucky_event_pct')
+             }
+
+        return render_template('organized_crimes.html', crimes=crimes, allow_non_gang=True, can_create=False, 
+                               min_creator_rank_level=0, active_lobbies=[], crime_meta=crime_meta, 
+                               crime_access=crime_access, lobby_counts={}, meta_description=meta_description)
+
     try:
         existing_participation = LobbyParticipant.query.join(CrimeLobby).filter(
             LobbyParticipant.user_id == current_user.id,
@@ -58,6 +88,10 @@ def organized_crimes():
     
     crimes = OrganizedCrime.query.filter_by(is_active=True).order_by(OrganizedCrime.min_level).all()
 
+    # Fetch User Cooldowns
+    user_cooldowns = UserOrganizedCrimeCooldown.query.filter_by(user_id=current_user.id).all()
+    cooldowns_map = {uc.crime_id: uc.cooldown_until for uc in user_cooldowns}
+
     crime_meta = {}
     crime_access = {}
     for c in crimes:
@@ -79,7 +113,21 @@ def organized_crimes():
         hint_text = None
         hint_url = None
 
-        chk = check_requirements(current_user, {"min_level": c.min_level})
+        # Check Cooldown
+        if c.id in cooldowns_map:
+            ends_at = cooldowns_map[c.id]
+            if ends_at.tzinfo is None:
+                ends_at = ends_at.replace(tzinfo=timezone.utc)
+            if ends_at > datetime.now(timezone.utc):
+                is_ok = False
+                remaining = ends_at - datetime.now(timezone.utc)
+                hours, remainder = divmod(remaining.seconds, 3600)
+                minutes, seconds = divmod(remainder, 60)
+                reason = _('انتظار: %(h)sس %(m)sد', h=hours, m=minutes)
+                crime_meta[c.id]['cooldown_until'] = ends_at
+
+        if is_ok:
+            chk = check_requirements(current_user, {"min_level": c.min_level})
         if not chk["ok"]:
             is_ok = False
             reason = chk["reason"]
@@ -206,80 +254,7 @@ def _expire_lobby_if_needed(lobby):
 @bp.route('/daily_tasks')
 @login_required
 def daily_tasks():
-    today = datetime.now(timezone.utc).date()
-    try:
-        from utils.essentials import initialize_daily_tasks
-        initialize_daily_tasks()
-        db.session.commit()
-    except Exception:
-        try:
-            db.session.rollback()
-        except Exception:
-            pass
-    user_tasks = UserDailyTask.query.filter_by(user_id=current_user.id, date=today).all()
-    
-    if not user_tasks:
-        try:
-            from utils.essentials import initialize_daily_tasks
-            initialize_daily_tasks()
-            db.session.commit()
-        except Exception:
-            try:
-                db.session.rollback()
-            except Exception:
-                pass
-        # Assign new tasks
-        all_tasks = DailyTask.query.filter(
-            DailyTask.is_active == True,
-            DailyTask.min_level <= current_user.level
-        ).all()
-        if not all_tasks:
-            try:
-                from utils.essentials import initialize_daily_tasks
-                initialize_daily_tasks()
-                db.session.commit()
-            except Exception:
-                try:
-                    db.session.rollback()
-                except Exception:
-                    pass
-            all_tasks = DailyTask.query.filter(
-                DailyTask.is_active == True,
-                DailyTask.min_level <= current_user.level
-            ).all()
-        if all_tasks:
-            preferred_specs = [
-                ("buy", 3),
-                ("crime", 3),
-                ("crime", 6),
-            ]
-            selected_tasks = []
-            selected_ids = set()
-
-            for target_type, target_count in preferred_specs:
-                task = next(
-                    (t for t in all_tasks if t.target_type == target_type and int(t.target_count or 0) == int(target_count)),
-                    None
-                )
-                if task and task.id not in selected_ids:
-                    selected_tasks.append(task)
-                    selected_ids.add(task.id)
-
-            remaining = [t for t in all_tasks if t.id not in selected_ids]
-            if len(selected_tasks) < 3 and remaining:
-                needed = min(3 - len(selected_tasks), len(remaining))
-                selected_tasks.extend(random.sample(remaining, needed))
-
-            for task in selected_tasks:
-                user_task = UserDailyTask(
-                    user_id=current_user.id,
-                    task_id=task.id,
-                    date=today
-                )
-                db.session.add(user_task)
-            db.session.commit()
-            user_tasks = UserDailyTask.query.filter_by(user_id=current_user.id, date=today).all()
-            
+    user_tasks = sync_daily_tasks(current_user)
     return render_template('daily_tasks.html', tasks=user_tasks)
 
 @bp.route('/collect_task_reward/<int:task_id>', methods=['POST'])
@@ -314,6 +289,13 @@ def collect_task_reward(task_id):
         flash(_('حدث خطأ أثناء استلام المكافأة.'), 'danger')
         return redirect(url_for('main.daily_tasks'))
     
+    # Check Level Up
+    if current_user.check_level_up():
+        ref_url = url_for('main.register', ref=current_user.referral_code, _external=True)
+        share_text = _("أصبحت زعيم مستوى %(level)s في عصابات فلسطين! هل تجرؤ على تحديي؟ %(url)s", level=current_user.level, url=ref_url)
+        wa_link = f"https://wa.me/?text={share_text}"
+        flash(_('مبروك! وصلت للمستوى %(level)s! <a href="%(url)s" target="_blank" class="btn btn-sm btn-success ml-2"><i class="fab fa-whatsapp"></i> شارك</a>', level=current_user.level, url=wa_link), 'success')
+
     user_task.is_completed = True
     db.session.commit()
     
@@ -386,7 +368,7 @@ def daily_reward():
         'daily_streak': streak
     }
         
-    if not ResourceService.modify_resources(user.id, changes, 'daily_reward', auto_commit=False, expected_version=user.version, set_fields=set_fields):
+    if not ResourceService.modify_resources(user.id, changes, 'daily_reward', auto_commit=False, expected_version=None, set_fields=set_fields):
         flash(_('حدث خطأ أثناء استلام المكافأة. حاول مرة أخرى.'), 'danger')
         return redirect(url_for('main.hara'))
 
@@ -636,8 +618,8 @@ def story():
 @limiter.limit("5 per second")
 def do_crime(crime_id):
     # 1. Anti-Bot Check
-    if 'check_bot_activity' in globals() and not check_bot_activity():
-         return redirect(url_for('main.crimes'))
+    # if 'check_bot_activity' in globals() and not check_bot_activity():
+    #      return redirect(url_for('main.crimes'))
     
     # 2. Status Check (Jail/Hospital)
     now = datetime.now(timezone.utc)
@@ -647,13 +629,16 @@ def do_crime(crime_id):
     now_naive = now.replace(tzinfo=None)
 
     if current_user.crime_cooldown_until:
-        until = current_user.crime_cooldown_until
-        if getattr(until, "tzinfo", None) is not None:
-            until = until.replace(tzinfo=None)
-        if until and until > now_naive:
-            remaining_seconds = max(1, int((until - now_naive).total_seconds()))
-            flash(_('عليك الانتظار %(seconds)s ثانية قبل القيام بمهمة أخرى!', seconds=remaining_seconds), 'danger')
-            return redirect(url_for('main.crimes'))
+        # DISABLED Global Cooldown Check per user request
+        # This was causing timezone issues (6618 seconds block) and users want independent cooldowns.
+        pass
+        # until = current_user.crime_cooldown_until
+        # if getattr(until, "tzinfo", None) is not None:
+        #     until = until.replace(tzinfo=None)
+        # if until and until > now_naive:
+        #     remaining_seconds = max(1, int((until - now_naive).total_seconds()))
+        #     flash(_('عليك الانتظار %(seconds)s ثانية قبل القيام بمهمة أخرى!', seconds=remaining_seconds), 'danger')
+        #     return redirect(url_for('main.crimes'))
     
     if current_user.jail_until:
         jail_until = current_user.jail_until
@@ -718,6 +703,10 @@ def do_crime(crime_id):
 
     # Daily Limit Check
     daily_limit = getattr(crime, 'daily_limit', None) or 0
+    
+    # Pre-fetch cooldown record
+    user_cooldown = UserCrimeCooldown.query.filter_by(user_id=current_user.id, crime_id=crime.id).first()
+
     if daily_limit > 0:
         if user_cooldown and user_cooldown.last_reset_date == now.date():
             if user_cooldown.daily_count >= daily_limit:
@@ -725,7 +714,6 @@ def do_crime(crime_id):
                 return redirect(url_for('main.crimes'))
         
     # Cooldown Check (Specific Crime)
-    user_cooldown = UserCrimeCooldown.query.filter_by(user_id=current_user.id, crime_id=crime.id).first()
     if user_cooldown:
         cooldown_until = user_cooldown.cooldown_until
         # Ensure aware UTC for comparison
@@ -739,7 +727,8 @@ def do_crime(crime_id):
 
     # Execute
     # Atomic deduction for energy
-    if not ResourceService.modify_resources(current_user.id, {'energy': -crime.energy_cost}, 'crime_cost', auto_commit=False, expected_version=current_user.version):
+    if not ResourceService.modify_resources(current_user.id, {'energy': -crime.energy_cost}, 'crime_cost', auto_commit=False, expected_version=None):
+        db.session.rollback()
         flash(_('لا تملك طاقة كافية!'), 'danger')
         return redirect(url_for('main.crimes'))
     
@@ -790,7 +779,8 @@ def do_crime(crime_id):
         # Soft Anti-Cheat: Increase global cooldown
         global_cd_seconds = int(global_cd_seconds * 1.5)
     
-    current_user.crime_cooldown_until = now + timedelta(seconds=global_cd_seconds)
+    # DISABLED Global Cooldown Setting per user request
+    # current_user.crime_cooldown_until = now + timedelta(seconds=global_cd_seconds)
     
     # Success/Fail Logic
     # Dynamic Success Chance
@@ -840,6 +830,38 @@ def do_crime(crime_id):
         heat_penalty += (heat - 80) * 0.5
         
     final_chance = max(5, int(final_chance - heat_penalty))
+    
+    # --- OCCUPATION MECHANICS (Smart Flavor) ---
+    # 1. Collaborator (Al-Jasoos)
+    # If heat is high (>40), risk of betrayal increases.
+    if heat > 40 and random.random() < 0.05:
+         jail_time = 60
+         # Atomic update handled by direct assignment here since we commit immediately
+         current_user.jail_until = datetime.now(timezone.utc) + timedelta(minutes=jail_time)
+         # We might want to clear the cooldown to let them suffer in jail but not wait after? No, keep CD.
+         db.session.commit()
+         
+         flash(_('🕵️ جاسوس بلغ عنك! قوات خاصة حاصرتك قبل ما تبدأ. أخذوك تحقيق 60 دقيقة.'), 'danger')
+         return redirect(url_for('jail.index'))
+
+    # 2. Random Arrest (E'teqal A'shwa'i)
+    # 1% chance regardless of skill/heat/luck - The reality of occupation.
+    if random.random() < 0.01:
+         jail_time = random.randint(30, 90)
+         current_user.jail_until = datetime.now(timezone.utc) + timedelta(minutes=jail_time)
+         db.session.commit()
+         
+         flash(_('👮 كنت ماشي في حالك، وقفتك دورية واعتقلوك عشوائياً (اعتقال إداري).'), 'danger')
+         return redirect(url_for('jail.index'))
+
+    # 3. Wall Smuggling Risk (Specific to "Tehreeb Ommal")
+    if crime.name == 'تهريب عمال' and random.random() < 0.15:
+         jail_time = random.randint(20, 45)
+         current_user.jail_until = datetime.now(timezone.utc) + timedelta(minutes=jail_time)
+         db.session.commit()
+         flash(_('🧗 علقت بالسلك وأجت دورية حرس حدود لقطتك. "تهريب عمال؟ تعال هون!"'), 'danger')
+         return redirect(url_for('jail.index'))
+
     roll = random.randint(1, 100)
     
     if roll <= final_chance:
@@ -957,8 +979,11 @@ def do_crime(crime_id):
         except Exception:
             pass
         leveled_up = False
-        if current_user.check_level_up():
-            leveled_up = True
+        try:
+            if current_user.check_level_up():
+                leveled_up = True
+        except Exception:
+            pass
             
         log = UserLog(
             user_id=current_user.id, 
@@ -1021,7 +1046,7 @@ def do_crime(crime_id):
             parts.append({'msgid': 'بس حالتها %(cond)s%% وبدها تصليح بالمرآب.', 'params': {'cond': story_vehicle_condition}})
             stats['vehicle'] = story_vehicle_name
             stats['vehicle_condition'] = story_vehicle_condition
-            alt_url = url_for('main.garage')
+            alt_url = url_for('garage.index')
             alt_label = 'المرآب'
 
         if story_item_name:
@@ -1034,6 +1059,14 @@ def do_crime(crime_id):
             alt_label = 'السوق السوداء'
 
         parts.append({'msgid': 'وكسبت %(money)s شيكل و %(exp)s خبرة.', 'params': {'money': money, 'exp': xp_reward}})
+        
+        # Calculate gang bonus percent for display if it was applied
+        gang_bonus_percent = 0
+        if current_user.gang_id:
+            gang_bonus_percent = 5  # Default or fetch from Gang logic if complex
+            
+        if gang_bonus_percent > 0:
+             parts.append({'msgid': '(بونص عصابة +%(bonus)s%%)', 'params': {'bonus': gang_bonus_percent}})
         if leveled_up:
             parts.append({'msgid': 'مبروك! وصلت للمستوى %(level)s.', 'params': {'level': current_user.level}})
             stats['level'] = current_user.level
@@ -1059,6 +1092,16 @@ def do_crime(crime_id):
         # Instead of simple fail, we trigger a chase
         try:
             heat_gain = 6 + int(crime.min_level / 5)
+            
+            # Gang Buff (Security Detail) - Reduce Heat Gain
+            try:
+                from services.gang_service import GangService
+                gang_buff = GangService.get_gang_buff(current_user.gang_id, 'security_detail')
+                if gang_buff > 0:
+                     heat_gain = int(heat_gain * (1 - gang_buff / 100))
+            except Exception:
+                pass
+                
             current_user.add_heat(heat_gain, now=now)
         except Exception:
             pass
@@ -1117,8 +1160,10 @@ def inventory():
 
 @bp.route('/equip_item/<int:item_id>')
 @login_required
+@limiter.limit("20 per minute")
 def equip_item(item_id):
-    user_item = db.session.get(UserItem, item_id)
+    # Lock the item to prevent concurrent equip/unequip
+    user_item = db.session.query(UserItem).filter_by(id=item_id).with_for_update().first()
     if not user_item:
         abort(404)
     
@@ -1127,11 +1172,12 @@ def equip_item(item_id):
         return redirect(url_for('main.inventory'))
         
     # Unequip current item of same type
+    # We also need to lock the currently equipped item to prevent race conditions there
     current_equipped = UserItem.query.join(Item).filter(
         UserItem.user_id == current_user.id,
         UserItem.is_equipped == True,
         Item.type == user_item.item.type
-    ).first()
+    ).with_for_update().first()
     
     if current_equipped:
         current_equipped.is_equipped = False
@@ -1144,6 +1190,7 @@ def equip_item(item_id):
 
 @bp.route('/unequip_item/<int:item_id>')
 @login_required
+@limiter.limit("20 per minute")
 def unequip_item(item_id):
     user_item = db.session.get(UserItem, item_id)
     if not user_item:
@@ -1446,6 +1493,11 @@ def create_lobby(crime_id):
     if not current_user.is_verified:
         flash(_('يجب تفعيل الحساب قبل المشاركة في الجرائم المنظمة.'), 'warning')
         return redirect(url_for('main.unconfirmed'))
+    
+    # Lock User to prevent multiple lobby creations
+    # We use a dummy update or select for update on User to serialize requests for this user
+    db.session.query(User).filter_by(id=current_user.id).with_for_update().first()
+    
     # 0. Status Check (Jail/Hospital)
     now = datetime.now(timezone.utc)
     
@@ -1474,12 +1526,16 @@ def create_lobby(crime_id):
             return redirect(url_for('gym.index'))
 
     # 1. Check Cooldown
-    if current_user.organized_crime_cooldown_until:
-        if current_user.organized_crime_cooldown_until > datetime.now(timezone.utc).replace(tzinfo=None):
-            remaining = current_user.organized_crime_cooldown_until - datetime.now(timezone.utc).replace(tzinfo=None)
+    cooldown = UserOrganizedCrimeCooldown.query.filter_by(user_id=current_user.id, crime_id=crime_id).first()
+    if cooldown:
+        ends_at = cooldown.cooldown_until
+        if ends_at.tzinfo is None:
+            ends_at = ends_at.replace(tzinfo=timezone.utc)
+        if ends_at > datetime.now(timezone.utc):
+            remaining = ends_at - datetime.now(timezone.utc)
             hours, remainder = divmod(remaining.seconds, 3600)
             minutes, seconds = divmod(remainder, 60)
-            flash(_('عليك الانتظار %(hours)s ساعة و %(minutes)s دقيقة قبل المشاركة في جريمة منظمة أخرى!', hours=hours, minutes=minutes), 'danger')
+            flash(_('عليك الانتظار %(hours)s ساعة و %(minutes)s دقيقة قبل تكرار هذه الجريمة!', hours=hours, minutes=minutes), 'danger')
             return redirect(url_for('main.organized_crimes'))
 
     # 2. Check Active Lobby
@@ -1593,9 +1649,27 @@ def lobby(lobby_id):
         energy_penalty = 10
     
     # Override from requirements JSON if configured
+    required_item = None
+    required_item_obj = None
+    has_required_item = False
+    
     try:
         import json
         reqs = json.loads(lobby.crime.requirements) if lobby.crime.requirements else {}
+        
+        # Check for required item
+        if 'required_item' in reqs:
+            required_item_name = reqs['required_item']
+            required_item_obj = Item.query.filter_by(name=required_item_name).first()
+            if required_item_obj:
+                required_item = required_item_obj
+                # Check if anyone in lobby has it
+                for p in lobby.participants:
+                    user_has = UserItem.query.filter_by(user_id=p.user_id).join(Item).filter(Item.name == required_item_name).first()
+                    if user_has:
+                        has_required_item = True
+                        break
+        
         pct_money = float(reqs.get('penalty_money_pct', 0))
         min_money = int(reqs.get('penalty_money_min_abs', 0))
         if pct_money and pct_money > 0:
@@ -1623,11 +1697,13 @@ def lobby(lobby_id):
         
     return render_template('lobby.html', lobby=lobby, user=current_user,
                            money_penalty=money_penalty, xp_penalty=xp_penalty, energy_penalty=energy_penalty,
-                           lobby_roles=lobby_roles, current_participant=current_participant, is_leader=is_leader)
+                           lobby_roles=lobby_roles, current_participant=current_participant, is_leader=is_leader,
+                           required_item=required_item, has_required_item=has_required_item)
 
 
 @bp.route('/broadcast_lobby_invites/<int:lobby_id>', methods=['POST'])
 @login_required
+@limiter.limit("2 per minute")
 def broadcast_lobby_invites(lobby_id):
     lobby = db.session.get(CrimeLobby, lobby_id)
     if not lobby:
@@ -1672,6 +1748,7 @@ def broadcast_lobby_invites(lobby_id):
 
 @bp.route('/toggle_ready/<int:lobby_id>', methods=['POST'])
 @login_required
+@limiter.limit("20 per minute")
 def toggle_ready(lobby_id):
     lobby = db.session.get(CrimeLobby, lobby_id)
     if not lobby:
@@ -1689,6 +1766,7 @@ def toggle_ready(lobby_id):
 
 @bp.route('/kick_member/<int:lobby_id>/<int:user_id>', methods=['POST'])
 @login_required
+@limiter.limit("10 per minute")
 def kick_member(lobby_id, user_id):
     lobby = db.session.get(CrimeLobby, lobby_id)
     if not lobby:
@@ -1710,6 +1788,7 @@ def kick_member(lobby_id, user_id):
 
 @bp.route('/join_lobby/<int:lobby_id>', methods=['POST'])
 @login_required
+@limiter.limit("10 per minute")
 def join_lobby(lobby_id):
     if not current_user.is_verified:
         flash(_('يجب تفعيل الحساب قبل المشاركة في الجرائم المنظمة.'), 'warning')
@@ -1741,12 +1820,6 @@ def join_lobby(lobby_id):
             flash(_('أنت تتدرب في الجيم ولا يمكنك المشاركة في الجرائم!'), 'danger')
             return redirect(url_for('gym.index'))
 
-    # 1. Check Cooldown
-    if current_user.organized_crime_cooldown_until:
-        if current_user.organized_crime_cooldown_until > datetime.now(timezone.utc).replace(tzinfo=None):
-            flash(_('أنت في فترة انتظار (Cooldown)!'), 'danger')
-            return redirect(url_for('main.organized_crimes'))
-
     # 2. Check Active Lobby
     existing_participation = LobbyParticipant.query.join(CrimeLobby).filter(
         LobbyParticipant.user_id == current_user.id,
@@ -1757,10 +1830,23 @@ def join_lobby(lobby_id):
         flash(_('أنت مشارك بالفعل في جريمة منظمة أخرى!'), 'warning')
         return redirect(url_for('main.lobby', lobby_id=existing_participation.lobby_id))
 
-    lobby = db.session.get(CrimeLobby, lobby_id)
+    lobby = db.session.query(CrimeLobby).filter_by(id=lobby_id).with_for_update().first()
     if not lobby:
         flash(_('المجموعة غير متاحة!'), 'danger')
         return redirect(url_for('main.organized_crimes'))
+
+    # Check Specific Cooldown
+    cooldown = UserOrganizedCrimeCooldown.query.filter_by(user_id=current_user.id, crime_id=lobby.crime_id).first()
+    if cooldown:
+        ends_at = cooldown.cooldown_until
+        if ends_at.tzinfo is None:
+            ends_at = ends_at.replace(tzinfo=timezone.utc)
+        if ends_at > datetime.now(timezone.utc):
+            remaining = ends_at - datetime.now(timezone.utc)
+            hours, remainder = divmod(remaining.seconds, 3600)
+            minutes, seconds = divmod(remainder, 60)
+            flash(_('عليك الانتظار %(hours)s ساعة و %(minutes)s دقيقة قبل تكرار هذه الجريمة!', hours=hours, minutes=minutes), 'danger')
+            return redirect(url_for('main.organized_crimes'))
 
     if _expire_lobby_if_needed(lobby):
         flash(_('انتهت صلاحية هذه العملية المنظمة.'), 'warning')
@@ -1794,6 +1880,17 @@ def join_lobby(lobby_id):
         flash(_('هذا الدور مأخوذ بالفعل!'), 'warning')
         return redirect(url_for('main.lobby', lobby_id=lobby.id))
         
+    # Strict Role Requirement Check (Fair Play)
+    role_def = next((r for r in roles_config if isinstance(r, dict) and r.get('name') == role_name), None)
+    if role_def:
+        min_stats = role_def.get('min_stats') or role_def.get('req') or {}
+        for stat, req_val in min_stats.items():
+            user_val = getattr(current_user, stat, 0)
+            if user_val < req_val:
+                flash(_('مهاراتك لا تسمح بهذا الدور! مطلوب %(stat)s: %(req)s وأنت لديك %(val)s.', 
+                      stat=_(stat), req=req_val, val=user_val), 'danger')
+                return redirect(url_for('main.lobby', lobby_id=lobby.id))
+        
     participant = LobbyParticipant(
         lobby_id=lobby.id,
         user_id=current_user.id,
@@ -1808,8 +1905,9 @@ def join_lobby(lobby_id):
     
 @bp.route('/leave_lobby/<int:lobby_id>', methods=['POST'])
 @login_required
+@limiter.limit("10 per minute")
 def leave_lobby(lobby_id):
-    lobby = db.session.get(CrimeLobby, lobby_id)
+    lobby = db.session.query(CrimeLobby).filter_by(id=lobby_id).with_for_update().first()
     if not lobby:
         abort(404)
         
@@ -1887,11 +1985,14 @@ def leave_lobby(lobby_id):
 
 @bp.route('/start_heist/<int:lobby_id>', methods=['POST'])
 @login_required
+@limiter.limit("5 per minute")
 def start_heist(lobby_id):
     if not current_user.is_verified:
         flash(_('يجب تفعيل الحساب قبل المشاركة في الجرائم المنظمة.'), 'warning')
         return redirect(url_for('main.unconfirmed'))
-    lobby = db.session.get(CrimeLobby, lobby_id)
+    
+    # Lock lobby to prevent race conditions (joining/leaving during start)
+    lobby = db.session.query(CrimeLobby).filter_by(id=lobby_id).with_for_update().first()
     if not lobby:
         abort(404)
     if lobby.leader_id != current_user.id:
@@ -1943,14 +2044,40 @@ def start_heist(lobby_id):
                 flash(_('لا يمكن بدء العملية! العضو %(user)s يتدرب في الجيم.', user=user.username), 'danger')
                 return redirect(url_for('main.lobby', lobby_id=lobby.id))
 
+    # Strict Role Requirement Check (Final Gate - Fair Play)
+    crime = lobby.crime
+    roles_config = crime.roles_config or []
+    for p in participants:
+        role_def = next((r for r in roles_config if isinstance(r, dict) and r.get('name') == p.role_name), None)
+        if role_def:
+            min_stats = role_def.get('min_stats') or role_def.get('req') or {}
+            for stat, req_val in min_stats.items():
+                user_val = getattr(p.user, stat, 0)
+                if user_val < req_val:
+                    flash(_('لا يمكن بدء العملية! العضو %(user)s لا يملك المهارات الكافية لدور %(role)s (مطلوب %(stat)s: %(req)s).', 
+                          user=p.user.username, role=_(p.role_name), stat=_(stat), req=req_val), 'danger')
+                    return redirect(url_for('main.lobby', lobby_id=lobby.id))
+
     # 1. Planning Time (Patience & Integration)
-    # Require at least 2 minutes of "planning" in the lobby before starting
-    planning_time = 2 # minutes
-    if lobby.created_at.tzinfo is None:
-        lobby.created_at = lobby.created_at.replace(tzinfo=timezone.utc)
+    planning_seconds = int(lobby.crime.planning_time_seconds or 10)
+    
+    created_at = lobby.created_at
+    if created_at.tzinfo is None:
+        # Heuristic to handle Naive DateTimes (Local vs UTC)
+        # If created_at is significantly in the future relative to UTC, it's likely Local Time stored as Naive.
+        if created_at > datetime.utcnow() + timedelta(minutes=10):
+             now_ref = datetime.now() # Local Naive
+        else:
+             now_ref = datetime.utcnow() # UTC Naive
+        elapsed_seconds = (now_ref - created_at).total_seconds()
+    else:
+        elapsed_seconds = (datetime.now(timezone.utc) - created_at).total_seconds()
         
-    if datetime.now(timezone.utc) - lobby.created_at < timedelta(minutes=planning_time):
-        remaining = planning_time * 60 - (datetime.now(timezone.utc) - lobby.created_at).total_seconds()
+    if elapsed_seconds < 0:
+        elapsed_seconds = 0 # Prevent negative elapsed time due to clock skew
+
+    if elapsed_seconds < planning_seconds:
+        remaining = planning_seconds - elapsed_seconds
         flash(_('يجب التخطيط جيداً! انتظروا %(sec)s ثانية للمراجعة قبل البدء.', sec=int(remaining)), 'warning')
         return redirect(url_for('main.lobby', lobby_id=lobby.id))
 
@@ -2027,6 +2154,7 @@ def start_heist(lobby_id):
 
     # 2. Base Probability & Setup
     success_probability = 50 # Start with 50/50
+    participant_performance = {}
     
     # 3. Evaluate Each Role (Capabilities & Stats)
     for p in participants:
@@ -2087,6 +2215,7 @@ def start_heist(lobby_id):
 
         # Cap performance impact per user
         role_performance = max(-15, min(15, role_performance))
+        participant_performance[p.user_id] = role_performance
         success_probability += role_performance
         
     # 4. Vehicle / Garage Integration
@@ -2190,8 +2319,8 @@ def start_heist(lobby_id):
     story_log.append(_("--- النتيجة النهائية: نسبة النجاح {prob}% (الرقم العشوائي: {roll}) ---").format(prob=success_probability, roll=roll))
     
     # Calculate Cooldown
-    cooldown_hours = crime.cooldown_hours
-    cooldown_until = (datetime.now(timezone.utc) + timedelta(hours=cooldown_hours)).replace(tzinfo=None)
+    # User requested 23h 59m cooldown
+    cooldown_until = (datetime.now(timezone.utc) + timedelta(hours=23, minutes=59)).replace(tzinfo=None)
     
     total_reward = 0
     participants_snapshot = []
@@ -2218,10 +2347,17 @@ def start_heist(lobby_id):
         
         story_log.append(_("💰 نجحت العملية! الغنيمة الكلية: {money} شيكل.").format(money=reward_money))
         
+        # Determine MVP
+        mvp_user_id = None
+        if participant_performance:
+            mvp_user_id = max(participant_performance, key=participant_performance.get)
+
         for p in participants:
             # Skip if hospitalized (no reward if unconscious? No, let's give them reward but they are in hospital)
             bonus_money = 0
             bonus_exp = 0
+            
+            # --- Role Bonuses ---
             try:
                 import json
                 reqs_roles = json.loads(lobby.crime.requirements) if lobby.crime.requirements else {}
@@ -2231,13 +2367,14 @@ def start_heist(lobby_id):
                 exp_bonus = int(rb.get('exp_bonus', 0))
                 rank_pts = int(rb.get('rank_points', 0))
                 if money_pct:
-                    bonus_money = int(share * (money_pct / 100.0))
+                    bonus_money += int(share * (money_pct / 100.0))
                 if exp_bonus:
-                    bonus_exp = exp_bonus
+                    bonus_exp += exp_bonus
                 if rank_pts:
                     p.user.add_rank_points(rank_pts)
-                if bonus_money or bonus_exp:
-                    story_log.append(_("🏅 دور {role} منح مكافأة خاصة لعضو: +{m} مال، +{e} خبرة").format(role=p.role_name, m=bonus_money, e=bonus_exp))
+                if money_pct or exp_bonus:
+                    story_log.append(_("🏅 دور {role} منح مكافأة خاصة لعضو: +{m} مال، +{e} خبرة").format(role=p.role_name, m=int(share * (money_pct / 100.0)), e=exp_bonus))
+                
                 # Streak bonus
                 streak_step = float(reqs_roles.get('streak_step_pct', 2.0))
                 streak_max = float(reqs_roles.get('streak_max_pct', 10.0))
@@ -2246,7 +2383,6 @@ def start_heist(lobby_id):
                     recent_histories = HeistHistory.query.order_by(HeistHistory.created_at.desc()).limit(10).all()
                     streak = 0
                     for h in recent_histories:
-                        # participants_snapshot is a list of dicts with 'name' and 'status'
                         names = [ps.get('name') for ps in (h.participants_snapshot or [])]
                         if p.user.username in names:
                             if h.success:
@@ -2264,15 +2400,37 @@ def start_heist(lobby_id):
                     pass
             except Exception:
                 pass
+            
+            # --- Fair Play Improvements ---
+            
+            # 1. MVP Bonus (Performance Based)
+            if p.user_id == mvp_user_id and len(participants) > 1:
+                mvp_bonus_money = int(share * 0.05) # 5% Bonus
+                mvp_bonus_exp = 50
+                bonus_money += mvp_bonus_money
+                bonus_exp += mvp_bonus_exp
+                story_log.append(_("🌟 {user} كان الأفضل أداءً! (+{m} مال، +{e} خبرة)").format(user=p.user.username, m=mvp_bonus_money, e=mvp_bonus_exp))
+            
+            # 2. Leader Bonus (Consolidated)
+            if p.user_id == lobby.leader_id:
+                leader_bonus = int(reward_money * 0.1) # 10% of total
+                bonus_money += leader_bonus
+                story_log.append(_("👑 القائد {user} حصل على مكافأة القيادة: {bonus} شيكل.").format(user=p.user.username, bonus=leader_bonus))
+
             # Atomic update via ResourceService
             changes = {
                 'money': (share + bonus_money),
                 'exp': (reward_exp + bonus_exp)
             }
             
-            set_fields_dict = {
-                'organized_crime_cooldown_until': cooldown_until
-            }
+            set_fields_dict = {}
+            
+            # Update Specific Cooldown
+            cooldown_rec = UserOrganizedCrimeCooldown.query.filter_by(user_id=p.user_id, crime_id=crime.id).first()
+            if not cooldown_rec:
+                cooldown_rec = UserOrganizedCrimeCooldown(user_id=p.user_id, crime_id=crime.id)
+                db.session.add(cooldown_rec)
+            cooldown_rec.cooldown_until = cooldown_until
             
             if p.user_id in injuries:
                 set_fields_dict['hospital_until'] = injuries[p.user_id]
@@ -2311,7 +2469,6 @@ def start_heist(lobby_id):
             except Exception:
                 pass
 
-            p.user.organized_crime_cooldown_until = cooldown_until
             try:
                 p.user.check_level_up()
             except Exception:
@@ -2322,29 +2479,24 @@ def start_heist(lobby_id):
             participants_snapshot.append({
                 'name': p.user.username,
                 'role': p.role_name,
-                'reward': share,
-                'exp': reward_exp,
+                'reward': share + bonus_money,
+                'exp': reward_exp + bonus_exp,
                 'status': 'success'
             })
-            
-        # Leader bonus (10%)
-        leader_bonus = int(reward_money * 0.1)
-        # Refresh current_user to get latest version after loop updates
-        db.session.refresh(current_user)
-        if not ResourceService.modify_resources(current_user.id, {'money': leader_bonus}, 'heist_leader_bonus', auto_commit=False, expected_version=current_user.version):
-            db.session.rollback()
-            flash(_('حدث خطأ أثناء توزيع مكافأة القائد.'), 'error')
-            return redirect(url_for('main.lobby', lobby_id=lobby.id))
-        story_log.append(_("👑 القائد {user} حصل على مكافأة إضافية: {bonus} شيكل.").format(user=current_user.username, bonus=leader_bonus))
         
     else:
         story_log.append(_("❌ فشلت العملية! الفوضى عارمة."))
         
         # Fail Consequences
         for p in participants:
-            set_fields_dict = {
-                'organized_crime_cooldown_until': cooldown_until
-            }
+            # Update Specific Cooldown
+            cooldown_rec = UserOrganizedCrimeCooldown.query.filter_by(user_id=p.user_id, crime_id=crime.id).first()
+            if not cooldown_rec:
+                cooldown_rec = UserOrganizedCrimeCooldown(user_id=p.user_id, crime_id=crime.id)
+                db.session.add(cooldown_rec)
+            cooldown_rec.cooldown_until = cooldown_until
+
+            set_fields_dict = {}
             try:
                 set_fields_dict['last_crime'] = datetime.now(timezone.utc).replace(tzinfo=None)
             except Exception:

@@ -7,12 +7,18 @@
             <div class="card-header luxury-card-header d-flex justify-content-between align-items-center">
                 <h3 class="card-title luxury-title"><i class="fas fa-users mr-2"></i> {{ _('العصابات') }}</h3>
                 <div class="card-tools">
+                    {% if current_user.is_authenticated %}
                     <a href="{{ url_for('gang.invites') }}" class="btn btn-action mr-2">
                         <i class="fas fa-envelope mr-1"></i> {{ _('دعوات الانضمام') }}
                     </a>
                     <a href="{{ url_for('gang.create') }}" class="btn btn-action btn-create">
                         <i class="fas fa-plus-circle mr-1"></i> {{ _('إنشاء عصابة') }}
                     </a>
+                    {% else %}
+                    <a href="{{ url_for('main.login') }}" class="btn btn-action btn-create">
+                        <i class="fas fa-sign-in-alt mr-1"></i> {{ _('تسجيل الدخول للعب') }}
+                    </a>
+                    {% endif %}
                 </div>
             </div>
             <div class="card-body p-0">
@@ -41,7 +47,7 @@
                                     <a href="{{ url_for('gang.view', gang_id=gang.id) }}" class="btn btn-sm btn-outline-light" title="{{ _('عرض') }}">
                                         <i class="fas fa-eye"></i>
                                     </a>
-                                    {% if current_user.gang_id and current_user.gang_id != gang.id and (current_user.id == current_user.gang.leader_id or current_user.id == current_user.gang.underboss_id) %}
+                                    {% if current_user.is_authenticated and current_user.gang_id and current_user.gang_id != gang.id and (current_user.id == current_user.gang.leader_id or current_user.id == current_user.gang.underboss_id) %}
                                     <form action="{{ url_for('gang.request_alliance', target_gang_id=gang.id) }}" method="POST" class="d-inline">
                                         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
                                         <button type="submit" class="btn btn-sm btn-outline-info" title="{{ _('طلب تحالف') }}" onclick="return confirm('{{ _('هل تريد طلب التحالف مع هذه العصابة؟') }}')">

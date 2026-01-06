@@ -1,6 +1,8 @@
+import logging
 from extensions import db
 from models import Location, Item, OrganizedCrime, Crime, Vehicle, DailyTask
 from models.hostess import Hostess
+from models.knowledge import HostessKnowledge
 from flask_babel import _
 import json
 import os
@@ -15,7 +17,7 @@ TRAINING_DIR = os.path.join(DATA_DIR, 'training')
 def load_json_seed(filename):
     path = os.path.join(SEEDS_DIR, filename)
     if not os.path.exists(path):
-        print(f"Warning: Seed file not found: {path}")
+        logging.warning(f"Warning: Seed file not found: {path}")
         return []
     with open(path, 'r', encoding='utf-8') as f:
         return json.load(f)
@@ -23,17 +25,47 @@ def load_json_seed(filename):
 def initialize_essentials(app):
     """Ensures all essential game data exists in the database."""
     with app.app_context():
-        print("Checking essential game data...")
+        logging.info("Checking essential game data...")
         initialize_locations()
         initialize_items()
         initialize_basic_crimes()
         initialize_organized_crimes()
         initialize_vehicles()
         initialize_hostesses()
+        initialize_hostess_knowledge()
         initialize_daily_tasks()
+        ensure_schema_updates() # Migration shim
         take_economy_snapshot()
         db.session.commit()
-        print("Essential game data verification completed.")
+        logging.info("Essential game data verification completed.")
+
+def ensure_schema_updates():
+    """Manual migration to ensure new columns exist."""
+    from sqlalchemy import inspect, text
+    inspector = inspect(db.engine)
+    
+    # 1. User Referral Columns
+    columns = [c['name'] for c in inspector.get_columns('user')]
+    if 'referral_code' not in columns:
+        logging.info("Migrating: Adding referral_code to user table...")
+        with db.engine.connect() as conn:
+            conn.execute(text('ALTER TABLE "user" ADD COLUMN referral_code VARCHAR(16)'))
+            conn.execute(text('CREATE UNIQUE INDEX ix_user_referral_code ON "user" (referral_code)'))
+            conn.commit()
+
+    if 'referred_by_id' not in columns:
+        logging.info("Migrating: Adding referred_by_id to user table...")
+        with db.engine.connect() as conn:
+            conn.execute(text('ALTER TABLE "user" ADD COLUMN referred_by_id INTEGER REFERENCES "user"(id)'))
+            conn.commit()
+
+    # 2. Gang Upgrades Column
+    gang_columns = [c['name'] for c in inspector.get_columns('gang')]
+    if 'upgrades' not in gang_columns:
+        logging.info("Migrating: Adding upgrades to gang table...")
+        with db.engine.connect() as conn:
+            conn.execute(text('ALTER TABLE "gang" ADD COLUMN upgrades TEXT DEFAULT \'{}\''))
+            conn.commit()
 
 def initialize_locations():
     """Seeds initial locations from JSON."""
@@ -53,9 +85,13 @@ def initialize_locations():
             )
             db.session.add(loc)
             count += 1
+        else:
+            if loc.image != data['image']:
+                loc.image = data['image']
+                db.session.add(loc)
     
     if count > 0:
-        print(f"Seeded {count} locations.")
+        logging.info(f"Seeded {count} locations.")
 
 def initialize_items():
     """Seeds basic items and smuggling items from JSON."""
@@ -99,7 +135,7 @@ def initialize_items():
             if updated:
                 db.session.add(item)
     if count > 0:
-        print(f"Seeded {count} items.")
+        logging.info(f"Seeded {count} items.")
 
 def initialize_basic_crimes():
     """Seeds basic single-player crimes from JSON."""
@@ -200,7 +236,7 @@ def initialize_basic_crimes():
             if updated:
                 db.session.add(crime)
     if count > 0:
-        print(f"Seeded {count} basic crimes.")
+        logging.info(f"Seeded {count} basic crimes.")
 
 def initialize_organized_crimes():
     """Seeds organized crimes (Heists) from JSON."""
@@ -263,7 +299,7 @@ def initialize_organized_crimes():
             if updated:
                 db.session.add(crime)
     if count > 0:
-        print(f"Seeded {count} organized crimes.")
+        logging.info(f"Seeded {count} organized crimes.")
 
 def initialize_vehicles():
     """Seeds basic vehicles from JSON."""
@@ -278,18 +314,25 @@ def initialize_vehicles():
                 price=data['price'],
                 speed=data['speed'],
                 defense=data['defense'],
-                risk=data['risk']
+                risk=data['risk'],
+                image=data.get('image')
             )
             db.session.add(vehicle)
             count += 1
+        else:
+            # Update existing vehicle image if missing
+            v = Vehicle.query.filter_by(name=data['name']).first()
+            if v and not v.image and data.get('image'):
+                v.image = data.get('image')
+                db.session.add(v)
     if count > 0:
-        print(f"Seeded {count} vehicles.")
+        logging.info(f"Seeded {count} vehicles.")
 
 def initialize_hostesses():
     """Seeds casino hostesses from Deep Training folders."""
     hostesses_dir = os.path.join(TRAINING_DIR, 'hostesses')
     if not os.path.exists(hostesses_dir):
-        print("Warning: Hostesses training directory not found.")
+        logging.warning("Warning: Hostesses training directory not found.")
         return
 
     # Iterate over subdirectories (jasmin, layla, etc.)
@@ -339,10 +382,59 @@ def initialize_hostesses():
                     hostess.charm = data.get('charm', 10)
                     hostess.intelligence = data.get('intelligence', 10)
                 except Exception as e:
-                    print(f"ERROR loading hostess {name}: {e}")
+                    logging.error(f"ERROR loading hostess {name}: {e}")
 
     if count > 0:
-        print(f"Seeded/Updated {count} hostesses from deep training data.")
+        logging.info(f"Seeded/Updated {count} hostesses from deep training data.")
+
+def initialize_hostess_knowledge():
+    """Seeds general game knowledge for hostesses."""
+    knowledge_data = load_json_seed('hostess_knowledge.json')
+    if not knowledge_data:
+        return
+
+    count = 0
+    for data in knowledge_data:
+        # Check if knowledge exists (by question and language)
+        # We assume general knowledge (hostess_id=None)
+        k = HostessKnowledge.query.filter_by(
+            question=data['question'], 
+            language=data.get('language', 'ar'),
+            hostess_id=None
+        ).first()
+        
+        if not k:
+            k = HostessKnowledge(
+                question=data['question'],
+                answer=data['answer'],
+                category=data.get('category', 'general'),
+                keywords=data.get('keywords', ''),
+                language=data.get('language', 'ar'),
+                hostess_id=None # General knowledge
+            )
+            db.session.add(k)
+            count += 1
+        else:
+            # Update if needed
+            updated = False
+            if k.answer != data['answer']:
+                k.answer = data['answer']
+                updated = True
+            
+            if k.keywords != data.get('keywords', ''):
+                k.keywords = data.get('keywords', '')
+                updated = True
+                
+            if k.category != data.get('category', 'general'):
+                k.category = data.get('category', 'general')
+                updated = True
+
+            if updated:
+                db.session.add(k)
+                count += 1
+    
+    if count > 0:
+        logging.info(f"Seeded/Updated {count} knowledge items.")
 
 
 def initialize_daily_tasks():
@@ -350,7 +442,7 @@ def initialize_daily_tasks():
     if not defaults:
         defaults = [
             {
-                "description": "نفّذ 3 جرائم",
+                "description": _("نفّذ 3 جرائم"),
                 "target_type": "crime",
                 "target_count": 3,
                 "reward_money": 450,
@@ -427,9 +519,9 @@ def initialize_daily_tasks():
             updated += 1
 
     if inserted > 0 or updated > 0:
-        print(f"Seeded {inserted} daily tasks.")
+        logging.info(f"Seeded {inserted} daily tasks.")
     if deactivated > 0:
-        print(f"Deactivated {deactivated} duplicate daily tasks.")
+        logging.info(f"Deactivated {deactivated} duplicate daily tasks.")
 
 def take_economy_snapshot():
     """Takes a daily snapshot of the economy for analysis."""
@@ -472,4 +564,4 @@ def take_economy_snapshot():
     )
     db.session.add(snapshot)
     db.session.commit()
-    print(f"Economy Snapshot taken for {today}")
+    logging.info(f"Economy Snapshot taken for {today}")

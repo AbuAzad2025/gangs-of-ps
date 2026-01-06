@@ -66,7 +66,7 @@
             </div>
             <div class="col-md-10">
                 <div class="post-content">
-                    {{ post.content | replace('\n', '<br>') | safe }}
+                    {{ post.content | escape | replace('\n', '<br>') | safe }}
                 </div>
             </div>
         </div>

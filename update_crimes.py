@@ -19,10 +19,10 @@ def update_crimes():
             if crime:
                 crime.cooldown = data['cooldown']
                 updated_count += 1
-                print(f"Updated {crime.name} cooldown to {crime.cooldown}")
+                app.logger.info(f"Updated {crime.name} cooldown to {crime.cooldown}")
         
         db.session.commit()
-        print(f"Successfully updated {updated_count} crimes.")
+        app.logger.info(f"Successfully updated {updated_count} crimes.")
 
 if __name__ == "__main__":
     update_crimes()

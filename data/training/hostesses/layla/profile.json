@@ -7,7 +7,7 @@
     "intro_message": "لقد عدت أقوى من أي وقت مضى... الحظ كله بين يدي الآن.",
     "buff_type": "casino_luck",
     "buff_value": 0.25,
-    "image": "layla.png",
+    "image": "hostesses/layla.svg",
     "video": "layla_max_intro.mp4",
     "video_prompt": {
         "title": "ليلى - همس الحظ",
@@ -22,18 +22,39 @@
             "color_grade": "moody contrast"
         },
         "global_constraints": {
-            "avoid": ["men", "male", "text overlays", "logos", "watermarks", "nudity", "explicit content"],
+            "avoid": [
+                "men",
+                "male",
+                "text overlays",
+                "logos",
+                "watermarks",
+                "nudity",
+                "explicit content"
+            ],
             "physics": "subtle facial micro-expressions, loopable"
         },
         "audio": {
             "music_mood": "mysterious lounge",
             "dialogue": [
-                {"lang": "ar", "text": "الحظ… بيدي. بس لازم تلعب صح."}
+                {
+                    "lang": "ar",
+                    "text": "الحظ… بيدي. بس لازم تلعب صح."
+                }
             ]
         },
         "shots": [
-            {"shot": "medium close-up", "camera": "static", "action": "slow eye contact, slight smile", "background": "roulette table, gold bokeh"},
-            {"shot": "close-up", "camera": "slow pan", "action": "finger taps chip once, confident glance", "background": "dark casino lights"}
+            {
+                "shot": "medium close-up",
+                "camera": "static",
+                "action": "slow eye contact, slight smile",
+                "background": "roulette table, gold bokeh"
+            },
+            {
+                "shot": "close-up",
+                "camera": "slow pan",
+                "action": "finger taps chip once, confident glance",
+                "background": "dark casino lights"
+            }
         ]
     },
     "level": 10,
@@ -41,9 +62,9 @@
     "charm": 100,
     "intelligence": 85,
     "personality_config": {
-        "flirt_level": 7, 
-        "shyness": 0, 
-        "dominance": 9, 
+        "flirt_level": 7,
+        "shyness": 0,
+        "dominance": 9,
         "mystery": 10,
         "voice_pitch": 0.8,
         "speed": 0.9

@@ -3,7 +3,7 @@ from flask_login import UserMixin
 from werkzeug.security import generate_password_hash, check_password_hash
 from enum import Enum
 from flask_babel import _
-from flask import has_request_context, g
+from flask import current_app, has_request_context, g, url_for
 from datetime import datetime, timezone, timedelta
 from sqlalchemy import UniqueConstraint, func, cast, select
 
@@ -317,6 +317,10 @@ class User(UserMixin, db.Model):
     casino_luck_until = db.Column(db.DateTime, nullable=True)
     active_hostess_id = db.Column(db.Integer, nullable=True)
 
+    # Security
+    failed_login_attempts = db.Column(db.Integer, default=0)
+    locked_until = db.Column(db.DateTime, nullable=True)
+
     # Optimistic Locking
     version = db.Column(db.Integer, nullable=False, default=0)
 
@@ -329,10 +333,15 @@ class User(UserMixin, db.Model):
     banned_until = db.Column(db.DateTime, nullable=True)
     ban_reason = db.Column(db.String(255), nullable=True)
     is_suspicious = db.Column(db.Boolean, default=False)
+    is_chat_banned = db.Column(db.Boolean, default=False)
 
     # Social
     gang_id = db.Column(db.Integer, db.ForeignKey('gang.id', use_alter=True, name='fk_user_gang_id'), index=True)
     location_id = db.Column(db.Integer, db.ForeignKey('location.id'), default=1, index=True)
+    
+    # Referrals
+    referral_code = db.Column(db.String(16), unique=True, nullable=True, index=True)
+    referred_by_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True)
     
     # Timestamps
     created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
@@ -352,6 +361,7 @@ class User(UserMixin, db.Model):
     sent_messages = db.relationship('Message', foreign_keys='Message.sender_id', backref='sender', lazy=True)
     received_messages = db.relationship('Message', foreign_keys='Message.receiver_id', backref='receiver', lazy=True)
     unlocked_achievements = db.relationship('UserAchievement', backref='user', lazy=True, cascade='all, delete-orphan')
+    referrals = db.relationship('User', backref=db.backref('referrer', remote_side=[id]), lazy='dynamic')
     
     def set_password(self, password):
         self.password_hash = generate_password_hash(password)
@@ -406,7 +416,6 @@ class User(UserMixin, db.Model):
             'hospital_until': None,
             'gym_until': None,
             'crime_cooldown_until': None,
-            'organized_crime_cooldown_until': None,
             'is_safe_house_active': True,
             'safe_house_until': (now + timedelta(days=3650)).replace(tzinfo=None)
         }
@@ -526,8 +535,106 @@ class User(UserMixin, db.Model):
             
             leveled_up = True
             
+        if leveled_up and self.level >= 5:
+            # Check for referral reward
+            try:
+                from models.referral import Referral
+                from services.resource_service import ResourceService
+                from models.social import Notification
+                from flask_babel import _
+                
+                referral = Referral.query.filter_by(referred_id=self.id, status='pending').first()
+                if referral:
+                    referral.status = 'completed'
+                    db.session.add(referral)
+                    
+                    # Reward Referrer: 50,000$ + 50 Diamonds
+                    ResourceService.modify_resources(
+                        referral.referrer_id, 
+                        {'money': 50000, 'diamonds': 50}, 
+                        'referral_level_bonus', 
+                        auto_commit=False
+                    )
+                    
+                    # Notify Referrer
+                    notif = Notification(
+                        user_id=referral.referrer_id,
+                        title='مكافأة إحالة!',
+                        message=f"صديقك {self.username} وصل للمستوى 5! حصلت على 50,000$ و 50 ماسة.",
+                        type='success'
+                    )
+                    db.session.add(notif)
+            except Exception as e:
+                current_app.logger.error(f"Error in referral reward: {e}")
+        
         return leveled_up
-    
+            
+    def regenerate_resources(self):
+        """
+        Calculates and applies passive resource regeneration based on time elapsed.
+        Should be called on every request.
+        """
+        now = datetime.now(timezone.utc)
+        
+        # --- Energy Regeneration ---
+        # Rate: 1 Energy per 2 minutes
+        energy_rate_minutes = 2
+        energy_amount = 1
+        
+        if not self.last_energy_update:
+            self.last_energy_update = now
+            
+        if self.energy < self.max_energy:
+            last_update = self.last_energy_update
+            if last_update.tzinfo is None:
+                last_update = last_update.replace(tzinfo=timezone.utc)
+                
+            elapsed = (now - last_update).total_seconds()
+            cycles = int(elapsed // (energy_rate_minutes * 60))
+            
+            if cycles > 0:
+                gain = cycles * energy_amount
+                # Don't exceed max
+                actual_gain = min(gain, self.max_energy - self.energy)
+                
+                if actual_gain > 0:
+                    self.energy += actual_gain
+                    # Update timestamp to the time of the last full cycle to preserve partial progress
+                    self.last_energy_update = last_update + timedelta(seconds=cycles * energy_rate_minutes * 60)
+                else:
+                    self.last_energy_update = now
+        else:
+            self.last_energy_update = now
+
+        # --- Health Regeneration ---
+        # Rate: 5% per 5 minutes
+        health_rate_minutes = 5
+        health_pct = 0.05
+        
+        if not self.last_health_update:
+            self.last_health_update = now
+
+        if self.health < self.max_health:
+            last_update = self.last_health_update
+            if last_update.tzinfo is None:
+                last_update = last_update.replace(tzinfo=timezone.utc)
+            
+            elapsed = (now - last_update).total_seconds()
+            cycles = int(elapsed // (health_rate_minutes * 60))
+            
+            if cycles > 0:
+                amount_per_cycle = max(1, int(self.max_health * health_pct))
+                gain = cycles * amount_per_cycle
+                actual_gain = min(gain, self.max_health - self.health)
+                
+                if actual_gain > 0:
+                    self.health += actual_gain
+                    self.last_health_update = last_update + timedelta(seconds=cycles * health_rate_minutes * 60)
+                else:
+                    self.last_health_update = now
+        else:
+            self.last_health_update = now
+
     def add_rank_points(self, points=0):
         if points and points > 0:
             try:

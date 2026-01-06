@@ -17,6 +17,7 @@ class VehicleForm(FlaskForm):
     defense = IntegerField('Defense (0-100)', validators=[DataRequired()])
     risk = IntegerField('Seizure Risk % (0-100)', validators=[Optional()])
     image = FileField('Vehicle Image', validators=[FileAllowed(['jpg', 'png', 'jpeg'], 'Images only!')])
+    is_active = BooleanField('Active')
     submit = SubmitField('Save Vehicle')
 
 class ItemForm(FlaskForm):

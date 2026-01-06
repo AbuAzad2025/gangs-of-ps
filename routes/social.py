@@ -1,14 +1,26 @@
-from flask import render_template, redirect, url_for, flash, abort, request, current_app
+from flask import render_template, redirect, url_for, flash, abort, request, current_app, jsonify
 from flask_login import login_required, current_user
-from extensions import db
+from extensions import db, limiter
 from sqlalchemy import or_
 from models import Gang, Message, User, Notification, CombatLog
+from models.social import PublicChat
+from models.user import UserRole
 from . import bp
 from flask_babel import _
 from datetime import datetime, timezone
 import os
+import re
 from werkzeug.utils import secure_filename
 import uuid
+
+def contains_prohibited_content(text):
+    # URLs
+    if re.search(r'(https?://|www\.)\S+', text): return True
+    # Emails
+    if re.search(r'[\w\.-]+@[\w\.-]+\.\w+', text): return True
+    # Phone numbers (7+ digits)
+    if re.search(r'\d[\d\s-]{6,}\d', text): return True
+    return False
 
 @bp.route('/notifications')
 @login_required
@@ -30,7 +42,7 @@ def read_notification(id):
         notif.is_read = True
         db.session.commit()
     
-    if notif.link:
+    if notif.link and (notif.link.startswith('/') or notif.link.startswith(request.host_url)):
         return redirect(notif.link)
     return redirect(url_for('main.notifications'))
 
@@ -97,6 +109,45 @@ def view_message(msg_id):
         db.session.commit()
         
     return render_template('view_message.html', message=msg)
+
+@bp.route('/invite')
+@login_required
+def invite_friends():
+    # Ensure user has a code (migration for old users)
+    if not current_user.referral_code:
+        import secrets
+        current_user.referral_code = secrets.token_hex(4)
+        db.session.commit()
+        
+    referral_link = url_for('main.register', ref=current_user.referral_code, _external=True)
+    
+    # Stats: Count pending and completed referrals
+    # 'referrals_sent' is the backref from Referral model
+    pending_count = 0
+    completed_count = 0
+    referrals_list = []
+    
+    if hasattr(current_user, 'referrals_sent'):
+        for ref in current_user.referrals_sent:
+            if ref.status == 'completed':
+                completed_count += 1
+            else:
+                pending_count += 1
+            referrals_list.append(ref)
+            
+    # Set Open Graph tags for sharing
+    from extensions import seo_manager
+    seo_manager.set(
+        title=_("انضم لعصابة %(user)s في عصابات فلسطين", user=current_user.username),
+        description=_("ساعدني في السيطرة على المدينة! سجل الآن واحصل على مكافآت حصرية."),
+        image=url_for('static', filename='images/hostesses/jasmine.png', _external=True)
+    )
+    
+    return render_template('invite_friends.html', 
+                           link=referral_link, 
+                           pending=pending_count, 
+                           completed=completed_count,
+                           referrals=referrals_list)
 
 @bp.route('/messages/send', methods=['GET', 'POST'])
 @login_required
@@ -245,11 +296,82 @@ def edit_profile():
     return render_template('edit_profile.html', avatars=avatars)
 
 @bp.route('/leaderboard')
-@login_required
+@limiter.limit("20 per minute")
 def leaderboard():
+    # SEO
+    from extensions import seo_manager
+    seo_manager.set(
+        title=_("قائمة المتصدرين - أقوى العصابات واللاعبين"),
+        description=_("تعرف على أقوى اللاعبين والعصابات في عصابات فلسطين. هل تملك ما يلزم لتكون في القمة؟"),
+        keywords="leaderboard, top players, gangs ranking, متصدرين, اقوى اللاعبين, ترتيب العصابات"
+    )
+    seo_manager.add_breadcrumb(_("قائمة المتصدرين"), url_for('main.leaderboard'))
+
     top_users = User.query.order_by(User.level.desc(), User.exp.desc()).limit(20).all()
     top_gangs = Gang.query.order_by(Gang.level.desc(), Gang.exp.desc()).limit(20).all()
     top_rich = User.query.order_by(User.money.desc()).limit(20).all()
     
     return render_template('leaderboard.html', top_users=top_users, top_gangs=top_gangs, top_rich=top_rich)
 
+@bp.route('/api/public-chat/messages')
+@login_required
+def get_public_chat_messages():
+    messages = PublicChat.query.order_by(PublicChat.created_at.desc()).limit(50).all()
+    return jsonify([m.to_dict() for m in reversed(messages)])
+
+@bp.route('/api/public-chat/send', methods=['POST'])
+@login_required
+def send_public_chat_message():
+    if current_user.is_chat_banned:
+        return jsonify({'error': _('عذراً، أنت محظور من الدردشة.')}), 403
+
+    data = request.get_json()
+    if not data or not data.get('message'):
+        return jsonify({'error': 'Message is required'}), 400
+    
+    msg_content = data['message'].strip()
+    if not msg_content:
+         return jsonify({'error': 'Message cannot be empty'}), 400
+
+    if len(msg_content) > 500:
+        return jsonify({'error': 'Message too long'}), 400
+        
+    if contains_prohibited_content(msg_content):
+        return jsonify({'error': _('عذراً، يمنع إرسال الروابط أو الإيميلات أو أرقام الهواتف.')}), 400
+        
+    chat = PublicChat(user_id=current_user.id, message=msg_content)
+    db.session.add(chat)
+    db.session.commit()
+    
+    return jsonify(chat.to_dict())
+
+@bp.route('/api/public-chat/ban/<int:user_id>', methods=['POST'])
+@login_required
+def ban_public_chat_user(user_id):
+    if current_user.role.value < UserRole.MODERATOR.value:
+        return jsonify({'error': _('غير مصرح لك بذلك.')}), 403
+        
+    user = db.session.get(User, user_id)
+    if not user:
+        return jsonify({'error': _('المستخدم غير موجود.')}), 404
+        
+    if user.role.value >= current_user.role.value:
+        return jsonify({'error': _('لا يمكنك حظر شخص بنفس رتبتك أو أعلى.')}), 403
+        
+    user.is_chat_banned = True
+    db.session.commit()
+    return jsonify({'success': True, 'message': _('تم حظر المستخدم من الدردشة.')})
+
+@bp.route('/api/public-chat/unban/<int:user_id>', methods=['POST'])
+@login_required
+def unban_public_chat_user(user_id):
+    if current_user.role.value < UserRole.MODERATOR.value:
+        return jsonify({'error': _('غير مصرح لك بذلك.')}), 403
+        
+    user = db.session.get(User, user_id)
+    if not user:
+        return jsonify({'error': _('المستخدم غير موجود.')}), 404
+        
+    user.is_chat_banned = False
+    db.session.commit()
+    return jsonify({'success': True, 'message': _('تم إلغاء حظر المستخدم من الدردشة.')})

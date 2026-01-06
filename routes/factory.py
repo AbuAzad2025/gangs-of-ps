@@ -6,6 +6,7 @@ import random
 import json
 
 from extensions import db, limiter
+from sqlalchemy import select
 from models import Item, UserItem, FactoryJob, SystemConfig, User, MoneySinkLog
 from services.requirements import check_requirements
 from services.resource_service import ResourceService
@@ -28,13 +29,28 @@ def _get_user_item_qty(user_id, item_id):
 
 
 def _add_user_item(user_id, item, qty):
-    ui = UserItem.query.filter_by(user_id=user_id, item_id=item.id).first()
-    if ui:
-        ui.quantity += qty
-    else:
-        ui = UserItem(user_id=user_id, item_id=item.id, quantity=qty)
-        db.session.add(ui)
-    return ui
+    # Atomic update for existing items
+    result = UserItem.query.filter_by(user_id=user_id, item_id=item.id).update({
+        UserItem.quantity: UserItem.quantity + qty
+    }, synchronize_session=False)
+    
+    if result == 0:
+        # Item doesn't exist, create it
+        # Handle race condition using nested transaction (savepoint)
+        try:
+            with db.session.begin_nested():
+                ui = UserItem(user_id=user_id, item_id=item.id, quantity=qty)
+                db.session.add(ui)
+            return ui
+        except Exception:
+            # Race condition: someone inserted it just now.
+            # Fallback to update
+            UserItem.query.filter_by(user_id=user_id, item_id=item.id).update({
+                UserItem.quantity: UserItem.quantity + qty
+            }, synchronize_session=False)
+            return None
+    
+    return None
 
 
 def _consume_user_item(user_id, item_id, qty):
@@ -283,17 +299,15 @@ def smelt():
         flash(_('لا تملك كاش كافي للصهر! التكلفة: %(cost)s$', cost=smelt_cost), 'danger')
         return redirect(url_for('factory.index'))
 
-    if not _consume_user_item(current_user.id, src_item.id, 1):
-        flash(_('لا تملك هذا العنصر.'), 'danger')
+    # Atomic deduction via ResourceService (Locks User)
+    if not ResourceService.modify_resources(current_user.id, {'money': -smelt_cost}, 'factory_smelt_cost', auto_commit=False, expected_version=None):
+        flash(_('لا تملك كاش كافي للصهر!'), 'danger')
         return redirect(url_for('factory.index'))
 
-    # Atomic deduction via ResourceService
-    if not ResourceService.modify_resources(current_user.id, {'money': -smelt_cost}, 'factory_smelt_cost', auto_commit=False, expected_version=current_user.version):
-        # Rollback item consumption if money deduction failed (edge case)
-        # Re-add item
-        _add_user_item(current_user.id, src_item, 1)
-        db.session.commit()
-        flash(_('لا تملك كاش كافي للصهر!'), 'danger')
+    # Consume Item (Locks UserItem) - Consistent Order: User -> UserItem
+    if not _consume_user_item(current_user.id, src_item.id, 1):
+        db.session.rollback() # Refund money
+        flash(_('لا تملك هذا العنصر.'), 'danger')
         return redirect(url_for('factory.index'))
 
     sink_log = MoneySinkLog(
@@ -389,7 +403,7 @@ def start_job():
         return redirect(url_for('factory.index'))
 
     # Atomic deduction for diamonds via ResourceService
-    if not ResourceService.modify_resources(current_user.id, {'diamonds': -diamonds_cost}, 'factory_start_job', auto_commit=False, expected_version=current_user.version):
+    if not ResourceService.modify_resources(current_user.id, {'diamonds': -diamonds_cost}, 'factory_start_job', auto_commit=False, expected_version=None):
         flash(_('ليس لديك ما يكفي من الماس!'), 'danger')
         return redirect(url_for('factory.index'))
 
@@ -428,6 +442,9 @@ def claim(job_id):
     cfg = _get_factory_config()
     explosive_item = _get_material_item(cfg["explosive_item_name"])
 
+    # Lock User first to prevent deadlock (User -> Job)
+    db.session.execute(select(User).where(User.id == current_user.id).with_for_update()).scalar_one()
+
     # Lock the job row to prevent double claiming
     job = FactoryJob.query.filter_by(id=job_id, user_id=current_user.id).with_for_update().first()
     if not job or job.status != 'running':
@@ -439,7 +456,7 @@ def claim(job_id):
         return redirect(url_for('factory.index'))
 
     if job.job_type == 'bullets':
-        if not ResourceService.modify_resources(current_user.id, {'bullets': int(job.output_amount)}, 'factory_claim_bullets', auto_commit=False, expected_version=current_user.version):
+        if not ResourceService.modify_resources(current_user.id, {'bullets': int(job.output_amount)}, 'factory_claim_bullets', auto_commit=False, expected_version=None):
             flash(_('حدث خطأ أثناء استلام الموارد. حاول مرة أخرى.'), 'danger')
             return redirect(url_for('factory.index'))
     else:
@@ -487,7 +504,11 @@ def boost(job_id):
              flash(_('أنت تتدرب ولا يمكنك استخدام المصنع!'), 'danger')
              return redirect(url_for('gym.index'))
 
-    job = FactoryJob.query.filter_by(id=job_id, user_id=current_user.id).first()
+    # Lock User first
+    db.session.execute(select(User).where(User.id == current_user.id).with_for_update()).scalar_one()
+
+    # Lock job
+    job = FactoryJob.query.filter_by(id=job_id, user_id=current_user.id).with_for_update().first()
     if not job or job.status != 'running':
         flash(_('هذه العملية غير موجودة.'), 'danger')
         return redirect(url_for('factory.index'))
@@ -523,7 +544,7 @@ def boost(job_id):
         return redirect(url_for('factory.index'))
 
     # Atomic deduction via ResourceService
-    if not ResourceService.modify_resources(current_user.id, {'diamonds': -diamonds_cost}, 'factory_boost_job', auto_commit=False, expected_version=current_user.version):
+    if not ResourceService.modify_resources(current_user.id, {'diamonds': -diamonds_cost}, 'factory_boost_job', auto_commit=False, expected_version=None):
         flash(_('ليس لديك ما يكفي من الماس!'), 'danger')
         return redirect(url_for('factory.index'))
 

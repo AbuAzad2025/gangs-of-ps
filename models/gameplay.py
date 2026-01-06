@@ -39,6 +39,7 @@ class OrganizedCrime(db.Model):
     min_members = db.Column(db.Integer, default=2)
     max_members = db.Column(db.Integer, default=4)
     duration_minutes = db.Column(db.Integer, default=60)
+    planning_time_seconds = db.Column(db.Integer, default=10) # Planning/Gathering phase duration
     cooldown_hours = db.Column(db.Integer, default=24)
     energy_cost = db.Column(db.Integer, default=50)
     is_active = db.Column(db.Boolean, default=True)
@@ -174,6 +175,15 @@ class UserCrimeCooldown(db.Model):
     
     user = db.relationship('User', backref=db.backref('crime_cooldowns', lazy=True, cascade='all, delete-orphan'))
     crime = db.relationship('Crime')
+
+class UserOrganizedCrimeCooldown(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    crime_id = db.Column(db.Integer, db.ForeignKey('organized_crime.id'), nullable=False)
+    cooldown_until = db.Column(db.DateTime, nullable=False)
+    
+    user = db.relationship('User', backref=db.backref('organized_crime_cooldowns', lazy=True, cascade='all, delete-orphan'))
+    crime = db.relationship('OrganizedCrime')
 
 class InvestigationLog(db.Model):
     id = db.Column(db.Integer, primary_key=True)

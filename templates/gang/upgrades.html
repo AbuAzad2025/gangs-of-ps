@@ -1,0 +1,90 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>
+            <i class="fas fa-cubes text-primary ml-2"></i> {{ _('ترقيات العصابة') }}
+        </h2>
+        <a href="{{ url_for('gang.dashboard') }}" class="btn btn-secondary">
+            <i class="fas fa-arrow-right"></i> {{ _('عودة للعصابة') }}
+        </a>
+    </div>
+
+    <div class="card mb-4">
+        <div class="card-body bg-light">
+            <div class="row text-center">
+                <div class="col-md-6">
+                    <h5>{{ _('خزينة العصابة') }}</h5>
+                    <h3 class="text-success">{{ "{:,}".format(gang.money) }} ₪</h3>
+                </div>
+                <div class="col-md-6">
+                    <h5>{{ _('نقاط الاحترام') }}</h5>
+                    <h3 class="text-primary">{{ "{:,}".format(gang.respect) }}</h3>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        {% for upgrade in upgrades_data %}
+            {% set current_level = current_upgrades.get(upgrade.id, 0) %}
+            {% set next_level_data = upgrade.levels|selectattr("level", "equalto", current_level + 1)|first %}
+            {% set is_maxed = not next_level_data %}
+            
+            <div class="col-md-6 mb-4">
+                <div class="card h-100 border-{{ 'success' if current_level > 0 else 'secondary' }}">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">
+                            <i class="{{ upgrade.icon }} ml-2"></i> {{ upgrade.name }}
+                        </h5>
+                        <span class="badge badge-{{ 'success' if current_level > 0 else 'secondary' }}">
+                            {{ _('مستوى') }} {{ current_level }}
+                        </span>
+                    </div>
+                    <div class="card-body">
+                        <p class="text-muted">{{ upgrade.description }}</p>
+                        
+                        <hr>
+                        
+                        <h6>{{ _('المستويات:') }}</h6>
+                        <ul class="list-unstyled">
+                            {% for lvl in upgrade.levels %}
+                                <li class="{{ 'text-success font-weight-bold' if current_level >= lvl.level else 'text-muted' }}">
+                                    <i class="fas {{ 'fa-check-circle' if current_level >= lvl.level else 'fa-circle' }} ml-1"></i>
+                                    {{ _('مستوى') }} {{ lvl.level }}: {{ lvl.description }}
+                                </li>
+                            {% endfor %}
+                        </ul>
+
+                        {% if not is_maxed %}
+                            <div class="mt-3 p-3 bg-light rounded">
+                                <h6 class="mb-2">{{ _('الترقية للمستوى القادم:') }} {{ next_level_data.level }}</h6>
+                                <p class="mb-2 text-danger font-weight-bold">
+                                    {{ _('التكلفة:') }} {{ "{:,}".format(next_level_data.cost) }} ₪
+                                </p>
+                                
+                                {% if gang.money >= next_level_data.cost %}
+                                    <form action="{{ url_for('gang.buy_upgrade', upgrade_id=upgrade.id, level=next_level_data.level) }}" method="POST">
+                                        <button type="submit" class="btn btn-success btn-block">
+                                            <i class="fas fa-arrow-up"></i> {{ _('ترقية الآن') }}
+                                        </button>
+                                    </form>
+                                {% else %}
+                                    <button class="btn btn-secondary btn-block" disabled>
+                                        {{ _('لا يوجد مال كافي') }}
+                                    </button>
+                                {% endif %}
+                            </div>
+                        {% else %}
+                            <div class="alert alert-success mt-3 text-center">
+                                <i class="fas fa-star"></i> {{ _('أقصى مستوى!') }}
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

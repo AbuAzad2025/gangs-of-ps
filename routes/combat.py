@@ -3,6 +3,7 @@ from flask_login import login_required, current_user
 from flask_babel import _
 from extensions import db, limiter
 from models import User, UserItem, Item, CombatLog, UserLog
+from models.hostess import Hostess
 from services.resource_service import ResourceService
 from models.combat import ActiveIntel
 import random
@@ -81,6 +82,22 @@ def index():
 @login_required
 @limiter.limit("20 per minute")
 def attack(target_id):
+    # Deadlock Prevention: Lock both users in ID order
+    # This prevents deadlocks when two users attack each other simultaneously
+    first_id, second_id = sorted([current_user.id, target_id])
+    
+    u1 = db.session.query(User).filter_by(id=first_id).with_for_update().first()
+    u2 = db.session.query(User).filter_by(id=second_id).with_for_update().first()
+    
+    target = u1 if u1 and u1.id == target_id else u2
+    
+    if not target:
+        abort(404)
+        
+    if target.id == current_user.id:
+        flash(_('لا يمكنك مهاجمة نفسك!'), 'danger')
+        return redirect(url_for('combat.index'))
+
     # Status Check for Attacker
     now = datetime.now(timezone.utc)
     
@@ -118,17 +135,9 @@ def attack(target_id):
             flash(_('انتظر قليلاً قبل الهجوم التالي!'), 'warning')
             return redirect(url_for('combat.index'))
 
-    # Target Fetch with Lock to prevent race conditions
-    target = db.session.execute(
-        select(User).where(User.id == target_id).with_for_update()
-    ).scalar_one_or_none()
-    
-    if not target:
-        abort(404)
-    
-    if target.id == current_user.id:
-        flash(_('لا يمكنك مهاجمة نفسك!'), 'danger')
-        return redirect(url_for('combat.index'))
+    # Target is already fetched and locked at the start of the function
+    # to prevent deadlocks.
+
         
     if current_user.health < 10:
         flash(_('صحتك منخفضة جداً للقتال!'), 'danger')
@@ -205,7 +214,7 @@ def attack(target_id):
                 # Destroy Safe House
                 target.is_safe_house_active = False
                 target.safe_house_until = None
-                db.session.commit()
+                # Removed premature commit to ensure atomicity with combat transaction
                 
                 flash(_('تم تفجير المنزل الآمن بنجاح! الهدف مكشوف الآن.'), 'success')
                 # Proceed to combat
@@ -233,7 +242,7 @@ def attack(target_id):
             return redirect(url_for('combat.index'))
         
     current_user.last_attack = now.replace(tzinfo=None)
-    db.session.commit() # Save timestamp even if combat logic follows
+    # db.session.commit() # Keep transaction open to maintain locks for combat calculation
 
 
     # Check Gang Affiliation & Alliances
@@ -272,9 +281,10 @@ def attack(target_id):
                 return redirect(url_for('combat.index'))
         
             # Deduct Bullets
-            if not ResourceService.modify_resources(current_user.id, {'bullets': -equipped_weapon.item.ammo_needed}, 'combat_ammo_use', auto_commit=False, expected_version=current_user.version):
-                 flash(_('ما معك رصاص كافي لسلاحك!'), 'danger')
-                 return redirect(url_for('combat.index'))
+            # We hold the lock, so expected_version=None
+            if not ResourceService.modify_resources(current_user.id, {'bullets': -equipped_weapon.item.ammo_needed}, 'combat_ammo_use', auto_commit=False, expected_version=None):
+                flash(_('ما معك رصاص كافي لسلاحك!'), 'danger')
+                return redirect(url_for('combat.index'))
     
         mult = 1.0
         if equipped_weapon.condition is not None and equipped_weapon.condition < 100:
@@ -357,7 +367,8 @@ def attack(target_id):
     # Determine Winner
     if attacker_total > defender_total:
         # Win
-        damage = int(attacker_total - defender_total)
+        damage_reduction_mult = 0.5
+        damage = int((attacker_total - defender_total) * damage_reduction_mult)
         
         steal_percent = 0.2 if is_war else 0.1
         money_stolen = int(target.money * steal_percent) # Steal 10% or 20% in war
@@ -365,10 +376,16 @@ def attack(target_id):
         loot_msg = ""
         if not current_app.config.get('TESTING', False):
             if random.random() < 0.3:
-                bullets_looted = random.randint(5, 20)
-                # Atomic Update via ResourceService
-                ResourceService.modify_resources(current_user.id, {'bullets': bullets_looted}, 'combat_loot_bullets', auto_commit=False, expected_version=current_user.version)
-                loot_msg = _(' ووجدت في جيوبه %(bullets)s رصاصة!', bullets=bullets_looted)
+                # Loot bullets from target (Steal, not generate)
+                available_bullets = target.bullets
+                if available_bullets > 0:
+                    bullets_looted = min(available_bullets, random.randint(5, 20))
+                    
+                    # Atomic Transfer
+                    if ResourceService.modify_resources(target.id, {'bullets': -bullets_looted}, f'combat_loot_loss_{current_user.id}', auto_commit=False):
+                        # We hold the lock on current_user, so we don't need expected_version check
+                        ResourceService.modify_resources(current_user.id, {'bullets': bullets_looted}, 'combat_loot_win', auto_commit=False, expected_version=None)
+                        loot_msg = _(' ووجدت في جيوبه %(bullets)s رصاصة!', bullets=bullets_looted)
 
         exp_gain = 100 if is_war else 50
         
@@ -388,12 +405,15 @@ def attack(target_id):
         if real_stolen > 0:
             attacker_changes['money'] = real_stolen
             
-        ResourceService.modify_resources(current_user.id, attacker_changes, 'combat_win', auto_commit=False, expected_version=current_user.version)
+        ResourceService.modify_resources(current_user.id, attacker_changes, 'combat_win', auto_commit=False, expected_version=None)
 
         current_user.add_rank_points(5 if is_war else 3)
         
         if current_user.check_level_up():
-            flash(_('مبروك! وصلت للمستوى %(level)s!', level=current_user.level), 'success')
+            ref_url = url_for('main.register', ref=current_user.referral_code, _external=True)
+            share_text = _("أصبحت زعيم مستوى %(level)s في عصابات فلسطين! هل تجرؤ على تحديي؟ %(url)s", level=current_user.level, url=ref_url)
+            wa_link = f"https://wa.me/?text={share_text}"
+            flash(_('مبروك! وصلت للمستوى %(level)s! <a href="%(url)s" target="_blank" class="btn btn-sm btn-success ml-2"><i class="fab fa-whatsapp"></i> شارك</a>', level=current_user.level, url=wa_link), 'success')
         
         # Damage target health
         damage_val = max(5, int(damage / 10))
@@ -417,7 +437,8 @@ def attack(target_id):
 
             # --- CLAIM BOUNTY ---
             from models import Bounty
-            bounties = Bounty.query.filter_by(target_id=target.id).all()
+            # Lock bounties to prevent race conditions
+            bounties = Bounty.query.filter_by(target_id=target.id).with_for_update().all()
             if bounties:
                 total_bounty = 0
                 for bounty in bounties:
@@ -425,10 +446,9 @@ def attack(target_id):
                     db.session.delete(bounty)
                 
                 # Atomic Update for Bounty
-                ResourceService.modify_resources(current_user.id, {'money': total_bounty}, 'combat_bounty_claim', auto_commit=False, expected_version=current_user.version)
+                ResourceService.modify_resources(current_user.id, {'money': total_bounty}, 'combat_bounty_claim', auto_commit=False, expected_version=None)
 
-                db.session.commit() # Commit bounty claim immediately or let the final commit handle it? 
-                # Better to let final commit handle it, but we deleted bounties.
+                # Commit handled at end of transaction
                 
                 current_user.add_rank_points(10)
                 flash(_('مبروك! لقد قبضت على مكافآت بقيمة %(amount)s$ كانت على رأس هذا اللاعب!', amount=total_bounty), 'success')
@@ -437,18 +457,62 @@ def attack(target_id):
             # If attacker is high rank and no war exists, start war
             if current_user.gang_id and target.gang_id and not is_war:
                 from models.social import Gang
-                attacker_gang = db.session.get(Gang, current_user.gang_id)
                 
-                # High rank criteria: Leader, Underboss, or Level 50+
-                is_high_rank = (current_user.id == attacker_gang.leader_id) or \
-                               (current_user.id == attacker_gang.underboss_id) or \
-                               (current_user.level >= 50)
+                # Lock both gangs to prevent race conditions (Sorted by ID)
+                g1_id, g2_id = sorted([current_user.gang_id, target.gang_id])
+                g1 = db.session.query(Gang).filter_by(id=g1_id).with_for_update().first()
+                g2 = db.session.query(Gang).filter_by(id=g2_id).with_for_update().first()
                 
-                if is_high_rank:
-                    new_war = GangWar(gang1_id=current_user.gang_id, gang2_id=target.gang_id)
-                    db.session.add(new_war)
-                    flash(_('بسبب رتبتك العالية، تسبب قتلك لعضو عصابة أخرى بإعلان الحرب رسمياً!'), 'danger')
-                    is_war = True # War starts now
+                if g1 and g2:
+                    attacker_gang = g1 if g1.id == current_user.gang_id else g2
+                    target_gang = g1 if g1.id == target.gang_id else g2
+                    
+                    # Double check war status after locking
+                    existing_war = GangWar.query.filter(
+                        or_(
+                            (GangWar.gang1_id == current_user.gang_id) & (GangWar.gang2_id == target.gang_id),
+                            (GangWar.gang1_id == target.gang_id) & (GangWar.gang2_id == current_user.gang_id)
+                        ),
+                        GangWar.status == 'active'
+                    ).first()
+                    
+                    if existing_war:
+                        is_war = True
+                        war = existing_war
+                    else:
+                        # High rank criteria: Leader, Underboss, or Level 50+
+                        is_high_rank = (current_user.id == attacker_gang.leader_id) or \
+                                       (current_user.id == attacker_gang.underboss_id) or \
+                                       (current_user.level >= 50)
+                        
+                        if is_high_rank:
+                            # --- Fair Play Checks ---
+                            
+                            # 1. Power Balance Check
+                            # Prevent bullying: Attacker level shouldn't be overwhelmingly higher
+                            is_unfair = False
+                            if attacker_gang.level > (target_gang.level * 2 + 5):
+                                is_unfair = True
+                                
+                            # 2. Cooldown Check (No war in last 24h)
+                            recent_war = GangWar.query.filter(
+                                or_(
+                                    (GangWar.gang1_id == current_user.gang_id) & (GangWar.gang2_id == target.gang_id),
+                                    (GangWar.gang1_id == target.gang_id) & (GangWar.gang2_id == current_user.gang_id)
+                                ),
+                                GangWar.end_time > (now - timedelta(days=1))
+                            ).first()
+
+                            if not is_unfair and not recent_war:
+                                new_war = GangWar(gang1_id=current_user.gang_id, gang2_id=target.gang_id)
+                                db.session.add(new_war)
+                                flash(_('لقد تسببت هجمتك في اندلاع حرب عصابات!'), 'danger')
+                                is_war = True
+                                war = new_war
+                            elif is_unfair:
+                                 flash(_('تجنبت اندلاع حرب لأن عصابتك أقوى بكثير من الخصم (نظام اللعب النظيف).'), 'info')
+                            elif recent_war:
+                                 flash(_('لم تندلع حرب جديدة لوجود هدنة مؤقتة بعد الحرب الأخيرة.'), 'info')
         
         # Apply Target Damage & Status
         ResourceService.modify_resources(target.id, target_changes, 'combat_damage', auto_commit=False, set_fields=target_set_fields)
@@ -469,13 +533,35 @@ def attack(target_id):
                 log = GangLog(gang_id=gang.id, user_id=current_user.id, action=log_action)
                 db.session.add(log)
                 
-                # Update War Score
+                # Update War Score (Weighted by Role)
                 if is_war and war:
-                    if war.gang1_id == gang.id:
-                        war.score_gang1 += 1
-                    else:
-                        war.score_gang2 += 1
-                    flash(_('انتصار في حرب العصابات! +1 نقطة'), 'success')
+                    # Lock war row for atomic update
+                    try:
+                        war = db.session.query(GangWar).filter_by(id=war.id).with_for_update().first()
+                    except Exception:
+                        war = None
+                        
+                    if war:
+                        # Determine points based on target role
+                        points = 1
+                        target_gang_role = None
+                        if target_gang:
+                            if target.id == target_gang.leader_id:
+                                points = 5
+                                target_gang_role = _('الزعيم')
+                            elif target.id == target_gang.underboss_id:
+                                points = 3
+                                target_gang_role = _('النائب')
+                            else:
+                                points = 1
+                                target_gang_role = _('عضو')
+                        
+                        if war.gang1_id == gang.id:
+                            war.score_gang1 += points
+                        else:
+                            war.score_gang2 += points
+                        
+                        flash(_('انتصار في حرب العصابات! +%(points)s نقطة (إسقاط %(role)s)', points=points, role=target_gang_role), 'success')
                 
                 # Level up logic
                 if gang.exp >= gang.level * 1000:
@@ -523,9 +609,10 @@ def attack(target_id):
         # Atomic Loss
         if money_lost > 0:
             # Deduct from loser (current_user)
-            if ResourceService.modify_resources(current_user.id, {'money': -money_lost}, 'combat_loss_penalty', auto_commit=False, expected_version=current_user.version):
+            # We hold the lock, so expected_version=None (Using current_user.version here is risky if it was updated by ammo usage earlier in transaction)
+            if ResourceService.modify_resources(current_user.id, {'money': -money_lost}, 'combat_loss_penalty', auto_commit=False, expected_version=None):
                 # Add to winner (target) - no expected_version
-                ResourceService.modify_resources(target.id, {'money': money_lost}, 'combat_win_defense', auto_commit=False)
+                ResourceService.modify_resources(target.id, {'money': money_lost}, 'combat_win_defense', auto_commit=False, expected_version=None)
             else:
                 money_lost = 0 # Could not take money
         

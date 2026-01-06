@@ -114,6 +114,78 @@
     </div>
 </div>
 
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card luxury-card">
+            <div class="card-header luxury-header">
+                <h4 class="mb-0 text-gold"><i class="fas fa-gamepad mr-2"></i> {{ _('إعدادات الترفيه والرهانات') }}</h4>
+            </div>
+            <div class="card-body bg-dark">
+                <form action="{{ url_for('main.update_entertainment_settings') }}" method="POST">
+                    <div class="form-row">
+                        <div class="form-group col-md-3">
+                            <label class="text-white">{{ _('تفعيل قسم الترفيه') }}</label>
+                            <select name="entertainment_enabled" class="form-control form-control-luxury">
+                                <option value="true" {% if entertainment_enabled %}selected{% endif %}>{{ _('مفعل') }}</option>
+                                <option value="false" {% if not entertainment_enabled %}selected{% endif %}>{{ _('معطل') }}</option>
+                            </select>
+                        </div>
+                        <div class="form-group col-md-3">
+                            <label class="text-white">{{ _('تفعيل الرهانات') }}</label>
+                            <select name="betting_enabled" class="form-control form-control-luxury">
+                                <option value="true" {% if betting_enabled %}selected{% endif %}>{{ _('مفعل') }}</option>
+                                <option value="false" {% if not betting_enabled %}selected{% endif %}>{{ _('معطل') }}</option>
+                            </select>
+                        </div>
+                        <div class="form-group col-md-6">
+                            <label class="text-white">{{ _('العملات المسموحة للرهان') }}</label>
+                            <input type="text" name="allowed_currencies" class="form-control form-control-luxury" value="{{ allowed_currencies }}">
+                            <small class="text-muted">{{ _('مثال: money,diamonds') }}</small>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group col-md-4">
+                            <label class="text-white">{{ _('نسبة بيت Azad (%)') }}</label>
+                            <input type="number" min="0" max="100" step="1" name="house_cut_percent" class="form-control form-control-luxury" value="{{ house_cut_percent }}">
+                        </div>
+                        <div class="form-group col-md-4">
+                            <label class="text-white">{{ _('الحد الأدنى للرهان') }}</label>
+                            <input type="number" min="0" step="1" name="betting_min_stake" class="form-control form-control-luxury" value="{{ betting_min_stake }}">
+                        </div>
+                        <div class="form-group col-md-4">
+                            <label class="text-white">{{ _('الحد الأقصى للرهان') }}</label>
+                            <input type="number" min="0" step="1" name="betting_max_stake" class="form-control form-control-luxury" value="{{ betting_max_stake }}">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group col-md-4">
+                            <label class="text-white">{{ _('تفعيل الشطرنج') }}</label>
+                            <select name="game_chess_enabled" class="form-control form-control-luxury">
+                                <option value="true" {% if game_chess_enabled %}selected{% endif %}>{{ _('مفعل') }}</option>
+                                <option value="false" {% if not game_chess_enabled %}selected{% endif %}>{{ _('معطل') }}</option>
+                            </select>
+                        </div>
+                        <div class="form-group col-md-4">
+                            <label class="text-white">{{ _('تفعيل التريكس') }}</label>
+                            <select name="game_trix_enabled" class="form-control form-control-luxury">
+                                <option value="true" {% if game_trix_enabled %}selected{% endif %}>{{ _('مفعل') }}</option>
+                                <option value="false" {% if not game_trix_enabled %}selected{% endif %}>{{ _('معطل') }}</option>
+                            </select>
+                        </div>
+                        <div class="form-group col-md-4">
+                            <label class="text-white">{{ _('تفعيل الطرنيب') }}</label>
+                            <select name="game_tarneeb_enabled" class="form-control form-control-luxury">
+                                <option value="true" {% if game_tarneeb_enabled %}selected{% endif %}>{{ _('مفعل') }}</option>
+                                <option value="false" {% if not game_tarneeb_enabled %}selected{% endif %}>{{ _('معطل') }}</option>
+                            </select>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-warning font-weight-bold"><i class="fas fa-save"></i> {{ _('حفظ الإعدادات') }}</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
     <!-- Quick Actions -->
     <div class="row mb-4">
         <div class="col-12">
@@ -165,8 +237,17 @@
                         <a href="{{ url_for('main.dev_economy_sinks') }}" class="btn btn-outline-danger m-2">
                             <i class="fas fa-file-invoice-dollar mr-2"></i> {{ _('سجلات الاقتصاد') }}
                         </a>
+                        <form action="{{ url_for('main.run_migrations') }}" method="POST" class="d-inline m-2">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                            <button type="submit" class="btn btn-outline-success font-weight-bold shadow" onclick="return confirm('{{ _('هل أنت متأكد من تحديث قاعدة البيانات؟') }}')">
+                                <i class="fas fa-database"></i> {{ _('تحديث قاعدة البيانات') }}
+                            </button>
+                        </form>
                         <button type="button" class="btn btn-outline-danger m-2" data-toggle="modal" data-target="#maintenanceModal">
                             <i class="fas fa-tools mr-2"></i> {{ _('وضع الصيانة') }}
+                        </button>
+                        <button type="button" class="btn btn-outline-warning m-2" data-toggle="modal" data-target="#occupationModal">
+                            <i class="fas fa-hand-paper mr-2"></i> {{ _('إدارة الاحتلال') }}
                         </button>
                         <form action="{{ url_for('main.generate_test_users') }}" method="POST" class="d-inline m-2">
                             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
@@ -428,26 +509,21 @@
 </div>
 
 <!-- Maintenance Modal -->
-<div class="modal fade" id="maintenanceModal" tabindex="-1" role="dialog" aria-labelledby="maintenanceModalLabel" aria-hidden="true">
+<div class="modal fade" id="maintenanceModal" tabindex="-1" role="dialog" aria-hidden="true">
     <div class="modal-dialog" role="document">
-        <div class="modal-content luxury-card border-gold">
+        <div class="modal-content bg-dark text-light border-gold">
             <div class="modal-header border-gold">
-                <h5 class="modal-title text-gold" id="maintenanceModalLabel">{{ _('وضع الصيانة') }}</h5>
+                <h5 class="modal-title text-gold">{{ _('إعدادات وضع الصيانة') }}</h5>
                 <button type="button" class="close text-light" data-dismiss="modal" aria-label="Close">
                     <span aria-hidden="true">&times;</span>
                 </button>
             </div>
             <form action="{{ url_for('main.dev_maintenance_mode') }}" method="POST">
-                <div class="modal-body bg-dark">
-                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-                    
-                    <div class="form-group">
-                        <label class="text-white">{{ _('الحالة') }}</label>
-                        <div class="custom-control custom-switch">
-                            <input type="checkbox" class="custom-control-input" id="maintenanceSwitch" name="mode" value="on" 
-                                   {% if maintenance_mode %}checked{% endif %}>
-                            <label class="custom-control-label text-white" for="maintenanceSwitch">{{ _('تفعيل وضع الصيانة') }}</label>
-                        </div>
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                <div class="modal-body">
+                    <div class="custom-control custom-switch">
+                        <input type="checkbox" class="custom-control-input" id="maintenanceSwitch" name="mode" value="on" {% if maintenance_mode %}checked{% endif %}>
+                        <label class="custom-control-label text-white" for="maintenanceSwitch">{{ _('تفعيل وضع الصيانة') }}</label>
                     </div>
                     
                     <div class="form-group mt-3">
@@ -464,6 +540,58 @@
                     <button type="submit" class="btn btn-warning">{{ _('حفظ التغييرات') }}</button>
                 </div>
             </form>
+        </div>
+    </div>
+</div>
+
+<!-- Occupation Modal -->
+<div class="modal fade" id="occupationModal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content bg-dark text-light border-gold">
+            <div class="modal-header border-gold">
+                <h5 class="modal-title text-gold"><i class="fas fa-hand-paper"></i> {{ _('إعدادات الاحتلال والأمن') }}</h5>
+                <button type="button" class="close text-light" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <h6 class="text-warning mb-3">{{ _('مستوى التوتر الأمني والحواجز') }}</h6>
+                <form action="{{ url_for('main.update_occupation_settings') }}" method="POST">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                    <div class="form-group">
+                        <label class="text-white">{{ _('حالة الحواجز (Checkpoints Level)') }}</label>
+                        <select name="occupation_alert_level" class="form-control bg-dark text-light border-gold">
+                            <option value="1" {% if occupation_alert_level == 1 %}selected{% endif %}>🟢 {{ _('عادي (Normal) - 15%% حواجز') }}</option>
+                            <option value="2" {% if occupation_alert_level == 2 %}selected{% endif %}>🟡 {{ _('توتر (Tense) - 40%% حواجز') }}</option>
+                            <option value="3" {% if occupation_alert_level == 3 %}selected{% endif %}>🔴 {{ _('إغلاق شامل (Closure) - 80%% حواجز') }}</option>
+                        </select>
+                    </div>
+                    <button type="submit" class="btn btn-warning btn-block mb-3">{{ _('تحديث الحالة الأمنية') }}</button>
+                </form>
+
+                <hr class="border-secondary">
+                
+                <h6 class="text-danger mb-3">{{ _('حملات الشرطة (Police Campaigns)') }}</h6>
+                <form action="{{ url_for('main.toggle_mashtoub_campaign') }}" method="POST">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                    <div class="d-flex justify-content-between align-items-center bg-secondary p-3 rounded">
+                        <div>
+                            <h6 class="mb-0">{{ _('حملة المشطوب') }}</h6>
+                            <small class="text-light">{{ _('مصادرة السيارات الرخيصة (أقل من 30k) بنسبة 50%%.') }}</small>
+                        </div>
+                        <div class="custom-control custom-switch">
+                            <input type="hidden" name="active" value="{{ 'false' if mashtoub_campaign_active else 'true' }}">
+                            <button type="submit" class="btn btn-sm {% if mashtoub_campaign_active %}btn-danger{% else %}btn-outline-light{% endif %}">
+                                {% if mashtoub_campaign_active %}
+                                    {{ _('إيقاف الحملة') }}
+                                {% else %}
+                                    {{ _('تفعيل الحملة') }}
+                                {% endif %}
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
         </div>
     </div>
 </div>

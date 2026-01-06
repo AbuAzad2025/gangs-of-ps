@@ -6,7 +6,7 @@
         "description": "زهرة المدائن، وكعك القدس الزاكي.",
         "specialty": "exp_bonus",
         "specialty_value": 10,
-        "image": "jerusalem.jpg"
+        "image": "locations/jerusalem.jpg"
     },
     {
         "name": "غزة", 
@@ -15,7 +15,7 @@
         "description": "أحلى سمك وفلفل شطة، وجو بحر ما بزهق.",
         "specialty": "defense_bonus",
         "specialty_value": 10,
-        "image": "gaza.jpg"
+        "image": "locations/gaza.jpg"
     },
     {
         "name": "نابلس", 
@@ -24,7 +24,7 @@
         "description": "عاصمة الكنافة النابلسية والصابون البلدي.",
         "specialty": "health_regen",
         "specialty_value": 5,
-        "image": "nablus.jpg"
+        "image": "locations/nablus.jpg"
     },
     {
         "name": "الخليل", 
@@ -33,7 +33,7 @@
         "description": "بلد العنب والقدرة الخليلية، ويا هلا بالضيف.",
         "specialty": "income_bonus",
         "specialty_value": 10,
-        "image": "hebron.jpg"
+        "image": "locations/hebron.jpg"
     },
     {
         "name": "رام الله", 
@@ -42,7 +42,7 @@
         "description": "بوظة ركب والسهرة للصبح، مدينة الحياة.",
         "specialty": "jail_reduction",
         "specialty_value": 10,
-        "image": "ramallah.jpg"
+        "image": "locations/ramallah.jpg"
     },
     {
         "name": "جنين", 
@@ -51,7 +51,7 @@
         "description": "عروس مرج ابن عامر، وسلة خضار فلسطين.",
         "specialty": "attack_bonus",
         "specialty_value": 5,
-        "image": "jenin.jpg"
+        "image": "locations/jenin.jpg"
     },
     {
         "name": "أريحا", 
@@ -60,7 +60,7 @@
         "description": "مدينة القمر والموز، والمشتى الدافي.",
         "specialty": "energy_regen",
         "specialty_value": 10,
-        "image": "jericho.jpg"
+        "image": "locations/jericho.jpg"
     },
     {
         "name": "بيت لحم", 
@@ -69,7 +69,7 @@
         "description": "مدينة السلام، وزينة الميلاد.",
         "specialty": "luck_bonus",
         "specialty_value": 5,
-        "image": "bethlehem.jpg"
+        "image": "locations/bethlehem.jpg"
     },
     {
         "name": "طولكرم", 
@@ -78,6 +78,6 @@
         "description": "بلد الأفراح والمسخن الكرمي الأصلي.",
         "specialty": "training_bonus",
         "specialty_value": 5,
-        "image": "tulkarm.jpg"
+        "image": "locations/tulkarm.jpg"
     }
 ]

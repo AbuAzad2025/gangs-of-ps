@@ -2297,6 +2297,155 @@ h1, h2, h3, h4, h5, h6, .brand-text-custom, .luxury-title {
     font-size: 2rem;
     padding: 20px 60px;
 }
+
+/* ==========================================================================
+   Responsive Design & Mobile Optimization
+   ========================================================================== */
+
+/* Tablet & Mobile (Below 992px) */
+@media (max-width: 991.98px) {
+    .content-wrapper {
+        margin-right: 0 !important;
+    }
+    
+    .main-sidebar {
+        box-shadow: 0 0 15px rgba(0,0,0,0.5);
+    }
+    
+    .content-header h1 {
+        font-size: 1.5rem;
+    }
+    
+    .luxury-header-gold {
+        padding: 1rem !important;
+        flex-direction: column;
+        text-align: center;
+    }
+    
+    .luxury-header-gold .breadcrumb {
+        margin-top: 0.5rem;
+        float: none !important;
+        justify-content: center;
+    }
+
+    /* Improve table scrolling on tablets */
+    .table-responsive {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+}
+
+/* Mobile (Below 768px) */
+@media (max-width: 767.98px) {
+    body {
+        font-size: 0.9rem;
+    }
+
+    /* Adjust Layout */
+    .container-fluid {
+        padding-left: 0.5rem;
+        padding-right: 0.5rem;
+    }
+
+    /* Cards */
+    .card-header {
+        padding: 0.75rem 1rem;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+    }
+
+    .card-tools {
+        margin-top: 0.5rem;
+        float: none !important;
+    }
+    
+    .card-title {
+        font-size: 1.1rem;
+        float: none !important;
+    }
+
+    /* Buttons */
+    .btn {
+        width: 100%;
+        margin-bottom: 0.5rem;
+        display: block;
+    }
+    
+    .btn-group {
+        display: flex;
+        flex-direction: column;
+        width: 100%;
+    }
+    
+    .btn-group .btn {
+        border-radius: 0.25rem !important;
+        margin-bottom: 0.25rem;
+    }
+
+    /* Navbar */
+    .navbar-nav .nav-link {
+        padding-right: 0.5rem;
+        padding-left: 0.5rem;
+    }
+
+    /* Luxury specific adjustments */
+    .luxury-box {
+        padding: 1rem;
+    }
+
+    /* Forms */
+    .form-control {
+        font-size: 16px; /* Prevents zoom on iOS */
+    }
+
+    /* Login/Register specific */
+    .login-box, .register-box {
+        width: 95%;
+        margin-top: 2rem;
+    }
+    
+    /* Intro Page Adjustments */
+    .intro-h1 { font-size: 1.5rem; }
+    .intro-h2-white, .intro-h2-gold { font-size: 2rem; }
+    .intro-title-large { font-size: 2.5rem; }
+    .typing-text-style { font-size: 1.5rem; }
+    .intro-icon-large { font-size: 4rem; }
+    .btn-enter-game {
+        font-size: 1.2rem;
+        padding: 15px 30px;
+        width: 100%;
+    }
+}
+
+/* Small Mobile (Below 576px) */
+@media (max-width: 575.98px) {
+    .modal-footer {
+        flex-direction: column;
+    }
+    
+    .modal-footer > * {
+        margin: 0.25rem 0;
+        width: 100%;
+    }
+
+    /* Specific adjustments for game stats/hud if needed */
+    .info-box {
+        flex-direction: column;
+        text-align: center;
+    }
+    
+    .info-box-icon {
+        width: 100%;
+        height: 60px;
+        border-radius: 0.25rem 0.25rem 0 0;
+    }
+    
+    .info-box-content {
+        padding: 10px;
+    }
+}
 .btn-skip-intro {
     position: absolute;
     bottom: 30px;
@@ -4836,4 +4985,39 @@ h1, h2, h3, h4, h5, h6, .brand-text-custom, .luxury-title {
     align-items: center;
     justify-content: center;
     background: rgba(0, 0, 0, 0.35);
+}
+
+/* --- Sidebar Scroll Fixes --- */
+.layout-fixed .main-sidebar {
+    position: fixed !important;
+    height: 100vh !important;
+    overflow: hidden !important;
+    bottom: 0 !important;
+}
+
+.sidebar {
+    height: calc(100vh - 60px) !important; /* Adjust for brand logo height */
+    overflow-y: auto !important;
+    scrollbar-width: thin;
+    scrollbar-color: var(--gold-secondary) var(--bg-dark);
+}
+
+/* Webkit Scrollbar Styling for Sidebar */
+.sidebar::-webkit-scrollbar {
+    width: 6px;
+}
+.sidebar::-webkit-scrollbar-track {
+    background: var(--bg-dark);
+}
+.sidebar::-webkit-scrollbar-thumb {
+    background: var(--gold-secondary);
+    border-radius: 3px;
+}
+.sidebar::-webkit-scrollbar-thumb:hover {
+    background: var(--gold-primary);
+}
+
+/* Ensure bottom items are reachable */
+.nav-sidebar {
+    padding-bottom: 80px;
 }

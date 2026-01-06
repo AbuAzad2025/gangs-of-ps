@@ -12,7 +12,7 @@
     "money_reward_max": 10000,
     "exp_reward": 200,
     "min_gang_level": 1,
-    "image": "crimes/bank_heist.jpg",
+    "image": "crimes/bank_heist.svg",
     "roles_config": [
       {"name": "سائق محترف", "description": "الهروب تحت الضغط واللفّ بين الحواجز", "icon": "fas fa-car", "min_stats": {"agility": 20}},
       {"name": "خبير متفجرات", "description": "فتح الخزنة بسرعة بدون ضجة", "icon": "fas fa-bomb", "min_stats": {"intelligence": 18}},
@@ -50,7 +50,7 @@
     "money_reward_max": 20000,
     "exp_reward": 400,
     "min_gang_level": 2,
-    "image": "crimes/car_theft.jpg",
+    "image": "crimes/car_theft.svg",
     "roles_config": [
       {"name": "سائق", "description": "يطير بالشاحنة أول ما تفتح", "icon": "fas fa-car-side", "min_stats": {"agility": 26}},
       {"name": "قناص", "description": "يراقب الدورية ويعطي إشارات", "icon": "fas fa-crosshairs", "min_stats": {"intelligence": 16}},
@@ -84,7 +84,7 @@
     "money_reward_max": 100000,
     "exp_reward": 1000,
     "min_gang_level": 3,
-    "image": "crimes/atm.jpg",
+    "image": "crimes/atm.svg",
     "roles_config": [
       {"name": "هكر", "description": "يعطل الكاميرات والسستم", "icon": "fas fa-laptop-code", "min_stats": {"intelligence": 30}},
       {"name": "متسلل", "description": "يدخل ويطلع بدون ما حدا ينتبه", "icon": "fas fa-user-ninja", "min_stats": {"agility": 28}},
@@ -118,7 +118,7 @@
     "money_reward_max": 35000,
     "exp_reward": 650,
     "min_gang_level": 2,
-    "image": "crimes/cyber.jpg",
+    "image": "crimes/cyber.svg",
     "roles_config": [
       {"name": "هكر رئيسي", "description": "يكسر الجدار الناري بسرعة", "icon": "fas fa-terminal", "min_stats": {"intelligence": 26}},
       {"name": "هكر دعم", "description": "يغطي ويمنع التتبع", "icon": "fas fa-network-wired", "min_stats": {"intelligence": 20}},
@@ -148,7 +148,7 @@
     "money_reward_max": 52000,
     "exp_reward": 850,
     "min_gang_level": 3,
-    "image": "crimes/arms_deal.jpg",
+    "image": "crimes/arms_deal.svg",
     "roles_config": [
       {"name": "مقتحم", "description": "يكسر الباب ويمهد", "icon": "fas fa-hammer", "min_stats": {"strength": 26}},
       {"name": "تغطية", "description": "تثبيت نار وحماية الجنب", "icon": "fas fa-shield-alt", "min_stats": {"defense": 22}},
@@ -179,7 +179,7 @@
     "money_reward_max": 45000,
     "exp_reward": 720,
     "min_gang_level": 2,
-    "image": "crimes/smuggling.jpg",
+    "image": "crimes/smuggling.svg",
     "roles_config": [
       {"name": "سائق", "description": "يتجنب الحواجز ويتصرف بسرعة", "icon": "fas fa-truck", "min_stats": {"agility": 20}},
       {"name": "مراقب", "description": "يقرأ الطريق ويبلغ عن دوريات", "icon": "fas fa-binoculars", "min_stats": {"intelligence": 18}},
@@ -205,7 +205,7 @@
     "money_reward_max": 16000,
     "exp_reward": 600,
     "min_gang_level": 2,
-    "image": "crimes/boss.jpg",
+    "image": "crimes/boss.svg",
     "roles_config": [
       {"name": "قائد تفاوض", "description": "يبرد الأعصاب ويختار اللحظة", "icon": "fas fa-comments", "min_stats": {"intelligence": 18}},
       {"name": "متسلل", "description": "يفتح طريق الدخول", "icon": "fas fa-user-ninja", "min_stats": {"agility": 22}},
@@ -231,7 +231,7 @@
     "money_reward_max": 60000,
     "exp_reward": 900,
     "min_gang_level": 3,
-    "image": "crimes/extortion.jpg",
+    "image": "crimes/extortion.svg",
     "roles_config": [
       {"name": "قناص", "description": "اختيار زاوية مثالية", "icon": "fas fa-crosshairs", "min_stats": {"intelligence": 24}},
       {"name": "مموّه", "description": "يمهد طريق الهروب", "icon": "fas fa-mask", "min_stats": {"agility": 22}}
@@ -256,7 +256,7 @@
     "money_reward_max": 14000,
     "exp_reward": 320,
     "min_gang_level": 1,
-    "image": "crimes/phone.jpg",
+    "image": "crimes/phone.svg",
     "roles_config": [
       {"name": "طابعة", "description": "تجهيز النسخ والورق", "icon": "fas fa-print", "min_stats": {"intelligence": 16}},
       {"name": "موزّع", "description": "تسليم سريع بدون ما ينكشف", "icon": "fas fa-route", "min_stats": {"agility": 18}}

@@ -33,9 +33,8 @@
                 {% for location in locations %}
                 <div class="flight-row row align-items-center py-2 border-bottom border-dark">
                     <div class="col-md-4 col-12 d-flex align-items-center">
-                        {% set raw_image = location.image if location.image else 'default_city.jpg' %}
-                        {% set image_file = raw_image.split('/')[-1].split('\\\\')[-1] %}
-                        <img src="{{ url_for('static', filename='locations/' + image_file) }}" 
+                        {% set image_path = location.image if location.image else 'locations/default_city.jpg' %}
+                        <img src="{{ url_for('static', filename=image_path) }}" 
                              alt="{{ _(location.name) }}" 
                              class="img-thumbnail mr-3 location-thumbnail">
                         <div>

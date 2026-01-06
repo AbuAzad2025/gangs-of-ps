@@ -1,6 +1,6 @@
 from flask import Blueprint, render_template, redirect, url_for, flash, request, abort
 from flask_login import login_required, current_user
-from extensions import db
+from extensions import db, limiter
 from models import ForumCategory, ForumTopic, ForumPost, UserRank
 from forms.forum import CreateTopicForm, ReplyForm
 from flask_babel import _
@@ -9,13 +9,12 @@ from datetime import datetime, timezone
 bp = Blueprint('forum', __name__, url_prefix='/forum')
 
 @bp.route('/')
-@login_required
+@limiter.limit("30 per minute")
 def index():
     categories = ForumCategory.query.order_by(ForumCategory.order).all()
     return render_template('forum/index.html', categories=categories, ForumTopic=ForumTopic)
 
 @bp.route('/category/<int:id>')
-@login_required
 def category(id):
     category = ForumCategory.query.get_or_404(id)
     
@@ -33,7 +32,7 @@ def category(id):
     return render_template('forum/category.html', category=category, topics=topics)
 
 @bp.route('/topic/<int:id>', methods=['GET', 'POST'])
-@login_required
+@limiter.limit("30 per minute")
 def topic(id):
     topic = db.session.get(ForumTopic, id)
     if not topic:
@@ -41,8 +40,22 @@ def topic(id):
     topic.views += 1
     db.session.commit()
     
+    # SEO
+    seo_manager.set(
+        title=topic.title,
+        description=topic.posts[0].content[:160] if topic.posts else topic.title,
+        keywords=f"forum, topic, {topic.title}"
+    )
+    seo_manager.add_breadcrumb(_("المنتدى"), url_for('forum.index'))
+    seo_manager.add_breadcrumb(topic.category.name, url_for('forum.category', id=topic.category_id))
+    seo_manager.add_breadcrumb(topic.title, url_for('forum.topic', id=id))
+    
     form = ReplyForm()
+    
     if form.validate_on_submit():
+        if not current_user.is_authenticated:
+             return redirect(url_for('main.login', next=request.url))
+             
         if topic.is_locked:
             flash(_('هذا الموضوع مغلق ولا يمكن الرد عليه.'), 'danger')
         else:

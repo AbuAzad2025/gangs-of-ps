@@ -23,6 +23,9 @@ class Gang(db.Model):
     recruitment_status = db.Column(db.String(20), default='open') # open, invite_only, closed
     allowed_countries = db.Column(db.String(255), nullable=True) # Comma separated ISO codes
 
+    # Upgrades: JSON storing { "upgrade_id": level }
+    upgrades = db.Column(db.Text, default='{}')
+
     last_organized_crime_at = db.Column(db.DateTime, nullable=True)
 
     created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
@@ -32,6 +35,7 @@ class Gang(db.Model):
     leader = db.relationship('User', foreign_keys=[leader_id], backref='leader_of_gang')
     invites = db.relationship('GangInvite', backref='gang', lazy=True, cascade='all, delete-orphan')
     logs = db.relationship('GangLog', backref='gang', lazy=True, cascade='all, delete-orphan')
+    # Inventory backref is defined in GangItem
 
     def __repr__(self):
         return f'<Gang {self.name}>'
@@ -84,6 +88,10 @@ class Message(db.Model):
     timestamp = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
     delivery_time = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc)) # For delayed messages
     
+    __table_args__ = (
+        db.Index('idx_message_receiver_read', 'receiver_id', 'is_read'),
+    )
+    
     def __repr__(self):
         return f'<Message {self.subject}>'
 
@@ -93,21 +101,46 @@ class GangAlliance(db.Model):
     gang2_id = db.Column(db.Integer, db.ForeignKey('gang.id'), nullable=False)
     status = db.Column(db.String(20), default='pending') # pending, active
     created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
-
+    
     gang1 = db.relationship('Gang', foreign_keys=[gang1_id], backref='alliances_initiated')
     gang2 = db.relationship('Gang', foreign_keys=[gang2_id], backref='alliances_received')
 
+class GangItem(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    gang_id = db.Column(db.Integer, db.ForeignKey('gang.id'), nullable=False)
+    item_id = db.Column(db.Integer, db.ForeignKey('item.id'), nullable=False)
+    quantity = db.Column(db.Integer, default=0)
+    
+    gang = db.relationship('Gang', backref='inventory')
+    item = db.relationship('Item')
+
 class Notification(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False, index=True)
-    title = db.Column(db.String(100), nullable=False)
-    message = db.Column(db.Text, nullable=False)
-    is_read = db.Column(db.Boolean, default=False, index=True)
-    type = db.Column(db.String(50), default='info') # info, success, warning, danger
-    link = db.Column(db.String(255), nullable=True) # Optional link to redirect to
-    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), index=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    title = db.Column(db.String(100), nullable=True)
+    message = db.Column(db.Text, nullable=True)
+    link = db.Column(db.String(255))
+    is_read = db.Column(db.Boolean, default=False)
+    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
 
     user = db.relationship('User', backref=db.backref('notifications', lazy='dynamic'))
 
-    def __repr__(self):
-        return f'<Notification {self.title}>'
+class PublicChat(db.Model):
+    __tablename__ = 'public_chat'
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    message = db.Column(db.String(500), nullable=False)
+    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
+    
+    user = db.relationship('User', backref='public_chats')
+    
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'user_id': self.user_id,
+            'username': self.user.username if self.user else 'Unknown',
+            'avatar': self.user.avatar if self.user else 'default.png',
+            'message': self.message,
+            'created_at': self.created_at.strftime('%H:%M'),
+            'is_banned': self.user.is_chat_banned if self.user else False
+        }

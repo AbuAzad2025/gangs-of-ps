@@ -1,11 +1,12 @@
 from flask import Blueprint, render_template, redirect, url_for, flash, request, current_app, abort
 from flask_login import login_required, current_user
 from flask_babel import _
-from extensions import db
-from models.social import Gang, GangInvite, GangLog, GangWar, GangAlliance
+from extensions import db, limiter
+from models.social import Gang, GangInvite, GangLog, GangWar, GangAlliance, GangItem
 from models.gameplay import OrganizedCrime, CrimeLobby, LobbyParticipant
 from models.user import User, UserRole
 from models.economy import Asset
+from models.item import UserItem, Item
 from models.system import SystemConfig
 from werkzeug.utils import secure_filename
 from datetime import datetime, timedelta, timezone
@@ -32,12 +33,19 @@ def invites():
 
 @bp.route('/accept_invite/<int:invite_id>', methods=['GET', 'POST'])
 @login_required
+@limiter.limit("10 per minute")
 def accept_invite(invite_id):
     if request.method == 'GET' and not current_app.config.get('TESTING', False):
         abort(405)
-    invite = db.session.get(GangInvite, invite_id)
+        
+    # Lock current user first (Global Lock Order: User -> Gang)
+    db.session.query(User).filter_by(id=current_user.id).with_for_update().first()
+    
+    # Lock invite
+    invite = db.session.query(GangInvite).filter_by(id=invite_id).with_for_update().first()
     if not invite:
         abort(404)
+        
     if invite.user_id != current_user.id:
         flash(_('هذه الدعوة ليست لك!'), 'danger')
         return redirect(url_for('gang.invites'))
@@ -46,7 +54,12 @@ def accept_invite(invite_id):
         flash(_('أنت بالفعل عضو في عصابة!'), 'danger')
         return redirect(url_for('gang.invites'))
         
-    gang = db.session.get(Gang, invite.gang_id)
+    # Lock Gang
+    gang = db.session.query(Gang).filter_by(id=invite.gang_id).with_for_update().first()
+    if not gang:
+        flash(_('العصابة لم تعد موجودة!'), 'danger')
+        return redirect(url_for('gang.invites'))
+
     members_count = User.query.filter_by(gang_id=gang.id).count()
     if members_count >= gang.max_members:
         flash(_('العصابة ممتلئة!'), 'danger')
@@ -64,6 +77,7 @@ def accept_invite(invite_id):
 
 @bp.route('/reject_invite/<int:invite_id>', methods=['POST'])
 @login_required
+@limiter.limit("10 per minute")
 def reject_invite(invite_id):
     invite = db.session.get(GangInvite, invite_id)
     if not invite:
@@ -80,13 +94,24 @@ def reject_invite(invite_id):
 
 @bp.route('/leave', methods=['GET', 'POST'])
 @login_required
+@limiter.limit("5 per hour")
 def leave():
     if request.method == 'GET' and not current_app.config.get('TESTING', False):
         abort(405)
+    
+    # Lock User First
+    db.session.query(User).filter_by(id=current_user.id).with_for_update().first()
+    
     if not current_user.gang_id:
         return redirect(url_for('gang.index'))
     
-    gang = db.session.get(Gang, current_user.gang_id)
+    # Lock Gang
+    gang = db.session.query(Gang).filter_by(id=current_user.gang_id).with_for_update().first()
+    if not gang:
+        # Gang might be deleted, just clear user's gang_id
+        current_user.gang_id = None
+        db.session.commit()
+        return redirect(url_for('gang.index'))
     
     if current_user.id == gang.leader_id:
         flash(_('لا يمكنك مغادرة العصابة وأنت الزعيم! يجب عليك نقل الزعامة أو حل العصابة.'), 'danger')
@@ -103,6 +128,7 @@ def leave():
 
 @bp.route('/create', methods=['GET', 'POST'])
 @login_required
+@limiter.limit("5 per hour")
 def create():
     if current_user.gang_id:
         flash(_('أنت بالفعل عضو في عصابة!'), 'warning')
@@ -158,7 +184,10 @@ def create():
             
         # Atomic deduction via ResourceService
         if cost > 0:
-            if not ResourceService.modify_resources(current_user.id, {'money': -cost}, 'gang_creation', auto_commit=False, expected_version=current_user.version):
+            # Lock user to prevent race conditions
+            db.session.query(User).filter_by(id=current_user.id).with_for_update().first()
+            if not ResourceService.modify_resources(current_user.id, {'money': -cost}, 'gang_creation', auto_commit=False, expected_version=None):
+                 db.session.rollback()
                  flash(_('لا تملك كاش كافي لإنشاء عصابة!'), 'danger')
                  return redirect(url_for('gang.create'))
 
@@ -169,11 +198,11 @@ def create():
         new_gang.recruitment_status = request.form.get('recruitment_status', 'open')
         
         db.session.add(new_gang)
-        db.session.commit()
+        db.session.flush() # Flush to get ID, but keep transaction open
         
         # Add user to gang
         current_user.gang_id = new_gang.id
-        db.session.commit()
+        db.session.commit() # Final commit
         
         flash(_('تم إنشاء العصابة بنجاح!'), 'success')
         return redirect(url_for('gang.dashboard'))
@@ -182,7 +211,11 @@ def create():
 
 @bp.route('/request_join/<int:gang_id>', methods=['POST'])
 @login_required
+@limiter.limit("5 per hour")
 def request_join(gang_id):
+    # Lock user
+    db.session.query(User).filter_by(id=current_user.id).with_for_update().first()
+
     is_admin = current_user.role.value >= UserRole.ADMIN.value
     
     # Status Check
@@ -219,6 +252,9 @@ def request_join(gang_id):
     gang = db.session.get(Gang, gang_id)
     if not gang:
         abort(404)
+
+    # Lock Gang to prevent race condition on member count
+    db.session.query(Gang).filter_by(id=gang.id).with_for_update().first()
     
     # Check policies
     if gang.recruitment_status == 'closed':
@@ -257,6 +293,7 @@ def request_join(gang_id):
 
 @bp.route('/kick_member/<int:user_id>', methods=['POST'])
 @login_required
+@limiter.limit("20 per minute")
 def kick_member(user_id):
     # Status Check
     now = datetime.now(timezone.utc)
@@ -294,7 +331,8 @@ def kick_member(user_id):
         flash(_('ليس لديك صلاحية لطرد الأعضاء.'), 'danger')
         return redirect(url_for('gang.dashboard'))
         
-    member_to_kick = db.session.get(User, user_id)
+    # Lock Member to kick first (User -> Gang)
+    member_to_kick = db.session.query(User).filter_by(id=user_id).with_for_update().first()
     if not member_to_kick:
         abort(404)
     
@@ -309,6 +347,9 @@ def kick_member(user_id):
     if member_to_kick.id == gang.underboss_id and current_user.id != gang.leader_id and not is_admin:
          flash(_('لا يمكنك طرد النائب!'), 'danger')
          return redirect(url_for('gang.dashboard'))
+
+    # Lock Gang to prevent race conditions on money/exp
+    db.session.query(Gang).filter_by(id=gang.id).with_for_update().first()
 
     # Consequences
     penalty_cost = int(SystemConfig.get_value('gang_kick_penalty', 50000))
@@ -332,7 +373,7 @@ def kick_member(user_id):
 
     # Atomic update for member money (Refund/Severance) via ResourceService
     refund_amount = int(penalty_cost * 0.5)
-    ResourceService.modify_resources(member_to_kick.id, {'money': refund_amount}, 'gang_kick_severance', auto_commit=False)
+    ResourceService.modify_resources(member_to_kick.id, {'money': refund_amount}, 'gang_kick_severance', auto_commit=False, expected_version=None)
 
     member_to_kick.gang_id = None
     
@@ -369,15 +410,37 @@ def dashboard():
         GangWar.status == 'active'
     ).all()
     
-    return render_template('gang/dashboard.html', title=gang.name, gang=gang, members=members, assets=assets, logs=logs, is_leader=is_leader, is_underboss=is_underboss, active_wars=active_wars)
+    # Load Upgrades Data
+    import json
+    upgrades_data = []
+    try:
+        from utils.essentials import load_json_seed
+        upgrades_data = load_json_seed('gang_upgrades.json')
+    except Exception as e:
+        current_app.logger.error(f"Error loading gang upgrades: {e}")
+        
+    current_upgrades = {}
+    if getattr(gang, 'upgrades', None):
+        try:
+            current_upgrades = json.loads(gang.upgrades)
+        except:
+            current_upgrades = {}
+
+    gang_items = GangItem.query.filter_by(gang_id=gang.id).all()
+    user_items = UserItem.query.filter_by(user_id=current_user.id).filter(UserItem.quantity > 0).all()
+    
+    return render_template('gang/dashboard.html', title=gang.name, gang=gang, members=members, assets=assets, logs=logs, is_leader=is_leader, is_underboss=is_underboss, active_wars=active_wars, upgrades_data=upgrades_data, current_upgrades=current_upgrades, gang_items=gang_items, user_items=user_items)
 
 @bp.route('/broadcast_invite_all', methods=['POST'])
 @login_required
+@limiter.limit("1 per hour")
 def broadcast_invite_all():
     if not current_user.gang_id:
         flash(_('لست عضواً في أي عصابة!'), 'danger')
         return redirect(url_for('gang.index'))
-    gang = db.session.get(Gang, current_user.gang_id)
+    
+    # Lock Gang for atomic deduction
+    gang = db.session.query(Gang).filter_by(id=current_user.gang_id).with_for_update().first()
     if not gang:
         flash(_('العصابة غير موجودة.'), 'danger')
         return redirect(url_for('gang.index'))
@@ -386,6 +449,13 @@ def broadcast_invite_all():
     if current_user.id != gang.leader_id and current_user.id != getattr(gang, "underboss_id", None) and not is_admin:
         flash(_('فقط القيادة يمكنها إرسال دعوات عامة!'), 'danger')
         return redirect(url_for('gang.dashboard'))
+    
+    cost = 50000
+    if gang.money < cost:
+        flash(_('لا يوجد رصيد كافي في خزينة العصابة! التكلفة: %(cost)s$', cost=cost), 'danger')
+        return redirect(url_for('gang.dashboard'))
+        
+    gang.money -= cost
         
     recipients = User.query.filter(User.id != current_user.id, User.gang_id.is_(None)).all()
     join_link = url_for('gang.view', gang_id=gang.id)
@@ -402,7 +472,7 @@ def broadcast_invite_all():
             sent += 1
         except Exception:
             continue
-    log = GangLog(gang_id=gang.id, user_id=current_user.id, action=_('أرسل دعوة عامة للانضمام للعصابة'))
+    log = GangLog(gang_id=gang.id, user_id=current_user.id, action=_('أرسل دعوة عامة (تكلفة %(cost)s$)', cost=cost))
     db.session.add(log)
     db.session.commit()
     if sent > 0:
@@ -412,24 +482,40 @@ def broadcast_invite_all():
     return redirect(url_for('gang.dashboard'))
 
 @bp.route('/view/<int:gang_id>')
-@login_required
+@limiter.limit("20 per minute")
 def view(gang_id):
     gang = db.session.get(Gang, gang_id)
     if not gang:
         abort(404)
     members_count = User.query.filter_by(gang_id=gang.id).count()
-    return render_template('gang/view.html', title=gang.name, gang=gang, members_count=members_count)
+    
+    meta_description = _("تفاصيل عصابة %(name)s. المستوى: %(level)s, الأعضاء: %(count)s. انضم الآن وسيطر!", name=gang.name, level=gang.level, count=members_count)
+    
+    return render_template('gang/view.html', title=gang.name, gang=gang, members_count=members_count,
+                           meta_description=meta_description)
 
 @bp.route('/declare_war/<int:target_gang_id>', methods=['POST'])
 @login_required
+@limiter.limit("5 per hour")
 def declare_war(target_gang_id):
     if not current_user.gang_id:
         return redirect(url_for('gang.index'))
     
-    my_gang = db.session.get(Gang, current_user.gang_id)
-    target_gang = db.session.get(Gang, target_gang_id)
-    if not target_gang:
+    # Lock current user
+    db.session.query(User).filter_by(id=current_user.id).with_for_update().first()
+
+    # Sort Gang IDs to prevent deadlock
+    g1_id, g2_id = sorted([current_user.gang_id, target_gang_id])
+    
+    # Lock Gangs in order
+    g1 = db.session.query(Gang).filter_by(id=g1_id).with_for_update().first()
+    g2 = db.session.query(Gang).filter_by(id=g2_id).with_for_update().first()
+    
+    if not g1 or not g2:
         abort(404)
+        
+    my_gang = g1 if g1.id == current_user.gang_id else g2
+    target_gang = g2 if g1.id == current_user.gang_id else g1
     
     is_admin = current_user.role.value >= UserRole.ADMIN.value
     if current_user.id != my_gang.leader_id and not is_admin:
@@ -449,6 +535,37 @@ def declare_war(target_gang_id):
         flash(_('أنتم بالفعل في حرب مع هذه العصابة!'), 'warning')
         return redirect(url_for('gang.dashboard'))
         
+    # Check Alliance
+    alliance = GangAlliance.query.filter(
+        ((GangAlliance.gang1_id == my_gang.id) & (GangAlliance.gang2_id == target_gang.id)) |
+        ((GangAlliance.gang1_id == target_gang.id) & (GangAlliance.gang2_id == my_gang.id)),
+        GangAlliance.status == 'active'
+    ).first()
+    
+    if alliance:
+         flash(_('لا يمكنك إعلان الحرب على حليف! بينكما معاهدة سلام.'), 'warning')
+         return redirect(url_for('gang.view', gang_id=target_gang_id))
+        
+    # Fair Play Checks
+    # 1. Power Balance
+    if my_gang.level > (target_gang.level * 2 + 5):
+        flash(_('عصابتك قوية جداً مقارنة بالخصم! لا يمكن إعلان الحرب (نظام اللعب النظيف).'), 'warning')
+        return redirect(url_for('gang.view', gang_id=target_gang_id))
+        
+    # 2. Cooldown (24h)
+    now = datetime.now(timezone.utc)
+    recent_war = GangWar.query.filter(
+        or_(
+            (GangWar.gang1_id == my_gang.id) & (GangWar.gang2_id == target_gang.id),
+            (GangWar.gang1_id == target_gang.id) & (GangWar.gang2_id == my_gang.id)
+        ),
+        GangWar.end_time > (now - timedelta(days=1))
+    ).first()
+    
+    if recent_war:
+        flash(_('لا يمكن إعلان الحرب الآن! توجد هدنة مؤقتة (24 ساعة) بعد الحرب الأخيرة.'), 'warning')
+        return redirect(url_for('gang.view', gang_id=target_gang_id))
+        
     new_war = GangWar(gang1_id=my_gang.id, gang2_id=target_gang.id)
     db.session.add(new_war)
     db.session.commit()
@@ -458,6 +575,89 @@ def declare_war(target_gang_id):
     db.session.commit()
     
     flash(_('تم إعلان الحرب على %(name)s!', name=target_gang.name), 'success')
+    return redirect(url_for('gang.dashboard'))
+
+@bp.route('/surrender_war/<int:war_id>', methods=['POST'])
+@login_required
+def surrender_war(war_id):
+    if not current_user.gang_id:
+        return redirect(url_for('gang.index'))
+    
+    # Lock User
+    db.session.query(User).filter_by(id=current_user.id).with_for_update().first()
+    
+    # Lock War
+    war = db.session.query(GangWar).filter_by(id=war_id).with_for_update().first()
+    
+    if not war or war.status != 'active':
+        flash(_('هذه الحرب غير نشطة أو غير موجودة.'), 'danger')
+        return redirect(url_for('gang.dashboard'))
+    
+    # Identify Gangs
+    g1_id = war.gang1_id
+    g2_id = war.gang2_id
+    
+    # Lock Gangs in order
+    ids = sorted([g1_id, g2_id])
+    g_map = {}
+    for gid in ids:
+        g = db.session.query(Gang).filter_by(id=gid).with_for_update().first()
+        if g:
+            g_map[gid] = g
+            
+    if current_user.gang_id not in g_map:
+         flash(_('عصابتك ليست طرفاً في هذه الحرب!'), 'danger')
+         return redirect(url_for('gang.dashboard'))
+         
+    gang = g_map[current_user.gang_id]
+        
+    if war.gang1_id != gang.id and war.gang2_id != gang.id:
+        flash(_('عصابتك ليست طرفاً في هذه الحرب!'), 'danger')
+        return redirect(url_for('gang.dashboard'))
+        
+    # Permission Check
+    is_admin = current_user.role.value >= UserRole.ADMIN.value
+    if current_user.id != gang.leader_id and current_user.id != gang.underboss_id and not is_admin:
+         flash(_('فقط القيادة يمكنها الاستسلام!'), 'danger')
+         return redirect(url_for('gang.dashboard'))
+
+    # Identify Opponent
+    opponent_id = war.gang2_id if war.gang1_id == gang.id else war.gang1_id
+    # We already locked opponent gang
+    opponent_gang = g_map.get(opponent_id)
+    if not opponent_gang:
+         # Should not happen if foreign keys are correct
+         abort(404)
+    
+    # Reparations (20% of gang money)
+    reparation_amount = int(gang.money * 0.20)
+    
+    # Atomic Deduction (We already locked gang, so simple update is fine)
+    if gang.money < reparation_amount:
+        reparation_amount = gang.money
+        gang.money = 0
+    else:
+        gang.money -= reparation_amount
+        
+    # Add to Winner
+    if reparation_amount > 0:
+        opponent_gang.money += reparation_amount
+        
+    # Update War
+    war.status = 'ended'
+    war.winner_id = opponent_id
+    war.end_time = datetime.now(timezone.utc)
+    
+    # Logs
+    log_loser = GangLog(gang_id=gang.id, user_id=current_user.id, action=_('استسلم في الحرب ضد %(opp)s ودفع تعويضات %(amount)s$', opp=opponent_gang.name, amount=reparation_amount))
+    log_winner = GangLog(gang_id=opponent_id, action=_('انتصر في الحرب بعد استسلام %(loser)s وحصل على تعويضات %(amount)s$', loser=gang.name, amount=reparation_amount))
+    
+    db.session.add(log_loser)
+    db.session.add(log_winner)
+    
+    db.session.commit()
+    
+    flash(_('تم الاستسلام ودفع التعويضات. انتهت الحرب.'), 'warning')
     return redirect(url_for('gang.dashboard'))
 
 @bp.route('/donate', methods=['POST'])
@@ -536,7 +736,11 @@ def withdraw():
     if not current_user.gang_id:
         return redirect(url_for('gang.index'))
         
-    gang = db.session.get(Gang, current_user.gang_id)
+    # Lock User First (User -> Gang)
+    db.session.query(User).filter_by(id=current_user.id).with_for_update().first()
+        
+    # Lock Gang
+    gang = db.session.query(Gang).filter_by(id=current_user.gang_id).with_for_update().first()
     
     is_admin = current_user.role.value >= UserRole.ADMIN.value
     if current_user.id != gang.leader_id and not is_admin:
@@ -548,16 +752,19 @@ def withdraw():
         return redirect(url_for('gang.dashboard'))
         
     # Atomic deduction
-    g_rows = Gang.query.filter(Gang.id == gang.id, Gang.money >= amount).update({
-        Gang.money: Gang.money - amount
-    }, synchronize_session=False)
+    # Since we locked Gang, we can just update it safely, but keeping atomic update query is fine too.
+    gang.money -= amount
     
-    if g_rows == 0:
-        flash(_('لا يوجد مال كافٍ في الخزينة!'), 'danger')
-        return redirect(url_for('gang.dashboard'))
-
-    # Atomic addition
-    if not ResourceService.modify_resources(current_user.id, {'money': amount}, 'gang_withdraw', auto_commit=False, expected_version=current_user.version):
+    # Atomic addition to user
+    # We already locked user, so ResourceService is safe, or we can just update directly if ResourceService supports existing lock context (it usually does new transaction or just update).
+    # ResourceService handles logging too? No, mostly just update.
+    # But ResourceService.modify_resources uses a new transaction or nested? 
+    # ResourceService code isn't fully visible but usually it does `User.query.get` and updates.
+    # If we already locked, ResourceService might block if it tries to lock again in a new transaction?
+    # SQLAlchemy `with_for_update` is within the same session/transaction.
+    # If ResourceService uses the SAME session, it's fine.
+    
+    if not ResourceService.modify_resources(current_user.id, {'money': amount}, 'gang_withdraw', auto_commit=False, expected_version=None):
         db.session.rollback()
         flash(_('حدث خطأ أثناء سحب الأموال.'), 'danger')
         return redirect(url_for('gang.dashboard'))
@@ -584,6 +791,7 @@ def organized_crimes():
 
 @bp.route('/do_organized_crime/<int:crime_id>', methods=['POST'])
 @login_required
+@limiter.limit("3 per minute")
 def do_organized_crime(crime_id):
     if not current_user.gang_id:
         return redirect(url_for('gang.index'))
@@ -635,7 +843,10 @@ def do_organized_crime(crime_id):
     # Deduct leader energy immediately to prevent spam
     # Atomic deduction for leader energy
     if not is_admin:
-        if not ResourceService.modify_resources(current_user.id, {'energy': -crime.energy_cost}, 'organized_crime_energy_cost', auto_commit=False, expected_version=current_user.version):
+        # Lock user to prevent race conditions
+        db.session.query(User).filter_by(id=current_user.id).with_for_update().first()
+        if not ResourceService.modify_resources(current_user.id, {'energy': -crime.energy_cost}, 'organized_crime_energy_cost', auto_commit=False, expected_version=None):
+            db.session.rollback()
             flash(_('لا تملك طاقة كافية لبدء العملية.'), 'danger')
             return redirect(url_for('gang.organized_crimes'))
     
@@ -706,7 +917,11 @@ def upgrade():
     if not current_user.gang_id:
         return redirect(url_for('gang.index'))
         
-    gang = db.session.get(Gang, current_user.gang_id)
+    # Lock Gang to ensure atomic upgrades
+    gang = db.session.query(Gang).filter_by(id=current_user.gang_id).with_for_update().first()
+    if not gang:
+        return redirect(url_for('gang.index'))
+
     is_admin = current_user.role.value >= UserRole.ADMIN.value
     
     if current_user.id != gang.leader_id and not is_admin:
@@ -857,6 +1072,27 @@ def request_alliance(target_gang_id):
         flash(_('يوجد طلب أو تحالف مسبق بينكما.'), 'warning')
         return redirect(url_for('gang.index'))
         
+    # Check Alliance Limit (Fair Play)
+    MAX_ALLIANCES = 3
+    
+    my_active_count = GangAlliance.query.filter(
+        ((GangAlliance.gang1_id == my_gang.id) | (GangAlliance.gang2_id == my_gang.id)),
+        GangAlliance.status == 'active'
+    ).count()
+    
+    if my_active_count >= MAX_ALLIANCES:
+        flash(_('لقد وصلت عصابتك للحد الأقصى من التحالفات (%(max)s).', max=MAX_ALLIANCES), 'warning')
+        return redirect(url_for('gang.index'))
+        
+    target_active_count = GangAlliance.query.filter(
+        ((GangAlliance.gang1_id == target_gang.id) | (GangAlliance.gang2_id == target_gang.id)),
+        GangAlliance.status == 'active'
+    ).count()
+    
+    if target_active_count >= MAX_ALLIANCES:
+         flash(_('العصابة المستهدفة وصلت للحد الأقصى من التحالفات.', max=MAX_ALLIANCES), 'warning')
+         return redirect(url_for('gang.index'))
+
     alliance = GangAlliance(gang1_id=my_gang.id, gang2_id=target_gang.id, status='pending')
     db.session.add(alliance)
     
@@ -970,11 +1206,12 @@ def disband():
 def transfer_leadership():
     if not current_user.gang_id:
         return redirect(url_for('gang.index'))
-        
-    gang = db.session.get(Gang, current_user.gang_id)
+    
+    # Lock Gang Row
+    gang = db.session.query(Gang).filter_by(id=current_user.gang_id).with_for_update().first()
     if not gang:
         return redirect(url_for('gang.index'))
-        
+    
     is_admin = current_user.role.value >= UserRole.ADMIN.value
     if current_user.id != gang.leader_id and not is_admin:
         flash(_('فقط الزعيم يمكنه نقل القيادة!'), 'danger')
@@ -1008,4 +1245,168 @@ def transfer_leadership():
     db.session.commit()
     
     flash(_('تم نقل زعامة العصابة إلى %(user)s بنجاح.', user=new_leader.username), 'success')
+    return redirect(url_for('gang.dashboard'))
+
+@bp.route('/donate_item', methods=['POST'])
+@login_required
+def donate_item():
+    if not current_user.gang_id:
+        return redirect(url_for('gang.index'))
+    
+    item_id = request.form.get('item_id', type=int)
+    quantity = request.form.get('quantity', type=int)
+    
+    if not item_id or not quantity or quantity <= 0:
+        flash(_('بيانات غير صحيحة.'), 'danger')
+        return redirect(url_for('gang.dashboard'))
+        
+    user_item = UserItem.query.filter_by(user_id=current_user.id, item_id=item_id).first()
+    if not user_item or user_item.quantity < quantity:
+        flash(_('لا تملك هذه الكمية!'), 'danger')
+        return redirect(url_for('gang.dashboard'))
+        
+    # Deduct from user
+    user_item.quantity -= quantity
+    if user_item.quantity == 0:
+        db.session.delete(user_item)
+        
+    # Add to gang
+    gang_item = GangItem.query.filter_by(gang_id=current_user.gang_id, item_id=item_id).first()
+    if gang_item:
+        gang_item.quantity += quantity
+    else:
+        gang_item = GangItem(gang_id=current_user.gang_id, item_id=item_id, quantity=quantity)
+        db.session.add(gang_item)
+        
+    # Log
+    item_name = user_item.item.name
+    log = GangLog(gang_id=current_user.gang_id, user_id=current_user.id, action=_('تبرع بـ %(qty)s x %(item)s للعصابة', qty=quantity, item=item_name))
+    db.session.add(log)
+    
+    db.session.commit()
+    flash(_('تم التبرع بنجاح!'), 'success')
+    return redirect(url_for('gang.dashboard'))
+
+@bp.route('/distribute_item', methods=['POST'])
+@login_required
+def distribute_item():
+    if not current_user.gang_id:
+        return redirect(url_for('gang.index'))
+        
+    gang = db.session.get(Gang, current_user.gang_id)
+    is_leader = (current_user.id == gang.leader_id)
+    is_underboss = (current_user.id == getattr(gang, 'underboss_id', None))
+    is_admin = current_user.role.value >= UserRole.ADMIN.value
+    
+    if not is_leader and not is_underboss and not is_admin:
+        flash(_('فقط القيادة يمكنها توزيع العتاد!'), 'danger')
+        return redirect(url_for('gang.dashboard'))
+        
+    item_id = request.form.get('item_id', type=int)
+    target_user_id = request.form.get('target_user_id', type=int)
+    quantity = request.form.get('quantity', type=int)
+    
+    if not item_id or not target_user_id or not quantity or quantity <= 0:
+        flash(_('بيانات غير صحيحة.'), 'danger')
+        return redirect(url_for('gang.dashboard'))
+        
+    # Check if target is in gang
+    target_user = db.session.get(User, target_user_id)
+    if not target_user or target_user.gang_id != gang.id:
+        flash(_('العضو غير موجود في العصابة!'), 'danger')
+        return redirect(url_for('gang.dashboard'))
+        
+    gang_item = GangItem.query.filter_by(gang_id=gang.id, item_id=item_id).first()
+    
+    # Atomic Deduction from gang
+    rows = GangItem.query.filter(
+        GangItem.gang_id == gang.id,
+        GangItem.item_id == item_id,
+        GangItem.quantity >= quantity
+    ).update({
+        GangItem.quantity: GangItem.quantity - quantity
+    }, synchronize_session=False)
+
+    if rows == 0:
+        flash(_('لا يوجد كمية كافية في مخزون العصابة!'), 'danger')
+        return redirect(url_for('gang.dashboard'))
+        
+    # Cleanup zero quantity
+    GangItem.query.filter(GangItem.gang_id == gang.id, GangItem.item_id == item_id, GangItem.quantity == 0).delete(synchronize_session=False)
+        
+    # Add to user
+    user_item = UserItem.query.filter_by(user_id=target_user.id, item_id=item_id).first()
+    if user_item:
+        user_item.quantity += quantity
+    else:
+        user_item = UserItem(user_id=target_user.id, item_id=item_id, quantity=quantity)
+        db.session.add(user_item)
+        
+    # Log
+    item = db.session.get(Item, item_id)
+    item_name = item.name if item else "Unknown"
+    log = GangLog(gang_id=gang.id, user_id=current_user.id, action=_('أعطى %(qty)s x %(item)s للعضو %(user)s', qty=quantity, item=item_name, user=target_user.username))
+    db.session.add(log)
+    
+    db.session.commit()
+    flash(_('تم توزيع العتاد بنجاح!'), 'success')
+    return redirect(url_for('gang.dashboard'))
+
+@bp.route('/distribute_money', methods=['POST'])
+@login_required
+def distribute_money():
+    if not current_user.gang_id:
+        return redirect(url_for('gang.index'))
+        
+    gang = db.session.get(Gang, current_user.gang_id)
+    is_leader = (current_user.id == gang.leader_id)
+    is_underboss = (current_user.id == getattr(gang, 'underboss_id', None))
+    is_admin = current_user.role.value >= UserRole.ADMIN.value
+    
+    if not is_leader and not is_underboss and not is_admin:
+        flash(_('فقط القيادة يمكنها توزيع الأموال!'), 'danger')
+        return redirect(url_for('gang.dashboard'))
+        
+    target_user_id = request.form.get('target_user_id', type=int)
+    amount = request.form.get('amount', type=int)
+    
+    if not target_user_id or not amount or amount <= 0:
+        flash(_('بيانات غير صحيحة.'), 'danger')
+        return redirect(url_for('gang.dashboard'))
+        
+    # Check if target is in gang
+    target_user = db.session.get(User, target_user_id)
+    if not target_user or target_user.gang_id != gang.id:
+        flash(_('العضو غير موجود في العصابة!'), 'danger')
+        return redirect(url_for('gang.dashboard'))
+        
+    if gang.money < amount:
+        flash(_('لا يوجد مال كافٍ في الخزينة!'), 'danger')
+        return redirect(url_for('gang.dashboard'))
+        
+    # Atomic Deduction from Gang
+    rows = Gang.query.filter(Gang.id == gang.id, Gang.money >= amount).update({
+        Gang.money: Gang.money - amount
+    }, synchronize_session=False)
+    
+    if rows == 0:
+        flash(_('لا يوجد مال كافٍ في الخزينة!'), 'danger')
+        return redirect(url_for('gang.dashboard'))
+        
+    # Atomic Addition to User
+    if not ResourceService.modify_resources(target_user.id, {'money': amount}, 'gang_distribution', auto_commit=False, expected_version=target_user.version):
+        # Rollback gang deduction if user update fails
+        Gang.query.filter(Gang.id == gang.id).update({
+            Gang.money: Gang.money + amount
+        }, synchronize_session=False)
+        db.session.commit()
+        flash(_('حدث خطأ أثناء تحويل الأموال.'), 'danger')
+        return redirect(url_for('gang.dashboard'))
+        
+    # Log
+    log = GangLog(gang_id=gang.id, user_id=current_user.id, action=_('حول %(amount)s$ للعضو %(user)s', amount=amount, user=target_user.username))
+    db.session.add(log)
+    
+    db.session.commit()
+    flash(_('تم تحويل %(amount)s$ للعضو %(user)s بنجاح!', amount=amount, user=target_user.username), 'success')
     return redirect(url_for('gang.dashboard'))

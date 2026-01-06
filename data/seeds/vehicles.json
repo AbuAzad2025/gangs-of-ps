@@ -1,7 +1,7 @@
 [
-    {"name": "سوبارو إمبريزا (مشطوبة)", "type": "mushtuba", "description": "صاروخ أرضي بس دير بالك من الشرطة", "price": 5000, "speed": 80, "defense": 20, "risk": 60},
-    {"name": "جولف 2 (مشطوبة)", "type": "mushtuba", "description": "كلاسيك وقوية، صوتها برعب الحارة", "price": 3000, "speed": 60, "defense": 30, "risk": 50},
-    {"name": "سكودا أوكتافيا (نمرة صفراء)", "type": "legal_il", "description": "فخامة وأمان، بتفوت وين ما بدك", "price": 50000, "speed": 70, "defense": 50, "risk": 0},
-    {"name": "مازدا 3 (نمرة صفراء)", "type": "legal_il", "description": "اقتصادية وسريعة، وضعك لوز", "price": 40000, "speed": 65, "defense": 40, "risk": 0},
-    {"name": "هيونداي أكسنت (نمرة فلسطينية)", "type": "legal_pal", "description": "سيارة الشعب، قطعها رخيصة", "price": 20000, "speed": 50, "defense": 30, "risk": 0}
+    {"name": "سوبارو إمبريزا (مشطوبة)", "type": "mushtuba", "description": "صاروخ أرضي بس دير بالك من الشرطة", "price": 5000, "speed": 80, "defense": 20, "risk": 60, "image": "vehicles/subaru_impreza.jpg"},
+    {"name": "جولف 2 (مشطوبة)", "type": "mushtuba", "description": "كلاسيك وقوية، صوتها برعب الحارة", "price": 3000, "speed": 60, "defense": 30, "risk": 50, "image": "vehicles/golf_2.jpg"},
+    {"name": "سكودا أوكتافيا (نمرة صفراء)", "type": "legal_il", "description": "فخامة وأمان، بتفوت وين ما بدك", "price": 50000, "speed": 70, "defense": 50, "risk": 0, "image": "vehicles/skoda_octavia.jpg"},
+    {"name": "مازدا 3 (نمرة صفراء)", "type": "legal_il", "description": "اقتصادية وسريعة، وضعك لوز", "price": 40000, "speed": 65, "defense": 40, "risk": 0, "image": "vehicles/mazda_3.jpg"},
+    {"name": "هيونداي أكسنت (نمرة فلسطينية)", "type": "legal_pal", "description": "سيارة الشعب، قطعها رخيصة", "price": 20000, "speed": 50, "defense": 30, "risk": 0, "image": "vehicles/hyundai_accent.jpg"}
 ]

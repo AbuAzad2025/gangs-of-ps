@@ -1,7 +1,10 @@
 <div class="card luxury-card h-100">
     <div class="card-body">
         <div class="d-flex justify-content-between align-items-start mb-2">
-            <h5 class="text-gold font-weight-bold">{{ asset.symbol }}</h5>
+            <div class="d-flex align-items-center">
+                <img src="{{ url_for('static', filename=asset.image_path) }}" alt="{{ asset.symbol }}" class="mr-2 rounded-circle" style="width: 32px; height: 32px;">
+                <h5 class="text-gold font-weight-bold mb-0">{{ asset.symbol }}</h5>
+            </div>
             <span class="badge {{ 'badge-success' if asset.price_change_24h >= 0 else 'badge-danger' }}">
                 {{ "{:+.2f}".format(asset.price_change_24h) }}%
             </span>

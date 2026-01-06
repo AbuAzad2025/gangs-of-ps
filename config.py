@@ -6,7 +6,7 @@ load_dotenv()
 basedir = os.path.abspath(os.path.dirname(__file__))
 
 class Config:
-    SECRET_KEY = os.environ.get('SECRET_KEY') or 'ya-khal-m3lesh-hada-sirri-jiddan'
+    SECRET_KEY = os.environ.get('SECRET_KEY') or os.urandom(24).hex() # Secure fallback if not set
     
     # Database Configuration - PostgreSQL Only
     # Default to local PostgreSQL if DATABASE_URL is not set
@@ -19,11 +19,21 @@ class Config:
         
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     FLASK_ADMIN_SWATCH = 'cerulean'
+    
+    # SQLAlchemy Engine Options to avoid connection exhaustion
+    SQLALCHEMY_ENGINE_OPTIONS = {
+        'pool_size': int(os.environ.get('DB_POOL_SIZE', 5)),
+        'max_overflow': int(os.environ.get('DB_MAX_OVERFLOW', 10)),
+        'pool_recycle': int(os.environ.get('DB_POOL_RECYCLE', 1800)),  # seconds
+        'pool_pre_ping': True,
+        'pool_timeout': int(os.environ.get('DB_POOL_TIMEOUT', 30)),
+    }
 
     RATELIMIT_STORAGE_URI = os.environ.get('RATELIMIT_STORAGE_URI') or 'memory://'
     
     # Security Configuration
     SESSION_COOKIE_HTTPONLY = True
+    SESSION_COOKIE_SECURE = os.environ.get('SESSION_COOKIE_SECURE', 'False').lower() == 'true'
     SESSION_COOKIE_SAMESITE = 'Lax'
     PERMANENT_SESSION_LIFETIME = 3600 # 1 hour
     MAX_CONTENT_LENGTH = 16 * 1024 * 1024 # 16MB max upload

@@ -159,12 +159,35 @@
                                 {{ form.password.label(class="form-label text-gold") }}
                                 <div class="input-group">
                                     <span class="input-group-text bg-dark border-secondary text-gold"><i class="fas fa-lock"></i></span>
-                                    {{ form.password(class="form-control form-control-luxury", placeholder=_("كلمة المرور")) }}
+                                    {{ form.password(class="form-control form-control-luxury", placeholder=_("كلمة المرور"), id="password") }}
+                                    <button class="btn btn-outline-secondary bg-dark border-secondary text-gold" type="button" id="togglePassword" style="border-left: none;">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
                                 </div>
                                 {% for error in form.password.errors %}
                                     <span class="text-danger small mt-1 d-block">{{ error }}</span>
                                 {% endfor %}
                             </div>
+                            
+                            {% if show_captcha %}
+                            <div class="mb-4 fade-in-up">
+                                <label class="form-label text-gold">{{ _('رمز التحقق البشري') }}</label>
+                                <div class="d-flex flex-column align-items-center mb-2">
+                                    <img src="{{ url_for('main.captcha_image') }}" alt="Captcha" class="img-fluid rounded border border-warning mb-2 max-h-80" id="captchaImage">
+                                    <button type="button" class="btn btn-sm btn-outline-light" onclick="document.getElementById('captchaImage').src='{{ url_for('main.captcha_image') }}?' + Math.random();">
+                                        <i class="fas fa-sync-alt"></i> {{ _('تغيير الرمز') }}
+                                    </button>
+                                </div>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-dark border-secondary text-gold"><i class="fas fa-shield-alt"></i></span>
+                                    {{ form.captcha(class="form-control form-control-luxury", placeholder=_("اكتب الرمز الظاهر في الصورة")) }}
+                                </div>
+                                {% for error in form.captcha.errors %}
+                                    <span class="text-danger small mt-1 d-block">{{ error }}</span>
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+
                             <div class="mb-4 form-check">
                                 {{ form.remember_me(class="form-check-input") }}
                                 {{ form.remember_me.label(class="form-check-label text-light") }}
@@ -191,6 +214,12 @@
                                 {{ _('هذه لعبة للتسلية فقط. المحتوى خيالي ولا يجوز تطبيقه في الحياة الواقعية حتى لا تقع تحت طائلة القانون أو المساءلة. العب بمسؤولية.') }}
                             </div>
                         </div>
+                        <div class="text-center mt-3">
+                            <p class="mb-0 text-light">
+                                {{ _('أو يمكنك') }} 
+                                <a href="{{ url_for('main.index') }}" class="text-gold font-weight-bold">{{ _('استكشاف الموقع كزائر') }}</a>
+                            </p>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -199,6 +228,24 @@
 </div>
 
 <script>
+document.addEventListener('DOMContentLoaded', function() {
+    const togglePassword = document.getElementById('togglePassword');
+    const password = document.getElementById('password');
+
+    if (togglePassword && password) {
+        togglePassword.addEventListener('click', function (e) {
+            // toggle the type attribute
+            const type = password.getAttribute('type') === 'password' ? 'text' : 'password';
+            password.setAttribute('type', type);
+            
+            // toggle the eye icon
+            const icon = this.querySelector('i');
+            icon.classList.toggle('fa-eye');
+            icon.classList.toggle('fa-eye-slash');
+        });
+    }
+});
+
 function copyToClipboard(elementId) {
     var copyText = document.getElementById(elementId);
     copyText.select();

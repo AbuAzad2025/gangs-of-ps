@@ -2,7 +2,7 @@ from extensions import db
 from models.user import User
 from models.log import UserLog
 from models.system import SystemConfig
-from flask import request, flash
+from flask import request, flash, current_app
 from flask_babel import _
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm.exc import StaleDataError
@@ -34,7 +34,7 @@ class ResourceService:
 
             # Optimistic Locking Check
             if expected_version is not None and user.version != expected_version:
-                print(f"Transaction Failed: Version Mismatch (Expected {expected_version}, Got {user.version})")
+                current_app.logger.warning(f"Transaction Failed: Version Mismatch (Expected {expected_version}, Got {user.version})")
                 return False
 
             # Daily Money Limit Check
@@ -80,7 +80,7 @@ class ResourceService:
                         else:
                             user.daily_money_earned += changes['money']
                     except Exception as e:
-                        print(f"Error in daily limit check: {e}")
+                        current_app.logger.error(f"Error in daily limit check: {e}")
 
             before_state = {}
             for res, amount in changes.items():
@@ -104,6 +104,7 @@ class ResourceService:
                     if amount < 0:
                         current_val = getattr(user, res)
                         if current_val + amount < 0:
+                            current_app.logger.warning(f"Transaction Failed: Insufficient funds for {res} (Current: {current_val}, Change: {amount})")
                             return False # Insufficient funds
 
             # 3. Apply Changes
@@ -133,13 +134,27 @@ class ResourceService:
             ip = request.remote_addr if request else '127.0.0.1'
             ua = request.user_agent.string if request else 'System'
             
+            def _make_serializable(d):
+                new_d = {}
+                for k, v in d.items():
+                    if isinstance(v, (datetime, float, int, str, bool, type(None))):
+                        if isinstance(v, datetime):
+                            new_d[k] = v.isoformat()
+                        else:
+                            new_d[k] = v
+                    elif hasattr(v, 'isoformat'): # Date objects
+                        new_d[k] = v.isoformat()
+                    else:
+                        new_d[k] = str(v)
+                return new_d
+
             log = UserLog(
                 user_id=user_id,
                 action=reason.upper(),
                 details=json.dumps(changes),
                 result='success',
-                before_state=before_state,
-                after_state=after_state,
+                before_state=_make_serializable(before_state),
+                after_state=_make_serializable(after_state),
                 ip_address=ip,
                 user_agent=ua
             )
@@ -156,15 +171,15 @@ class ResourceService:
         except StaleDataError:
             db.session.rollback()
             # Optimistic locking failure - data changed concurrently
-            print(f"Transaction Failed: StaleDataError (Concurrent Modification)")
+            current_app.logger.warning(f"Transaction Failed: StaleDataError (Concurrent Modification)")
             return False
 
         except SQLAlchemyError as e:
             db.session.rollback()
             # Log error internally if needed
-            print(f"Transaction Failed: {e}")
+            current_app.logger.error(f"Transaction Failed: {e}")
             return False
         except Exception as e:
             db.session.rollback()
-            print(f"Transaction Error: {e}")
+            current_app.logger.error(f"Transaction Error: {e}")
             return False

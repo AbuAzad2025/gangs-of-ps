@@ -35,3 +35,7 @@ class UserItem(db.Model):
     
     item = db.relationship('Item')
     user = db.relationship('User', backref=db.backref('inventory', lazy='dynamic'))
+
+    __table_args__ = (
+        db.Index('idx_user_item_user_equipped', 'user_id', 'is_equipped'),
+    )

@@ -5,6 +5,8 @@ from models.system import SystemConfig
 from models.facility import UserFacility
 from datetime import datetime, timezone, timedelta
 from sqlalchemy import func
+from flask import current_app
+from services.resource_service import ResourceService
 
 def get_bank_fee_config():
     """Returns fee configuration (thresholds and percentages)."""
@@ -44,7 +46,7 @@ def apply_daily_sinks():
     Applies daily passive sinks (Bank Fees, Maintenance).
     Should be called once per day via scheduler.
     """
-    print("--- Starting Daily Economy Sinks ---")
+    current_app.logger.info("--- Starting Daily Economy Sinks ---")
     
     # 1. Bank Fees
     config = get_bank_fee_config()
@@ -60,26 +62,26 @@ def apply_daily_sinks():
         fee, reason = calculate_bank_fee(user.bank_balance, config)
         if fee > 0:
             try:
-                # Update user balance (ORM object update)
-                user.bank_balance -= fee
-                
-                log = MoneySinkLog(
-                    user=user,
-                    sink_type="bank_fee",
-                    amount=fee,
-                    details=reason
-                )
-                db.session.add(log)
-                
-                total_fees += fee
-                count += 1
+                # Use ResourceService for atomic update and locking
+                if ResourceService.modify_resources(user.id, {'bank_balance': -fee}, 'bank_fee', auto_commit=False, expected_version=None):
+                    log = MoneySinkLog(
+                        user_id=user.id,
+                        sink_type="bank_fee",
+                        amount=fee,
+                        details=reason
+                    )
+                    db.session.add(log)
+                    db.session.commit()
+                    
+                    total_fees += fee
+                    count += 1
             except Exception as e:
-                print(f"Error applying fee for user {user.id}: {e}")
+                current_app.logger.error(f"Error applying fee for user {user.id}: {e}")
                 db.session.rollback()
                 continue
     
-    db.session.commit()
-    print(f"Applied Bank Fees: {total_fees} from {count} users.")
+    # Removed bulk commit as we commit per user now
+    current_app.logger.info(f"Applied Bank Fees: {total_fees} from {count} users.")
     
     # 2. Property Maintenance (Facilities)
     # Facilities: Houses, Warehouses, etc. stored in UserFacility
@@ -102,44 +104,50 @@ def apply_daily_sinks():
             cost = int(base * fac.level * maint_multiplier)
             
             if cost > 0:
-                user = db.session.get(User, fac.user_id)
-                if user and user.money >= cost:
-                     ResourceService.modify_resources(user.id, {'money': -cost}, f"maintenance_{fac.facility_key}", auto_commit=False)
-                     log = MoneySinkLog(
-                        user_id=user.id,
-                        sink_type="maintenance",
-                        amount=cost,
-                        details=f"{fac.facility_key.title()} Lv{fac.level} Maintenance"
-                     )
-                     db.session.add(log)
-                     maint_total += cost
-                     maint_count += 1
-                elif user:
-                    # User cannot pay maintenance!
-                    # Logic: Disable facility or downgrade?
-                    # For now: Just log warning or maybe downgrade level if repeated (future)
-                    # We will just take what they have or 0, and maybe mark facility inactive?
-                    # Let's just skip taking money if 0, but maybe track debt?
-                    # Simple: If cant pay, facility level drops by 1? (Harsh but effective sink)
-                    # Let's be gentle first: Just take what is available up to cost
-                    paid = min(user.money, cost)
-                    if paid > 0:
-                        ResourceService.modify_resources(user.id, {'money': -paid}, f"maintenance_partial_{fac.facility_key}", auto_commit=False)
-                        log = MoneySinkLog(
-                            user_id=user.id,
-                            sink_type="maintenance_partial",
-                            amount=paid,
-                            details=f"{fac.facility_key.title()} Lv{fac.level} Partial"
-                        )
-                        db.session.add(log)
-                        maint_total += paid
-                        maint_count += 1
+                try:
+                    user = db.session.get(User, fac.user_id)
+                    if user and user.money >= cost:
+                         if ResourceService.modify_resources(user.id, {'money': -cost}, f"maintenance_{fac.facility_key}", auto_commit=False, expected_version=None):
+                             log = MoneySinkLog(
+                                user_id=user.id,
+                                sink_type="maintenance",
+                                amount=cost,
+                                details=f"{fac.facility_key.title()} Lv{fac.level} Maintenance"
+                             )
+                             db.session.add(log)
+                             db.session.commit()
+                             maint_total += cost
+                             maint_count += 1
+                    elif user:
+                        # User cannot pay maintenance!
+                        # Logic: Disable facility or downgrade?
+                        # For now: Just log warning or maybe downgrade level if repeated (future)
+                        # We will just take what they have or 0, and maybe mark facility inactive?
+                        # Let's just skip taking money if 0, but maybe track debt?
+                        # Simple: If cant pay, facility level drops by 1? (Harsh but effective sink)
+                        # Let's be gentle first: Just take what is available up to cost
+                        paid = min(user.money, cost)
+                        if paid > 0:
+                            if ResourceService.modify_resources(user.id, {'money': -paid}, f"maintenance_partial_{fac.facility_key}", auto_commit=False, expected_version=None):
+                                log = MoneySinkLog(
+                                    user_id=user.id,
+                                    sink_type="maintenance_partial",
+                                    amount=paid,
+                                    details=f"{fac.facility_key.title()} Lv{fac.level} Partial"
+                                )
+                                db.session.add(log)
+                                db.session.commit()
+                                maint_total += paid
+                                maint_count += 1
+                except Exception as e:
+                    current_app.logger.error(f"Error processing maintenance for facility {fac.id}: {e}")
+                    db.session.rollback()
         
-        db.session.commit()
-        print(f"Applied Maintenance: {maint_total} from {maint_count} facilities.")
+        # Removed bulk commit
+        current_app.logger.info(f"Applied Maintenance: {maint_total} from {maint_count} facilities.")
         
     except Exception as e:
-        print(f"Error applying maintenance: {e}")
+        current_app.logger.error(f"Error applying maintenance: {e}")
         db.session.rollback()
     
     return {
@@ -152,13 +160,13 @@ def create_daily_snapshot():
     """
     Creates a snapshot of the economy for today.
     """
-    print("--- Creating Economy Snapshot ---")
+    current_app.logger.info("--- Creating Economy Snapshot ---")
     today = datetime.now(timezone.utc).date()
     
     # Check if snapshot already exists
     existing = EconomySnapshot.query.filter_by(date=today).first()
     if existing:
-        print(f"Snapshot for {today} already exists. Updating...")
+        current_app.logger.info(f"Snapshot for {today} already exists. Updating...")
         snapshot = existing
     else:
         snapshot = EconomySnapshot(date=today)
@@ -189,7 +197,7 @@ def create_daily_snapshot():
     ).distinct().count()
     
     db.session.commit()
-    print(f"Snapshot Created: Total Wealth={total_wealth}, Top 1%={snapshot.top_1_percent_share:.2f}%")
+    current_app.logger.info(f"Snapshot Created: Total Wealth={total_wealth}, Top 1%={snapshot.top_1_percent_share:.2f}%")
     return snapshot
 
 def adjust_economy_policy():
@@ -225,7 +233,7 @@ def process_daily_economy_checks():
     """
     Master function to run all daily economy tasks.
     """
-    print("\n=== PROCESSING DAILY ECONOMY CHECKS ===")
+    current_app.logger.info("\n=== PROCESSING DAILY ECONOMY CHECKS ===")
     
     # 1. Apply Sinks (Remove money first)
     apply_daily_sinks()
@@ -235,6 +243,6 @@ def process_daily_economy_checks():
     
     # 3. Adjust Policy (React to new state)
     result = adjust_economy_policy()
-    print(result)
+    current_app.logger.info(result)
     
-    print("=== DAILY ECONOMY CHECKS COMPLETE ===\n")
+    current_app.logger.info("=== DAILY ECONOMY CHECKS COMPLETE ===\n")

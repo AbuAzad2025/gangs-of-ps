@@ -1,0 +1,561 @@
+{% extends "base.html" %}
+
+{% block content %}
+<link rel="stylesheet" href="{{ url_for('static', filename='plugins/chess/chessboard.min.css') }}">
+
+<div class="container fade-in">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card bg-dark text-white border-primary shadow-lg">
+                <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                    <div class="d-flex align-items-center">
+                        <h3 class="mb-0 mr-3"><i class="fas fa-chess mr-2"></i> {{ room.name }}</h3>
+                        {% if room.stake_amount > 0 %}
+                            <span class="badge badge-success mr-2">
+                                {% if room.currency_type == 'diamonds' %}💎{% else %}💰{% endif %}
+                                {{ _('الرهان:') }} {{ room.stake_amount }}
+                            </span>
+                            <span class="badge badge-warning">
+                                🏆 {{ _('الجائزة:') }} {{ room.pot_amount }}
+                            </span>
+                        {% endif %}
+                    </div>
+                    <div class="d-flex align-items-center">
+                        {% if player.seat_index == 0 %}
+                        <button class="btn btn-sm btn-success ml-3" onclick="startGame()">{{ _('بدء اللعبة') }}</button>
+                        {% endif %}
+                        <span class="badge badge-light text-dark ml-2">
+                            {{ _('أنت تلعب بـ') }} {{ _('الأبيض') if player.seat_index == 0 else _('الأسود') }}
+                        </span>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-8">
+                            <div id="board" style="width: 100%; min-height: 400px;"></div>
+                            <div id="board-error" class="alert alert-danger d-none mt-2"></div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="card bg-secondary mb-3">
+                                <div class="card-body p-3">
+                                    <h5 class="card-title text-warning">{{ _('حالة اللعبة') }}</h5>
+                                    <div id="status" class="mb-2 font-weight-bold"></div>
+                                    <hr class="bg-light">
+                                    <div id="turn-indicator" class="alert alert-info">
+                                        {{ _('جاري الاتصال...') }}
+                                    </div>
+                                    <div class="mt-2">
+                                        <button id="sf-toggle" class="btn btn-sm btn-outline-light">{{ _('تحليل Stockfish') }}</button>
+                                        <small id="sf-status" class="text-light d-block mt-1"></small>
+                                        <button id="sf-engine-toggle" class="btn btn-sm btn-outline-warning mt-2">{{ _('استخدام Stockfish كمحرك') }}</button>
+                                        <small id="sf-engine-status" class="text-light d-block mt-1"></small>
+                                        <button class="btn btn-sm btn-info mt-2" data-toggle="modal" data-target="#instructionsModal">{{ _('تعليمات اللعبة') }}</button>
+                                    </div>
+                                    <button onclick="leaveGame()" class="btn btn-danger w-100 mt-2">{{ _('انسحاب') }}</button>
+                                </div>
+                            </div>
+                            <div class="card bg-dark border-secondary">
+                                <div class="card-body p-2">
+                                    <small class="text-muted">{{ _('PGN (سجل الحركات):') }}</small>
+                                    <div id="pgn" class="text-monospace text-light small" style="max-height: 150px; overflow-y: auto;"></div>
+                                </div>
+                            </div>
+                            
+                            <!-- Chat Box -->
+                            <div class="card bg-dark border-secondary mt-3">
+                                <div class="card-header bg-secondary py-1 px-2">
+                                    <small class="text-white"><i class="fas fa-comments"></i> {{ _('الدردشة') }}</small>
+                                </div>
+                                <div class="card-body p-2 d-flex flex-column" style="height: 200px;">
+                                    <div id="chat-messages" class="flex-grow-1 overflow-auto mb-2 p-1 bg-secondary rounded" style="font-size: 0.85em;">
+                                        <!-- Messages -->
+                                    </div>
+                                    <div class="input-group">
+                                        <input type="text" id="chat-input" class="form-control form-control-sm" placeholder="...">
+                                        <div class="input-group-append">
+                                            <button class="btn btn-primary btn-sm" onclick="sendChat()"><i class="fas fa-paper-plane"></i></button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Instructions Modal -->
+<div class="modal fade" id="instructionsModal" tabindex="-1" role="dialog" aria-labelledby="instructionsModalLabel" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content bg-dark text-white">
+      <div class="modal-header border-secondary">
+        <h5 class="modal-title" id="instructionsModalLabel">{{ _('تعليمات وقوانين الشطرنج') }}</h5>
+        <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <h6>{{ _('أساسيات اللعبة') }}:</h6>
+        <ul>
+            <li>{{ _('الهدف هو تنفيذ كش مات لملك الخصم.') }}</li>
+            <li>{{ _('اللون الأبيض يبدأ اللعب دائماً.') }}</li>
+            <li>{{ _('كل قطعة لها طريقة حركة مميزة (الفيل وتري، القلعة أفقي/عمودي، الحصان حرف L).') }}</li>
+        </ul>
+        <hr class="bg-secondary">
+        <h6>{{ _('قوانين خاصة') }}:</h6>
+        <ul>
+            <li><strong>{{ _('التبييت (Castling)') }}:</strong> {{ _('حركة خاصة للملك والقلعة لحماية الملك.') }}</li>
+            <li><strong>{{ _('الترقية (Promotion)') }}:</strong> {{ _('عند وصول الجندي للصف الأخير، يتحول لوزير (تلقائياً في هذه اللعبة).') }}</li>
+            <li><strong>{{ _('الأخذ بالتجاوز (En Passant)') }}:</strong> {{ _('حركة خاصة للجندي.') }}</li>
+        </ul>
+        <hr class="bg-secondary">
+        <h6>{{ _('نظام اللعب والتحقق') }}:</h6>
+        <ul>
+            <li>{{ _('يتم التحقق من صحة كل حركة عبر السيرفر لمنع الغش.') }}</li>
+            <li>{{ _('يمكنك اللعب ضد صديق أو ضد الكمبيوتر (Minimax أو Stockfish).') }}</li>
+            <li>{{ _('استخدم زر "تحليل Stockfish" للحصول على اقتراحات تعليمية.') }}</li>
+        </ul>
+      </div>
+      <div class="modal-footer border-secondary">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">{{ _('إغلاق') }}</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="{{ url_for('static', filename='plugins/chess/chess.min.js') }}"></script>
+<script src="{{ url_for('static', filename='plugins/chess/chessboard.min.js') }}"></script>
+<script>
+    var roomId = {{ room.id }};
+    // Use safe filter to prevent autoescaping issues with the string
+    var myColor = "{{ ('w' if player.seat_index == 0 else 'b') | safe }}";
+    var playersInfo = [];
+    var board = null
+    var game = null
+    
+    // UI Elements
+    var $status = null;
+    var $pgn = null;
+    var $turnIndicator = null;
+    
+    // Global variables for Stockfish and State
+    var sfWorker = null;
+    var sfEnabled = false;
+    var sfBestMove = null;
+    var sfEngineMode = false;
+    var isSolo = false;
+
+    function startGame() {
+        const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+        fetch("{{ url_for('entertainment.start_room', room_id=room.id) }}", {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrfToken }
+        }).then(r => r.json()).then(() => location.reload());
+    }
+
+    function leaveGame() {
+        if(!confirm("{{ _('هل أنت متأكد من الانسحاب؟ ستخسر الرهان.') }}")) return;
+        const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+        fetch("{{ url_for('entertainment.leave_game', room_id=room.id) }}", {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrfToken }
+        }).then(r => r.json()).then(() => window.location.href = "{{ url_for('entertainment.index') }}");
+    }
+
+    // Wait for DOM and libraries
+    $(document).ready(function() {
+        console.log("Initializing Chess Game...");
+        if (!roomId) {
+            $('#board-error').removeClass('d-none').text("Error: Room ID is missing.");
+            return;
+        }
+
+        try {
+            if (typeof Chess === 'undefined') throw new Error("Chess.js library not loaded");
+            if (typeof Chessboard === 'undefined') throw new Error("Chessboard.js library not loaded");
+            
+            game = new Chess();
+            
+            $status = $('#status');
+            $pgn = $('#pgn');
+            $turnIndicator = $('#turn-indicator');
+
+            // Config
+            var config = {
+                draggable: true,
+                position: 'start',
+                orientation: myColor === 'w' ? 'white' : 'black',
+                onDragStart: onDragStart,
+                onDrop: onDrop,
+                onSnapEnd: onSnapEnd,
+                onMouseoverSquare: onMouseoverSquare,
+                onMouseoutSquare: onMouseoutSquare,
+                pieceTheme: "{{ url_for('static', filename='plugins/chess/img/chesspieces/wikipedia/wP.png') }}".replace("wP.png", "{piece}.png")
+            }
+
+            var boardEl = document.getElementById('board');
+            if (!boardEl) throw new Error("Board element #board not found");
+
+            board = Chessboard('board', config);
+            if (!board) throw new Error("Chessboard initialization failed");
+
+            $(window).resize(board.resize);
+            
+            // Initial State Check
+            updateStatus();
+            checkState();
+            initStockfish();
+            
+            // Poll Loop
+            setInterval(checkState, 2000); // Slow down polling to 2s to reduce load
+            
+        } catch (e) {
+            $('#board-error').removeClass('d-none').text("Error initializing game: " + e.message);
+            console.error("Chess Init Error:", e);
+        }
+    });
+
+    // Chat & Game State SSE
+    var eventSource = null;
+    
+    function initChatSSE() {
+        if (eventSource) return;
+        // Use the existing room events stream which provides game state and messages
+        eventSource = new EventSource(`/entertainment/api/room/${roomId}/events`);
+        
+        eventSource.onmessage = function(e) {
+            try {
+                const data = JSON.parse(e.data);
+                
+                // Update Chat
+                if (data.messages) {
+                    renderChat(data.messages);
+                }
+                
+                // Update Game State (Real-time)
+                if (data.game_state && data.game_state.fen) {
+                    // Update stockfish engine mode if changed
+                    if (data.game_state.engine) {
+                         const mode = (data.game_state.engine === 'client_stockfish');
+                         if (mode !== sfEngineMode) {
+                             sfEngineMode = mode;
+                             $('#sf-engine-toggle').toggleClass('btn-outline-warning btn-warning', sfEngineMode);
+                             $('#sf-engine-status').text(sfEngineMode ? "{{ _('Stockfish هو محرك الكمبيوتر الآن') }}" : "{{ _('الكمبيوتر يعمل بـ Minimax') }}");
+                         }
+                    }
+                    
+                    let remoteFen = data.game_state.fen;
+                    if (remoteFen === 'start') remoteFen = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1';
+                    
+                    if (remoteFen !== game.fen()) {
+                         game.load(remoteFen);
+                         if (board) board.position(remoteFen);
+                         updateStatus();
+                         runStockfishAnalysis();
+                    }
+                }
+            } catch (err) {
+                console.error("SSE Process Error:", err);
+            }
+        };
+        
+        eventSource.onerror = function(err) {
+            console.error("SSE Error:", err);
+        };
+    }
+
+    function renderChat(messages) {
+        const container = $('#chat-messages');
+        const wasScrolledToBottom = container[0].scrollHeight - container.scrollTop() <= container[0].clientHeight + 50;
+        
+        container.empty();
+        messages.forEach(msg => {
+            container.append(`
+                <div class="mb-1">
+                    <small class="text-warning font-weight-bold">${msg.username}:</small>
+                    <span class="text-light">${msg.message}</span>
+                </div>
+            `);
+        });
+        
+        if (wasScrolledToBottom) {
+             container.scrollTop(container[0].scrollHeight);
+        }
+        
+        // Initialize SSE once if not already done
+        initChatSSE();
+    }
+
+    function sendChat() {
+        const input = $('#chat-input');
+        const msg = input.val().trim();
+        if (!msg) return;
+        
+        const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+        fetch(`/entertainment/api/room/${roomId}/chat`, {
+            method: 'POST',
+            headers: { 
+                'Content-Type': 'application/json',
+                'X-CSRFToken': csrfToken
+            },
+            body: JSON.stringify({ message: msg })
+        }).catch(err => console.error("Chat send error:", err));
+        
+        input.val('');
+    }
+
+    $('#chat-input').on('keypress', function (e) {
+        if(e.which === 13) sendChat();
+    });
+
+    function onDragStart (source, piece, position, orientation) {
+        if (game.game_over()) return false
+        
+        // Only pick up pieces for my color
+        if (game.turn() !== myColor) return false;
+        
+        // Only pick up pieces of my color
+        if ((myColor === 'w' && piece.search(/^b/) !== -1) ||
+            (myColor === 'b' && piece.search(/^w/) !== -1)) {
+            return false
+        }
+    }
+
+    function onDrop (source, target) {
+        clearHighlights()
+        var move = game.move({
+            from: source,
+            to: target,
+            promotion: 'q'
+        })
+
+        if (move === null) return 'snapback'
+
+        updateStatus()
+        sendMove(move)
+    }
+
+    function onSnapEnd () {
+        board.position(game.fen())
+    }
+    
+    function highlightSquare(square) {
+        var $el = $('#board .square-' + square)
+        $el.addClass('highlight-square')
+    }
+    function clearHighlights() {
+        $('#board .highlight-square').removeClass('highlight-square')
+        $('#board .sf-suggest').removeClass('sf-suggest')
+    }
+    function onMouseoverSquare(square, piece) {
+        if (game.game_over()) return
+        if (game.turn() !== myColor) return
+        clearHighlights()
+        highlightSquare(square)
+        var moves = game.moves({ square: square, verbose: true })
+        for (var i = 0; i < moves.length; i++) {
+            highlightSquare(moves[i].to)
+        }
+    }
+    function onMouseoutSquare(square, piece) {
+        clearHighlights()
+    }
+
+    function updateStatus () {
+        var status = ''
+        var moveColor = (game.turn() === 'b') ? 'Black' : 'White'
+
+        if (game.in_checkmate()) {
+            status = 'Game over, ' + moveColor + ' is in checkmate.'
+        } else if (game.in_draw()) {
+            status = 'Game over, drawn position'
+        } else {
+            status = moveColor + ' to move'
+            if (game.in_check()) {
+                status += ', ' + moveColor + ' is in check'
+            }
+        }
+
+        $status.html(status)
+        $pgn.html(game.pgn())
+        
+        if (game.turn() === myColor) {
+            $turnIndicator.removeClass('alert-secondary').addClass('alert-success').text("{{ _('دورك للعب!') }}");
+        } else {
+            $turnIndicator.removeClass('alert-success').addClass('alert-secondary').text("{{ _('انتظار الخصم...') }}");
+        }
+    }
+
+/*
+    // Old commented out code removed
+*/
+
+    // Sync Logic
+    function sendMove(move) {
+        // Convert move to UCI format (e.g. e2e4, e7e8q)
+        var uci = move.from + move.to;
+        if (move.promotion) {
+            uci += move.promotion;
+        }
+
+        const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+        fetch(`/entertainment/api/room/${roomId}/move`, {
+            method: 'POST',
+            headers: { 
+                'Content-Type': 'application/json',
+                'X-CSRFToken': csrfToken
+            },
+            body: JSON.stringify({
+                move: uci
+            })
+        })
+        .then(response => {
+             if (!response.ok) {
+                 // If server rejects, undo local move
+                 response.text().then(text => {
+                     try {
+                        const data = JSON.parse(text);
+                        alert("Move rejected: " + data.error);
+                     } catch(e) {
+                        alert("Server Error (" + response.status + ")");
+                        console.error("Server Error Body:", text);
+                     }
+                     game.undo();
+                     board.position(game.fen());
+                     updateStatus();
+                 });
+             }
+        })
+        .catch(err => {
+             console.error("Move Send Error:", err);
+             game.undo();
+             board.position(game.fen());
+             updateStatus();
+        });
+    }
+    
+    function checkState() {
+        if (!game) return;
+        
+        fetch(`/entertainment/api/room/${roomId}/state`)
+            .then(res => {
+                if (!res.ok) throw new Error("Network response was not ok");
+                return res.json();
+            })
+            .then(data => {
+                if (data.messages) {
+                    renderChat(data.messages);
+                }
+                
+                // If remote state is different and it's not my turn (meaning opponent moved)
+                // Or if I just joined and need to sync
+                if (data.game_state && data.game_state.fen) {
+                    isSolo = !!data.game_state.is_solo
+                    let remoteFen = data.game_state.fen;
+                    if (remoteFen === 'start') remoteFen = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1';
+                    
+                    if (remoteFen !== game.fen()) {
+                        try {
+                            game.load(remoteFen);
+                            if (board) board.position(remoteFen);
+                            updateStatus();
+                            runStockfishAnalysis();
+                        } catch (err) {
+                            console.error("Error loading FEN:", err);
+                        }
+                    }
+                }
+                
+                // Update connection status if successful
+                if ($('#turn-indicator').text() === "{{ _('جاري الاتصال...') }}") {
+                     updateStatus();
+                }
+            })
+            .catch(err => {
+                console.error("CheckState Error:", err);
+                // Optionally show connection error in UI, but transient errors shouldn't panic user
+            });
+    }
+    
+    /*
+    // Old commented out code removed
+*/
+    
+    function initStockfish() {
+        try {
+            sfWorker = new Worker("{{ url_for('static', filename='plugins/chess/stockfish.js') }}")
+            sfWorker.onmessage = function (e) {
+                var line = (typeof e.data === 'object' && e.data && e.data.data) ? e.data.data : e.data
+                if (!line) return
+                if (line.startsWith('bestmove')) {
+                    sfBestMove = line.split(' ')[1]
+                    renderSfSuggestion()
+                } else if (line.includes('info')) {
+                    $('#sf-status').text(line)
+                }
+            }
+            sfWorker.postMessage('uci')
+            sfWorker.postMessage('isready')
+            $('#sf-status').text("{{ _('Stockfish جاهز') }}")
+        } catch (err) {
+            $('#sf-status').text("{{ _('تعذر تحميل Stockfish من CDN') }}")
+        }
+    }
+    
+    function runStockfishAnalysis() {
+        if (!sfEnabled || !sfWorker || game.game_over()) return
+        var fen = game.fen()
+        sfWorker.postMessage('position fen ' + fen)
+        sfWorker.postMessage('go depth 12')
+    }
+    
+    function renderSfSuggestion() {
+        clearHighlights()
+        if (!sfBestMove || sfBestMove.length < 4) return
+        var from = sfBestMove.substring(0,2)
+        var to = sfBestMove.substring(2,4)
+        $('#board .square-' + from).addClass('sf-suggest')
+        $('#board .square-' + to).addClass('sf-suggest')
+        if (sfEngineMode && isSolo && game.turn() !== myColor) {
+            sendEngineMove(sfBestMove)
+        }
+    }
+    
+    $('#sf-toggle').on('click', function() {
+        sfEnabled = !sfEnabled
+        if (sfEnabled && !sfWorker) initStockfish()
+        $('#sf-toggle').toggleClass('btn-outline-light btn-light', sfEnabled)
+        $('#sf-status').text(sfEnabled ? "{{ _('تحليل Stockfish مفعّل') }}" : "{{ _('تحليل Stockfish معطّل') }}")
+        if (sfEnabled) runStockfishAnalysis()
+    })
+    
+    $('#sf-engine-toggle').on('click', function() {
+        sfEngineMode = !sfEngineMode
+        $('#sf-engine-toggle').toggleClass('btn-outline-warning btn-warning', sfEngineMode)
+        $('#sf-engine-status').text(sfEngineMode ? "{{ _('Stockfish هو محرك الكمبيوتر الآن') }}" : "{{ _('الكمبيوتر يعمل بـ Minimax') }}")
+        const csrfToken = document.querySelector('meta[name=\"csrf-token\"]').getAttribute('content');
+        fetch(`/entertainment/api/room/${roomId}/move`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrfToken },
+            body: JSON.stringify({ action: 'set_engine', engine: sfEngineMode ? 'client_stockfish' : 'minimax' })
+        })
+    })
+    
+    function sendEngineMove(uci) {
+        const csrfToken = document.querySelector('meta[name=\"csrf-token\"]').getAttribute('content');
+        fetch(`/entertainment/api/room/${roomId}/move`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrfToken },
+            body: JSON.stringify({ action: 'engine_move', move: uci })
+        }).then(() => { checkState(); })
+    }
+
+/*
+    // Old commented out code removed
+*/
+
+</script>
+{% endblock %}

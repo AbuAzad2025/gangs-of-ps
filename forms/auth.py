@@ -8,6 +8,7 @@ from models import User
 class LoginForm(FlaskForm):
     username = StringField(_l('اسم المستخدم'), validators=[DataRequired()])
     password = PasswordField(_l('كلمة المرور'), validators=[DataRequired()])
+    captcha = StringField(_l('رمز التحقق'))
     remember_me = BooleanField(_l('تذكرني'))
     submit = SubmitField(_l('تسجيل الدخول'))
 

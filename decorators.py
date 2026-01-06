@@ -42,7 +42,7 @@ def double_verification_required(f):
         verified_at_str = session.get('admin_verified_at')
         if not verified_at_str:
             session['next_url'] = request.url
-            return redirect(url_for('developer.admin_verify'))
+            return redirect(url_for('main.admin_verify'))
         
         try:
             if isinstance(verified_at_str, str):
@@ -57,11 +57,11 @@ def double_verification_required(f):
                 session.pop('admin_verified_at', None)
                 session['next_url'] = request.url
                 flash(_('انتهت جلسة التحقق، يرجى التأكيد مرة أخرى.'), 'warning')
-                return redirect(url_for('developer.admin_verify'))
+                return redirect(url_for('main.admin_verify'))
         except Exception:
             session.pop('admin_verified_at', None)
             session['next_url'] = request.url
-            return redirect(url_for('developer.admin_verify'))
+            return redirect(url_for('main.admin_verify'))
         
         return f(*args, **kwargs)
     return decorated_function
@@ -95,8 +95,8 @@ def player_only(f):
             return redirect(url_for('main.login'))
             
         if current_user.role.value >= UserRole.MODERATOR.value:
-            # Allow Developers and Master Key 'azad' to play
-            if current_user.role != UserRole.DEVELOPER and current_user.username != 'azad':
+            # Allow Developers to play
+            if current_user.role != UserRole.DEVELOPER:
                 flash(_('لا يُسمح للإداريين بالمشاركة في اللعب لضمان النزاهة.'), 'danger')
                 return redirect(url_for('main.index'))
             

@@ -1,0 +1,189 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container fade-in">
+    <div class="text-center mb-5">
+        <h1 class="display-4 text-primary fw-bold text-shadow-blue">🎮 {{ _('صالة الترفيه') }} 🎮</h1>
+        <p class="lead text-light">{{ _('استرح قليلاً من عناء الجريمة واستمتع ببعض الألعاب الكلاسيكية.') }}</p>
+    </div>
+
+    <!-- Betting Promo Section -->
+    <div class="alert alert-info border-info shadow-lg mb-4 text-center fade-in">
+        <h4 class="alert-heading text-warning"><i class="fas fa-trophy"></i> {{ _('راهن واربح!') }}</h4>
+        <p class="mb-2">
+            {{ _('استخدم مهارتك لربح المال والألماس من اللاعبين الآخرين. الفائز يحصل على كل شيء!') }}
+        </p>
+        <p class="mb-0 text-white small">
+            <i class="fas fa-gem text-info"></i> {{ _('تنويه: يمكنك شراء الألماس عبر التواصل معنا على الواتساب، كما يمكنك استبدال أرباحك من الألماس بنقود حقيقية!') }}
+            <a href="https://wa.me/1234567890" target="_blank" class="btn btn-sm btn-success ml-2 rounded-pill">
+                <i class="fab fa-whatsapp"></i> {{ _('تواصل لشراء الألماس') }}
+            </a>
+        </p>
+    </div>
+
+    <!-- Create Room Section -->
+    <div class="card bg-dark text-white border-primary mb-5 shadow-lg">
+        <div class="card-body">
+            <h4 class="card-title text-warning"><i class="fas fa-gamepad"></i> {{ _('بدء لعبة جديدة') }}</h4>
+            <form action="{{ url_for('entertainment.create_room') }}" method="POST" class="mt-3">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                <div class="row align-items-end">
+                    <div class="col-md-3 mb-3">
+                        <label class="mb-1 text-muted">{{ _('اسم الغرفة / اللعبة') }}</label>
+                        <input type="text" name="name" class="form-control bg-secondary text-white border-0" placeholder="{{ _('مثال: تحدي الأبطال') }}" required>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <label class="mb-1 text-muted">{{ _('نوع اللعبة') }}</label>
+                        <select name="game_type" class="form-control bg-secondary text-white border-0">
+                            <option value="chess">♟️ {{ _('شطرنج') }}</option>
+                            <option value="trix">🃏 {{ _('تريكس') }}</option>
+                            <option value="tarneeb">🂡 {{ _('طرنيب') }}</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <label class="mb-1 text-muted">{{ _('نمط تريكس') }}</label>
+                        <select name="trix_style" class="form-control bg-secondary text-white border-0">
+                            <option value="kingdoms">{{ _('الممالك') }}</option>
+                            <option value="complex">{{ _('كمبلكس') }}</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <label class="mb-1 text-muted">{{ _('نوع اللعب في تريكس') }}</label>
+                        <select name="trix_team_mode" class="form-control bg-secondary text-white border-0">
+                            <option value="individual">{{ _('منفرد') }}</option>
+                            <option value="partnership">{{ _('شراكة (2 ضد 2)') }}</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3 mb-3">
+            <label class="mb-1 text-muted">{{ _('وضع اللعب') }}</label>
+            <select name="mode" class="form-control bg-secondary text-white border-0">
+                <option value="multiplayer">👥 {{ _('متعدد اللاعبين (Online)') }}</option>
+                <option value="solo">🤖 {{ _('فردي (ضد الكمبيوتر)') }}</option>
+            </select>
+        </div>
+        <div class="col-md-3 mb-3">
+            <label class="mb-1 text-muted">{{ _('نوع العملة') }}</label>
+            <select name="currency_type" id="currency_type" class="form-control bg-secondary text-white border-0">
+                <option value="money">💰 {{ _('نقود العصابة') }}</option>
+                <option value="diamonds">💎 {{ _('الماس') }}</option>
+            </select>
+            <small class="text-info" id="balance-display">
+                {{ _('الرصيد:') }} <span id="current-balance">{{ current_user.money }}</span>
+            </small>
+        </div>
+        <div class="col-md-3 mb-3">
+            <label class="mb-1 text-muted">{{ _('مبلغ الرهان (للشخص)') }}</label>
+            <div class="input-group">
+                <input type="number" name="stake_amount" id="stake_amount" class="form-control bg-secondary text-white border-0" placeholder="0" min="0" value="0">
+                <div class="input-group-append">
+                    <button type="button" class="btn btn-outline-secondary" onclick="setMaxBet()">{{ _('الكل') }}</button>
+                </div>
+            </div>
+            <div class="mt-1">
+                <span class="badge badge-dark cursor-pointer" onclick="setBet(100)">100</span>
+                <span class="badge badge-dark cursor-pointer" onclick="setBet(500)">500</span>
+                <span class="badge badge-dark cursor-pointer" onclick="setBet(1000)">1K</span>
+                <span class="badge badge-dark cursor-pointer" onclick="setBet(5000)">5K</span>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <button type="submit" class="btn btn-primary w-100"><i class="fas fa-play"></i> {{ _('إنشاء اللعبة') }}</button>
+        </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const gameType = document.querySelector('select[name="game_type"]');
+            const trixStyleGroup = document.querySelector('select[name="trix_style"]').closest('.col-md-3');
+            const trixTeamGroup = document.querySelector('select[name="trix_team_mode"]').closest('.col-md-3');
+            const currencySelect = document.getElementById('currency_type');
+            const balanceSpan = document.getElementById('current-balance');
+            
+            // User balances passed from server
+            const userMoney = {{ current_user.money }};
+            const userDiamonds = {{ current_user.diamonds }};
+
+            window.setMaxBet = function() {
+                const isMoney = currencySelect.value === 'money';
+                document.getElementById('stake_amount').value = isMoney ? userMoney : userDiamonds;
+            };
+
+            window.setBet = function(amount) {
+                document.getElementById('stake_amount').value = amount;
+            };
+
+            currencySelect.addEventListener('change', function() {
+                if (this.value === 'money') {
+                    balanceSpan.textContent = userMoney;
+                } else {
+                    balanceSpan.textContent = userDiamonds;
+                }
+            });
+            
+            function toggleTrixStyle() {
+                const isTrix = gameType.value === 'trix';
+                trixStyleGroup.style.display = isTrix ? '' : 'none';
+                trixTeamGroup.style.display = isTrix ? '' : 'none';
+            }
+            
+            toggleTrixStyle();
+            gameType.addEventListener('change', toggleTrixStyle);
+        });
+    </script>
+    <!-- Active Rooms -->
+    <h3 class="text-light mb-4"><i class="fas fa-list"></i> {{ _('غرف اللاعبين المتاحة') }}</h3>
+    <div class="row">
+        {% for room in rooms %}
+        {% if room.status == 'waiting' %}
+        <div class="col-md-4 mb-3">
+            <div class="card bg-secondary text-white border-dark hover-scale">
+                <div class="card-body">
+                    <h5 class="card-title text-warning">{{ room.name }}</h5>
+                    <p class="card-text">
+                        <span class="badge badge-info">{{ room.game_type|upper }}</span>
+                        <span class="badge badge-{{ 'success' if room.status == 'waiting' else 'danger' }}">{{ room.status }}</span>
+                        <br>
+                        {% if room.stake_amount > 0 %}
+                        <span class="badge badge-success mt-1">
+                            {% if room.currency_type == 'diamonds' %}💎{% else %}💰{% endif %}
+                            {{ _('الدخول:') }} {{ room.stake_amount }}
+                        </span>
+                        <span class="badge badge-warning mt-1">
+                            🏆 {{ _('الجائزة:') }} {{ room.pot_amount }}
+                        </span>
+                        {% else %}
+                        <span class="badge badge-secondary mt-1">{{ _('لعب مجاني') }}</span>
+                        {% endif %}
+                        <br>
+                        <small class="text-muted">{{ _('اللاعبين:') }} {{ room.players.count() }}/{{ 2 if room.game_type == 'chess' else 4 }}</small>
+                    </p>
+                    <a href="{{ url_for('entertainment.room', room_id=room.id) }}" class="btn btn-sm btn-light w-100 mb-2">{{ _('انضمام') }}</a>
+                    {% set my_player = room.players.filter_by(user_id=current_user.id).first() %}
+                    {% if my_player and my_player.seat_index == 0 %}
+                    <form action="{{ url_for('entertainment.delete_room', room_id=room.id) }}" method="POST">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                        <button type="submit" class="btn btn-sm btn-outline-warning w-100">{{ _('حذف الغرفة') }}</button>
+                    </form>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        {% endif %}
+        {% else %}
+        <div class="col-12 text-center">
+            <p class="text-muted">{{ _('لا يوجد غرف انتظار حالياً. قم بإنشاء واحدة!') }}</p>
+        </div>
+        {% endfor %}
+    </div>
+
+    <hr class="border-secondary my-5">
+    
+    <!-- Quick Solo Access (Optional, kept for convenience but smaller) -->
+    <div class="text-center opacity-50">
+        <small class="text-muted">{{ _('يمكنك أيضاً بدء لعبة فردية سريعة من الخيارات أعلاه') }}</small>
+    </div>
+</div>
+{% endblock %}

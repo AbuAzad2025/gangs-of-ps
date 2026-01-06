@@ -1,7 +1,7 @@
 from flask import Blueprint, render_template, redirect, url_for, flash, request, current_app
 from flask_login import login_required, current_user
 from flask_babel import _
-from extensions import db
+from extensions import db, limiter
 from models import User
 from models.hostess import Hostess
 from services.resource_service import ResourceService
@@ -13,6 +13,10 @@ import random
 bp = Blueprint('gym', __name__, url_prefix='/gym')
 
 def _claim_rewards(user):
+    # Ensure we have the latest user state and lock the row to prevent race conditions
+    # We use the ID to query, ensuring we get the session object attached to this transaction
+    user = db.session.query(User).filter_by(id=user.id).with_for_update().first()
+    
     if not user.gym_activity:
         user.gym_until = None
         db.session.commit()
@@ -29,17 +33,22 @@ def _claim_rewards(user):
             stat: stat_gain
         }
         
+        # We hold the lock, so we don't need optimistic locking (expected_version=None)
         ResourceService.modify_resources(
             user.id,
             changes,
             f'gym_reward_{stat}',
             auto_commit=False,
-            expected_version=user.version
+            expected_version=None
         )
         
         user.add_rank_points(1)
         if user.check_level_up():
-            flash(_('مبروك! وصلت للمستوى %(level)s!', level=user.level), 'success')
+            ref_url = url_for('main.register', ref=user.referral_code, _external=True)
+            share_text = _("أصبحت زعيم مستوى %(level)s في عصابات فلسطين! هل تجرؤ على تحديي؟ %(url)s", level=user.level, url=ref_url)
+            wa_link = f"https://wa.me/?text={share_text}"
+            
+            flash(_('مبروك! وصلت للمستوى %(level)s! <a href="%(url)s" target="_blank" class="btn btn-sm btn-success ml-2"><i class="fab fa-whatsapp"></i> شارك</a>', level=user.level, url=wa_link), 'success')
             
         update_daily_task_progress(user, 'gym')
         
@@ -76,15 +85,19 @@ def index():
 
 @bp.route('/cancel', methods=['POST'])
 @login_required
+@limiter.limit("10 per minute")
 def cancel_training():
-    if not current_user.gym_activity:
-        current_user.gym_until = None
+    # Lock user row to prevent double cancellation/rewards
+    user = db.session.query(User).filter_by(id=current_user.id).with_for_update().first()
+
+    if not user.gym_activity:
+        user.gym_until = None
         db.session.commit()
         flash(_('تم إلغاء فترة الراحة.'), 'info')
         return redirect(url_for('gym.index'))
         
     try:
-        data = json.loads(current_user.gym_activity)
+        data = json.loads(user.gym_activity)
         stat = data.get('stat')
         total_exp = data.get('exp_gain', 0)
         total_stat = data.get('stat_gain', 0)
@@ -112,7 +125,8 @@ def cancel_training():
                 'exp': partial_exp,
                 stat: earned_stat
             }
-            ResourceService.modify_resources(current_user.id, changes, f'gym_partial_{stat}', auto_commit=False)
+            # Use user.id which is locked
+            ResourceService.modify_resources(user.id, changes, f'gym_partial_{stat}', auto_commit=False)
             flash(_('تم إنهاء التمرين مبكراً. حصلت على %(exp)s خبرة و %(stat)s %(stat_name)s بناءً على المدة التي قضيتها.', 
                    exp=partial_exp, stat=earned_stat, stat_name=stat), 'warning')
         else:
@@ -122,13 +136,14 @@ def cancel_training():
         # flash(str(e), 'danger') # Debug
         flash(_('حدث خطأ أثناء الإلغاء.'), 'danger')
 
-    current_user.gym_activity = None
-    current_user.gym_until = None
+    user.gym_activity = None
+    user.gym_until = None
     db.session.commit()
     return redirect(url_for('gym.index'))
 
 @bp.route('/train/<stat>', methods=['POST'])
 @login_required
+@limiter.limit("10 per minute")
 def train(stat):
     # Lock user row to prevent concurrent training
     user = db.session.query(User).filter_by(id=current_user.id).with_for_update().first()
@@ -160,10 +175,11 @@ def train(stat):
         changes={'money': -cost_money, 'energy': -cost_energy},
         reason=f'gym_train_{stat}',
         auto_commit=False,
-        expected_version=user.version
+        expected_version=None
     )
     
     if not success:
+        db.session.rollback()
         if current_user.money < cost_money:
             flash(_('طفرنا! بدك مصاري عشان تتمرن.'), 'danger')
         elif current_user.energy < cost_energy:
@@ -215,21 +231,38 @@ def train(stat):
                 extra_stat_gain = 1
                 msg += _(" (مكافأة المضيفة: تدريب مضاعف!)")
 
+    # Gang Buff (Gym Rat)
+    try:
+        from services.gang_service import GangService
+        gang_buff = GangService.get_gang_buff(current_user.gang_id, 'gym_rat')
+        if gang_buff > 0:
+            # Increase EXP
+            exp_gain = int(exp_gain * (1 + gang_buff / 100))
+            
+            # Increase Stat Chance
+            if random.random() < (gang_buff / 100):
+                 extra_stat_gain += 1
+                 if "مكافأة" not in msg:
+                     msg += _(" (مكافأة العصابة!)")
+    except Exception as e:
+        current_app.logger.error(f"Error applying gang buff: {e}")
+
     # Store Activity Data (Instead of applying immediately)
     activity_data = {
         'stat': stat,
         'exp_gain': exp_gain,
         'stat_gain': stat_gain + extra_stat_gain,
         'start_time': datetime.now(timezone.utc).timestamp(),
-        'duration': 120
+        'duration': 1800
     }
     
     current_user.gym_activity = json.dumps(activity_data)
     
     now = datetime.now(timezone.utc)
     current_user.last_gym_training = now
-    # Set Gym Status for 2 minutes
-    current_user.gym_until = now + timedelta(minutes=2)
+    # Set Gym Status for 30 minutes
+    # Use replace(tzinfo=None) to ensure we save naive UTC to DB, preventing auto-conversion to local time
+    current_user.gym_until = (now + timedelta(minutes=30)).replace(tzinfo=None)
     
     db.session.commit()
     

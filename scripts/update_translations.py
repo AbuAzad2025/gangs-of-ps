@@ -545,6 +545,101 @@ translations = {
     "متزوج": "Married",
     "خاطب": "Engaged",
     "مرتبط": "In a Relationship",
+    
+    # Occupation & New Mechanics
+    "🚧 حاجز للأمن الداخلي (حماس): \"هات هويتك وشو بتعمل هون؟\" تحقيق سريع ومضيت.": "🚧 Hamas Internal Security Checkpoint: \"ID card! What are you doing here?\" Quick interrogation and you passed.",
+    "🚓 دورية للأمن %(branch)s وقفتك: \"ممنوع التجول بالسلاح هون يا شب\". تفتيش وتدقيق أمني.": "🚓 %(branch)s Security Patrol stopped you: \"No weapons allowed here.\" Security check.",
+    "🧱 جدار الفصل العنصري مسكر المنطقة. اضطريت تلف طريق طويلة وتستنى \"الفتحة\" لتمر.": "🧱 The Apartheid Wall is blocking the area. You had to take a long detour and wait for the \"gate\" to pass.",
+    "🚧 حاجز طيار فجأة طلعلك! وقفوك نص ساعة وفي الآخر رجعوك. راحت عليك أجرة الطريق.": "🚧 Flying Checkpoint appeared! They held you for 30 mins then sent you back. You lost the travel fare.",
+    "🚔 كبسة! الشرطة فتشت السيارة ولقت المهربات. تمت مصادرة البضاعة وسجنك 30 دقيقة وغرامة %(fine)s$.": "🚔 Raid! Police searched the car and found contraband. Goods confiscated, 30 mins jail, and %(fine)s$ fine.",
+    "🚓 حملة على المشطوب! الشرطة صادرت سيارة %(name)s لأنها مش قانونية. \"القانون فوق الجميع\" قال.": "🚓 Mashtoub Campaign! Police confiscated %(name)s because it's illegal. \"Law is above all,\" they said.",
+    "⚖️ تم تجديد الاعتقال الإداري لمدة %(min)s دقيقة إضافية. \"ملف سري\"!": "⚖️ Administrative Detention extended by %(min)s minutes. \"Secret File\"!",
+    "أنت الآن في سجن \"عوفر\" العسكري. الصبر مفتاح الفرج يا بطل.": "You are now in \"Ofer\" Military Prison. Patience is the key to relief, hero.",
+    "🕵️ جاسوس بلغ عنك! قوات خاصة حاصرتك قبل ما تبدأ. أخذوك تحقيق 60 دقيقة.": "🕵️ A spy reported you! Special forces surrounded you before you started. Taken for interrogation for 60 mins.",
+    "👮 كنت ماشي في حالك، وقفتك دورية واعتقلوك عشوائياً (اعتقال إداري).": "👮 You were minding your business, a patrol stopped you and arrested you randomly (Administrative Detention).",
+    "🧗 علقت بالسلك وأجت دورية حرس حدود لقطتك. \"تهريب عمال؟ تعال هون!\"": "🧗 You got stuck in the fence and a Border Police patrol caught you. \"Smuggling workers? Come here!\"",
+    
+    # New Translations from UI Review
+    "الترند - أحداث مباشرة": "Trend - Live Events",
+    "الترند - نبض الشارع": "Trend - Street Pulse",
+    "معارك ساخنة": "Hot Battles",
+    "عصابات مسيطرة": "Dominant Gangs",
+    "مجرم في المدينة": "Criminal in City",
+    "عصابة نشطة": "Active Gang",
+    "آخر المعارك الطاحنة": "Latest Fierce Battles",
+    "مباشر": "Live",
+    "انتصار المهاجم": "Attacker Victory",
+    "فشل الهجوم": "Attack Failed",
+    "خسارة المدافع:": "Defender Loss:",
+    "الوقت:": "Time:",
+    "لا توجد معارك حديثة.. الهدوء الذي يسبق العاصفة؟": "No recent battles... The calm before the storm?",
+    "أخطر العصابات": "Most Dangerous Gangs",
+    "عرض كل العصابات": "View All Gangs",
+    "أساطير الإجرام": "Legends of Crime",
+    "اللقب:": "Title:",
+    "كراج السيارات": "Car Garage",
+    "أسطولك الخاص للسيطرة على الشوارع": "Your private fleet to control the streets",
+    "شراء سيارة جديدة": "Buy New Car",
+    "مفعلة": "Active",
+    "في الكراج": "In Garage",
+    "جاري الإصلاح...": "Repairing...",
+    "مشطوبة (خطر)": "Scrapped (Danger)",
+    "نمرة صفراء": "Yellow Plate",
+    "نمرة فلسطينية": "Palestinian Plate",
+    "السرعة": "Speed",
+    "الدفاع": "Defense",
+    "يرجى الانتظار...": "Please Wait...",
+    "السيارة مشغولة": "Car is Busy",
+    "تكلفة الإصلاح تعتمد على الضرر. هل أنت متأكد؟": "Repair cost depends on damage. Are you sure?",
+    "إصلاح السيارة": "Repair Car",
+    "مفعلة حالياً": "Currently Active",
+    "قيادة هذه السيارة": "Drive This Car",
+    "أصلح السيارة أولاً": "Repair the car first",
+    "بحاجة لإصلاح": "Needs Repair",
+    "تعديل المحرك سيكلفك 2000$. هل أنت موافق؟": "Engine tuning will cost $2000. Do you agree?",
+    "تعديل وتزويد (2000$)": "Tune and Upgrade ($2000)",
+    "معدلة بالكامل": "Fully Tuned",
+    "بيع (معطل)": "Sell (Disabled)",
+    "هل أنت متأكد من بيع السيارة بنصف سعرها الأصلي؟": "Are you sure you want to sell the car for half its original price?",
+    "بيع السيارة": "Sell Car",
+    "الكراج فاضي!": "Garage is Empty!",
+    "شكلك ماشي ع رجليك يا زعيم. روح اشتريلك سيارة تحفظ هيبتك.": "Walking on foot, boss? Go buy a car to maintain your prestige.",
+    "الذهاب للمعرض": "Go to Dealership",
+    "حقيبة الأغراض": "Item Bag",
+    "عدتك وسلاحك، جاهز للطوشة؟": "Your gear and weapons, ready for a fight?",
+    "الذهاب للسوق": "Go to Market",
+    "العدد": "Quantity",
+    "رصاص:": "Ammo:",
+    "عنصر استهلاكي": "Consumable Item",
+    "الحالة:": "Condition:",
+    "الحقيبة فاضية!": "Bag is empty!",
+    "لا تطلع عالحارة وإيديك فاضية، الناس بتوكل وجهك.": "Don't go out empty-handed, people will eat you alive.",
+    "اشتري عدة": "Buy Gear",
+    "المصانع": "Factories",
+    "لا توجد مهمة مصنع نشطة حالياً.": "No active factory job currently.",
+    "الذهاب إلى المصانع": "Go to Factories",
+    "عقود التوريد الزراعي": "Agricultural Supply Contracts",
+    "إدارة المزارع والعقود": "Manage Farms and Contracts",
+    "الاستفادة من العقد في السوق السوداء": "Use Contract in Black Market",
+    "شبكة التهريب": "Smuggling Network",
+    "الصنف": "Item",
+    "تغيير المدينة لتحسين الأسعار": "Change City for Better Prices",
+    "فتح السوق السوداء": "Open Black Market",
+    "عدد المهام التاريخية:": "Historical Jobs Count:",
+    "نوع المهمة:": "Job Type:",
+    "رصاص": "Bullets",
+    "ينتهي في:": "Ends in:",
+    "مدينة": "City",
+    "لا توجد عقود نشطة حالياً.": "No active contracts currently.",
+    "لا تملك حالياً أي بضائع تهريب في المخزون.": "You currently have no smuggling goods in stock.",
+    "الكمية": "Quantity",
+    "متفجرات": "Explosives",
+    "اشتري 3 عناصر من السوق": "Buy 3 items from the market",
+    "نفذ 6 جرائم": "Perform 6 crimes",
+    "Godfather": "Godfather",
+    "Thief": "Thief",
+    "Pickpocket": "Pickpocket",
+    "Hobo": "Hobo",
 }
 
 # Resolve target PO path (default to local repo path, allow override via CLI)
@@ -561,11 +656,37 @@ with open(po_path, 'r', encoding='utf-8') as f:
 new_lines = []
 current_msgid = None
 
-for line in lines:
+i = 0
+while i < len(lines):
+    line = lines[i]
+    
+    # Check for fuzzy mark
+    if line.strip().startswith('#, fuzzy'):
+        # Skip this line if we have a translation for the next msgid
+        # We need to peek ahead to find the msgid
+        temp_i = i + 1
+        found_msgid = False
+        while temp_i < len(lines):
+            if lines[temp_i].startswith('msgid "'):
+                msgid = lines[temp_i].strip()[7:-1]
+                if msgid in translations:
+                    # We have a translation, so we can remove the fuzzy mark
+                    i += 1 # Skip the fuzzy line
+                    continue 
+                break
+            elif lines[temp_i].strip() == '' or lines[temp_i].startswith('#'):
+                 temp_i += 1
+            else:
+                break
+        # If we didn't skip, process normally
+        new_lines.append(line)
+        i += 1
+        continue
+
     if line.startswith('msgid "'):
         current_msgid = line.strip()[7:-1]
         new_lines.append(line)
-    elif line.startswith('msgstr ""'):
+    elif line.startswith('msgstr "'):
         if current_msgid and current_msgid in translations:
             new_lines.append(f'msgstr "{translations[current_msgid]}"\n')
         else:
@@ -573,6 +694,7 @@ for line in lines:
         current_msgid = None
     else:
         new_lines.append(line)
+    i += 1
 
 with open(po_path, 'w', encoding='utf-8') as f:
     f.writelines(new_lines)

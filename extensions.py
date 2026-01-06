@@ -26,12 +26,16 @@ def _patch_platform_for_restricted_windows():
     def _safe_uname():
         v = getattr(sys, "getwindowsversion", lambda: None)()
         system = "Windows"
-        node = platform.node()
+        import socket
+        try:
+            node = socket.gethostname()
+        except:
+            node = "Unknown"
         release = f"{getattr(v, 'major', '')}.{getattr(v, 'minor', '')}" if v else ""
         version = str(getattr(v, "build", "")) if v else ""
         machine = os.environ.get("PROCESSOR_ARCHITECTURE", "") or ""
         processor = os.environ.get("PROCESSOR_IDENTIFIER", "") or ""
-        return uname_result(system, node, release, version, machine, processor)
+        return uname_result(system, node, release, version, machine)
 
     platform.uname = _safe_uname
     platform.machine = lambda: (os.environ.get("PROCESSOR_ARCHITECTURE", "") or "")
@@ -51,6 +55,13 @@ from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 from flask_talisman import Talisman
 from flask_mail import Mail
+from utils.seo import SEOManager
+try:
+    from flask_socketio import SocketIO
+    socketio = SocketIO(cors_allowed_origins="*", async_mode='eventlet')
+except Exception as e:
+    print(f"SocketIO Init Error: {e}")
+    socketio = None
 
 db = SQLAlchemy()
 migrate = Migrate()
@@ -60,6 +71,7 @@ login.login_message = 'Please log in to access this page.'
 limiter = Limiter(key_func=get_remote_address, default_limits=["2000 per day", "500 per hour"])
 talisman = Talisman()
 mail = Mail()
+seo_manager = SEOManager()
 
 class MyAdminIndexView(AdminIndexView):
     def is_accessible(self):

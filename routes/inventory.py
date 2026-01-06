@@ -1,6 +1,7 @@
 from flask import Blueprint, render_template, redirect, url_for, flash, abort
 from flask_login import login_required, current_user
-from extensions import db
+from extensions import db, limiter
+from sqlalchemy import select
 from models import UserItem, Item, User
 from flask_babel import _
 from datetime import datetime, timezone
@@ -18,6 +19,9 @@ def index():
 @bp.route('/equip/<int:item_id>', methods=['POST'])
 @login_required
 def equip(item_id):
+    # Lock User first to prevent deadlocks (User -> UserItem)
+    db.session.execute(select(User).where(User.id == current_user.id).with_for_update()).scalar_one()
+
     # Lock the item row
     user_item = db.session.query(UserItem).filter_by(id=item_id, user_id=current_user.id).with_for_update().first()
     if not user_item:
@@ -45,6 +49,7 @@ def equip(item_id):
 
 @bp.route('/unequip/<int:item_id>', methods=['POST'])
 @login_required
+@limiter.limit("30 per minute")
 def unequip(item_id):
     # Status Check
     now = datetime.now(timezone.utc)
@@ -72,6 +77,9 @@ def unequip(item_id):
             flash(_('أنت تتدرب ولا يمكنك تغيير عتادك!'), 'danger')
             return redirect(url_for('gym.index'))
 
+    # Lock User first to prevent deadlocks (User -> UserItem)
+    db.session.execute(select(User).where(User.id == current_user.id).with_for_update()).scalar_one()
+
     # Lock the item row
     user_item = db.session.query(UserItem).filter_by(id=item_id, user_id=current_user.id).with_for_update().first()
     if not user_item:
@@ -89,6 +97,7 @@ def unequip(item_id):
 
 @bp.route('/repair/<int:item_id>', methods=['POST'])
 @login_required
+@limiter.limit("10 per minute")
 def repair(item_id):
     now = datetime.now(timezone.utc)
     if current_user.jail_until:
@@ -115,9 +124,9 @@ def repair(item_id):
             flash(_('أنت تتدرب ولا يمكنك إصلاح العتاد!'), 'danger')
             return redirect(url_for('gym.index'))
 
-    # Lock the item row
-    user_item = db.session.query(UserItem).filter_by(id=item_id, user_id=current_user.id).with_for_update().first()
-    if not user_item:
+    # 1. Read Item (No Lock) to estimate cost
+    user_item = db.session.get(UserItem, item_id)
+    if not user_item or user_item.user_id != current_user.id:
         abort(404)
 
     if user_item.item.type not in ['weapon', 'armor']:
@@ -132,14 +141,41 @@ def repair(item_id):
     base_cost = max(1, user_item.item.cost)
     cost = int(damage * (base_cost * 0.003))
     cost = max(1, cost)
-
-    # Atomic deduction using ResourceService (logs before/after)
-    if not ResourceService.modify_resources(current_user.id, {'money': -cost}, 'repair_item', auto_commit=False, expected_version=current_user.version):
+    
+    if current_user.money < cost:
         flash(_('تحتاج %(cost)s شيكل لإصلاح العتاد!', cost=cost), 'danger')
         return redirect(url_for('inventory.index'))
 
+    # 1. Lock User first to prevent deadlock (User -> Item)
+    db.session.execute(select(User).where(User.id == current_user.id).with_for_update()).scalar_one()
+
+    # 2. Lock Item
+    # and ensure consistent lock order (User -> Item) if other routes follow this.
+    user_item = db.session.query(UserItem).filter_by(id=item_id, user_id=current_user.id).with_for_update().first()
+    
+    if not user_item:
+        abort(404)
+        
+    # Verify Condition/Cost again after lock
+    current_damage = 100 - (user_item.condition or 100)
+    if current_damage <= 0:
+        db.session.rollback()
+        flash(_('العتاد سليم بالفعل.'), 'info')
+        return redirect(url_for('inventory.index'))
+        
+    # Recalculate cost
+    real_cost = int(current_damage * (base_cost * 0.003))
+    real_cost = max(1, real_cost)
+    
+    # 3. Call ResourceService (it will re-lock User, which is fine as we hold the lock)
+    if not ResourceService.modify_resources(current_user.id, {'money': -real_cost}, 'repair_item', auto_commit=False, expected_version=None):
+         db.session.rollback()
+         flash(_('لا تملك كاش كافي!'), 'danger')
+         return redirect(url_for('inventory.index'))
+
+    # 3. Update Item
     user_item.condition = 100
     db.session.commit()
-
-    flash(_('تم إصلاح %(name)s وأصبح كالجديد.', name=user_item.item.name), 'success')
+    
+    flash(_('تم إصلاح %(name)s مقابل %(cost)s$.', name=user_item.item.name, cost=real_cost), 'success')
     return redirect(url_for('inventory.index'))

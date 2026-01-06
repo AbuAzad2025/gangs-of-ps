@@ -65,7 +65,14 @@
                             {% endif %}
                         </ul>
 
-                        {% if not current_user.gang_id %}
+                        {% if not current_user.is_authenticated %}
+                            <div class="alert alert-dark text-center mb-3">
+                                <p>{{ _('يجب تسجيل الدخول للانضمام للعصابات.') }}</p>
+                                <a href="{{ url_for('main.login') }}" class="btn btn-primary btn-block">
+                            <i class="fas fa-sign-in-alt mr-1"></i> {{ _('تسجيل الدخول') }}
+                        </a>
+                            </div>
+                        {% elif not current_user.gang_id %}
                             {% if gang.recruitment_status == 'open' %}
                             <form action="{{ url_for('gang.request_join', gang_id=gang.id) }}" method="POST" class="mb-3">
                                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
@@ -80,7 +87,7 @@
                             {% endif %}
                         {% endif %}
                         
-                        {% if current_user.gang_id and current_user.gang_id != gang.id and current_user.id == current_user.gang.leader_id %}
+                        {% if current_user.is_authenticated and current_user.gang_id and current_user.gang_id != gang.id and current_user.id == current_user.gang.leader_id %}
                         <form action="{{ url_for('gang.declare_war', target_gang_id=gang.id) }}" method="POST" class="mb-3">
                             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
                             <button type="submit" class="btn btn-luxury-war btn-block" data-confirm="{{ _('هل أنت متأكد من إعلان الحرب؟ سيكلفك ذلك 50,000$ من خزينة العصابة.') }}">

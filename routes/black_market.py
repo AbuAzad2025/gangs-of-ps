@@ -1,7 +1,7 @@
-from flask import Blueprint, render_template, redirect, url_for, flash, request, current_app
+from flask import Blueprint, render_template, redirect, url_for, flash, request, current_app, abort
 from flask_login import login_required, current_user
 from flask_babel import _
-from extensions import db
+from extensions import db, limiter
 from models import Item, UserItem, User, Message, SystemConfig, MoneySinkLog, UserLog, Vehicle, UserVehicle
 from models.contract import FarmSupplyContract
 from models.facility import UserFacility
@@ -158,7 +158,7 @@ def _sweep_auction_refunds(auction_id):
         db.session.commit()
         return winner
     except Exception as e:
-        print(f"Error in sweep refunds: {e}")
+        current_app.logger.error(f"Error in sweep refunds: {e}")
         return None
 
 def process_expired_auctions():
@@ -203,6 +203,11 @@ def process_expired_auctions():
             highest_bid = AuctionBid.query.filter_by(auction_id=auc.id, is_refunded=False).order_by(AuctionBid.amount.desc()).first()
             
             if highest_bid:
+                # Lock Winner and Seller to prevent deadlocks
+                users_to_lock = sorted(list(set(filter(None, [highest_bid.bidder_id, auc.seller_id]))))
+                for uid in users_to_lock:
+                    db.session.query(User).filter_by(id=uid).with_for_update().first()
+
                 winner = User.query.get(highest_bid.bidder_id)
                 if winner:
                     # Distribute Item
@@ -241,7 +246,7 @@ def process_expired_auctions():
                             )
                             db.session.add(msg)
                         except Exception as e:
-                            print(f"Error distributing auction item: {e}")
+                            current_app.logger.error(f"Error distributing auction item: {e}")
 
                     elif auc.item_type == 'vehicle':
                         try:
@@ -278,7 +283,7 @@ def process_expired_auctions():
                             )
                             db.session.add(msg)
                         except Exception as e:
-                            print(f"Error distributing auction vehicle: {e}")
+                            current_app.logger.error(f"Error distributing auction vehicle: {e}")
                     
                     elif auc.item_type == 'title':
                          # Titles might be handled differently or just advisory here
@@ -320,15 +325,90 @@ def process_expired_auctions():
                 auc.current_price = highest_bid.amount
 
             else:
-                # No bids
+                # No bids - Return item to seller
                 auc.status = 'expired'
-                # Logic to return item to seller can be added here if needed
+                
+                if auc.seller_id:
+                    # Lock Seller
+                    db.session.query(User).filter_by(id=auc.seller_id).with_for_update().first()
+                    
+                    seller = User.query.get(auc.seller_id)
+                    if seller:
+                        if auc.item_type == 'item':
+                            try:
+                                item_id = int(auc.item_id)
+                                u_item = UserItem.query.filter_by(user_id=seller.id, item_id=item_id).first()
+                                old_qty = u_item.quantity if u_item else 0
+                                
+                                if u_item:
+                                    u_item.quantity += 1
+                                else:
+                                    u_item = UserItem(user_id=seller.id, item_id=item_id, quantity=1, is_equipped=False)
+                                    db.session.add(u_item)
+                                    
+                                # Log Return
+                                log = UserLog(
+                                    user_id=seller.id,
+                                    action='AUCTION_RETURN_ITEM',
+                                    details=json.dumps({'item_id': item_id, 'auction_id': auc.id}),
+                                    result='success',
+                                    before_state={'quantity': old_qty},
+                                    after_state={'quantity': old_qty + 1},
+                                    ip_address='System',
+                                    user_agent='System'
+                                )
+                                db.session.add(log)
+                                
+                                msg = Message(
+                                    sender_id=None,
+                                    recipient_id=seller.id,
+                                    subject=_("انتهى المزاد"),
+                                    body=_("انتهى المزاد دون عروض. تم إعادة الغرض إلى مخزونك.")
+                                )
+                                db.session.add(msg)
+                            except Exception as e:
+                                current_app.logger.error(f"Error returning auction item: {e}")
+
+                        elif auc.item_type == 'vehicle':
+                             try:
+                                vehicle_id = int(auc.item_id)
+                                existing_count = UserVehicle.query.filter_by(user_id=seller.id, vehicle_id=vehicle_id).count()
+                                
+                                new_uv = UserVehicle(
+                                    user_id=seller.id,
+                                    vehicle_id=vehicle_id,
+                                    is_active=False,
+                                    condition=100
+                                )
+                                db.session.add(new_uv)
+                                
+                                log = UserLog(
+                                    user_id=seller.id,
+                                    action='AUCTION_RETURN_VEHICLE',
+                                    details=json.dumps({'vehicle_id': vehicle_id, 'auction_id': auc.id}),
+                                    result='success',
+                                    before_state={'vehicle_count': existing_count},
+                                    after_state={'vehicle_count': existing_count + 1},
+                                    ip_address='System',
+                                    user_agent='System'
+                                )
+                                db.session.add(log)
+                                
+                                msg = Message(
+                                    sender_id=None,
+                                    recipient_id=seller.id,
+                                    subject=_("انتهى المزاد"),
+                                    body=_("انتهى المزاد دون عروض. تم إعادة المركبة إلى كراجك.")
+                                )
+                                db.session.add(msg)
+                             except Exception as e:
+                                current_app.logger.error(f"Error returning auction vehicle: {e}")
             
             db.session.commit()
             
         except Exception as e:
             db.session.rollback()
-            print(f"Error processing expired auction {auc_id}: {e}")
+            current_app.logger.error(f"Error processing expired auction {auc_id}: {e}")
             # Reset status so it can be retried? Or mark as error?
             # For now, maybe reset to active to retry, or leave as processing/error
             # Let's set to active to retry, but with caution
@@ -336,6 +416,91 @@ def process_expired_auctions():
                 Auction.query.filter_by(id=auc_id).update({Auction.status: 'active'})
                 db.session.commit()
             except: pass
+
+@bp.route('/auctions/create', methods=['GET', 'POST'])
+@login_required
+def create_auction():
+    if request.method == 'POST':
+        user_item_id = request.form.get('user_item_id', type=int)
+        start_price = request.form.get('start_price', type=int)
+        duration = request.form.get('duration', type=int)
+
+        if not user_item_id or not start_price or not duration:
+            flash(_('يرجى ملء جميع الحقول!'), 'danger')
+            return redirect(url_for('black_market.create_auction'))
+        
+        if start_price < 1000:
+            flash(_('سعر البداية يجب أن يكون 1000 على الأقل!'), 'danger')
+            return redirect(url_for('black_market.create_auction'))
+            
+        valid_durations = [1, 6, 12, 24]
+        if duration not in valid_durations:
+            flash(_('مدة غير صالحة!'), 'danger')
+            return redirect(url_for('black_market.create_auction'))
+
+        try:
+            # Lock User first to prevent deadlocks
+            db.session.query(User).filter_by(id=current_user.id).with_for_update().first()
+
+            # Lock UserItem
+            user_item = UserItem.query.filter_by(id=user_item_id, user_id=current_user.id).with_for_update().first()
+            
+            if not user_item or user_item.quantity < 1:
+                flash(_('الغرض غير موجود أو نفدت الكمية!'), 'danger')
+                return redirect(url_for('black_market.create_auction'))
+                
+            if user_item.is_equipped:
+                flash(_('لا يمكن بيع غرض مجهز!'), 'danger')
+                return redirect(url_for('black_market.create_auction'))
+
+            # Check max price limit (Anti-Cheating)
+            max_price = user_item.item.cost * 3
+            if start_price > max_price:
+                flash(_('سعر البداية يتجاوز الحد المسموح به (3 أضعاف السعر الأصلي)! الحد الأقصى: %(max)s ₪', max=max_price), 'danger')
+                return redirect(url_for('black_market.create_auction'))
+                
+            # Deduct Item
+            if user_item.quantity == 1:
+                db.session.delete(user_item)
+            else:
+                user_item.quantity -= 1
+                
+            # Create Auction
+            now = datetime.now(timezone.utc)
+            end_time = now + timedelta(hours=duration)
+            
+            new_auction = Auction(
+                item_type='item',
+                item_id=str(user_item.item_id), # Store Item ID as string
+                seller_id=current_user.id,
+                start_price=start_price,
+                current_price=start_price,
+                min_bid_increment=max(100, int(start_price * 0.05)), # 5% increment
+                start_time=now,
+                end_time=end_time,
+                status='active'
+            )
+            
+            db.session.add(new_auction)
+            db.session.commit()
+            
+            flash(_('تم إنشاء المزاد بنجاح!'), 'success')
+            return redirect(url_for('black_market.auctions'))
+            
+        except Exception as e:
+            db.session.rollback()
+            current_app.logger.error(f"Error creating auction: {e}")
+            flash(_('حدث خطأ أثناء إنشاء المزاد.'), 'danger')
+            return redirect(url_for('black_market.create_auction'))
+
+    # GET
+    user_items = UserItem.query.join(Item).filter(
+        UserItem.user_id == current_user.id,
+        UserItem.quantity > 0,
+        UserItem.is_equipped == False
+    ).all()
+    
+    return render_template('black_market/create_auction.html', user_items=user_items)
 
 @bp.route('/auctions')
 @login_required
@@ -377,6 +542,11 @@ def auctions():
              except: pass
         elif auc.item_type == 'title':
             item_name = f"Title: {auc.item_id}" 
+        
+        # Ensure auc.end_time is offset-aware for comparison
+        auc_end_time = auc.end_time
+        if auc_end_time.tzinfo is None:
+            auc_end_time = auc_end_time.replace(tzinfo=timezone.utc)
             
         display_auctions.append({
             'obj': auc,
@@ -385,13 +555,15 @@ def auctions():
             'item_name': item_name,
             'item_image': item_image,
             'item_type': auc.item_type,
-            'time_left': auc.end_time - now
+            'time_left': auc_end_time - now,
+            'end_time_iso': auc_end_time.isoformat()
         })
         
     return render_template('black_market/auctions.html', auctions=display_auctions)
 
 @bp.route('/auctions/<int:auction_id>/bid', methods=['POST'])
 @login_required
+@limiter.limit("10 per minute")
 def place_bid(auction_id):
     """Place a bid on an auction."""
     amount = request.form.get('amount', type=int)
@@ -406,6 +578,11 @@ def place_bid(auction_id):
     
     if not auction.is_active:
         flash(_("المزاد منتهي"), "danger")
+        return redirect(url_for('black_market.auctions'))
+
+    # Prevent self-bidding (Anti-Shill Bidding)
+    if auction.seller_id == current_user.id:
+        flash(_("لا يمكنك المزايدة على غرضك الخاص!"), "danger")
         return redirect(url_for('black_market.auctions'))
 
     highest_bid = AuctionBid.query.filter_by(auction_id=auction.id).order_by(AuctionBid.amount.desc()).first()
@@ -479,8 +656,19 @@ def place_bid(auction_id):
             flash(_("تغير سعر المزاد أثناء محاولتك. حاول مرة أخرى."), "warning")
             return redirect(url_for('black_market.auctions'))
 
+        # Deadlock Prevention: Lock Current Bidder and Previous Bidder in ID order
+        users_to_lock = [current_user.id]
+        if highest_bid:
+            users_to_lock.append(highest_bid.bidder_id)
+        
+        # Remove duplicates and sort
+        users_to_lock = sorted(list(set(users_to_lock)))
+        
+        for uid in users_to_lock:
+            db.session.query(User).filter_by(id=uid).with_for_update().first()
+
         # 2. Deduct money from current bidder
-        if not ResourceService.modify_resources(current_user.id, {'money': -amount}, 'auction_bid', auto_commit=False, expected_version=current_user.version):
+        if not ResourceService.modify_resources(current_user.id, {'money': -amount}, 'auction_bid', auto_commit=False, expected_version=None):
             # If deduction fails, we MUST rollback the auction update
             raise Exception("Insufficient funds or deduction failed")
         
@@ -488,8 +676,8 @@ def place_bid(auction_id):
         if highest_bid:
             prev_bidder = User.query.get(highest_bid.bidder_id)
             if prev_bidder:
-                if not ResourceService.modify_resources(prev_bidder.id, {'money': highest_bid.amount}, 'auction_refund', auto_commit=False, expected_version=prev_bidder.version):
-                     raise Exception("Failed to refund previous bidder")
+                if not ResourceService.modify_resources(prev_bidder.id, {'money': highest_bid.amount}, 'auction_refund', auto_commit=False, expected_version=None):
+                    raise Exception("Failed to refund previous bidder")
 
         # 4. Create Bid Record
         new_bid = AuctionBid(
@@ -639,7 +827,11 @@ def index():
 
 @bp.route('/buy_smuggling/<int:item_id>', methods=['POST'])
 @login_required
+@limiter.limit("20 per minute")
 def buy_smuggling(item_id):
+    # Lock User to prevent race conditions (especially for UserItem creation)
+    db.session.query(User).filter_by(id=current_user.id).with_for_update().first()
+
     # Status Check (Copy-paste standard checks or use decorator if available)
     now = datetime.now(timezone.utc)
     if current_user.jail_until and current_user.jail_until.replace(tzinfo=timezone.utc) > now:
@@ -663,12 +855,21 @@ def buy_smuggling(item_id):
     price = _apply_black_market_event(price, current_user.location_id, black_market_event)
     total_cost = price * quantity
     
+    # Gang Buff (Bazaar Connections)
+    try:
+        from services.gang_service import GangService
+        gang_buff = GangService.get_gang_buff(current_user.gang_id, 'bazaar_connections')
+        if gang_buff > 0:
+            total_cost = int(total_cost * (1 - gang_buff / 100))
+    except Exception as e:
+        current_app.logger.error(f"Error applying gang buff: {e}")
+    
     if current_user.money < total_cost:
         flash(_('ليس لديك مال كافي!'), 'danger')
         return redirect(url_for('black_market.index'))
         
     # Atomic deduction with logging
-    if not ResourceService.modify_resources(current_user.id, {'money': -total_cost}, 'buy_smuggling', auto_commit=False, expected_version=current_user.version):
+    if not ResourceService.modify_resources(current_user.id, {'money': -total_cost}, 'buy_smuggling', auto_commit=False, expected_version=None):
         flash(_('حدث خطأ أثناء الشراء. حاول مرة أخرى.'), 'danger')
         return redirect(url_for('black_market.index'))
     
@@ -701,6 +902,7 @@ def buy_smuggling(item_id):
 
 @bp.route('/sell_smuggling/<int:item_id>', methods=['POST'])
 @login_required
+@limiter.limit("20 per minute")
 def sell_smuggling(item_id):
     # Status Check
     now = datetime.now(timezone.utc)
@@ -714,6 +916,10 @@ def sell_smuggling(item_id):
     item = db.session.get(Item, item_id)
     if not item or item.type != 'smuggling':
         abort(404)
+        
+    # Lock User first to prevent deadlocks with buy_smuggling (User -> Item)
+    # This ensures consistent locking order (User -> UserItem)
+    db.session.query(User).filter_by(id=current_user.id).with_for_update().first()
         
     # Lock the item row to prevent double selling
     user_item = UserItem.query.filter_by(user_id=current_user.id, item_id=item.id).with_for_update().first()
@@ -746,7 +952,7 @@ def sell_smuggling(item_id):
             total_value = int(total_value * (1 + bonus_pct))
     
     # Atomic Update with logging
-    if not ResourceService.modify_resources(current_user.id, {'money': total_value}, 'sell_smuggling', auto_commit=False, expected_version=current_user.version):
+    if not ResourceService.modify_resources(current_user.id, {'money': total_value}, 'sell_smuggling', auto_commit=False, expected_version=None):
         flash(_('حدث خطأ أثناء البيع. حاول مرة أخرى.'), 'danger')
         return redirect(url_for('black_market.index'))
 
@@ -779,7 +985,12 @@ def sell_smuggling(item_id):
 
 @bp.route('/buy_service/<service_type>', methods=['POST'])
 @login_required
+@limiter.limit("5 per minute")
 def buy_service(service_type):
+    # Lock user to prevent race conditions
+    # We use the ID to query, ensuring we get the session object attached to this transaction
+    db.session.query(User).filter_by(id=current_user.id).with_for_update().first()
+
     # Status Check
     now = datetime.now(timezone.utc)
     if current_user.jail_until:
@@ -821,8 +1032,17 @@ def buy_service(service_type):
         cost = 50000
         duration = 24 # hours
         
+        # Gang Buff (Bazaar Connections)
+        try:
+            from services.gang_service import GangService
+            gang_buff = GangService.get_gang_buff(current_user.gang_id, 'bazaar_connections')
+            if gang_buff > 0:
+                cost = int(cost * (1 - gang_buff / 100))
+        except Exception as e:
+            current_app.logger.error(f"Error applying gang buff: {e}")
+
         if current_user.money < cost:
-            flash(_('تحتاج إلى 50,000$ لاستئجار منزل آمن!'), 'danger')
+            flash(_('تحتاج إلى %(cost)s$ لاستئجار منزل آمن!', cost="{:,}".format(cost)), 'danger')
             return redirect(url_for('black_market.index'))
             
         # Atomic deduction with logging
@@ -848,8 +1068,17 @@ def buy_service(service_type):
         cost = 10000
         duration = 1 # hours
         
+        # Gang Buff (Bazaar Connections)
+        try:
+            from services.gang_service import GangService
+            gang_buff = GangService.get_gang_buff(current_user.gang_id, 'bazaar_connections')
+            if gang_buff > 0:
+                cost = int(cost * (1 - gang_buff / 100))
+        except Exception as e:
+            current_app.logger.error(f"Error applying gang buff: {e}")
+
         if current_user.money < cost:
-            flash(_('تحتاج إلى 10,000$ لشراء تنكر!'), 'danger')
+            flash(_('تحتاج إلى %(cost)s$ لشراء تنكر!', cost="{:,}".format(cost)), 'danger')
             return redirect(url_for('black_market.index'))
             
         # Atomic deduction with logging
@@ -881,7 +1110,8 @@ def buy_service(service_type):
             return redirect(url_for('black_market.index'))
 
         # Atomic deduction with logging
-        if not ResourceService.modify_resources(current_user.id, {'money': -cost}, 'buy_service_cool_off', auto_commit=False, expected_version=current_user.version):
+        if not ResourceService.modify_resources(current_user.id, {'money': -cost}, 'buy_service_cool_off', auto_commit=False, expected_version=None):
+            db.session.rollback()
             flash(_('حدث خطأ أثناء العملية. حاول مرة أخرى.'), 'danger')
             return redirect(url_for('black_market.index'))
 
@@ -900,6 +1130,7 @@ def buy_service(service_type):
 
 @bp.route('/buy_bullets', methods=['POST'])
 @login_required
+@limiter.limit("10 per minute")
 def buy_bullets():
     quantity = request.form.get('quantity', type=int)
     payment_method = request.form.get('payment_method', 'money') # money or diamonds
@@ -999,6 +1230,7 @@ def buy_bullets():
 
 @bp.route('/spy', methods=['POST'])
 @login_required
+@limiter.limit("3 per minute")
 def spy():
     # Status Check
     now = datetime.now(timezone.utc)
@@ -1136,6 +1368,7 @@ def spy():
 
 @bp.route('/buy/<int:item_id>', methods=['POST'])
 @login_required
+@limiter.limit("10 per minute")
 def buy(item_id):
     item = db.session.get(Item, item_id)
     if not item:
@@ -1145,12 +1378,22 @@ def buy(item_id):
         flash(_('هذا الغرض غير متوفر في السوق السوداء!'), 'danger')
         return redirect(url_for('black_market.index'))
 
-    if current_user.money < item.cost:
+    cost = item.cost
+    # Gang Buff (Bazaar Connections)
+    try:
+        from services.gang_service import GangService
+        gang_buff = GangService.get_gang_buff(current_user.gang_id, 'bazaar_connections')
+        if gang_buff > 0:
+            cost = int(cost * (1 - gang_buff / 100))
+    except Exception as e:
+        current_app.logger.error(f"Error applying gang buff: {e}")
+
+    if current_user.money < cost:
         flash(_('معكش مصاري كفاية يا معلم!'), 'danger')
         return redirect(url_for('black_market.index'))
     
     # Atomic deduction with logging
-    if not ResourceService.modify_resources(current_user.id, {'money': -item.cost}, 'buy_black_market_item', auto_commit=False, expected_version=current_user.version):
+    if not ResourceService.modify_resources(current_user.id, {'money': -cost}, 'buy_black_market_item', auto_commit=False, expected_version=current_user.version):
         flash(_('حدث خطأ أثناء الشراء. حاول مرة أخرى.'), 'danger')
         return redirect(url_for('black_market.index'))
     
@@ -1187,6 +1430,7 @@ def buy(item_id):
 
 @bp.route('/sell_loot/<int:user_item_id>', methods=['POST'])
 @login_required
+@limiter.limit("20 per minute")
 def sell_loot(user_item_id):
     user_item = db.session.get(UserItem, user_item_id)
     if not user_item:
@@ -1344,6 +1588,7 @@ def repair_all_loot():
 
 @bp.route('/extend_contract', methods=['POST'])
 @login_required
+@limiter.limit("3 per minute")
 def extend_contract():
     offer = _contract_offer(current_user)
     if not offer:

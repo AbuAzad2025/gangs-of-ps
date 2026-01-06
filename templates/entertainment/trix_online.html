@@ -1,0 +1,974 @@
+{% extends "base.html" %}
+
+{% block content %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/trix.css') }}">
+
+<div class="container-fluid fade-in p-0">
+    <div class="d-flex justify-content-between align-items-center bg-dark p-2 text-white border-bottom border-warning">
+        <div class="d-flex align-items-center">
+            <h4 class="m-0 mr-3"><i class="fas fa-crown text-warning"></i> {{ room.name }}</h4>
+            {% if player.seat_index == 0 %}
+                {% if room.status == 'playing' %}
+                <button class="btn btn-sm btn-danger mr-2" onclick="leaveGame()">{{ _('مغادرة (انسحاب)') }}</button>
+                {% else %}
+                <button class="btn btn-sm btn-success mr-2" onclick="startGame()">{{ _('بدء اللعبة') }}</button>
+                <button class="btn btn-sm btn-danger mr-2" onclick="finishGame()">{{ _('إنهاء اللعبة') }}</button>
+                <button class="btn btn-sm btn-outline-warning" onclick="deleteRoom()">{{ _('حذف الغرفة') }}</button>
+                {% endif %}
+            {% else %}
+            <button class="btn btn-sm btn-danger ml-2" onclick="leaveGame()">{{ _('مغادرة') }}</button>
+            {% endif %}
+        </div>
+        <div class="text-right">
+            {% if room.stake_amount > 0 %}
+            <span class="badge badge-success mr-2">
+                {% if room.currency_type == 'diamonds' %}💎{% else %}💰{% endif %}
+                {{ _('الرهان:') }} {{ room.stake_amount }}
+            </span>
+            <span class="badge badge-warning mr-2">
+                🏆 {{ _('الجائزة:') }} {{ room.pot_amount }}
+            </span>
+            {% endif %}
+            <span class="badge badge-info mr-2">{{ _('المقعد:') }} {{ player.seat_index + 1 }}</span>
+            <span class="badge badge-warning" id="turn-badge">{{ _('انتظار...') }}</span>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-12">
+            <div class="trix-table mt-3 mx-auto" id="trix-table">
+                <div class="game-info">
+                    <div id="scores">
+                        <!-- Scores injected via JS -->
+                    </div>
+                    <div id="status-msg" class="mt-2 text-info">{{ _('جاري مزامنة اللعبة...') }}</div>
+                    <div class="mt-1">
+                        <span class="badge badge-info">
+                            {{ _('النمط:') }} <span id="trix-style-label">...</span>
+                        </span>
+                        <span class="badge badge-secondary ml-2">
+                            {{ _('نوع اللعب:') }} <span id="trix-team-label">...</span>
+                        </span>
+                        <span class="badge badge-warning ml-2">
+                            {{ _('العقد:') }} <span id="contract-label">...</span>
+                        </span>
+                        <span class="badge badge-primary ml-2">
+                            {{ _('الطور:') }} <span id="phase-label">...</span>
+                        </span>
+                    </div>
+                    <div class="mt-2" id="double-controls" style="display:none;">
+                        <small class="text-light">{{ _('التدبيل:') }}</small>
+                        <div id="double-buttons" class="mt-1"></div>
+                    </div>
+                </div>
+                <div id="winner-overlay" class="winner-overlay" style="display:none;"></div>
+
+                <!-- Contract Selection Overlay -->
+                <div id="contract-selection" class="contract-selector d-none text-center">
+                    <h5 class="text-white mb-3">{{ _('اختر نوع اللعبة') }}</h5>
+                    <div class="btn-group-vertical">
+                        <button class="btn btn-danger contract-btn mb-1" data-contract="king" onclick="chooseContract('king')">King of Hearts (-75)</button>
+                        <button class="btn btn-danger contract-btn mb-1" data-contract="queens" onclick="chooseContract('queens')">Queens (-25)</button>
+                        <button class="btn btn-danger contract-btn mb-1" data-contract="diamonds" onclick="chooseContract('diamonds')">Diamonds (-10)</button>
+                        <button class="btn btn-danger contract-btn mb-1" data-contract="slapping" onclick="chooseContract('slapping')">Slapping (-15)</button>
+                        <button class="btn btn-success contract-btn" data-contract="trix" onclick="chooseContract('trix')">Trix (+0)</button>
+                    </div>
+                </div>
+
+                <!-- Players -->
+                <!-- Logic to rotate table so current player is always bottom -->
+                {% set seats = [0, 1, 2, 3] %}
+                {% set my_seat = player.seat_index %}
+                <!-- Rotation: if I am seat 1, then seat 1 is bottom, 2 is right, 3 is top, 0 is left -->
+                <!-- Relative positions: 0=Bottom, 1=Right, 2=Top, 3=Left -->
+                
+                {% for i in range(4) %}
+                    {% set absolute_seat = (my_seat + i) % 4 %}
+                    {% set pos_class = ['player-bottom', 'player-right', 'player-top', 'player-left'][i] %}
+                    
+                    <div class="player-area {{ pos_class }}" id="seat-{{ absolute_seat }}">
+                        <div class="player-avatar" id="avatar-{{ absolute_seat }}">
+                            <!-- Injected via JS -->
+                            <div class="spinner-border spinner-border-sm text-light"></div>
+                        </div>
+                        <div class="player-name badge badge-dark mt-1" id="name-{{ absolute_seat }}">P{{ absolute_seat + 1 }}</div>
+                        <div class="card-hand" id="hand-{{ absolute_seat }}"></div>
+                    </div>
+                {% endfor %}
+
+                <!-- Doubled Cards Container -->
+                <div class="doubled-cards-container" id="doubled-cards"></div>
+
+                <!-- Trick Area -->
+                <div class="trick-area">
+                    {% for i in range(4) %}
+                        {% set absolute_seat = (my_seat + i) % 4 %}
+                        {% set pos_class = ['played-bottom', 'played-right', 'played-top', 'played-left'][i] %}
+                        <div class="played-card {{ pos_class }}" id="trick-{{ absolute_seat }}"></div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container-fluid fade-in p-0">
+    <!-- Game UI content -->
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
+<script>
+    // "Highest Standards": Server-Authoritative State, Client-Side Prediction (Optimistic UI)
+    
+    const roomId = {{ room.id }};
+    const mySeat = {{ player.seat_index }};
+
+    function startGame() {
+        const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+        fetch("{{ url_for('entertainment.start_room', room_id=room.id) }}", {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrfToken }
+        }).then(r => r.json()).then(() => location.reload());
+    }
+
+    function finishGame() {
+        const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+        fetch("{{ url_for('entertainment.finish_room', room_id=room.id) }}", {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrfToken }
+        }).then(r => r.json()).then(() => location.reload());
+    }
+
+    function deleteRoom() {
+        const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+        fetch("{{ url_for('entertainment.finish_room', room_id=room.id) }}", {
+             method: 'POST',
+             headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrfToken }
+        }).then(r => r.json()).then(() => window.location.href = "{{ url_for('entertainment.index') }}");
+    }
+
+    function leaveGame() {
+        if(!confirm("{{ _('هل أنت متأكد من المغادرة؟ ستخسر الرهان.') }}")) return;
+        const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+        fetch("{{ url_for('entertainment.leave_game', room_id=room.id) }}", {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrfToken }
+        }).then(r => r.json()).then(() => window.location.href = "{{ url_for('entertainment.index') }}");
+    }
+
+    
+    // State
+    let localState = {
+        hands: [], // My hand is at index [mySeat] (others are masked)
+        trick: [],
+        turn_seat: 0,
+        scores: [0, 0, 0, 0],
+        phase: 'lobby'
+    };
+    let playersInfo = []; // To store user details
+    let lastTrick = [];
+    
+    // Init
+    $(document).ready(() => {
+        // We rely on Socket.IO for real-time and Polling for bot driving/fallback
+        // SSE (startEvents) is removed to prevent connection errors on Windows
+        syncState();
+        let pollActive = true;
+        document.addEventListener('visibilitychange', () => {
+            pollActive = !document.hidden;
+            if (pollActive) syncState();
+        });
+        setInterval(() => { if (pollActive) syncState(); }, 4000); 
+    });
+    
+    // function startEvents() { ... } REMOVED
+
+    
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/socket.io-client@4.7.5/dist/socket.io.min.js"></script>
+    <script>
+    try {
+        const socket = io({ transports: ['websocket', 'polling'] });
+        socket.emit('subscribe', { room: `room-${roomId}` });
+        socket.on('room_update', (data) => {
+            if (data.players) {
+                const newPlayersJson = JSON.stringify(data.players);
+                if (newPlayersJson !== (window._lastPlayersJson || '')) {
+                    window._lastPlayersJson = newPlayersJson;
+                    playersInfo = data.players;
+                    renderPlayersInfo();
+                }
+            }
+            if (data.game_state) {
+                const serverState = data.game_state;
+                if (JSON.stringify(serverState) !== JSON.stringify(localState)) {
+                    localState = serverState;
+                    renderAll();
+                }
+            }
+        });
+    } catch (e) {}
+    
+    function syncState() {
+        fetch(`/entertainment/api/room/${roomId}/state`)
+            .then(res => res.json())
+            .then(data => {
+                if (data.players) {
+                    const newPlayersJson = JSON.stringify(data.players);
+                    if (newPlayersJson !== (window._lastPlayersJson || '')) {
+                        window._lastPlayersJson = newPlayersJson;
+                        playersInfo = data.players;
+                        renderPlayersInfo();
+                    }
+                }
+
+                if (!data.game_state) return;
+                
+                const serverState = data.game_state;
+                
+                // Diff check to avoid re-rendering if nothing changed (optimization)
+                if (JSON.stringify(serverState) !== JSON.stringify(localState)) {
+                    localState = serverState;
+                    renderAll();
+                }
+            })
+            .catch(err => console.error(err));
+    }
+
+    function renderPlayersInfo() {
+        playersInfo.forEach(p => {
+            const nameEl = document.querySelector(`#name-${p.seat_index}`);
+            if (nameEl && nameEl.textContent !== p.username) {
+                nameEl.textContent = p.username;
+            }
+            const container = document.querySelector(`#avatar-${p.seat_index}`);
+            const avatarPath = (p.avatar && p.avatar !== 'default.png') ? `/static/uploads/avatars/${p.avatar}` : '/static/adminlte/img/user2-160x160.jpg';
+            let img = container.querySelector('img');
+            if (!img) {
+                img = document.createElement('img');
+                img.className = 'rounded-circle';
+                img.width = 40; img.height = 40;
+                img.loading = 'lazy';
+                container.innerHTML = '';
+                container.appendChild(img);
+            }
+            if (img.getAttribute('src') !== avatarPath) {
+                img.src = avatarPath;
+            }
+            if (img.getAttribute('alt') !== p.username) {
+                img.alt = p.username;
+            }
+            img.onerror = function() { this.src = '/static/adminlte/img/user2-160x160.jpg'; };
+        });
+    }
+    
+    function renderAll() {
+        if ((lastTrick || []).length === 4 && (localState.trick || []).length === 0) {
+            const w = computeTrixWinner(lastTrick);
+            if (w !== null) { showWinnerOverlay(w); playSfx('win'); }
+            lastTrick = [];
+        }
+        renderHand();
+        renderOpponents();
+        renderTrick();
+        renderInfo();
+        highlightTurn();
+        if (typeof renderDoublesOnTable === 'function') {
+            renderDoublesOnTable();
+        }
+        // Timer removed
+    }
+    
+    window.passTurn = function() {
+        const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+        fetch(`/entertainment/api/room/${roomId}/move`, {
+            method: 'POST',
+            headers: { 
+                'Content-Type': 'application/json',
+                'X-CSRFToken': csrfToken
+            },
+            body: JSON.stringify({
+                action: 'play_card',
+                card: {suit: '♥', rank: '2', action: 'pass'} // Dummy card with action pass
+            })
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.error) {
+                alert(data.error);
+            } else {
+                localState = data.state;
+                renderAll();
+            }
+        });
+    };
+
+    function hasValidMoves(hand, state) {
+        if (state.current_contract === 'trix') {
+            const piles = state.trix_piles || { '♥': [], '♦': [], '♣': [], '♠': [] };
+            for (let card of hand) {
+                const s = card.suit;
+                const r = card.rank;
+                const pile = piles[s] || [];
+                
+                if (r === 'J' && pile.length === 0) return true;
+                if (pile.length === 0) continue;
+                
+                const upper = ['J', 'Q', 'K', 'A'];
+                const lower = ['J', '10', '9', '8', '7', '6', '5', '4', '3', '2'];
+                
+                if (upper.includes(r)) {
+                    const idx = upper.indexOf(r);
+                    if (idx > 0 && pile.includes(upper[idx-1]) && !pile.includes(r)) return true;
+                }
+                if (lower.includes(r)) {
+                    const idx = lower.indexOf(r);
+                    if (idx > 0 && pile.includes(lower[idx-1]) && !pile.includes(r)) return true;
+                }
+            }
+            return false;
+        }
+        return true;
+    }
+
+    function highlightTurn() {
+        $('.player-area').removeClass('active-turn');
+        const turnSeat = localState.turn_seat;
+        if (turnSeat !== undefined && turnSeat !== null) {
+            $(`#seat-${turnSeat}`).addClass('active-turn');
+        }
+    }
+
+    function renderHand() {
+        const container = $(`#hand-${mySeat}`);
+        container.empty();
+        
+        let myHand = localState.hands[mySeat] || [];
+        const suitOrder = ['♥','♦','♣','♠'];
+        const rankOrder = ['2','3','4','5','6','7','8','9','10','J','Q','K','A'];
+        myHand = myHand.slice().sort((a,b) => {
+            const s = suitOrder.indexOf(a.suit) - suitOrder.indexOf(b.suit);
+            if (s !== 0) return s;
+            return rankOrder.indexOf(a.rank) - rankOrder.indexOf(b.rank);
+        });
+        const isMyTurn = localState.turn_seat === mySeat;
+        const isDoubling = localState.phase === 'doubling';
+        const contract = localState.current_contract;
+        const doubles = localState.doubles || { king: null, queens: {} };
+        
+        // Helper: client-side simple playability check
+        const canPlay = (card) => {
+            const trick = localState.trick || [];
+            if (!trick.length) {
+                if (contract === 'king' && !localState.hearts_broken) {
+                    const hasNonHearts = myHand.some(c => c.suit !== '♥');
+                    if (hasNonHearts && card.suit === '♥') return false;
+                }
+                return true;
+            } else {
+                const leadSuit = trick[0].card.suit;
+                const hasLead = myHand.some(c => c.suit === leadSuit);
+                if (hasLead && card.suit !== leadSuit) return false;
+                return true;
+            }
+        };
+        
+        myHand.forEach((card, index) => {
+             const colorClass = (card.suit === '♥' || card.suit === '♦') ? 'text-danger' : 'text-dark';
+             let disabledClass = isMyTurn ? '' : 'disabled-card';
+             let extraClass = '';
+             let onclick = `playCard(${index})`;
+             
+             if (isDoubling) {
+                 const eligibleKing = (contract === 'king' || contract === 'complex') && card.suit === '♥' && card.rank === 'K' && !doubles.king;
+                 const eligibleQueen = (contract === 'queens' || contract === 'complex') && card.rank === 'Q' && !(doubles.queens && doubles.queens[card.suit]);
+                 if (eligibleKing || eligibleQueen) {
+                     disabledClass = '';
+                     extraClass = 'flippable';
+                     onclick = `toggleDouble(${index})`;
+                 } else {
+                     disabledClass = 'disabled-card';
+                 }
+             }
+             
+             if (contract === 'trix') {
+                 const trickStarted = (localState.trick && localState.trick.length > 0);
+                 if (trickStarted && card.rank === '2') {
+                     extraClass += ' flipped';
+                 }
+             }
+             
+             if (isMyTurn && !isDoubling && canPlay(card)) {
+                 extraClass += ' playable';
+             }
+             
+             container.append(`
+                 <div class="trix-card ${colorClass} ${disabledClass} ${extraClass}" onclick="${onclick}">
+                    <div class="card-val-top">${card.rank}</div>
+                    <div class="card-suit-center">${card.suit}</div>
+                 </div>
+             `);
+        });
+
+        if (isMyTurn && !isDoubling && !hasValidMoves(myHand, localState)) {
+             container.append(`
+                 <div class="ml-2">
+                    <button class="btn btn-warning" onclick="passTurn()">{{ _('تجاوز (Pass)') }}</button>
+                 </div>
+             `);
+        }
+    }
+    
+    function renderOpponents() {
+        [0, 1, 2, 3].forEach(seat => {
+            if (seat === mySeat) return;
+            const hand = localState.hands[seat] || [];
+            const container = $(`#hand-${seat}`);
+            
+            // Simple visual representation of card count
+            let html = '';
+            hand.forEach(() => {
+                html += '<div class="trix-card-back"></div>';
+            });
+            container.html(html);
+        });
+    }
+    
+    function renderTrick() {
+        let trick = localState.trick || [];
+        let isLastTrick = false;
+        
+        // If current trick is empty, show last trick (so players can see what happened)
+        if (trick.length === 0 && localState.last_trick && localState.last_trick.length > 0) {
+            trick = localState.last_trick;
+            isLastTrick = true;
+        }
+
+        if (trick.length && !isLastTrick) lastTrick = trick.slice();
+        
+        // Map seat -> card info
+        const trickMap = {};
+        trick.forEach((play, idx) => {
+            trickMap[play.player] = { card: play.card, index: idx };
+        });
+
+        // Update DOM intelligently to avoid re-animation
+        [0, 1, 2, 3].forEach(seat => {
+            const container = document.getElementById(`trick-${seat}`);
+            const currentSig = container.getAttribute('data-card');
+            
+            if (trickMap[seat]) {
+                const { card, index } = trickMap[seat];
+                const newSig = `${card.suit}-${card.rank}`;
+                
+                if (currentSig === newSig) return; // Already rendered
+                
+                const colorClass = (card.suit === '♥' || card.suit === '♦') ? 'text-danger' : 'text-dark';
+                const isBottom = seat === mySeat;
+                const isRight = seat === ((mySeat + 1) % 4);
+                const isTop = seat === ((mySeat + 2) % 4);
+                const isLeft = seat === ((mySeat + 3) % 4);
+                const dirClass = isBottom ? 'animate-bottom' : isRight ? 'animate-right' : isTop ? 'animate-top' : 'animate-left';
+                const leadClass = index === 0 ? 'lead-glow' : '';
+                
+                // Removed opacity/scale reduction for last trick to keep it visible clearly
+                const opacityStyle = '';
+                
+                // Player Label (Whose throw is whose)
+                const playerName = getPlayerName(seat);
+                
+                container.innerHTML = `
+                <div class="trix-card ${colorClass} ${dirClass} ${leadClass}" style="${opacityStyle}">
+                    <div class="card-val-top">${card.rank}</div>
+                    <div class="card-suit-center">${card.suit}</div>
+                </div>
+                <div class="trick-player-label ${dirClass}">${playerName}</div>
+                `;
+                container.setAttribute('data-card', newSig);
+            } else {
+                // Clear if no card
+                if (currentSig) {
+                    container.innerHTML = '';
+                    container.removeAttribute('data-card');
+                }
+            }
+        });
+    }
+    
+    function computeTrixWinner(trick) {
+        if (!trick || trick.length !== 4) return null;
+        const leadSuit = trick[0].card.suit;
+        const order = ['2','3','4','5','6','7','8','9','10','J','Q','K','A'];
+        let winner = trick[0];
+        trick.slice(1).forEach(p => {
+            const c = p.card;
+            const w = winner.card;
+            if (c.suit === leadSuit && order.indexOf(c.rank) > order.indexOf(w.rank)) {
+                winner = p;
+            }
+        });
+        return winner.player;
+    }
+    
+    function showWinnerOverlay(seat) {
+        const el = document.querySelector('#winner-overlay');
+        el.textContent = `{{ _('فاز باللطشة') }}: P${seat+1}`;
+        el.style.display = '';
+        setTimeout(() => { el.style.display = 'none'; }, 500);
+    }
+
+function getPlayerName(seatIndex) {
+        const p = playersInfo.find(p => p.seat_index === seatIndex);
+        return p ? p.username : `P${seatIndex + 1}`;
+    }
+
+    function renderInfo() {
+        // Kingdom King Indicator (Crown)
+        $('.player-name .crown-icon').remove(); 
+        const kingSeat = localState.kingdom_player;
+        if (kingSeat !== undefined && kingSeat !== null) {
+             const nameEl = $(`#name-${kingSeat}`);
+             nameEl.prepend('<i class="fas fa-crown text-warning crown-icon mr-1"></i> ');
+        }
+
+        // Turn Badge
+        if (localState.turn_seat === mySeat) {
+            $('#turn-badge').removeClass('badge-warning').addClass('badge-success').text("{{ _('دورك!') }}");
+        } else {
+            const name = getPlayerName(localState.turn_seat);
+            $('#turn-badge').removeClass('badge-success').addClass('badge-warning').text(`{{ _('دور اللاعب') }} ${name}`);
+        }
+        
+        // Scores - Professional Table
+        let scoreHtml = '<table class="score-table">';
+        const teamMode = localState.team_mode || 'individual';
+        
+        if (teamMode === 'partnership') {
+            const teamA = (localState.scores[0] || 0) + (localState.scores[2] || 0);
+            const teamB = (localState.scores[1] || 0) + (localState.scores[3] || 0);
+            
+            scoreHtml += `
+                <tr>
+                    <th><small>${getPlayerName(0)} & ${getPlayerName(2)}</small></th>
+                    <td class="score-val">${teamA}</td>
+                </tr>
+                <tr>
+                    <th><small>${getPlayerName(1)} & ${getPlayerName(3)}</small></th>
+                    <td class="score-val">${teamB}</td>
+                </tr>`;
+        } else {
+            const entries = Array.isArray(localState.scores)
+                ? localState.scores.map((v, i) => [i, v])
+                : Object.entries(localState.scores || {});
+            entries.forEach(([i, score]) => {
+                scoreHtml += `
+                <tr>
+                    <td class="player-name">${getPlayerName(parseInt(i, 10))}</td>
+                    <td class="score-val">${score}</td>
+                </tr>`;
+            });
+        }
+        scoreHtml += '</table>';
+        $('#scores').html(scoreHtml);
+        
+        // Style label
+        const style = localState.trix_style || 'kingdoms';
+        $('#trix-style-label').text(style === 'complex' ? '{{ _("كمبلكس") }}' : '{{ _("الممالك") }}');
+        
+        // Team label
+        const teamModeLabel = (teamMode === 'partnership') ? '{{ _("شراكة") }}' : '{{ _("منفرد") }}';
+        $('#trix-team-label').text(teamModeLabel);
+        const contractLabel = localState.current_contract || '...';
+        $('#contract-label').text(contractLabel);
+        const phaseLabel = localState.phase || '...';
+        const phaseText = phaseLabel === 'choose_contract' ? '{{ _("اختيار العقد") }}' : phaseLabel === 'doubling' ? '{{ _("التدبيل") }}' : phaseLabel === 'playing' ? '{{ _("اللعب") }}' : phaseLabel === 'finished' ? '{{ _("انتهت") }}' : phaseLabel;
+        $('#phase-label').text(phaseText);
+        
+        // Double controls
+        renderDoubleControls();
+        
+        // Render doubles on table visually
+        renderDoublesOnTable();
+
+        // Update player names with crown for kingdom player
+        const kingdomPlayer = localState.kingdom_player;
+        if (kingdomPlayer !== null && kingdomPlayer !== undefined) {
+            $('.player-name').find('.crown-icon').remove();
+            $(`#name-${kingdomPlayer}`).prepend('<i class="fas fa-crown text-warning crown-icon mr-1"></i>');
+        }
+
+        // Phase
+        if (localState.phase === 'choose_contract') {
+             const kingSeat = localState.kingdom_player;
+             if (kingSeat === mySeat) {
+                 $('#status-msg').text("{{ _('أنت الملك! اختر اللعبة') }}");
+                 if ((localState.trix_style || 'kingdoms') === 'kingdoms') {
+                     $('#contract-selection').removeClass('d-none');
+                 } else {
+                     $('#contract-selection').addClass('d-none');
+                 }
+                 
+                 // Disable already played contracts
+                 const played = localState.kingdom_contracts || [];
+                 $('.contract-btn').each(function() {
+                     const c = $(this).data('contract');
+                     if (played.includes(c)) {
+                         $(this).prop('disabled', true).addClass('disabled');
+                     } else {
+                         $(this).prop('disabled', false).removeClass('disabled');
+                     }
+                 });
+             } else {
+                 if ((localState.trix_style || 'kingdoms') === 'kingdoms') {
+                     $('#status-msg').text(`{{ _('بانتظار الملك (P') }}${kingSeat + 1}{{ _(') لاختيار اللعبة...') }}`);
+                 } else {
+                     $('#status-msg').text("{{ _('جاري اللعب...') }}");
+                 }
+                 $('#contract-selection').addClass('d-none');
+             }
+            $('#double-controls').addClass('d-none'); // Ensure doubling hidden
+             
+        } else if (localState.phase === 'doubling') {
+             $('#contract-selection').addClass('d-none');
+             
+             const confirms = localState.doubling_confirms || [];
+             if (confirms.includes(mySeat)) {
+                 $('#status-msg').text("{{ _('بانتظار باقي اللاعبين...') }}");
+                $('#double-controls').addClass('d-none');
+             } else {
+                 $('#status-msg').text("{{ _('مرحلة التدبيل: دبل إذا معك الشيخ أو البنات') }}");
+                 // Show doubling controls based on hand
+                 // We rely on renderDoubleControls to check hand logic, but we need to show the container
+                $('#double-controls').removeClass('d-none');
+                // Also need a "Ready/Pass" button (append inside buttons area)
+                if ($('#btn-confirm-doubling').length === 0) {
+                    $('#double-buttons').append(`<button id="btn-confirm-doubling" class="btn btn-primary ml-2" onclick="confirmDoubling()">{{ _('تأكيد / بدء اللعب') }}</button>`);
+                }
+             }
+             
+        } else if (localState.phase === 'finished') {
+             // Calculate Winner
+             let winnerText = "";
+             const getNm = (i) => {
+                 const p = (playersInfo || []).find(x => x.seat_index === i);
+                 return p ? p.username : `P${i+1}`;
+             };
+
+             if (localState.team_mode === 'partnership') {
+                 const scoreA = (localState.scores[0] || 0) + (localState.scores[2] || 0);
+                 const scoreB = (localState.scores[1] || 0) + (localState.scores[3] || 0);
+                 const nameA = getNm(0) + " & " + getNm(2);
+                 const nameB = getNm(1) + " & " + getNm(3);
+
+                 if (scoreA > scoreB) winnerText = `{{ _('الفائز: الفريق A') }} (${nameA})`;
+                 else if (scoreB > scoreA) winnerText = `{{ _('الفائز: الفريق B') }} (${nameB})`;
+                 else winnerText = "{{ _('تعادل!') }}";
+                 winnerText += ` (${scoreA} vs ${scoreB})`;
+             } else {
+                 let maxScore = -9999;
+                 let winners = [];
+                 localState.scores.forEach((s, i) => {
+                     if (s > maxScore) { maxScore = s; winners = [i]; }
+                     else if (s === maxScore) { winners.push(i); }
+                 });
+                 winnerText = "{{ _('الفائز:') }} " + winners.map(i => getNm(i)).join(', ') + ` (${maxScore})`;
+             }
+             
+             $('#status-msg').html(`<strong class="text-success">${winnerText}</strong>`);
+            $('#contract-selection').addClass('d-none');
+            $('#double-controls').addClass('d-none');
+        } else {
+            $('#status-msg').text("{{ _('جاري اللعب...') }}");
+            $('#contract-selection').addClass('d-none');
+            $('#double-controls').addClass('d-none');
+        }
+    }
+    
+    window.confirmDoubling = function() {
+        const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+        fetch(`/entertainment/api/room/${roomId}/move`, {
+            method: 'POST',
+            headers: { 
+                'Content-Type': 'application/json',
+                'X-CSRFToken': csrfToken
+            },
+            body: JSON.stringify({
+                action: 'confirm_doubling'
+            })
+        }).then(res => res.text()).then(text => {
+            let data = null;
+            try { data = JSON.parse(text); } catch { data = { error: 'ServerError', raw: text }; }
+            if (data.error) {
+                alert(data.error);
+                return fetch(`/entertainment/api/room/${roomId}/state`).then(r => r.json()).then(s => { if (s.game_state) { localState = s.game_state; renderAll(); }});
+            } else { localState = data.state; renderAll(); }
+        });
+    };
+    
+    window.chooseContract = function(contract) {
+        const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+        fetch(`/entertainment/api/room/${roomId}/move`, {
+            method: 'POST',
+            headers: { 
+                'Content-Type': 'application/json',
+                'X-CSRFToken': csrfToken
+            },
+            body: JSON.stringify({
+                action: 'choose_contract',
+                contract: contract
+            })
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.error) {
+                alert(data.error);
+            } else {
+                localState = data.state;
+                renderAll();
+                playSfx('play');
+            }
+        });
+    };
+    
+    
+    function playSfx(type) {
+        try {
+            const ctx = new (window.AudioContext || window.webkitAudioContext)();
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            osc.type = type === 'win' ? 'triangle' : 'sine';
+            osc.frequency.setValueAtTime(type === 'win' ? 880 : 440, ctx.currentTime);
+            gain.gain.setValueAtTime(0.001, ctx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.08, ctx.currentTime + 0.02);
+            gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.2);
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+            osc.start();
+            osc.stop(ctx.currentTime + 0.22);
+        } catch (e) {}
+    }
+    
+    function renderDoublesOnTable() {
+        const container = $('#doubled-cards');
+        container.empty();
+        
+        const doubles = localState.doubles || {};
+        const kingDouble = doubles.king; // Player index or null
+        const queenDoubles = doubles.queens || {}; // {suit: player_index}
+        
+        // Render King Double
+        if (kingDouble !== null && kingDouble !== undefined) {
+             const seat = kingDouble;
+             const relPos = getRelativePos(seat);
+             container.append(`
+                 <div class="doubled-card-display doubled-pos-${relPos}">
+                     <span class="suit text-danger">♥</span>
+                     <span>K</span>
+                 </div>
+             `);
+        }
+        
+        // Render Queen Doubles
+        for (const [suit, seat] of Object.entries(queenDoubles)) {
+             const relPos = getRelativePos(seat);
+             const colorClass = (suit === '♥' || suit === '♦') ? 'text-danger' : 'text-dark';
+             // Offset multiple queens slightly if needed, or just stack/grid them?
+             // For simplicity, we might overlap them or adjust positions.
+             // But since they are distinct suits, maybe we can offset them by suit index.
+             // Actually, usually a player doubles multiple queens.
+             // We should group them by player.
+        }
+        
+        // Re-approach: Group by player to handle multiple doubles
+        const playerDoubles = {0:[], 1:[], 2:[], 3:[]};
+        if (kingDouble !== null && kingDouble !== undefined) playerDoubles[kingDouble].push({suit:'♥', rank:'K'});
+        for (const [suit, seat] of Object.entries(queenDoubles)) {
+            playerDoubles[seat].push({suit: suit, rank:'Q'});
+        }
+        
+        container.empty(); // Clear again
+        
+        [0,1,2,3].forEach(seat => {
+            const cards = playerDoubles[seat];
+            if (cards.length > 0) {
+                const relPos = getRelativePos(seat);
+                let html = `<div class="doubled-group doubled-pos-${relPos}" style="display:flex; gap:5px;">`;
+                cards.forEach(c => {
+                    const colorClass = (c.suit === '♥' || c.suit === '♦') ? 'text-danger' : 'text-dark';
+                    html += `
+                    <div class="doubled-card-display">
+                         <span class="suit ${colorClass}">${c.suit}</span>
+                         <span>${c.rank}</span>
+                    </div>`;
+                });
+                html += `</div>`;
+                container.append(html);
+            }
+        });
+    }
+
+    function getRelativePos(seatIndex) {
+        // 0=Bottom (Me), 1=Right, 2=Top, 3=Left (relative to me)
+        // But seatIndex is absolute.
+        // My seat is mySeat.
+        // Relative index = (seatIndex - mySeat + 4) % 4.
+        const relIndex = (seatIndex - mySeat + 4) % 4;
+        const positions = ['bottom', 'right', 'top', 'left'];
+        return positions[relIndex];
+    }
+
+    function renderDoubleControls() {
+        const container = $('#double-controls');
+        const btns = $('#double-buttons');
+        btns.empty();
+        if (localState.phase === 'doubling') { container.show(); } else { container.hide(); }
+    }
+    
+    window.doubleKing = function() {
+        const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+        fetch(`/entertainment/api/room/${roomId}/move`, {
+            method: 'POST',
+            headers: { 
+                'Content-Type': 'application/json',
+                'X-CSRFToken': csrfToken
+            },
+            body: JSON.stringify({
+                action: 'double',
+                type: 'king'
+            })
+        }).then(res => res.json()).then(data => {
+            if (data.error) alert(data.error);
+            else { localState = data.state; renderAll(); playSfx('play'); }
+        });
+    };
+    
+    window.doubleQueen = function(suit) {
+        const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+        fetch(`/entertainment/api/room/${roomId}/move`, {
+            method: 'POST',
+            headers: { 
+                'Content-Type': 'application/json',
+                'X-CSRFToken': csrfToken
+            },
+            body: JSON.stringify({
+                action: 'double',
+                type: 'queen',
+                suit: suit
+            })
+        }).then(res => res.text()).then(text => {
+            let data = null;
+            try { data = JSON.parse(text); } catch { data = { error: 'ServerError', raw: text }; }
+            if (data.error) {
+                alert(data.error);
+                return fetch(`/entertainment/api/room/${roomId}/state`).then(r => r.json()).then(s => { if (s.game_state) { localState = s.game_state; renderAll(); }});
+            } else { localState = data.state; renderAll(); playSfx('play'); }
+        });
+    };
+    
+    window.playCard = function(index) {
+        const doSend = (cardObj) => {
+            const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+            fetch(`/entertainment/api/room/${roomId}/move`, {
+                method: 'POST',
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrfToken
+                },
+                body: JSON.stringify({
+                    action: 'play_card',
+                    card: cardObj
+                })
+            })
+            .then(res => res.text())
+            .then(text => {
+                let data = null;
+                try { data = JSON.parse(text); } catch { data = { error: 'ServerError', raw: text }; }
+                if (data.error) {
+                    alert(data.error);
+                    return fetch(`/entertainment/api/room/${roomId}/state`).then(r => r.json()).then(s => { if (s.game_state) { localState = s.game_state; renderAll(); }});
+                } else { localState = data.state; renderAll(); }
+            });
+        };
+        
+        // Pre-resync to avoid stale local turn state
+        fetch(`/entertainment/api/room/${roomId}/state`)
+            .then(r => r.json())
+            .then(s => {
+                if (s.game_state) {
+                    localState = s.game_state;
+                    renderAll();
+                }
+                if (localState.phase !== 'playing') {
+                    alert('{{ _("ليست مرحلة اللعب الآن") }}');
+                    return;
+                }
+                if (localState.turn_seat !== mySeat) return; 
+                
+                const card = localState.hands[mySeat][index];
+                
+                const trick = localState.trick || [];
+                if (trick.length > 0) {
+                    const leadSuit = trick[0].card.suit;
+                    const myHand = localState.hands[mySeat] || [];
+                    const hasLead = myHand.some(c => c.suit === leadSuit);
+                    if (hasLead && card.suit !== leadSuit) {
+                        alert("{{ _('يجب الالتزام بنوع الورقة الأولى إذا كانت متوفرة لديك') }}");
+                        return;
+                    }
+                }
+                
+                doSend(card);
+            });
+    };
+    
+    window.toggleDouble = function(index) {
+        const card = localState.hands[mySeat][index];
+        const contract = localState.current_contract;
+        const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+        let payload = null;
+        if ((contract === 'king' || contract === 'complex') && card.suit === '♥' && card.rank === 'K') {
+            payload = { action: 'double', type: 'king' };
+        } else if ((contract === 'queens' || contract === 'complex') && card.rank === 'Q') {
+            payload = { action: 'double', type: 'queen', suit: card.suit };
+        }
+        if (!payload) return;
+        fetch(`/entertainment/api/room/${roomId}/move`, {
+            method: 'POST',
+            headers: { 
+                'Content-Type': 'application/json',
+                'X-CSRFToken': csrfToken
+            },
+            body: JSON.stringify(payload)
+        }).then(res => res.text()).then(text => {
+            let data = null;
+            try { data = JSON.parse(text); } catch { data = { error: 'ServerError', raw: text }; }
+            if (data.error) {
+                alert(data.error);
+                return fetch(`/entertainment/api/room/${roomId}/state`).then(r => r.json()).then(s => { if (s.game_state) { localState = s.game_state; renderAll(); }});
+            } else { localState = data.state; renderAll(); }
+        });
+    };
+    
+    window.passTurn = function() {
+        const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+        fetch(`/entertainment/api/room/${roomId}/move`, {
+            method: 'POST',
+            headers: { 
+                'Content-Type': 'application/json',
+                'X-CSRFToken': csrfToken
+            },
+            body: JSON.stringify({
+                action: 'play_card',
+                card: { action: 'pass' }
+            })
+        }).then(res => res.text()).then(text => {
+            let data = null;
+            try { data = JSON.parse(text); } catch { data = { error: 'ServerError', raw: text }; }
+            if (data.error) {
+                alert(data.error);
+                return fetch(`/entertainment/api/room/${roomId}/state`).then(r => r.json()).then(s => { if (s.game_state) { localState = s.game_state; renderAll(); }});
+            } else { localState = data.state; renderAll(); }
+        });
+    };
+</script>
+{% endblock %}

@@ -5,7 +5,7 @@ from flask import Flask, request, has_request_context, flash, redirect, url_for,
 from flask_login import current_user
 from flask_babel import gettext as _
 from config import Config
-from extensions import db, migrate, login, admin, babel, csrf, limiter, talisman, mail
+from extensions import db, migrate, login, admin, babel, csrf, limiter, talisman, mail, seo_manager, socketio
 
 def create_app(config_class=Config):
     app = Flask(__name__)
@@ -85,11 +85,14 @@ def create_app(config_class=Config):
         admin.init_app(app)
     except Exception as e:
         # Ignore blueprint registration errors during testing
-        print(f"Admin init warning: {e}")
+        app.logger.warning(f"Admin init warning: {e}")
 
     csrf.init_app(app)
     limiter.init_app(app)
     mail.init_app(app)
+    seo_manager.init_app(app)
+    if socketio:
+        socketio.init_app(app, cors_allowed_origins="*")
     
     # Content Security Policy (CSP)
     csp = {
@@ -129,7 +132,13 @@ def create_app(config_class=Config):
         ],
         'connect-src': [
             '\'self\'',
-            'cdn.jsdelivr.net'
+            'cdn.jsdelivr.net',
+            'cdnjs.cloudflare.com',
+            'ws://localhost:8000',
+            'ws://127.0.0.1:8000',
+            'ws://0.0.0.0:8000',
+            'ws://localhost:8080',
+            'wss:'
         ]
     }
     
@@ -263,11 +272,11 @@ def create_app(config_class=Config):
             try:
                 db.session.commit()
             except Exception as e:
-                print(f"DEBUG: Commit failed in _expire_player_effects: {e}")
+                app.logger.error(f"DEBUG: Commit failed in _expire_player_effects: {e}")
                 try:
                     db.session.rollback()
                 except Exception as rollback_err:
-                    print(f"DEBUG: Rollback failed in _expire_player_effects: {rollback_err}")
+                    app.logger.error(f"DEBUG: Rollback failed in _expire_player_effects: {rollback_err}")
 
     # Global Status Check (Jail/Hospital)
     @app.before_request
@@ -304,11 +313,11 @@ def create_app(config_class=Config):
             try:
                 _maybe_sync_elite_titles(now)
             except Exception as e:
-                print(f"DEBUG: _maybe_sync_elite_titles failed: {e}")
+                app.logger.error(f"DEBUG: _maybe_sync_elite_titles failed: {e}")
                 try:
                     db.session.rollback()
                 except Exception as rollback_err:
-                    print(f"DEBUG: rollback failed in _maybe_sync_elite_titles: {rollback_err}")
+                    app.logger.error(f"DEBUG: rollback failed in _maybe_sync_elite_titles: {rollback_err}")
                 pass
             
             if not app.config.get('TESTING'):
@@ -410,6 +419,13 @@ def create_app(config_class=Config):
             db.session.rollback()
         except Exception:
             pass
+        try:
+            db.session.remove()
+        except Exception:
+            pass
+    
+    @app.teardown_appcontext
+    def shutdown_session(exception=None):
         try:
             db.session.remove()
         except Exception:
@@ -574,6 +590,9 @@ def create_app(config_class=Config):
     from routes.farm import bp as farm_bp
     app.register_blueprint(farm_bp)
 
+    from routes.entertainment import bp as entertainment_bp
+    app.register_blueprint(entertainment_bp)
+
     # Register Hostess Blueprints
     from routes.hostesses import register_hostess_blueprints
     register_hostess_blueprints(app)
@@ -600,9 +619,6 @@ def create_app(config_class=Config):
     with app.app_context():
         # Check if views are already registered (only index view exists by default)
         if len(admin._views) <= 1:
-            # Add Back Link
-            admin.add_link(MenuLink(name=_('العودة للحارة'), category='', url='/'))
-
             # Seed Ranks
             try:
                 # Create tables if not exist (ensures UserRank table exists)
@@ -653,35 +669,42 @@ def create_app(config_class=Config):
                 # except Exception as e:
                 #     print(f"Error seeding organized crimes settings: {e}")
             except Exception as e:
-                print(f"Error seeding ranks: {e}")
+                app.logger.error(f"Error seeding ranks: {e}")
 
             # System & Logs
-            admin.add_link(MenuLink(name=_('العودة للعبة'), url='/'))
-            admin.add_view(PaymentView(models.PaymentTransaction, db.session, name=_('المدفوعات'), category=_('النظام')))
-            admin.add_view(LogView(models.GameLog, db.session, name=_('سجل اللعبة'), category=_('النظام')))
-            admin.add_view(SystemConfigView(models.SystemConfig, db.session, name=_('إعدادات النظام'), category=_('النظام')))
-            admin.add_view(AnnouncementView(models.Announcement, db.session, name=_('الإعلانات'), category=_('النظام')))
+            admin.add_link(MenuLink(name=_('العودة للحارة'), url='/'))
+            admin.add_view(PaymentView(models.PaymentTransaction, db.session, name=_('المدفوعات'), category=_('الإدارة')))
+            admin.add_view(LogView(models.GameLog, db.session, name=_('سجل اللعبة'), category=_('الإدارة')))
+            admin.add_view(SystemConfigView(models.SystemConfig, db.session, name=_('إعدادات النظام'), category=_('الإدارة')))
+            admin.add_view(AnnouncementView(models.Announcement, db.session, name=_('الإعلانات'), category=_('الإدارة')))
             
             # Users & Social
-            admin.add_view(UserView(models.User, db.session, name=_('المستخدمين'), category=_('المستخدمين')))
-            admin.add_view(HostessView(models.Hostess, db.session, name=_('المضيفات'), category=_('المضيفات')))
-            admin.add_view(HostessKnowledgeView(models.HostessKnowledge, db.session, name=_('قاعدة المعرفة'), category=_('المضيفات')))
-            admin.add_view(LearningLogView(models.LearningLog, db.session, name=_('سجل التعلم'), category=_('المضيفات')))
-            admin.add_view(UserRankView(models.UserRank, db.session, name=_('رتب اللاعبين'), category=_('المستخدمين')))
-            admin.add_view(GangView(models.Gang, db.session, name=_('العصابات'), category=_('المستخدمين'), endpoint='gang_admin'))
-            admin.add_view(GangWarView(models.GangWar, db.session, name=_('حروب العصابات'), category=_('المستخدمين')))
+            admin.add_view(UserView(models.User, db.session, name=_('المستخدمين'), category=_('اللاعبين')))
+            admin.add_view(UserRankView(models.UserRank, db.session, name=_('رتب اللاعبين'), category=_('اللاعبين')))
+            admin.add_view(GangView(models.Gang, db.session, name=_('العصابات'), category=_('اللاعبين'), endpoint='gang_admin'))
+            admin.add_view(GangWarView(models.GangWar, db.session, name=_('حروب العصابات'), category=_('اللاعبين')))
+            admin.add_view(HostessView(models.Hostess, db.session, name=_('المضيفات'), category=_('اللاعبين')))
+            admin.add_view(HostessKnowledgeView(models.HostessKnowledge, db.session, name=_('قاعدة المعرفة'), category=_('اللاعبين')))
+            admin.add_view(LearningLogView(models.LearningLog, db.session, name=_('سجل التعلم'), category=_('اللاعبين')))
             
             # Game Content
-            admin.add_view(CrimeView(models.Crime, db.session, name=_('الجرائم'), category=_('محتوى اللعبة')))
-            admin.add_view(OrganizedCrimeView(models.OrganizedCrime, db.session, name=_('الجرائم المنظمة'), category=_('محتوى اللعبة')))
-            admin.add_view(ItemView(models.Item, db.session, name=_('الأغراض'), category=_('محتوى اللعبة')))
-            admin.add_view(UserItemView(models.UserItem, db.session, name=_('مخزون اللاعبين'), category=_('المراقبة')))
-            admin.add_view(LocationView(models.Location, db.session, name=_('المناطق'), category=_('محتوى اللعبة')))
-            admin.add_view(VehicleView(models.Vehicle, db.session, name=_('المركبات'), category=_('محتوى اللعبة')))
-            admin.add_view(AssetView(models.Asset, db.session, name=_('الممتلكات'), category=_('محتوى اللعبة')))
-            admin.add_view(DailyTaskView(models.DailyTask, db.session, name=_('المهام اليومية'), category=_('محتوى اللعبة')))
-            admin.add_view(BountyView(models.Bounty, db.session, name=_('المكافآت'), category=_('المراقبة')))
+            admin.add_view(CrimeView(models.Crime, db.session, name=_('الجرائم'), category=_('عالم اللعبة')))
+            admin.add_view(OrganizedCrimeView(models.OrganizedCrime, db.session, name=_('الجرائم المنظمة'), category=_('عالم اللعبة')))
+            admin.add_view(ItemView(models.Item, db.session, name=_('الأغراض'), category=_('عالم اللعبة')))
+            admin.add_view(LocationView(models.Location, db.session, name=_('المناطق'), category=_('عالم اللعبة')))
+            admin.add_view(VehicleView(models.Vehicle, db.session, name=_('المركبات'), category=_('عالم اللعبة')))
+            admin.add_view(AssetView(models.Asset, db.session, name=_('الممتلكات'), category=_('عالم اللعبة')))
+            admin.add_view(DailyTaskView(models.DailyTask, db.session, name=_('المهام اليومية'), category=_('عالم اللعبة')))
             
+            # Economy
+            admin.add_view(MarketAssetView(models.MarketAsset, db.session, name=_('الأسهم والعملات'), category=_('الاقتصاد')))
+            admin.add_view(UserInvestmentView(models.UserInvestment, db.session, name=_('استثمارات اللاعبين'), category=_('الاقتصاد')))
+            admin.add_view(SecureModelView(models.SpotOrder, db.session, name=_('أوامر السبوت'), category=_('الاقتصاد')))
+            admin.add_view(SecureModelView(models.FuturesPosition, db.session, name=_('صفقات الفيوتشر'), category=_('الاقتصاد')))
+
+            # Monitoring
+            admin.add_view(UserItemView(models.UserItem, db.session, name=_('مخزون اللاعبين'), category=_('المراقبة')))
+            admin.add_view(BountyView(models.Bounty, db.session, name=_('المكافآت'), category=_('المراقبة')))
             admin.add_view(WeeklyWinnerView(models.WeeklyWinner, db.session, name=_('الفائزين'), category=_('المراقبة')))
             admin.add_view(CombatLogView(models.CombatLog, db.session, name=_('سجل القتال'), category=_('المراقبة')))
             admin.add_view(UserLogView(models.UserLog, db.session, name=_('سجل اللاعبين'), category=_('المراقبة')))
@@ -689,14 +712,10 @@ def create_app(config_class=Config):
             admin.add_view(UserVehicleView(models.UserVehicle, db.session, name=_('مركبات المستخدمين'), category=_('المراقبة')))
             admin.add_view(ReferralView(models.Referral, db.session, name=_('الإحالات'), category=_('المراقبة')))
             admin.add_view(MessageView(models.Message, db.session, name=_('الرسائل'), category=_('المراقبة')))
-            admin.add_view(MarketAssetView(models.MarketAsset, db.session, name=_('الأسهم والعملات'), category=_('الاقتصاد')))
-            admin.add_view(UserInvestmentView(models.UserInvestment, db.session, name=_('استثمارات اللاعبين'), category=_('الاقتصاد')))
-            admin.add_view(SecureModelView(models.SpotOrder, db.session, name=_('أوامر السبوت'), category=_('الاقتصاد')))
-            admin.add_view(SecureModelView(models.FuturesPosition, db.session, name=_('صفقات الفيوتشر'), category=_('الاقتصاد')))
 
             # Forum
-            admin.add_view(ForumCategoryView(models.ForumCategory, db.session, name=_('أقسام المنتدى'), category=_('المنتدى')))
-            admin.add_view(ForumTopicView(models.ForumTopic, db.session, name=_('المواضيع'), category=_('المنتدى')))
-            admin.add_view(ForumPostView(models.ForumPost, db.session, name=_('الردود'), category=_('المنتدى')))
+            admin.add_view(ForumCategoryView(models.ForumCategory, db.session, name=_('أقسام المنتدى'), category=_('المجتمع')))
+            admin.add_view(ForumTopicView(models.ForumTopic, db.session, name=_('المواضيع'), category=_('المجتمع')))
+            admin.add_view(ForumPostView(models.ForumPost, db.session, name=_('الردود'), category=_('المجتمع')))
 
     return app

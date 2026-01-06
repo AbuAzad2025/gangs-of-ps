@@ -1,0 +1,57 @@
+[
+  {
+    "id": "gym_rat",
+    "name": "وحوش الجيم",
+    "description": "زيادة فعالية التمارين الرياضية لجميع الأعضاء.",
+    "icon": "fas fa-dumbbell",
+    "levels": [
+      { "level": 1, "cost": 50000, "effect": 5, "description": "+5% تمارين" },
+      { "level": 2, "cost": 150000, "effect": 10, "description": "+10% تمارين" },
+      { "level": 3, "cost": 500000, "effect": 15, "description": "+15% تمارين" }
+    ]
+  },
+  {
+    "id": "street_kings",
+    "name": "ملوك الشوارع",
+    "description": "زيادة الأموال المكتسبة من الجرائم الفردية.",
+    "icon": "fas fa-mask",
+    "levels": [
+      { "level": 1, "cost": 75000, "effect": 5, "description": "+5% أموال الجرائم" },
+      { "level": 2, "cost": 200000, "effect": 10, "description": "+10% أموال الجرائم" },
+      { "level": 3, "cost": 600000, "effect": 15, "description": "+15% أموال الجرائم" }
+    ]
+  },
+  {
+    "id": "bazaar_connections",
+    "name": "علاقات السوق السوداء",
+    "description": "خصم على شراء الأسلحة والعناصر من المتجر.",
+    "icon": "fas fa-shopping-cart",
+    "levels": [
+      { "level": 1, "cost": 100000, "effect": 5, "description": "-5% تكلفة الشراء" },
+      { "level": 2, "cost": 300000, "effect": 10, "description": "-10% تكلفة الشراء" },
+      { "level": 3, "cost": 1000000, "effect": 15, "description": "-15% تكلفة الشراء" }
+    ]
+  },
+  {
+    "id": "security_detail",
+    "name": "فرقة الحماية",
+    "description": "تقليل فرصة دخول السجن عند فشل الجرائم.",
+    "icon": "fas fa-shield-alt",
+    "levels": [
+      { "level": 1, "cost": 150000, "effect": 10, "description": "-10% فرصة السجن" },
+      { "level": 2, "cost": 400000, "effect": 20, "description": "-20% فرصة السجن" },
+      { "level": 3, "cost": 1200000, "effect": 30, "description": "-30% فرصة السجن" }
+    ]
+  },
+  {
+    "id": "member_protection",
+    "name": "حماية الأعضاء",
+    "description": "زيادة حماية الأعضاء وتقليل الرصاص المطلوب لقتلهم عند الانضمام.",
+    "icon": "fas fa-user-shield",
+    "levels": [
+      { "level": 1, "cost": 200000, "effect": 15, "description": "+15% حماية و-15% رصاص مطلوب لقتلهم" },
+      { "level": 2, "cost": 500000, "effect": 30, "description": "+30% حماية و-30% رصاص مطلوب لقتلهم" },
+      { "level": 3, "cost": 1500000, "effect": 45, "description": "+45% حماية و-45% رصاص مطلوب لقتلهم" }
+    ]
+  }
+]

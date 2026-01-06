@@ -204,6 +204,41 @@
                     </div>
                 </div>
                 
+                <div class="row bg-dark p-3 rounded border border-warning mb-3">
+                    <div class="col-md-12 mb-2">
+                        <h6 class="text-warning"><i class="fas fa-lock mr-2"></i> {{ _('الاعتقال الإداري والشبهات') }}</h6>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            <label class="text-light">{{ _('الاعتقال الإداري (ساعات)') }}</label>
+                            <input type="number" name="jail_hours" class="form-control bg-secondary text-light border-warning" placeholder="0">
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                         <div class="form-group mt-4">
+                            <div class="custom-control custom-switch">
+                                <input type="checkbox" class="custom-control-input" id="suspiciousSwitch" name="is_suspicious" {% if user.is_suspicious %}checked{% endif %}>
+                                <label class="custom-control-label text-warning" for="suspiciousSwitch">{{ _('مشتبه به (عميل)') }}</label>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-12 mt-2">
+                        {% if user.jail_until %}
+                            <div class="alert alert-warning mb-2">
+                                {{ _('مسجون حتى:') }} {{ user.jail_until.strftime('%Y-%m-%d %H:%M') }}
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" name="clear_jail" id="clearJail">
+                                <label class="form-check-label text-white" for="clearJail">
+                                    {{ _('الإفراج الفوري (تصفير السجن)') }}
+                                </label>
+                            </div>
+                        {% else %}
+                            <small class="text-success">{{ _('المستخدم حر طليق.') }}</small>
+                        {% endif %}
+                    </div>
+                </div>
+
                 <div class="row bg-dark p-3 rounded border border-danger">
                     <div class="col-md-12 mb-2">
                         <h6 class="text-danger"><i class="fas fa-ban mr-2"></i> {{ _('نظام الحظر (Ban System)') }}</h6>

@@ -45,7 +45,11 @@ def deposit():
             flash(_('أنت تتدرب ولا يمكنك استخدام البنك!'), 'danger')
             return redirect(url_for('gym.index'))
 
-    amount = int(request.form.get('amount', 0))
+    try:
+        amount = int(request.form.get('amount', 0))
+    except ValueError:
+        flash(_('مبلغ غير صالح!'), 'danger')
+        return redirect(url_for('bank.index'))
     
     if amount <= 0:
         flash(_('مبلغ غير صالح!'), 'danger')
@@ -157,7 +161,11 @@ def transfer():
             return redirect(url_for('gym.index'))
 
     recipient_name = request.form.get('recipient')
-    amount = int(request.form.get('amount', 0))
+    try:
+        amount = int(request.form.get('amount', 0))
+    except ValueError:
+        flash(_('مبلغ غير صالح!'), 'danger')
+        return redirect(url_for('bank.index'))
     
     if not recipient_name:
         flash(_('يجب تحديد اسم المستلم!'), 'danger')
@@ -181,13 +189,25 @@ def transfer():
         flash(_('لا يمكنك التحويل لنفسك!'), 'danger')
         return redirect(url_for('bank.index'))
         
+    # Prevent Deadlock: Lock users in ID order (consistent locking order)
+    # This ensures that if A sends to B and B sends to A simultaneously,
+    # both threads will try to lock the lower ID first, preventing deadlock.
+    first_id = min(current_user.id, recipient.id)
+    second_id = max(current_user.id, recipient.id)
+    
+    # We must lock both before modifying any to avoid deadlock waiting
+    # Note: We don't use the result here, just acquiring the row lock for the transaction.
+    db.session.query(User).filter_by(id=first_id).with_for_update().first()
+    db.session.query(User).filter_by(id=second_id).with_for_update().first()
+        
     # Atomic Update using ResourceService
     # 1. Deduct from sender
     if not ResourceService.modify_resources(
         current_user.id, 
         {'bank_balance': -amount}, 
         f'bank_transfer_sent_to_{recipient.id}', 
-        auto_commit=False
+        auto_commit=False,
+        expected_version=None
     ):
         flash(_('رصيدك في البنك غير كافٍ!'), 'danger')
         db.session.rollback()
@@ -198,7 +218,8 @@ def transfer():
         recipient.id, 
         {'bank_balance': amount}, 
         f'bank_transfer_received_from_{current_user.id}', 
-        auto_commit=False
+        auto_commit=False,
+        expected_version=None
     ):
         # Should not happen unless recipient deleted or locked?
         db.session.rollback()

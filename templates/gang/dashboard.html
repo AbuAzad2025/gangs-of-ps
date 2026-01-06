@@ -204,6 +204,8 @@
                     <li class="nav-item"><a class="nav-link active" href="#members" data-toggle="tab">{{ _('الأعضاء') }}</a></li>
                     <li class="nav-item"><a class="nav-link" href="#wars" data-toggle="tab">{{ _('الحروب') }}</a></li>
                     <li class="nav-item"><a class="nav-link" href="#assets" data-toggle="tab">{{ _('الممتلكات') }}</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#armory" data-toggle="tab">{{ _('الترسانة') }}</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#upgrades" data-toggle="tab">{{ _('الترقيات') }}</a></li>
                     <li class="nav-item"><a class="nav-link" href="#logs" data-toggle="tab">{{ _('السجلات') }}</a></li>
                     {% if is_leader or is_underboss %}
                     <li class="nav-item"><a class="nav-link" href="#manage" data-toggle="tab">{{ _('الإدارة') }}</a></li>
@@ -259,6 +261,7 @@
                                         <th>{{ _('الخصم') }}</th>
                                         <th>{{ _('النتيجة') }}</th>
                                         <th>{{ _('ينتهي في') }}</th>
+                                        <th>{{ _('إجراءات') }}</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -273,7 +276,23 @@
                                         <td>
                                             <span class="text-success">{{ my_score }}</span> - <span class="text-danger">{{ their_score }}</span>
                                         </td>
-                                        <td>{{ war.end_time.strftime('%Y-%m-%d %H:%M') }}</td>
+                                        <td>
+                                            {% if war.end_time %}
+                                                {{ war.end_time.strftime('%Y-%m-%d %H:%M') }}
+                                            {% else %}
+                                                <span class="badge badge-warning">{{ _('حتى النصر أو الاستسلام') }}</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            {% if is_leader or is_underboss %}
+                                            <form action="{{ url_for('gang.surrender_war', war_id=war.id) }}" method="POST" onsubmit="return confirm('{{ _('هل أنت متأكد من الاستسلام؟ ستدفع العصابة 20%% من خزينة الأموال كتعويضات.') }}');" class="d-inline">
+                                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                                                <button type="submit" class="btn btn-sm btn-outline-danger" title="{{ _('استسلام ودفع تعويضات') }}">
+                                                    <i class="fas fa-flag"></i> {{ _('استسلام') }}
+                                                </button>
+                                            </form>
+                                            {% endif %}
+                                        </td>
                                     </tr>
                                     {% endfor %}
                                 </tbody>
@@ -354,6 +373,159 @@
                         {% endif %}
                     </div>
                     {% endif %}
+                </div>
+
+                <!-- Armory Tab -->
+                <div class="tab-pane" id="armory">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h5 class="text-gold mb-3"><i class="fas fa-warehouse"></i> {{ _('مخزون العصابة') }}</h5>
+                            {% if gang_items %}
+                                <ul class="list-group list-group-flush">
+                                {% for g_item in gang_items %}
+                                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                                        <span>
+                                            <i class="fas fa-box text-muted mr-2"></i> {{ g_item.item.name }}
+                                        </span>
+                                        <div>
+                                            <span class="badge badge-primary badge-pill ml-2">{{ g_item.quantity }}</span>
+                                            {% if is_leader or is_underboss %}
+                                            <button type="button" class="btn btn-xs btn-outline-warning ml-2" data-toggle="modal" data-target="#distributeModal{{ g_item.id }}">
+                                                <i class="fas fa-share-alt"></i>
+                                            </button>
+                                            
+                                            <!-- Distribute Modal -->
+                                            <div class="modal fade" id="distributeModal{{ g_item.id }}" tabindex="-1" role="dialog">
+                                                <div class="modal-dialog" role="document">
+                                                    <div class="modal-content bg-dark border-gold">
+                                                        <div class="modal-header">
+                                                            <h5 class="modal-title text-gold">{{ _('توزيع العتاد') }}</h5>
+                                                            <button type="button" class="close text-white" data-dismiss="modal"><span>&times;</span></button>
+                                                        </div>
+                                                        <form action="{{ url_for('gang.distribute_item') }}" method="POST">
+                                                            <div class="modal-body">
+                                                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                                                                <input type="hidden" name="item_id" value="{{ g_item.item_id }}"/>
+                                                                <p>{{ _('توزيع') }} <strong>{{ g_item.item.name }}</strong> {{ _('من المخزون إلى عضو:') }}</p>
+                                                                
+                                                                <div class="form-group">
+                                                                    <label>{{ _('العضو') }}</label>
+                                                                    <select name="target_user_id" class="form-control form-control-luxury">
+                                                                        {% for m in members %}
+                                                                        <option value="{{ m.id }}">{{ m.username }}</option>
+                                                                        {% endfor %}
+                                                                    </select>
+                                                                </div>
+                                                                
+                                                                <div class="form-group">
+                                                                    <label>{{ _('الكمية') }}</label>
+                                                                    <input type="number" name="quantity" class="form-control form-control-luxury" min="1" max="{{ g_item.quantity }}" value="1" required>
+                                                                </div>
+                                                            </div>
+                                                            <div class="modal-footer">
+                                                                <button type="button" class="btn btn-secondary" data-dismiss="modal">{{ _('إلغاء') }}</button>
+                                                                <button type="submit" class="btn btn-luxury-action">{{ _('توزيع') }}</button>
+                                                            </div>
+                                                        </form>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            {% endif %}
+                                        </div>
+                                    </li>
+                                {% endfor %}
+                                </ul>
+                            {% else %}
+                                <p class="text-muted text-center py-3">{{ _('المخزون فارغ.') }}</p>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <h5 class="text-gold mb-3"><i class="fas fa-hand-holding-heart"></i> {{ _('تبرع بعتاد') }}</h5>
+                            {% if user_items %}
+                                <form action="{{ url_for('gang.donate_item') }}" method="POST">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                                    <div class="form-group">
+                                        <label>{{ _('اختر الغرض') }}</label>
+                                        <select name="item_id" class="form-control form-control-luxury">
+                                            {% for u_item in user_items %}
+                                            <option value="{{ u_item.item_id }}">{{ u_item.item.name }} ({{ u_item.quantity }})</option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>{{ _('الكمية') }}</label>
+                                        <input type="number" name="quantity" class="form-control form-control-luxury" min="1" value="1" required>
+                                    </div>
+                                    <button type="submit" class="btn btn-success btn-block">{{ _('تبرع للعصابة') }}</button>
+                                </form>
+                            {% else %}
+                                <p class="text-muted text-center py-3">{{ _('لا تملك أغراضاً للتبرع بها.') }}</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Upgrades Tab -->
+                <div class="tab-pane" id="upgrades">
+                    <div class="row">
+                        {% for upgrade in upgrades_data %}
+                            {% set current_level = current_upgrades.get(upgrade.id, 0) %}
+                            {% set max_level = upgrade.levels|length %}
+                            {% set next_level_data = upgrade.levels|selectattr("level", "equalto", current_level + 1)|first %}
+                            
+                            <div class="col-md-6 mb-3">
+                                <div class="card luxury-card h-100 border-gold">
+                                    <div class="card-body">
+                                        <div class="d-flex align-items-center mb-3">
+                                            <div class="mr-3 text-center" style="width: 50px;">
+                                                <i class="{{ upgrade.icon }} fa-2x text-gold"></i>
+                                            </div>
+                                            <div>
+                                                <h5 class="text-gold mb-1">{{ upgrade.name }}</h5>
+                                                <small class="text-muted">{{ upgrade.description }}</small>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="mb-3">
+                                            <div class="d-flex justify-content-between mb-1">
+                                                <span>{{ _('المستوى الحالي') }}:</span>
+                                                <span class="text-white font-weight-bold">{{ current_level }} / {{ max_level }}</span>
+                                            </div>
+                                            <div class="progress" style="height: 10px; background-color: rgba(255,255,255,0.1);">
+                                                <div class="progress-bar bg-gold" role="progressbar" style="width: {{ (current_level / max_level) * 100 }}%"></div>
+                                            </div>
+                                        </div>
+
+                                        {% if next_level_data %}
+                                            <div class="alert alert-dark border-secondary p-2 mb-3">
+                                                <h6 class="text-gold mb-1">{{ _('المستوى القادم') }} ({{ next_level_data.level }})</h6>
+                                                <p class="small mb-1 text-white">{{ next_level_data.description }}</p>
+                                                <p class="small mb-0 text-danger font-weight-bold">{{ _('التكلفة') }}: {{ "{:,}".format(next_level_data.cost) }}$</p>
+                                            </div>
+
+                                            {% if is_leader or is_underboss %}
+                                                <form action="{{ url_for('gang.buy_upgrade', upgrade_id=upgrade.id, level=next_level_data.level) }}" method="POST">
+                                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                                                    <button type="submit" class="btn btn-luxury-action btn-block btn-sm" {% if gang.money < next_level_data.cost %}disabled{% endif %}>
+                                                        <i class="fas fa-arrow-up"></i> {{ _('ترقية') }}
+                                                    </button>
+                                                </form>
+                                            {% else %}
+                                                <button class="btn btn-secondary btn-block btn-sm" disabled>
+                                                    {{ _('للإدارة فقط') }}
+                                                </button>
+                                            {% endif %}
+                                        {% else %}
+                                            <div class="alert alert-success border-success p-2 text-center">
+                                                <i class="fas fa-check-circle"></i> {{ _('الحد الأقصى') }}
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
                 </div>
 
                 <!-- Logs Tab -->

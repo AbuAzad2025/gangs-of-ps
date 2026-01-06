@@ -34,6 +34,7 @@ from forms.developer import (
 )
 from extensions import db
 from utils.backup_manager import BackupManager
+from flask_migrate import upgrade
 from .utils import save_image
 from types import SimpleNamespace
 from datetime import datetime, timedelta, timezone
@@ -90,9 +91,28 @@ def dev_dashboard():
     
     maintenance_mode = SystemConfig.get_value('maintenance_mode') == 'true'
     maintenance_message = SystemConfig.get_value('maintenance_message', '')
+
+    # Occupation Settings
+    occupation_alert_level = int(SystemConfig.get_value('occupation_alert_level', '1'))
+    mashtoub_campaign_active = SystemConfig.get_value('mashtoub_campaign_active', 'false') == 'true'
+    
+    entertainment_enabled = SystemConfig.get_value('entertainment_enabled', 'true') == 'true'
+    betting_enabled = SystemConfig.get_value('betting_enabled', 'true') == 'true'
+    allowed_currencies = SystemConfig.get_value('betting_allowed_currencies', 'money,diamonds') or 'money,diamonds'
+    house_cut_percent = SystemConfig.get_value('house_cut_percent', '50') or '50'
+    betting_min_stake = SystemConfig.get_value('betting_min_stake', '0') or '0'
+    betting_max_stake = SystemConfig.get_value('betting_max_stake', '1000000000') or '1000000000'
+    game_chess_enabled = SystemConfig.get_value('game_chess_enabled', 'true') == 'true'
+    game_trix_enabled = SystemConfig.get_value('game_trix_enabled', 'true') == 'true'
+    game_tarneeb_enabled = SystemConfig.get_value('game_tarneeb_enabled', 'true') == 'true'
     
     return render_template('developer/dashboard.html', stats=stats, backups=backups, 
                            maintenance_mode=maintenance_mode, maintenance_message=maintenance_message,
+                           occupation_alert_level=occupation_alert_level, mashtoub_campaign_active=mashtoub_campaign_active,
+                           entertainment_enabled=entertainment_enabled, betting_enabled=betting_enabled,
+                           allowed_currencies=allowed_currencies, house_cut_percent=house_cut_percent,
+                           betting_min_stake=betting_min_stake, betting_max_stake=betting_max_stake,
+                           game_chess_enabled=game_chess_enabled, game_trix_enabled=game_trix_enabled, game_tarneeb_enabled=game_tarneeb_enabled,
                            title=_('لوحة تحكم المطور'))
 
 @bp.route('/developer/maintenance', methods=['POST'])
@@ -155,6 +175,72 @@ def delete_backup(filename):
         flash(message, 'success')
     else:
         flash(message, 'danger')
+    return redirect(url_for('main.dev_dashboard'))
+
+@bp.route('/developer/system/migrate', methods=['POST'])
+@developer_required
+@double_verification_required
+def run_migrations():
+    try:
+        upgrade()
+        flash(_('تم تحديث قاعدة البيانات بنجاح (Migrations Applied).'), 'success')
+    except Exception as e:
+        flash(_('فشل تحديث قاعدة البيانات: %(error)s', error=str(e)), 'danger')
+    return redirect(url_for('main.dev_dashboard'))
+
+@bp.route('/developer/occupation/update', methods=['POST'])
+@developer_required
+def update_occupation_settings():
+    try:
+        level = int(request.form.get('occupation_alert_level', 1))
+        SystemConfig.set_value('occupation_alert_level', level, description='Occupation Alert Level (1-3)')
+        flash(_('تم تحديث مستوى حالة الاحتلال.'), 'success')
+    except Exception as e:
+        flash(_('حدث خطأ: %(error)s', error=str(e)), 'danger')
+    return redirect(url_for('main.dev_dashboard'))
+
+@bp.route('/developer/occupation/mashtoub', methods=['POST'])
+@developer_required
+def toggle_mashtoub_campaign():
+    try:
+        active = request.form.get('active') == 'true'
+        SystemConfig.set_value('mashtoub_campaign_active', 'true' if active else 'false', description='Mashtoub Car Campaign')
+        if active:
+            flash(_('تم تفعيل حملة المشطوب! الشرطة منتشرة.'), 'warning')
+        else:
+            flash(_('تم إيقاف حملة المشطوب.'), 'success')
+    except Exception as e:
+        flash(_('حدث خطأ: %(error)s', error=str(e)), 'danger')
+    return redirect(url_for('main.dev_dashboard'))
+
+@bp.route('/developer/entertainment/update', methods=['POST'])
+@developer_required
+@double_verification_required
+def update_entertainment_settings():
+    try:
+        entertainment_enabled = request.form.get('entertainment_enabled') == 'true'
+        betting_enabled = request.form.get('betting_enabled') == 'true'
+        allowed_currencies = request.form.get('allowed_currencies', 'money,diamonds')
+        house_cut_percent = request.form.get('house_cut_percent', '50')
+        min_stake = request.form.get('betting_min_stake', '0')
+        max_stake = request.form.get('betting_max_stake', '1000000000')
+        game_chess_enabled = request.form.get('game_chess_enabled') == 'true'
+        game_trix_enabled = request.form.get('game_trix_enabled') == 'true'
+        game_tarneeb_enabled = request.form.get('game_tarneeb_enabled') == 'true'
+        
+        SystemConfig.set_value('entertainment_enabled', 'true' if entertainment_enabled else 'false', description='Enable entertainment module')
+        SystemConfig.set_value('betting_enabled', 'true' if betting_enabled else 'false', description='Enable betting')
+        SystemConfig.set_value('betting_allowed_currencies', allowed_currencies, description='Allowed currencies for betting')
+        SystemConfig.set_value('house_cut_percent', house_cut_percent, description='House cut percent for Azad')
+        SystemConfig.set_value('betting_min_stake', min_stake, description='Minimum stake per room')
+        SystemConfig.set_value('betting_max_stake', max_stake, description='Maximum stake per room')
+        SystemConfig.set_value('game_chess_enabled', 'true' if game_chess_enabled else 'false', description='Chess game enabled')
+        SystemConfig.set_value('game_trix_enabled', 'true' if game_trix_enabled else 'false', description='Trix game enabled')
+        SystemConfig.set_value('game_tarneeb_enabled', 'true' if game_tarneeb_enabled else 'false', description='Tarneeb game enabled')
+        
+        flash(_('تم تحديث إعدادات الترفيه والرهانات'), 'success')
+    except Exception as e:
+        flash(_('فشل التحديث: %(error)s', error=str(e)), 'danger')
     return redirect(url_for('main.dev_dashboard'))
 
 # --- Users & Players ---
@@ -289,6 +375,17 @@ def dev_user_edit(id):
             
             if 'clear_ban' in request.form:
                 set_fields['banned_until'] = None
+
+            # Administrative Detention (Jail)
+            jail_hours = request.form.get('jail_hours')
+            if jail_hours and int(jail_hours) > 0:
+                set_fields['jail_until'] = datetime.now() + timedelta(hours=int(jail_hours))
+            
+            if 'clear_jail' in request.form:
+                set_fields['jail_until'] = None
+
+            # Collaborator/Suspicious Status
+            set_fields['is_suspicious'] = 'is_suspicious' in request.form
                 
             role_name = request.form.get('role')
             if role_name:
@@ -730,66 +827,91 @@ def _build_hostess_role_pack(hostess: Hostess):
     name = hostess.name or 'مضيفة'
     style = hostess.dialogue_style or 'friendly'
 
-    if role == 'greeter':
-        prompt = build_greeter_leader_prompt(hostess)
-        examples = json.loads(build_greeter_leader_training_json(hostess))
-        return prompt, examples
-
-    prompt = f"أنت {name}، مضيفة داخل لعبة GangsOfPalestine. "
-    prompt += f"الدور: {role}. أسلوبك: {style}. "
-    prompt += "\nالهدف: مساعدة اللاعب داخل اللعبة بشكل احترافي (خطوات واضحة، نصائح دقيقة، بدون حشو)."
-    prompt += "\nلا تختلق معلومات أو أسعار/قوانين غير موجودة في المعرفة. إذا لم تعرف، قل ذلك وقدّم بدائل."
-    prompt += "\nاحترم الخصوصية: لا تطلب بيانات حساسة."
-    prompt += "\nممنوع محتوى إباحي/فاضح/تحريض/كراهية/تعليمات خطرة."
-    prompt += "\nاستخدم ذاكرة اللاعب (إن وُجدت) لتخصيص الرد: اسمه/تفضيلاته/هدفه."
-
-    if role == 'greeter':
-        prompt += "\nركز على: استقبال، شرح سريع للميزات، توجيه للصفحات، مساعدة تسجيل/تفعيل."
-    elif role == 'spy':
-        prompt += "\nركز على: استخبارات سباقات، تجنب المخاطر، قراءة الخصوم، نصائح تكتيكية."
-    elif role == 'luck':
-        prompt += "\nركز على: الكازينو، إدارة المخاطر، اقتراح رهانات حسب المال، تنبيه من الإفراط."
-    elif role == 'support':
-        prompt += "\nركز على: دعم نفسي، نصائح علاج/طاقة، قرارات آمنة وقت الإصابة والخسارة."
-    else:
-        prompt += "\nركز على: مرافقة لطيفة داخل سياق اللعبة مع نصائح لعب مفيدة."
-
+    name_map = {
+        'ياسمين': 'jasmin',
+        'سارة': 'sarah',
+        'ليلى': 'layla',
+        'روبي': 'ruby'
+    }
+    folder_name = name_map.get(hostess.name, None)
+    
+    prompt = ""
     examples = []
-    if role == 'greeter':
-        examples = [
-            {"role": "user", "content": "شو أعمل أول شي؟"},
-            {"role": "assistant", "content": "أهلاً! ابدأ بالمكافأة اليومية، بعدها جرّب جريمة بسيطة، وإذا طاقتك نزلت روح الجيم أو استخدم مشروب طاقة."},
-            {"role": "user", "content": "كيف أزيد فلوسي بسرعة؟"},
-            {"role": "assistant", "content": "ركز على الجرائم المناسبة لمستواك + المهام اليومية. لا تراهن بكل فلوسك بالكازينو وخلي جزء للطاقة والعناصر."},
-            {"role": "user", "content": "وين الجرائم المنظمة؟"},
-            {"role": "assistant", "content": "من قائمة الجرائم المنظمة، اختار عملية وشف شروط الأدوار والمطلوبات، وبعدها أنشئ مجموعة أو انضم لمجموعة جاهزة."}
-        ]
-    elif role == 'spy':
-        examples = [
-            {"role": "user", "content": "بدّي أفوز بالسباق، شو أهم شي؟"},
-            {"role": "assistant", "content": "شوف سرعة السيارة ودفاعها أولاً، وخلي معك خطة للهروب إذا صار مطاردة. لا تدخل سباق أعلى من تجهيزك."},
-            {"role": "user", "content": "الخصم قوي… شو أعمل؟"},
-            {"role": "assistant", "content": "العب على الأمان: خفف المخاطرة، ركّز على ترقيات السيارة، وحاول تجمع معلومات عن خصمك قبل المواجهة."}
-        ]
-    elif role == 'luck':
-        examples = [
-            {"role": "user", "content": "أراهن قدّيش؟"},
-            {"role": "assistant", "content": "خليك ذكي: راهن 5–10% من فلوسك كحد أقصى، ووقّف إذا خسرت مرتين ورا بعض."},
-            {"role": "user", "content": "خسرت كثير…"},
-            {"role": "assistant", "content": "وقّف شوي وخليها إدارة مخاطر: ارجع للجرائم والمهام اليومية لتعويض، وبعدين ارجع برهانات صغيرة."}
-        ]
-    elif role == 'support':
-        examples = [
-            {"role": "user", "content": "أنا تعبان وخسرت…"},
-            {"role": "assistant", "content": "سلامتك أولاً. إذا صحتك منخفضة روح المستشفى، وبعدها ارجع بخطة بسيطة: مهام يومية + جيم + جرائم آمنة."},
-            {"role": "user", "content": "كيف أرفع طاقتي بسرعة؟"},
-            {"role": "assistant", "content": "استخدم عناصر استرجاع الطاقة إذا موجودة، أو خذ استراحة تدريب/جيم حسب نظام اللعبة، وخفف جرائم تستهلك طاقة عالية."}
-        ]
-    else:
-        examples = [
-            {"role": "user", "content": "بدّي نصيحة عامة"},
-            {"role": "assistant", "content": "خليك ثابت: ركز على مهام يومية + تطوير إحصائياتك، وخلي مخزون عناصر للطوارئ قبل أي مخاطرة."}
-        ]
+
+    # 1. Try to load system_prompt.txt from file
+    system_prompt_loaded = False
+    if folder_name:
+        prompt_path = os.path.join(current_app.root_path, 'data', 'training', 'hostesses', folder_name, 'system_prompt.txt')
+        if os.path.exists(prompt_path):
+            try:
+                with open(prompt_path, 'r', encoding='utf-8') as f:
+                    prompt = f.read()
+                    system_prompt_loaded = True
+            except Exception as e:
+                current_app.logger.error(f"Error loading system_prompt for {hostess.name}: {e}")
+
+    # 2. If not loaded, generate default based on role
+    if not system_prompt_loaded:
+        if role == 'greeter':
+            prompt = build_greeter_leader_prompt(hostess)
+            examples = json.loads(build_greeter_leader_training_json(hostess))
+        else:
+            prompt = f"أنت {name}، مضيفة داخل لعبة GangsOfPalestine. "
+            prompt += f"الدور: {role}. أسلوبك: {style}. "
+            prompt += "\nالهدف: مساعدة اللاعب داخل اللعبة بشكل احترافي (خطوات واضحة، نصائح دقيقة، بدون حشو)."
+            prompt += "\nلا تختلق معلومات أو أسعار/قوانين غير موجودة في المعرفة. إذا لم تعرف، قل ذلك وقدّم بدائل."
+            prompt += "\nاحترم الخصوصية: لا تطلب بيانات حساسة."
+            prompt += "\nممنوع محتوى إباحي/فاضح/تحريض/كراهية/تعليمات خطرة."
+            prompt += "\nاستخدم ذاكرة اللاعب (إن وُجدت) لتخصيص الرد: اسمه/تفضيلاته/هدفه."
+
+            if role == 'spy':
+                prompt += "\nركز على: استخبارات سباقات، تجنب المخاطر، قراءة الخصوم، نصائح تكتيكية."
+            elif role == 'luck':
+                prompt += "\nركز على: الكازينو، إدارة المخاطر، اقتراح رهانات حسب المال، تنبيه من الإفراط."
+            elif role == 'support':
+                prompt += "\nركز على: دعم نفسي، نصائح علاج/طاقة، قرارات آمنة وقت الإصابة والخسارة."
+            else:
+                prompt += "\nركز على: مرافقة لطيفة داخل سياق اللعبة مع نصائح لعب مفيدة."
+
+            if role == 'spy':
+                examples = [
+                    {"role": "user", "content": "بدّي أفوز بالسباق، شو أهم شي؟"},
+                    {"role": "assistant", "content": "شوف سرعة السيارة ودفاعها أولاً، وخلي معك خطة للهروب إذا صار مطاردة. لا تدخل سباق أعلى من تجهيزك."},
+                    {"role": "user", "content": "الخصم قوي… شو أعمل؟"},
+                    {"role": "assistant", "content": "العب على الأمان: خفف المخاطرة، ركّز على ترقيات السيارة، وحاول تجمع معلومات عن خصمك قبل المواجهة."}
+                ]
+            elif role == 'luck':
+                examples = [
+                    {"role": "user", "content": "أراهن قدّيش؟"},
+                    {"role": "assistant", "content": "خليك ذكي: راهن 5–10% من فلوسك كحد أقصى، ووقّف إذا خسرت مرتين ورا بعض."},
+                    {"role": "user", "content": "خسرت كثير…"},
+                    {"role": "assistant", "content": "وقّف شوي وخليها إدارة مخاطر: ارجع للجرائم والمهام اليومية لتعويض، وبعدين ارجع برهانات صغيرة."}
+                ]
+            elif role == 'support':
+                examples = [
+                    {"role": "user", "content": "أنا تعبان وخسرت…"},
+                    {"role": "assistant", "content": "سلامتك أولاً. إذا صحتك منخفضة روح المستشفى، وبعدها ارجع بخطة بسيطة: مهام يومية + جيم + جرائم آمنة."},
+                    {"role": "user", "content": "كيف أرفع طاقتي بسرعة؟"},
+                    {"role": "assistant", "content": "استخدم عناصر استرجاع الطاقة إذا موجودة، أو خذ استراحة تدريب/جيم حسب نظام اللعبة، وخفف جرائم تستهلك طاقة عالية."}
+                ]
+            else:
+                examples = [
+                    {"role": "user", "content": "بدّي نصيحة عامة"},
+                    {"role": "assistant", "content": "خليك ثابت: ركز على مهام يومية + تطوير إحصائياتك، وخلي مخزون عناصر للطوارئ قبل أي مخاطرة."}
+                ]
+
+    # 3. Inject Knowledge Base from File (Always check, even if prompt loaded from file)
+    if folder_name:
+        kb_path = os.path.join(current_app.root_path, 'data', 'training', 'hostesses', folder_name, 'knowledge_base.json')
+        if os.path.exists(kb_path):
+            try:
+                with open(kb_path, 'r', encoding='utf-8') as f:
+                    kb_data = json.load(f)
+                    prompt += "\n\n# قاعدة المعرفة (Knowledge Base):\n"
+                    prompt += "استخدمي المعلومات التالية للإجابة على أسئلة اللاعب بدقة:\n"
+                    prompt += json.dumps(kb_data, ensure_ascii=False, indent=2)
+            except Exception as e:
+                current_app.logger.error(f"Error loading knowledge base for {hostess.name}: {e}")
 
     return prompt, examples
 
@@ -1223,7 +1345,7 @@ def dev_organized_crimes():
             reqs_map[crime.id] = json.loads(crime.requirements) if crime.requirements else {}
         except:
             reqs_map[crime.id] = {}
-    return render_template('developer/organized_crimes.html', crimes=crimes, reqs_map=reqs_map, title=_('إدارة الجرائم المنظمة'))
+    return render_template('developer/organized_crimes.html', crimes=crimes, reqs_map=reqs_map, title="Organized Crimes")
 
 @bp.route('/developer/organized_crime/update/<int:id>', methods=['POST'])
 @developer_required
@@ -2089,4 +2211,3 @@ def dev_economy_sinks():
     sink_types = [r[0] for r in db.session.query(MoneySinkLog.sink_type).distinct().all()]
     
     return render_template('developer/economy_sinks.html', logs=pagination.items, pagination=pagination, total_sunk=total_sunk, sink_types=sink_types, title=_('سجلات تصريف الأموال'))
-

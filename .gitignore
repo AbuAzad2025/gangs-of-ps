@@ -25,3 +25,9 @@ env/
 instance/
 uploads/
 tests/
+
+*.mp4
+*.wav
+temp_*
+*.avi
+*.mov

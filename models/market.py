@@ -13,6 +13,14 @@ class MarketAsset(db.Model):
     volume_24h = db.Column(db.Float, default=0.0)
     last_updated = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
     
+    @property
+    def image_path(self):
+        # Return relative path for use with url_for('static', filename=...)
+        # You can map symbols to specific images here
+        if self.asset_type == 'crypto':
+            return 'images/items/default.svg' # Placeholder for crypto
+        return 'images/items/default.svg' # Placeholder for stocks
+
     def __repr__(self):
         return f'<MarketAsset {self.symbol}>'
 
@@ -88,6 +96,11 @@ class SpotOrder(db.Model):
     asset = db.relationship('MarketAsset', backref='spot_orders')
     user = db.relationship('User', backref='spot_orders')
 
+    __table_args__ = (
+        db.Index('idx_spot_order_asset_status', 'asset_id', 'status'),
+        db.Index('idx_spot_order_user_status', 'user_id', 'status'),
+    )
+
     def progress_percent(self):
         if self.quantity > 0:
             return (self.filled_quantity / self.quantity) * 100
@@ -119,7 +132,10 @@ class Auction(db.Model):
         
     @property
     def is_active(self):
-        return self.status == 'active' and self.end_time > datetime.now(timezone.utc)
+        end_time_aware = self.end_time
+        if end_time_aware.tzinfo is None:
+            end_time_aware = end_time_aware.replace(tzinfo=timezone.utc)
+        return self.status == 'active' and end_time_aware > datetime.now(timezone.utc)
 
 class AuctionBid(db.Model):
     id = db.Column(db.Integer, primary_key=True)

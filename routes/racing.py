@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, redirect, url_for, flash, request
+from flask import Blueprint, render_template, redirect, url_for, flash, request, abort
 from flask_login import login_required, current_user
 from extensions import db
 from flask_babel import _
@@ -42,7 +42,7 @@ def create():
         return redirect(url_for('racing.index'))
 
     # Atomic deduction via ResourceService
-    if not ResourceService.modify_resources(current_user.id, {'money': -bet}, 'create_race', auto_commit=False, expected_version=current_user.version):
+    if not ResourceService.modify_resources(current_user.id, {'money': -bet}, 'create_race', auto_commit=False, expected_version=None):
         flash(_('معكش مصاري كفاية!'), 'danger')
         return redirect(url_for('racing.index'))
     
@@ -86,7 +86,7 @@ def join(race_id):
         return redirect(url_for('racing.room', race_id=race.id))
         
     # Atomic deduction via ResourceService
-    if not ResourceService.modify_resources(current_user.id, {'money': -race.bet_amount}, 'join_race', auto_commit=False, expected_version=current_user.version):
+    if not ResourceService.modify_resources(current_user.id, {'money': -race.bet_amount}, 'join_race', auto_commit=False, expected_version=None):
         flash(_('معكش مصاري كفاية للانضمام!'), 'danger')
         return redirect(url_for('racing.index'))
     
@@ -146,6 +146,14 @@ def start(race_id):
         flash(_('تحتاج لمتسابق واحد على الأقل لتبدأ!'), 'warning')
         return redirect(url_for('racing.room', race_id=race.id))
         
+    # Lock all participants (Users) to prevent race conditions on skills/vehicles
+    # Sort IDs to prevent deadlocks
+    participant_user_ids = sorted([p.user_id for p in participants])
+    if participant_user_ids:
+        # We lock the users, which implicitly ensures their associated data (like driving_skill) 
+        # is safe from concurrent modification if accessed through these locked instances
+        db.session.query(User).filter(User.id.in_(participant_user_ids)).with_for_update().all()
+
     # --- RACE LOGIC ---
     race.status = 'finished' # Simplify for now (instant result)
     
@@ -192,7 +200,7 @@ def start(race_id):
     winner = results[0]
     winner.reward = total_pot
     # Atomic Update via ResourceService
-    ResourceService.modify_resources(winner.user.id, {'money': total_pot}, 'race_win', auto_commit=False, expected_version=winner.user.version)
+    ResourceService.modify_resources(winner.user.id, {'money': total_pot}, 'race_win', auto_commit=False, expected_version=None)
     
     for i, p in enumerate(results):
         p.rank = i + 1
@@ -211,7 +219,7 @@ def train_driver():
         flash(_('بدك %(cost)s للتدريب!', cost=cost), 'danger')
         return redirect(url_for('racing.index'))
         
-    if not ResourceService.modify_resources(current_user.id, {'money': -cost}, 'train_driver', auto_commit=False, expected_version=current_user.version):
+    if not ResourceService.modify_resources(current_user.id, {'money': -cost}, 'train_driver', auto_commit=False, expected_version=None):
         flash(_('بدك %(cost)s للتدريب!', cost=cost), 'danger')
         return redirect(url_for('racing.index'))
 
@@ -251,7 +259,7 @@ def upgrade_car(part_type):
         flash(_('وصلت للحد الأقصى لهذا التطوير!'), 'warning')
         return redirect(url_for('racing.index'))
         
-    if not ResourceService.modify_resources(current_user.id, {'money': -cost}, 'upgrade_car', auto_commit=False, expected_version=current_user.version):
+    if not ResourceService.modify_resources(current_user.id, {'money': -cost}, 'upgrade_car', auto_commit=False, expected_version=None):
         flash(_('معكش مصاري للتطوير!'), 'danger')
         return redirect(url_for('racing.index'))
     

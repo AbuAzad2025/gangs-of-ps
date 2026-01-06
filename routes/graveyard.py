@@ -5,33 +5,46 @@ from extensions import db, limiter
 from models import User, ResurrectionRequest, SystemConfig, UserRank, Message
 from models.user import UserRole
 from datetime import datetime, timezone
+from services.resource_service import ResourceService
 
 bp = Blueprint('graveyard', __name__, url_prefix='/graveyard')
 
 @bp.route('/')
-@login_required
 def index():
-    # If not actually dead (health > 0), kick them out
-    if current_user.health > 0:
-        return redirect(url_for('main.hara'))
-    
-    # Check for pending request
-    pending_request = ResurrectionRequest.query.filter_by(user_id=current_user.id, status='pending').first()
-
-    # Get Cost based on Rank (interpreted as diamonds)
+    is_dead_viewer = False
     cost_diamonds = 10
-    try:
-        rp = current_user.rank_points_value
-        effective_level = current_user.level + (rp // 50)
-        rank = UserRank.query.filter(UserRank.min_level <= effective_level).order_by(UserRank.min_level.desc()).first()
-        if rank:
-            cost_diamonds = max(1, int(rank.resurrection_cost))
-    except:
-        pass
-        
-    cost_diamonds = int(SystemConfig.get_value('graveyard_resurrection_cost_diamonds', str(cost_diamonds)) or cost_diamonds)
+    pending_request = None
 
-    return render_template('graveyard.html', user=current_user, pending_request=pending_request, cost_diamonds=cost_diamonds)
+    # Check if user is authenticated and DEAD (My Grave View)
+    if current_user.is_authenticated and current_user.health <= 0:
+        is_dead_viewer = True
+        
+        # Check for pending request
+        pending_request = ResurrectionRequest.query.filter_by(user_id=current_user.id, status='pending').first()
+
+        # Get Cost based on Rank
+        try:
+            rp = current_user.rank_points_value
+            effective_level = current_user.level + (rp // 50)
+            rank = UserRank.query.filter(UserRank.min_level <= effective_level).order_by(UserRank.min_level.desc()).first()
+            if rank:
+                cost_diamonds = max(1, int(rank.resurrection_cost))
+        except:
+            pass
+        cost_diamonds = int(SystemConfig.get_value('graveyard_resurrection_cost_diamonds', str(cost_diamonds)) or cost_diamonds)
+    
+    # Public List (For everyone)
+    dead_users = User.query.filter(User.health <= 0).order_by(User.level.desc()).limit(20).all()
+    
+    meta_description = _("مقبرة الشهداء والضحايا في عصابات فلسطين. هنا يرقد من خسروا المعركة.")
+
+    return render_template('graveyard.html', 
+                           user=current_user if current_user.is_authenticated else None, 
+                           pending_request=pending_request, 
+                           cost_diamonds=cost_diamonds,
+                           is_dead_viewer=is_dead_viewer,
+                           dead_users=dead_users,
+                           meta_description=meta_description)
 
 
 @bp.route('/resurrect', methods=['POST'])
@@ -57,14 +70,18 @@ def resurrect():
     except Exception:
         cost_diamonds = 10
 
+    # Lock user to prevent race conditions
+    db.session.query(User).filter_by(id=current_user.id).with_for_update().first()
+
     # Atomic Deduction using ResourceService
     if not ResourceService.modify_resources(
         current_user.id,
         {'diamonds': -cost_diamonds},
         'resurrection_cost',
         auto_commit=False,
-        expected_version=current_user.version
+        expected_version=None
     ):
+        db.session.rollback()
         flash(_('ليس لديك ما يكفي من الماس! تحتاج إلى %(cost)s ماسة.', cost=cost_diamonds), 'danger')
         return redirect(url_for('graveyard.index'))
 
@@ -88,6 +105,7 @@ def resurrect():
 
 @bp.route('/request_resurrection', methods=['POST'])
 @login_required
+@limiter.limit("3 per minute")
 def request_resurrection():
     if current_user.health > 0:
         return redirect(url_for('main.hara'))

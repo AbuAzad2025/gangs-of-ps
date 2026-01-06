@@ -2,7 +2,8 @@ from flask_admin.contrib.sqla import ModelView
 from flask_login import current_user
 from flask import redirect, url_for, flash
 from flask_babel import lazy_gettext as _
-from wtforms import PasswordField
+from wtforms import PasswordField, TextAreaField
+from flask_admin.form import fields as admin_form_fields
 from models import User, UserRank, UserItem, UserVehicle, UserInvestment, Announcement, Hostess, HostessKnowledge, LearningLog
 
 from services.resource_service import ResourceService
@@ -22,6 +23,17 @@ class SecureModelView(ModelView):
     create_modal = True
     edit_modal = True
     details_modal = True
+
+    def scaffold_form(self):
+        form_class = super().scaffold_form()
+        try:
+            # Replace unsupported JSONField with TextAreaField to avoid widget errors in bootstrap4
+            for name, field in list(form_class.__dict__.get('_unbound_fields', [])):
+                if getattr(field, 'field_class', None) is admin_form_fields.JSONField:
+                    setattr(form_class, name, TextAreaField(field.label.text if hasattr(field, 'label') else name))
+        except Exception:
+            pass
+        return form_class
 
 class HostessView(SecureModelView):
     column_list = ('name', 'role', 'price', 'dialogue_style', 'is_active')
@@ -323,7 +335,8 @@ class CrimeView(SecureModelView):
 class OrganizedCrimeView(SecureModelView):
     column_list = ('id', 'name', 'min_members', 'energy_cost', 'money_reward_min', 'money_reward_max', 'exp_reward', 'cooldown_hours', 'is_active', 'roles_config', 'requirements')
     column_filters = ('min_members', 'energy_cost', 'cooldown_hours', 'is_active')
-    column_editable_list = ('name', 'min_members', 'energy_cost', 'money_reward_min', 'money_reward_max', 'exp_reward', 'cooldown_hours', 'is_active', 'roles_config', 'requirements')
+    # Removed roles_config and requirements from editable list to avoid JSONField errors
+    column_editable_list = ('name', 'min_members', 'energy_cost', 'money_reward_min', 'money_reward_max', 'exp_reward', 'cooldown_hours', 'is_active')
     column_labels = {
         'name': _('اسم الجريمة المنظمة'),
         'min_members': _('عدد الأعضاء المطلوب'),
@@ -335,6 +348,21 @@ class OrganizedCrimeView(SecureModelView):
         'is_active': _('نشط'),
         'roles_config': _('إعدادات الأدوار (JSON)'),
         'requirements': _('المتطلبات (JSON)')
+    }
+
+    def _json_formatter(view, context, model, name):
+        import json
+        val = getattr(model, name)
+        if val is None:
+            return ''
+        try:
+            return json.dumps(val, ensure_ascii=False)
+        except:
+            return str(val)
+
+    column_formatters = {
+        'roles_config': _json_formatter,
+        'requirements': _json_formatter
     }
 
 class GangView(SecureModelView):
@@ -436,6 +464,20 @@ class UserLogView(SecureModelView):
         'after_state': _('بعد'),
         'ip_address': _('IP')
     }
+    # Avoid rendering JSONField in Bootstrap4 templates (causes Unsupported field type)
+    details_modal = False
+    @staticmethod
+    def _pretty_json(view, context, model, name):
+        import json
+        data = getattr(model, name)
+        try:
+            return json.dumps(data, ensure_ascii=False, indent=2)
+        except Exception:
+            return data if data is not None else ''
+    column_formatters = {
+        'before_state': _pretty_json,
+        'after_state': _pretty_json
+    }
 
 class AssetView(SecureModelView):
     column_list = ('id', 'name', 'type', 'base_price', 'income_per_day')
@@ -465,9 +507,20 @@ class PaymentView(SecureModelView):
         if is_created:
             return
 
-        from sqlalchemy import inspect
+        from sqlalchemy import inspect, text
         from models import User
         
+        # Lock the transaction row to prevent double verification race conditions
+        # We check the actual DB status before proceeding
+        db_status = db.session.execute(
+            text("SELECT status FROM payment_transaction WHERE id = :id FOR UPDATE"), 
+            {'id': model.id}
+        ).scalar()
+        
+        # If already completed in DB, do not process again
+        if db_status == 'completed':
+            return
+
         ins = inspect(model)
         status_hist = ins.attrs.status.history
         verified_hist = ins.attrs.is_verified.history
@@ -501,10 +554,15 @@ class PaymentView(SecureModelView):
             if not was_already_valid:
                 # It just became valid. Award diamonds.
                 user = db.session.get(User, model.user_id)
-                if user and ResourceService.modify_resources(model.user_id, {'diamonds': model.diamonds_amount}, 'payment_verified', auto_commit=False, expected_version=user.version):
-                    flash(_('تم إضافة %(amount)s ماسة للمستخدم بنجاح.', amount=model.diamonds_amount), 'success')
+                if user:
+                    if ResourceService.modify_resources(model.user_id, {'diamonds': model.diamonds_amount}, 'payment_verified', auto_commit=False, expected_version=None):
+                        flash(_('تم إضافة %(amount)s ماسة للمستخدم بنجاح.', amount=model.diamonds_amount), 'success')
+                    else:
+                        # Force rollback if resource modification fails
+                        raise Exception(_('فشل إضافة الماسات. حدث خطأ أثناء تعديل موارد المستخدم.'))
                 else:
-                    flash(_('فشل إضافة الماسات. لم يتم العثور على المستخدم أو حدث خطأ في البيانات.', amount=model.diamonds_amount), 'error')
+                    # User might have been deleted
+                    raise Exception(_('فشل إضافة الماسات. لم يتم العثور على المستخدم.'))
 
 
 class SystemConfigView(SecureModelView):

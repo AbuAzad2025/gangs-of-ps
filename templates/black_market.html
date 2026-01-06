@@ -364,7 +364,7 @@
                     <div class="item-card h-100 p-3 text-center d-flex flex-column">
                         <div class="item-icon-wrapper">
                             {% if user_item.item.image %}
-                                <img src="{{ url_for('static', filename=user_item.item.image) }}" alt="{{ _(user_item.item.name) }}" class="item-img-70" onerror="this.onerror=null; this.src='{{ url_for('static', filename='crimes/wallet.jpg') }}';">
+                                <img src="{{ url_for('static', filename='images/' + user_item.item.image) }}" alt="{{ _(user_item.item.name) }}" class="item-img-70" onerror="this.onerror=null; this.src='{{ url_for('static', filename='images/crimes/wallet.svg') }}';">
                             {% else %}
                                 <i class="fas fa-gem fa-3x text-success"></i>
                             {% endif %}
@@ -598,7 +598,7 @@
                     <div class="item-card h-100 p-3 text-center d-flex flex-column">
                         <div class="item-icon-wrapper">
                             {% if item.image %}
-                                <img src="{{ url_for('static', filename='img/items/' + item.image) }}" class="img-fluid img-max-60" alt="{{ item.name }}">
+                                <img src="{{ url_for('static', filename='images/' + item.image) }}" class="img-fluid img-max-60" alt="{{ item.name }}">
                             {% else %}
                                 <i class="fas fa-pills fa-3x text-warning"></i>
                             {% endif %}

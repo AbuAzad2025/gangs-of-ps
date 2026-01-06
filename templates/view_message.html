@@ -50,7 +50,7 @@
                 </div>
                 
                 <div class="message-body">
-                    {{ message.body | safe }}
+                    {{ message.body | escape | replace('\n', '<br>') | safe }}
                 </div>
             </div>
         </div>
