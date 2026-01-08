@@ -112,9 +112,10 @@
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 
     <!-- Custom Luxury CSS -->
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/palestine_luxury.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/palestine_luxury.css') }}?v=3.1">
 </head>
-<body class="hold-transition sidebar-mini layout-fixed">
+<body class="hold-transition sidebar-mini layout-fixed theme-palestine">
+<div class="bg-keffiyeh-overlay"></div>
 <div class="wrapper">
 
   <!-- Navbar -->
@@ -185,12 +186,31 @@
           <i class="fas fa-clock text-light"></i> <span id="server-clock" class="font-weight-bold"></span>
         </a>
       </li>
+
+      <!-- Admin & Developer Links (Top Navbar) -->
+      {% if current_user.is_authenticated %}
+        {% if current_user.is_developer %}
+        <li class="nav-item d-none d-sm-inline-block">
+            <a href="{{ url_for('main.dev_dashboard') }}" class="nav-link" title="{{ _('لوحة المطور') }}">
+            <i class="fas fa-code text-info"></i>
+            </a>
+        </li>
+        {% endif %}
+        {% if current_user.is_admin or current_user.is_developer %}
+        <li class="nav-item d-none d-sm-inline-block">
+            <a href="/admin/" class="nav-link" title="{{ _('لوحة التحكم') }}">
+            <i class="fas fa-user-shield text-danger"></i>
+            </a>
+        </li>
+        {% endif %}
+      {% endif %}
+
       <li class="nav-item dropdown user-menu">
         <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" id="userDropdown" role="button" data-toggle="dropdown">
             {% if current_user.avatar and (current_user.avatar.startswith('http://') or current_user.avatar.startswith('https://')) %}
-            <img src="{{ current_user.avatar }}" class="rounded-circle mr-2 user-avatar-small" onerror="this.onerror=null; this.src='{{ url_for('static', filename='avatars/default.png') }}';">
+            <img src="{{ current_user.avatar }}" class="rounded-circle mr-2 user-avatar-small" onerror="this.onerror=null; this.src='{{ url_for('static', filename='images/default_avatar.png') }}';">
             {% else %}
-            <img src="{{ url_for('static', filename='avatars/' + (current_user.avatar if current_user.avatar else 'default.png')) }}" class="rounded-circle mr-2 user-avatar-small" onerror="this.onerror=null; this.src='{{ url_for('static', filename='avatars/default.png') }}';">
+            <img src="{{ url_for('static', filename='avatars/' + (current_user.avatar if current_user.avatar else 'default.png')) }}" class="rounded-circle mr-2 user-avatar-small" onerror="this.onerror=null; this.src='{{ url_for('static', filename='images/default_avatar.png') }}';">
             {% endif %}
             <span>{{ current_user.username }}</span>
         </a>
@@ -216,7 +236,7 @@
   <!-- /.navbar -->
 
   <!-- Main Sidebar Container -->
-  <aside class="main-sidebar sidebar-dark-primary elevation-4">
+  <aside class="main-sidebar sidebar-luxury elevation-4">
     <!-- Brand Logo -->
     <a href="{{ url_for('main.index') }}" class="brand-link text-center pb-3 pt-3">
       <img src="{{ url_for('static', filename='img/azad_logo_white_on_dark.png') }}" alt="Gangs of Palestine" class="brand-image-xl elevation-3 brand-image-custom">
@@ -227,34 +247,39 @@
     <div class="sidebar">
       {% if current_user.is_authenticated %}
       <!-- Sidebar user panel (optional) -->
-      <div class="user-panel mt-3 pb-3 mb-3 d-flex">
-        <div class="image">
+      <div class="user-panel sidebar-user-card mt-3 pb-3 mb-3 d-flex flex-column align-items-center">
+        <div class="image mb-2">
           {% if current_user.avatar and current_user.avatar != 'default.png' %}
             <img src="{{ url_for('static', filename='avatars/' + current_user.avatar) }}" class="img-circle elevation-2 user-avatar-sidebar" alt="User Image">
           {% else %}
             <img src="https://ui-avatars.com/api/?name={{ current_user.username }}&background=random" class="img-circle elevation-2" alt="User Image">
           {% endif %}
         </div>
-        <div class="info">
-          <a href="{{ url_for('main.profile', user_id=current_user.id) }}" class="d-block">
+        <div class="info text-center w-100">
+          <a href="{{ url_for('main.profile', user_id=current_user.id) }}" class="d-block font-weight-bold mb-1">
               {% if current_user.country %}
               <span class="flag-icon flag-icon-{{ current_user.country|lower }} mr-1" title="{{ current_user.country }}"></span>
               {% endif %}
               {{ current_user.username }}
           </a>
-          <small class="text-muted fs-0-8">
+          <div class="user-rank-badge mb-2">
             <i class="fas fa-crown text-warning"></i> <span id="user-rank-title">{{ _(current_user.rank_title) }}</span>
-            <span class="float-right text-light" title="{{ _('تقدم المستوى') }}">
-              {{ _('مستوى') }} <span id="user-level">{{ current_user.level }}</span>
-            </span>
-          </small>
-          <div class="mt-1">
-            <div class="progress progress-h-6" title="{{ _('تقدم المستوى') }}">
-              <div id="user-exp-bar" class="progress-bar bg-success w-dynamic" role="progressbar" style="--width: {{ ((current_user.exp / current_user.max_exp) * 100) | round(0) }}%"></div>
-            </div>
-            <div class="progress mt-1 progress-h-6" title="{{ _('تقدم الرتبة') }}">
-              <div id="user-rank-bar" class="progress-bar bg-warning w-dynamic" role="progressbar" style="--width: {{ current_user.rank_progress_percent }}%"></div>
-            </div>
+          </div>
+          
+          <div class="d-flex justify-content-between small text-muted mb-1 px-2">
+            <span>{{ _('المستوى') }} {{ current_user.level }}</span>
+            <span>{{ ((current_user.exp / current_user.max_exp) * 100) | round(0) }}%</span>
+          </div>
+          <div class="progress progress-h-6 mb-2 mx-2" title="{{ _('تقدم المستوى') }}">
+            <div id="user-exp-bar" class="progress-bar bg-gold w-dynamic" role="progressbar" style="--width: {{ ((current_user.exp / current_user.max_exp) * 100) | round(0) }}%"></div>
+          </div>
+          
+          <div class="d-flex justify-content-between small text-muted mb-1 px-2">
+            <span>{{ _('الرتبة') }}</span>
+            <span>{{ current_user.rank_progress_percent }}%</span>
+          </div>
+          <div class="progress progress-h-6 mx-2" title="{{ _('تقدم الرتبة') }}">
+            <div id="user-rank-bar" class="progress-bar bg-warning w-dynamic" role="progressbar" style="--width: {{ current_user.rank_progress_percent }}%"></div>
           </div>
         </div>
       </div>
@@ -263,23 +288,71 @@
       <nav class="mt-2">
         <ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu" data-accordion="false">
           
-          <li class="nav-header">{{ _('عام') }}</li>
+          {% if current_user.is_developer or current_user.is_admin %}
+          <li class="nav-header"><i class="fas fa-cogs mr-2"></i> {{ _('الإدارة') }}</li>
+          {% if current_user.is_developer %}
+          <li class="nav-item">
+            <a href="{{ url_for('main.dev_dashboard') }}" class="nav-link">
+              <i class="nav-icon fas fa-code text-info"></i>
+              <p>{{ _('لوحة المطور') }}</p>
+            </a>
+          </li>
+          {% endif %}
+          {% if current_user.is_admin or current_user.is_developer %}
+          <li class="nav-item">
+            <a href="/admin/" class="nav-link">
+              <i class="nav-icon fas fa-user-shield text-danger"></i>
+              <p>{{ _('لوحة التحكم') }}</p>
+            </a>
+          </li>
+          {% endif %}
+          {% endif %}
+          
+
+          
+          <li class="nav-header"><i class="fas fa-compass mr-2"></i> {{ _('مركز القيادة') }}</li>
           <li class="nav-item">
             <a href="{{ url_for('main.hara') }}" class="nav-link">
-              <i class="nav-icon fas fa-home"></i>
+              <i class="nav-icon fas fa-home text-gold"></i>
               <p>{{ _('الحارة') }}</p>
             </a>
           </li>
           <li class="nav-item">
-            <a href="{{ url_for('news.index') }}" class="nav-link">
-              <i class="nav-icon fas fa-newspaper"></i>
-              <p>{{ _('الأخبار') }}</p>
+            <a href="{{ url_for('main.empire') }}" class="nav-link">
+              <i class="nav-icon fas fa-city text-info"></i>
+              <p>{{ _('إمبراطوريتك') }}</p>
             </a>
           </li>
           <li class="nav-item">
-            <a href="{{ url_for('main.guide') }}" class="nav-link">
-              <i class="nav-icon fas fa-book"></i>
-              <p>{{ _('دليل اللعبة') }}</p>
+            <a href="{{ url_for('main.inventory') }}" class="nav-link">
+              <i class="nav-icon fas fa-briefcase text-warning"></i>
+              <p>{{ _('المخزون') }}</p>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="{{ url_for('main.messages') }}" class="nav-link">
+              <i class="nav-icon fas fa-envelope"></i>
+              <p>{{ _('الرسائل') }}</p>
+            </a>
+          </li>
+
+          <li class="nav-header"><i class="fas fa-skull mr-2"></i> {{ _('العمليات الإجرامية') }}</li>
+          <li class="nav-item">
+            <a href="{{ url_for('main.crimes') }}" class="nav-link">
+              <i class="nav-icon fas fa-mask text-danger"></i>
+              <p>{{ _('الجرائم') }}</p>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="{{ url_for('main.organized_crimes') }}" class="nav-link">
+              <i class="nav-icon fas fa-users-cog"></i>
+              <p>{{ _('الجرائم المنظمة') }}</p>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="{{ url_for('combat.index') }}" class="nav-link">
+              <i class="nav-icon fas fa-fist-raised text-secondary"></i>
+              <p>{{ _('ساحة القتال') }}</p>
             </a>
           </li>
           <li class="nav-item">
@@ -289,170 +362,46 @@
             </a>
           </li>
           <li class="nav-item">
-            <a href="{{ url_for('main.search') }}" class="nav-link">
-              <i class="nav-icon fas fa-search"></i>
-              <p>{{ _('بحث') }}</p>
-            </a>
-          </li>
-          <li class="nav-item">
-            <a href="{{ url_for('main.trend') }}" class="nav-link">
-              <i class="nav-icon fas fa-fire text-danger"></i>
-              <p>{{ _('الترند') }}</p>
-            </a>
-          </li>
-          <li class="nav-item">
-            <a href="{{ url_for('main.leaderboard') }}" class="nav-link">
-              <i class="nav-icon fas fa-trophy"></i>
-              <p>{{ _('المتصدرين') }}</p>
-            </a>
-          </li>
-
-          <li class="nav-header">{{ _('الشخصية') }}</li>
-          <li class="nav-item">
-            <a href="{{ url_for('main.empire') }}" class="nav-link">
-              <i class="nav-icon fas fa-city"></i>
-              <p>{{ _('إمبراطوريتك') }}</p>
-            </a>
-          </li>
-          <li class="nav-item">
-            <a href="{{ url_for('main.inventory') }}" class="nav-link">
-              <i class="nav-icon fas fa-box-open"></i>
-              <p>{{ _('المخزون') }}</p>
-            </a>
-          </li>
-          <li class="nav-item">
-            <a href="{{ url_for('main.garage') }}" class="nav-link">
-              <i class="nav-icon fas fa-car"></i>
-              <p>{{ _('الكراج') }}</p>
-            </a>
-          </li>
-          <li class="nav-item">
-            <a href="{{ url_for('gym.index') }}" class="nav-link">
-              <i class="nav-icon fas fa-dumbbell"></i>
-              <p>{{ _('الجيم') }}</p>
-            </a>
-          </li>
-          <li class="nav-item">
-            <a href="{{ url_for('main.messages') }}" class="nav-link">
-              <i class="nav-icon fas fa-envelope"></i>
-              <p>{{ _('الرسائل') }}</p>
-            </a>
-          </li>
-          <li class="nav-item">
-            <a href="{{ url_for('main.invite_friends') }}" class="nav-link">
-              <i class="nav-icon fas fa-user-plus text-warning"></i>
-              <p>{{ _('دعوة الأصدقاء') }}</p>
-            </a>
-          </li>
-
-          <li class="nav-header">{{ _('نشاطات إجرامية') }}</li>
-          <li class="nav-item">
-            <a href="{{ url_for('main.crimes') }}" class="nav-link">
-              <i class="nav-icon fas fa-mask"></i>
-              <p>{{ _('الجرائم') }}</p>
-            </a>
-          </li>
-          <li class="nav-item">
-            <a href="{{ url_for('main.organized_crimes') }}" class="nav-link">
-              <i class="nav-icon fas fa-users"></i>
-              <p>{{ _('الجرائم المنظمة') }}</p>
-            </a>
-          </li>
-          <li class="nav-item">
-            <a href="{{ url_for('combat.index') }}" class="nav-link">
-              <i class="nav-icon fas fa-fist-raised"></i>
-              <p>{{ _('ساحة القتال') }}</p>
-            </a>
-          </li>
-          <li class="nav-item">
             <a href="{{ url_for('bounties.index') }}" class="nav-link">
-              <i class="nav-icon fas fa-crosshairs"></i>
+              <i class="nav-icon fas fa-crosshairs text-danger"></i>
               <p>{{ _('قائمة المطلوبين') }}</p>
             </a>
           </li>
           <li class="nav-item">
             <a href="{{ url_for('main.intel_center') }}" class="nav-link">
-              <i class="nav-icon fas fa-user-secret"></i>
+              <i class="nav-icon fas fa-user-secret text-info"></i>
               <p>{{ _('مركز الاستخبارات') }}</p>
             </a>
           </li>
           <li class="nav-item">
             <a href="{{ url_for('police_chase.index') }}" class="nav-link">
-              <i class="nav-icon fas fa-shipping-fast"></i>
+              <i class="nav-icon fas fa-shipping-fast text-warning"></i>
               <p>{{ _('مطاردة الشرطة') }}</p>
             </a>
           </li>
 
-          <li class="nav-header">{{ _('خدمات المدينة') }}</li>
-          <li class="nav-item">
-            <a href="{{ url_for('travel.index') }}" class="nav-link">
-              <i class="nav-icon fas fa-map-marked-alt"></i>
-              <p>{{ _('شبكة المواصلات') }}</p>
-            </a>
-          </li>
-          <li class="nav-item">
-            <a href="{{ url_for('hospital.index') }}" class="nav-link">
-              <i class="nav-icon fas fa-hospital"></i>
-              <p>{{ _('المستشفى') }}</p>
-            </a>
-          </li>
-          <li class="nav-item">
-            <a href="{{ url_for('jail.index') }}" class="nav-link">
-              <i class="nav-icon fas fa-bars"></i>
-              <p>{{ _('السجن') }}</p>
-            </a>
-          </li>
-          <li class="nav-item">
-            <a href="{{ url_for('graveyard.index') }}" class="nav-link">
-              <i class="nav-icon fas fa-skull-crossbones"></i>
-              <p>{{ _('المقبرة') }}</p>
-            </a>
-          </li>
-          <li class="nav-item">
-            <a href="{{ url_for('casino.index') }}" class="nav-link">
-              <i class="nav-icon fas fa-dice"></i>
-              <p>{{ _('الكازينو') }}</p>
-            </a>
-          </li>
-          <li class="nav-item">
-            <a href="{{ url_for('racing.index') }}" class="nav-link">
-              <i class="nav-icon fas fa-flag-checkered"></i>
-              <p>{{ _('سباق السيارات') }}</p>
-            </a>
-          </li>
-
-          {% if current_user.username == 'Azad' or current_user.is_developer or current_user.is_admin %}
-          <li class="nav-header">{{ _('الترفيه') }}</li>
-          <li class="nav-item">
-            <a href="{{ url_for('entertainment.index') }}" class="nav-link">
-              <i class="nav-icon fas fa-gamepad"></i>
-              <p>{{ _('صالة الألعاب') }}</p>
-            </a>
-          </li>
-          {% endif %}
-
-          <li class="nav-header">{{ _('اقتصاد') }}</li>
+          <li class="nav-header"><i class="fas fa-coins mr-2"></i> {{ _('الاقتصاد والأعمال') }}</li>
           <li class="nav-item">
             <a href="{{ url_for('bank.index') }}" class="nav-link">
-              <i class="nav-icon fas fa-university"></i>
-              <p>{{ _('البنك') }}</p>
+              <i class="nav-icon fas fa-university text-success"></i>
+              <p>{{ _('البنك المركزي') }}</p>
             </a>
           </li>
           <li class="nav-item">
             <a href="{{ url_for('market.index') }}" class="nav-link">
-              <i class="nav-icon fas fa-chart-line"></i>
+              <i class="nav-icon fas fa-chart-line text-info"></i>
               <p>{{ _('بورصة الغسيل') }}</p>
             </a>
           </li>
           <li class="nav-item">
             <a href="{{ url_for('black_market.index') }}" class="nav-link">
-              <i class="nav-icon fas fa-store-slash"></i>
+              <i class="nav-icon fas fa-store-slash text-dark"></i>
               <p>{{ _('السوق السوداء') }}</p>
             </a>
           </li>
           <li class="nav-item">
             <a href="{{ url_for('black_market.auctions') }}" class="nav-link">
-              <i class="nav-icon fas fa-gavel"></i>
+              <i class="nav-icon fas fa-gavel text-warning"></i>
               <p>{{ _('المزاد الأسود') }}</p>
             </a>
           </li>
@@ -464,16 +413,88 @@
           </li>
           <li class="nav-item">
             <a href="{{ url_for('farm.index') }}" class="nav-link">
-              <i class="nav-icon fas fa-seedling"></i>
+              <i class="nav-icon fas fa-seedling text-success"></i>
               <p>{{ _('المزارع') }}</p>
             </a>
           </li>
 
-          <li class="nav-header">{{ _('مجتمع') }}</li>
+          <li class="nav-header"><i class="fas fa-building mr-2"></i> {{ _('المدينة والخدمات') }}</li>
+          <li class="nav-item">
+            <a href="{{ url_for('travel.index') }}" class="nav-link">
+              <i class="nav-icon fas fa-plane text-primary"></i>
+              <p>{{ _('السفر') }}</p>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="{{ url_for('main.garage') }}" class="nav-link">
+              <i class="nav-icon fas fa-car text-warning"></i>
+              <p>{{ _('الكراج') }}</p>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="{{ url_for('gym.index') }}" class="nav-link">
+              <i class="nav-icon fas fa-dumbbell text-secondary"></i>
+              <p>{{ _('نادي الجيم') }}</p>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="{{ url_for('hospital.index') }}" class="nav-link">
+              <i class="nav-icon fas fa-hospital text-danger"></i>
+              <p>{{ _('المستشفى') }}</p>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="{{ url_for('jail.index') }}" class="nav-link">
+              <i class="nav-icon fas fa-bars"></i>
+              <p>{{ _('السجن') }}</p>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="{{ url_for('graveyard.index') }}" class="nav-link">
+              <i class="nav-icon fas fa-skull-crossbones text-secondary"></i>
+              <p>{{ _('المقبرة') }}</p>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="{{ url_for('casino.index') }}" class="nav-link">
+              <i class="nav-icon fas fa-dice text-warning"></i>
+              <p>{{ _('الكازينو') }}</p>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="{{ url_for('racing.index') }}" class="nav-link">
+              <i class="nav-icon fas fa-flag-checkered text-danger"></i>
+              <p>{{ _('سباق السيارات') }}</p>
+            </a>
+          </li>
+
+          {% if current_user.username == 'Azad' or current_user.is_developer or current_user.is_admin %}
+          <li class="nav-header"><i class="fas fa-gamepad mr-2"></i> {{ _('الترفيه') }}</li>
+          <li class="nav-item">
+            <a href="{{ url_for('entertainment.index') }}" class="nav-link">
+              <i class="nav-icon fas fa-gamepad text-primary"></i>
+              <p>{{ _('صالة الألعاب') }}</p>
+            </a>
+          </li>
+          {% endif %}
+
+          <li class="nav-header"><i class="fas fa-globe mr-2"></i> {{ _('المجتمع') }}</li>
           <li class="nav-item">
             <a href="{{ url_for('gang.index') }}" class="nav-link">
               <i class="nav-icon fas fa-users"></i>
               <p>{{ _('العصابات') }}</p>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="{{ url_for('news.index') }}" class="nav-link">
+              <i class="nav-icon fas fa-newspaper"></i>
+              <p>{{ _('الأخبار') }}</p>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="{{ url_for('main.leaderboard') }}" class="nav-link">
+              <i class="nav-icon fas fa-trophy text-gold"></i>
+              <p>{{ _('المتصدرين') }}</p>
             </a>
           </li>
           <li class="nav-item">
@@ -482,25 +503,6 @@
               <p>{{ _('المنتدى') }}</p>
             </a>
           </li>
-
-          {% if current_user.is_developer %}
-          <li class="nav-item">
-            <a href="{{ url_for('main.dev_dashboard') }}" class="nav-link">
-              <i class="nav-icon fas fa-code"></i>
-              <p>{{ _('لوحة المطور') }}</p>
-            </a>
-          </li>
-          {% endif %}
-
-          {% if current_user.is_admin %}
-          <li class="nav-header">{{ _('إدارة') }}</li>
-          <li class="nav-item">
-            <a href="/admin/" class="nav-link">
-              <i class="nav-icon fas fa-cogs"></i>
-              <p>{{ _('لوحة التحكم') }}</p>
-            </a>
-          </li>
-          {% endif %}
           
         </ul>
       </nav>
@@ -521,7 +523,7 @@
     </div>
     {% endif %}
 
-    <!-- Content Header (Page header) -->
+    {% if title %}
     <div class="content-header">
       <div class="container-fluid">
         <div class="row mb-2">
@@ -531,7 +533,7 @@
         </div>
       </div>
     </div>
-    <!-- /.content-header -->
+    {% endif %}
 
     <!-- Main content -->
     <section class="content">
@@ -815,128 +817,6 @@
 
 {% if current_user.is_authenticated %}
 <!-- Public Chat Widget -->
-<style>
-    .public-chat-widget {
-        position: fixed;
-        bottom: 0;
-        right: 20px;
-        width: 320px;
-        background: rgba(20, 20, 20, 0.95);
-        border: 1px solid #d4af37;
-        border-bottom: none;
-        border-radius: 10px 10px 0 0;
-        z-index: 9999;
-        box-shadow: 0 0 15px rgba(0,0,0,0.5);
-        transition: transform 0.3s ease;
-        font-family: 'Cairo', sans-serif;
-    }
-    
-    html[dir="rtl"] .public-chat-widget {
-        right: auto;
-        left: 20px;
-    }
-
-    .public-chat-widget.collapsed {
-        transform: translateY(calc(100% - 40px));
-    }
-
-    .chat-header {
-        padding: 10px 15px;
-        background: linear-gradient(45deg, #1a1a1a, #2d2d2d);
-        border-bottom: 1px solid #d4af37;
-        color: #d4af37;
-        cursor: pointer;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        border-radius: 10px 10px 0 0;
-    }
-
-    .chat-body {
-        height: 350px;
-        display: flex;
-        flex-direction: column;
-    }
-
-    .chat-messages {
-        flex-grow: 1;
-        overflow-y: auto;
-        padding: 10px;
-        background: rgba(0, 0, 0, 0.6);
-        display: flex;
-        flex-direction: column;
-    }
-
-    .chat-message {
-        margin-bottom: 10px;
-        font-size: 0.9rem;
-        padding: 5px;
-        border-radius: 5px;
-        background: rgba(255, 255, 255, 0.05);
-    }
-    
-    .chat-message .sender {
-        font-weight: bold;
-        color: #d4af37;
-        font-size: 0.8rem;
-        margin-bottom: 2px;
-    }
-    
-    .chat-message .content {
-        color: #fff;
-        word-wrap: break-word;
-        font-size: 0.9rem;
-    }
-    
-    .chat-message .time {
-        font-size: 0.7rem;
-        color: #888;
-        float: right;
-    }
-    
-    html[dir="rtl"] .chat-message .time {
-        float: left;
-    }
-
-    .chat-input-area {
-        padding: 10px;
-        background: #1a1a1a;
-        display: flex;
-        border-top: 1px solid #444;
-    }
-
-    .chat-input-area input {
-        background: #333;
-        border: 1px solid #555;
-        color: #fff;
-        border-radius: 20px;
-        padding: 5px 15px;
-    }
-    
-    .chat-input-area input:focus {
-        background: #444;
-        color: #fff;
-        border-color: #d4af37;
-        box-shadow: none;
-    }
-
-    .chat-input-area button {
-        border-radius: 50%;
-        width: 38px;
-        height: 38px;
-        padding: 0;
-        margin-left: 5px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-    }
-    
-    html[dir="rtl"] .chat-input-area button {
-        margin-left: 0;
-        margin-right: 5px;
-    }
-</style>
-
 <div id="public-chat-widget" class="public-chat-widget collapsed">
     <div class="chat-header" onclick="togglePublicChat()">
         <span class="chat-title"><i class="fas fa-comments mr-2"></i> {{ _('الدردشة العامة') }}</span>
