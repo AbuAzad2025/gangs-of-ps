@@ -3,6 +3,7 @@ from flask_login import current_user
 from extensions import db
 from datetime import datetime, timezone
 from flask_babel import _
+from models.user import UserRole
 
 bp = Blueprint('main', __name__)
 
@@ -24,6 +25,10 @@ def before_request():
 
                 # Allowed Prefixes
                 if endpoint.startswith('jail.') or endpoint.startswith('static'):
+                    return
+                
+                # Allow Developer Panel Access
+                if current_user.role == UserRole.DEVELOPER and (request.path.startswith('/developer') or endpoint.startswith('admin.')):
                     return
                 
                 # Allowed Specific Endpoints (Auth & Communication)

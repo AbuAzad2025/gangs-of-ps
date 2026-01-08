@@ -1,111 +1,113 @@
 {% extends "base.html" %}
 
 {% block content %}
-<!-- Ticker Tape -->
-<div class="market-ticker mb-4">
-    <marquee scrollamount="5">
-        {% for asset in assets %}
-            <span class="ticker-item">
-                {{ asset.symbol }} 
-                <span class="{{ 'ticker-up' if asset.price_change_24h >= 0 else 'ticker-down' }}">
-                    {{ "{:,.2f}".format(asset.current_price) }} 
-                    ({{ "{:+.2f}".format(asset.price_change_24h) }}%)
+<!-- Modern Ticker Tape -->
+<div class="market-ticker-container mb-4">
+    <div class="market-ticker-track">
+        {% for i in range(2) %} <!-- Duplicate for seamless loop -->
+            {% for asset in assets %}
+                <span class="ticker-item">
+                    <span class="font-weight-bold text-white">{{ asset.symbol }}</span>
+                    <span class="{{ 'ticker-up' if asset.price_change_24h >= 0 else 'ticker-down' }}">
+                        {{ "{:,.2f}".format(asset.current_price) }} 
+                        <span class="small">({{ "{:+.2f}".format(asset.price_change_24h) }}%)</span>
+                    </span>
                 </span>
-            </span>
+            {% endfor %}
         {% endfor %}
-    </marquee>
+    </div>
 </div>
 
 <div class="row">
-    <!-- Portfolio Summary -->
-    <div class="col-md-4">
-        <div class="card luxury-card mb-4">
-            <div class="card-header luxury-header">
-                <h3 class="card-title luxury-title"><i class="fas fa-wallet mr-2"></i> {{ _('محفظة الغسيل') }}</h3>
+    <!-- Portfolio Summary & Sidebar -->
+    <div class="col-lg-4 col-md-12 mb-4">
+        <!-- Main Portfolio Card -->
+        <div class="card card-luxury mb-4 border-gold shadow-lg">
+            <div class="card-header bg-dark border-bottom border-secondary">
+                <h4 class="mb-0 text-neon-gold"><i class="fas fa-wallet mr-2"></i> {{ _('محفظة الغسيل') }}</h4>
             </div>
-            <div class="card-body text-center">
-                <h2 class="text-gold">{{ "{:,.0f}".format(portfolio_value) }}$</h2>
-                <p class="text-muted mb-1">{{ _('القيمة السوقية الحالية') }}</p>
-                <hr class="border-secondary">
-                <div class="row">
-                    <div class="col-6">
-                        <h5 class="{{ 'text-success' if total_profit >= 0 else 'text-danger' }}">
-                            {{ "{:+,.0f}".format(total_profit) }}$
-                        </h5>
-                        <small class="text-muted">{{ _('الربح/الخسارة') }}</small>
+            <div class="card-body text-center bg-gradient-dark">
+                <small class="text-muted text-uppercase letter-spacing-2">{{ _('إجمالي الثروة المقدرة') }}</small>
+                <h1 class="display-4 font-weight-bold text-white mb-0">{{ "{:,.0f}".format(portfolio_value + current_user.money) }}$</h1>
+                
+                <div class="row mt-4">
+                    <div class="col-6 border-left border-secondary">
+                        <small class="text-muted d-block">{{ _('قيمة الأصول') }}</small>
+                        <h4 class="text-gold mb-0">{{ "{:,.0f}".format(portfolio_value) }}$</h4>
+                        <span class="small {{ 'text-success' if total_profit >= 0 else 'text-danger' }}">
+                            {{ "{:+,.0f}".format(total_profit) }}$ (PnL)
+                        </span>
                     </div>
                     <div class="col-6">
-                        <h5 class="text-info">{{ "{:,.0f}".format(current_user.money) }}$</h5>
-                        <small class="text-muted">{{ _('الكاش المتوفر') }}</small>
+                        <small class="text-muted d-block">{{ _('الكاش المتوفر') }}</small>
+                        <h4 class="text-white mb-0">{{ "{:,.0f}".format(current_user.money) }}$</h4>
+                        <small class="text-muted">{{ _('جاهز للتداول') }}</small>
                     </div>
                 </div>
                 
-                <div class="mt-3">
-                    <a href="{{ url_for('market.guide') }}" class="btn btn-outline-gold btn-block btn-sm">
-                        <i class="fas fa-graduation-cap mr-2"></i> {{ _('تعلم التداول (أكاديمية)') }}
-                    </a>
-                </div>
+                <hr class="border-secondary my-4">
+                
+                <a href="{{ url_for('market.guide') }}" class="btn btn-outline-light btn-sm btn-block">
+                    <i class="fas fa-graduation-cap mr-2"></i> {{ _('أكاديمية السوق (دليل)') }}
+                </a>
             </div>
         </div>
         
-        <!-- Insider Intel Card -->
+        <!-- Insider Intel -->
         <div class="card bg-dark border-danger mb-4 shadow">
-            <div class="card-body text-center position-relative overflow-hidden">
-                <div class="position-absolute w-100 h-100 bg-striped-danger intel-bg-layer"></div>
-                <div class="intel-content-layer">
-                    <h4 class="text-danger font-weight-bold"><i class="fas fa-user-secret mr-2"></i> {{ _('معلومات مسربة') }}</h4>
-                    <p class="text-muted small mb-3">{{ _('لدينا جواسيس في كل مكان. ادفع واحصل على تسريب مضمون (أو لا).') }}</p>
+            <div class="card-body text-center position-relative overflow-hidden p-4">
+                <div class="position-absolute w-100 h-100 bg-striped-danger intel-bg-layer" style="opacity: 0.1; top:0; left:0;"></div>
+                <div class="position-relative z-1">
+                    <h5 class="text-danger font-weight-bold mb-2"><i class="fas fa-user-secret mr-2"></i> {{ _('تسريبات السوق السوداء') }}</h5>
+                    <p class="text-muted small mb-3">{{ _('هل تريد معرفة الحركة القادمة قبل الجميع؟') }}</p>
                     
                     <form action="{{ url_for('market.buy_intel') }}" method="POST">
                         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-                        <button type="submit" class="btn btn-danger btn-block font-weight-bold">
-                            <i class="fas fa-unlock mr-2"></i> {{ _('شراء معلومة (500$)') }}
+                        <button type="submit" class="btn btn-luxury-red btn-block btn-sm font-weight-bold">
+                            <i class="fas fa-key mr-2"></i> {{ _('شراء معلومة (500$)') }}
                         </button>
                     </form>
                 </div>
             </div>
         </div>
 
-        <!-- Quick Investments List -->
-        <div class="card luxury-card">
-            <div class="card-header luxury-header">
-                <h3 class="card-title luxury-title"><i class="fas fa-briefcase mr-2"></i> {{ _('أصولي') }}</h3>
+        <!-- Quick Assets List (My Assets) -->
+        <div class="card card-luxury">
+            <div class="card-header border-bottom border-secondary">
+                <h5 class="mb-0 text-white"><i class="fas fa-briefcase mr-2"></i> {{ _('أصولي') }}</h5>
             </div>
-            <div class="card-body p-0">
-                <table class="table table-dark table-striped mb-0">
+            <div class="p-0 table-responsive">
+                <table class="table table-dark table-striped mb-0 small">
                     <thead>
-                        <tr>
-                            <th>{{ _('الأصل') }}</th>
+                        <tr class="text-muted">
+                            <th class="pl-3">{{ _('الأصل') }}</th>
                             <th>{{ _('القيمة') }}</th>
-                            <th>{{ _('تسييل') }}</th>
+                            <th class="text-right pr-3">{{ _('إجراء') }}</th>
                         </tr>
                     </thead>
                     <tbody>
                         {% for inv in investments %}
                         <tr>
-                            <td>
+                            <td class="pl-3 align-middle">
                                 <div class="d-flex align-items-center">
-                                    <img src="{{ url_for('static', filename=inv.asset.image_path) }}" alt="{{ inv.asset.symbol }}" class="mr-2 rounded-circle" style="width: 24px; height: 24px;">
-                                    <div>
-                                        <strong>{{ inv.asset.symbol }}</strong><br>
-                                        <small class="text-muted">{{ "{:.4f}".format(inv.quantity) }}</small>
-                                    </div>
+                                    <img src="{{ url_for('static', filename='images/' + inv.asset.image_path) }}" class="rounded-circle mr-2" style="width: 20px; height: 20px;">
+                                    <strong>{{ inv.asset.symbol }}</strong>
                                 </div>
                             </td>
-                            <td>
-                                <span class="text-gold">{{ "{:,.0f}".format(inv.current_value()) }}$</span><br>
-                                <small class="{{ 'text-success' if inv.profit_loss() >= 0 else 'text-danger' }}">
+                            <td class="align-middle">
+                                <span class="d-block">{{ "{:,.0f}".format(inv.current_value()) }}$</span>
+                                <span class="{{ 'text-success' if inv.profit_loss() >= 0 else 'text-danger' }} fs-10">
                                     {{ "{:+,.0f}".format(inv.profit_loss()) }}$
-                                </small>
+                                </span>
                             </td>
-                            <td>
+                            <td class="text-right pr-3 align-middle">
                                 <button type="button" class="btn btn-xs btn-outline-danger" data-toggle="modal" data-target="#sellModal{{ inv.asset.id }}">
-                                    <i class="fas fa-dollar-sign"></i>
+                                    {{ _('بيع') }}
                                 </button>
                                 
                                 <!-- Sell Modal -->
                                 <div class="modal fade" id="sellModal{{ inv.asset.id }}" tabindex="-1">
-                                    <div class="modal-dialog modal-sm">
+                                    <div class="modal-dialog modal-sm modal-dialog-centered">
                                         <div class="modal-content bg-dark border-gold">
                                             <div class="modal-header border-secondary">
                                                 <h5 class="modal-title text-gold">{{ _('تسييل') }} {{ inv.asset.symbol }}</h5>
@@ -125,7 +127,7 @@
                                                             <input type="radio" name="percent" value="100" checked> 100%
                                                         </label>
                                                     </div>
-                                                    <button type="submit" class="btn btn-danger btn-block">{{ _('بيع الآن') }}</button>
+                                                    <button type="submit" class="btn btn-luxury-red btn-block">{{ _('تأكيد البيع') }}</button>
                                                 </form>
                                             </div>
                                         </div>
@@ -135,7 +137,7 @@
                         </tr>
                         {% else %}
                         <tr>
-                            <td colspan="3" class="text-center text-muted py-3">{{ _('لا يوجد استثمارات') }}</td>
+                            <td colspan="3" class="text-center text-muted py-4">{{ _('لا يوجد استثمارات') }}</td>
                         </tr>
                         {% endfor %}
                     </tbody>
@@ -145,26 +147,29 @@
     </div>
     
     <!-- Market Grid -->
-    <div class="col-md-8">
-        <!-- Tabs -->
-        <ul class="nav nav-pills mb-3" id="marketTabs" role="tablist">
-            <li class="nav-item">
-                <a class="nav-link active bg-dark text-white border-secondary mr-2" id="all-tab" data-toggle="pill" href="#all" role="tab">{{ _('الكل') }}</a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link bg-dark text-white border-secondary mr-2" id="crypto-tab" data-toggle="pill" href="#crypto" role="tab">{{ _('Crypto') }}</a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link bg-dark text-white border-secondary" id="stocks-tab" data-toggle="pill" href="#stocks" role="tab">{{ _('Stocks') }}</a>
-            </li>
-        </ul>
+    <div class="col-lg-8 col-md-12">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h3 class="text-white mb-0">{{ _('السوق') }}</h3>
+            <!-- Tabs -->
+            <ul class="nav nav-pills" id="marketTabs" role="tablist">
+                <li class="nav-item">
+                    <a class="nav-link active bg-dark text-white border-secondary mr-2 btn-sm" id="all-tab" data-toggle="pill" href="#all" role="tab">{{ _('الكل') }}</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link bg-dark text-white border-secondary mr-2 btn-sm" id="crypto-tab" data-toggle="pill" href="#crypto" role="tab">{{ _('Crypto') }}</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link bg-dark text-white border-secondary btn-sm" id="stocks-tab" data-toggle="pill" href="#stocks" role="tab">{{ _('Stocks') }}</a>
+                </li>
+            </ul>
+        </div>
 
         <div class="tab-content" id="marketTabsContent">
             <!-- All Tab -->
             <div class="tab-pane fade show active" id="all" role="tabpanel">
                 <div class="row">
                     {% for asset in assets %}
-                    <div class="col-md-6 col-lg-4 mb-4">
+                    <div class="col-md-6 col-lg-6 col-xl-4 mb-4">
                         {% include 'market/_asset_card.html' %}
                     </div>
                     {% endfor %}
@@ -175,7 +180,7 @@
             <div class="tab-pane fade" id="crypto" role="tabpanel">
                 <div class="row">
                     {% for asset in assets if asset.asset_type == 'crypto' %}
-                    <div class="col-md-6 col-lg-4 mb-4">
+                    <div class="col-md-6 col-lg-6 col-xl-4 mb-4">
                         {% include 'market/_asset_card.html' %}
                     </div>
                     {% else %}
@@ -188,7 +193,7 @@
             <div class="tab-pane fade" id="stocks" role="tabpanel">
                 <div class="row">
                     {% for asset in assets if asset.asset_type == 'stock' %}
-                    <div class="col-md-6 col-lg-4 mb-4">
+                    <div class="col-md-6 col-lg-6 col-xl-4 mb-4">
                         {% include 'market/_asset_card.html' %}
                     </div>
                     {% else %}

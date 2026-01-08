@@ -1,12 +1,12 @@
 [
-  {"name": "زيت زيتون بلدي", "description": "زيت من معاصر فلسطين... ثقيل وذهبي.", "type": "smuggling", "cost": 1200, "image": "locations/jerusalem.svg", "is_black_market": false},
-  {"name": "زيت زيتون ممتاز", "description": "دفعة ممتازة من أول عصرة... نادر ومطلوب.", "type": "smuggling", "cost": 2600, "image": "locations/jerusalem.svg", "is_black_market": false},
-  {"name": "زعتر بلدي", "description": "زعتر جبلي أصلي، مطلوب بكل مكان.", "type": "smuggling", "cost": 700, "image": "locations/nablus.svg", "is_black_market": false},
-  {"name": "زعتر جبلي فاخر", "description": "زعتر فاخر من جبال فلسطين... نادر.", "type": "smuggling", "cost": 1700, "image": "locations/nablus.svg", "is_black_market": false},
-  {"name": "صابون نابلسي", "description": "صابون زيت زيتون من نابلس، سمعة عالمية.", "type": "smuggling", "cost": 1500, "image": "locations/nablus.svg", "is_black_market": false},
-  {"name": "صابون نابلسي فاخر", "description": "إصدار فاخر... نادر وسعره أعلى.", "type": "smuggling", "cost": 3200, "image": "locations/nablus.svg", "is_black_market": false},
-  {"name": "تمر أريحا", "description": "تمر من أريحا... طاقة وسعر عالي.", "type": "smuggling", "cost": 1800, "image": "locations/jericho.svg", "is_black_market": false},
-  {"name": "كوفية فلسطينية", "description": "كوفية أصلية... رمز وهيبة.", "type": "smuggling", "cost": 2500, "image": "items/keffiyeh.svg", "is_black_market": false},
-  {"name": "كوفية مطرزة", "description": "كوفية مطرزة بإتقان... نادرة للزعماء.", "type": "smuggling", "cost": 5200, "image": "items/keffiyeh.svg", "is_black_market": false},
-  {"name": "فخار الخليل", "description": "فخار من الخليل... قطعة أصيلة للبيع والتهريب.", "type": "smuggling", "cost": 2200, "image": "locations/hebron.svg", "is_black_market": false}
+  {"name": "زيت زيتون بلدي", "description": "زيت من معاصر فلسطين... ثقيل وذهبي.", "type": "smuggling", "cost": 1200, "image": "locations/jerusalem.jpg", "is_black_market": false},
+  {"name": "زيت زيتون ممتاز", "description": "دفعة ممتازة من أول عصرة... نادر ومطلوب.", "type": "smuggling", "cost": 2600, "image": "locations/jerusalem.jpg", "is_black_market": false},
+  {"name": "زعتر بلدي", "description": "زعتر جبلي أصلي، مطلوب بكل مكان.", "type": "smuggling", "cost": 700, "image": "locations/nablus.jpg", "is_black_market": false},
+  {"name": "زعتر جبلي فاخر", "description": "زعتر فاخر من جبال فلسطين... نادر.", "type": "smuggling", "cost": 1700, "image": "locations/nablus.jpg", "is_black_market": false},
+  {"name": "صابون نابلسي", "description": "صابون زيت زيتون من نابلس، سمعة عالمية.", "type": "smuggling", "cost": 1500, "image": "locations/nablus.jpg", "is_black_market": false},
+  {"name": "صابون نابلسي فاخر", "description": "إصدار فاخر... نادر وسعره أعلى.", "type": "smuggling", "cost": 3200, "image": "locations/nablus.jpg", "is_black_market": false},
+  {"name": "تمر أريحا", "description": "تمر من أريحا... طاقة وسعر عالي.", "type": "smuggling", "cost": 1800, "image": "locations/jericho.jpg", "is_black_market": false},
+  {"name": "كوفية فلسطينية", "description": "كوفية أصلية... رمز وهيبة.", "type": "smuggling", "cost": 2500, "image": "items/keffiyeh.jpg", "is_black_market": false},
+  {"name": "كوفية مطرزة", "description": "كوفية مطرزة بإتقان... نادرة للزعماء.", "type": "smuggling", "cost": 5200, "image": "items/keffiyeh.jpg", "is_black_market": false},
+  {"name": "فخار الخليل", "description": "فخار من الخليل... قطعة أصيلة للبيع والتهريب.", "type": "smuggling", "cost": 2200, "image": "locations/hebron.jpg", "is_black_market": false}
 ]

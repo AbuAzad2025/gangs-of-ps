@@ -18,8 +18,8 @@ class MarketAsset(db.Model):
         # Return relative path for use with url_for('static', filename=...)
         # You can map symbols to specific images here
         if self.asset_type == 'crypto':
-            return 'images/items/default.svg' # Placeholder for crypto
-        return 'images/items/default.svg' # Placeholder for stocks
+            return 'images/items/default.jpg' # Placeholder for crypto
+        return 'images/items/default.jpg' # Placeholder for stocks
 
     def __repr__(self):
         return f'<MarketAsset {self.symbol}>'

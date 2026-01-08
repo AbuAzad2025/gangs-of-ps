@@ -17,7 +17,7 @@
     {% if vehicles %}
     <div class="row">
         {% for car in vehicles %}
-        <div class="col-lg-4 col-md-6 mb-4 fade-in anim-delay-{{ loop.index if loop.index <= 20 else 20 }}">
+        <div class="col-xl-3 col-lg-4 col-md-6 mb-4 fade-in anim-delay-{{ loop.index if loop.index <= 20 else 20 }}">
             <div class="car-card">
                 <div class="status-badge {{ 'badge-active' if car.is_active else 'badge-inactive' }}">
                     {% if car.is_active %}
@@ -29,7 +29,7 @@
 
                 <div class="car-image-container">
                     {% if car.vehicle.image %}
-                        <img src="{{ url_for('static', filename=car.vehicle.image) }}" class="car-image" alt="{{ car.vehicle.name }}">
+                        <img src="{{ url_for('static', filename='images/' + car.vehicle.image) }}" class="car-image" alt="{{ car.vehicle.name }}" onerror="this.onerror=null; this.src='{{ url_for('static', filename='images/vehicles/default.jpg') }}';">
                     {% else %}
                         <i class="fas fa-car fa-4x text-muted"></i>
                     {% endif %}

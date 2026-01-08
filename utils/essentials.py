@@ -126,9 +126,11 @@ def initialize_items():
             count += 1
         else:
             updated = False
-            if (not item.image) and data.get('image'):
+            # Always update image if it's different in seed data
+            if data.get('image') and item.image != data.get('image'):
                 item.image = data.get('image')
                 updated = True
+            
             if item.is_black_market is None and 'is_black_market' in data:
                 item.is_black_market = data.get('is_black_market', True)
                 updated = True
@@ -221,7 +223,7 @@ def initialize_basic_crimes():
                 crime.reward_type = seed_reward_type
                 updated = True
 
-            if (not crime.image or crime.image == 'default_crime.jpg') and data.get('image'):
+            if data.get('image') and crime.image != data.get('image'):
                 crime.image = data.get('image')
                 updated = True
             if (not crime.description) and data.get('description'):
@@ -265,7 +267,7 @@ def initialize_organized_crimes():
             count += 1
         else:
             updated = False
-            if (not crime.image or crime.image == 'default_heist.jpg') and data.get('image'):
+            if data.get('image') and crime.image != data.get('image'):
                 crime.image = data.get('image')
                 updated = True
             if data.get('roles_config'):
@@ -320,9 +322,9 @@ def initialize_vehicles():
             db.session.add(vehicle)
             count += 1
         else:
-            # Update existing vehicle image if missing
+            # Update existing vehicle image if missing or different
             v = Vehicle.query.filter_by(name=data['name']).first()
-            if v and not v.image and data.get('image'):
+            if v and data.get('image') and v.image != data.get('image'):
                 v.image = data.get('image')
                 db.session.add(v)
     if count > 0:

@@ -11,162 +11,13 @@
     <!-- Custom Style -->
     <link rel="shortcut icon" href="{{ url_for('static', filename='img/azad_logo_white_on_dark.png') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/palestine_luxury.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/rtl.css') }}">
     
     <style>
-        /* Admin Dark Mode Overrides - Luxury & Clarity */
-        body {
-            background-color: #0f0f0f !important; /* Deeper black */
-            color: #f0f0f0 !important;
-            font-family: "Cairo", "Segoe UI", sans-serif !important;
-            direction: rtl;
-            text-align: right;
-        }
-
-        /* Navbar - Premium Look */
-        .navbar {
-            background: linear-gradient(180deg, #1a1a1a 0%, #0d0d0d 100%) !important;
-            border-bottom: 1px solid #d4af37 !important;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.7);
-            padding: 0.8rem 1.5rem;
-            z-index: 1030;
-        }
-        .navbar-brand {
-            font-family: "Reem Kufi", sans-serif;
-            font-size: 1.5rem;
-            text-shadow: 0 0 10px rgba(212, 175, 55, 0.5);
-        }
-
-        /* Card/Box - Glassmorphism-ish */
-        .card, .box, .well {
-            background: #1e1e1e !important;
-            background: linear-gradient(145deg, #1e1e1e, #161616) !important;
-            border: 1px solid #333 !important;
-            border-top: 3px solid #d4af37 !important; /* Gold top border accent */
-            color: #fff !important;
-            box-shadow: 0 8px 20px rgba(0,0,0,0.6) !important;
-            border-radius: 8px !important;
-            margin-bottom: 2rem !important;
-        }
-        .card-header {
-            background-color: transparent !important;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.05) !important;
-            padding: 1.2rem 1.5rem !important;
-        }
-        .card-title {
-            font-size: 1.2rem;
-            font-weight: 600;
-            color: #d4af37;
-        }
-
-        /* Tables - Clean & Readable */
-        .table {
-            color: #e0e0e0 !important;
-            background-color: transparent !important;
-            margin-bottom: 0 !important;
-        }
-        .table thead th {
-            border-bottom: 2px solid #d4af37 !important;
-            color: #d4af37 !important;
-            background-color: rgba(212, 175, 55, 0.05);
-            font-weight: 700;
-            padding: 1rem !important;
-        }
-        .table td {
-            padding: 1rem !important;
-            vertical-align: middle !important;
-            border-top: 1px solid rgba(255, 255, 255, 0.05) !important;
-        }
-        .table-striped tbody tr:nth-of-type(odd) {
-            background-color: rgba(255, 255, 255, 0.02) !important;
-        }
-        .table-hover tbody tr:hover {
-            background-color: rgba(212, 175, 55, 0.15) !important;
-            transition: background-color 0.2s ease;
-        }
-
-        /* Small Boxes (Stats) - 3D Effect */
-        .small-box {
-            border-radius: 10px;
-            box-shadow: 0 10px 20px rgba(0,0,0,0.4);
-            margin-bottom: 25px;
-            position: relative;
-            padding: 25px;
-            overflow: hidden;
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-            background: linear-gradient(135deg, #2c2c2c 0%, #1a1a1a 100%) !important; /* Dark base */
-            border: 1px solid rgba(255, 255, 255, 0.1);
-        }
-        .small-box:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 15px 30px rgba(212, 175, 55, 0.2);
-            border-color: #d4af37;
-        }
-        .small-box h3 {
-            font-size: 2.5rem;
-            font-weight: 700;
-            margin: 0 0 10px 0;
-            white-space: nowrap;
-            padding: 0;
-            color: #fff;
-            text-shadow: 0 2px 4px rgba(0,0,0,0.5);
-        }
-        .small-box p {
-            font-size: 1.1rem;
-            color: #b0b0b0;
-        }
-        .small-box .icon {
-            color: rgba(212, 175, 55, 0.1);
-            z-index: 0;
-            position: absolute;
-            right: 15px;
-            top: 15px;
-            font-size: 70px;
-            transition: all 0.3s linear;
-        }
-        .small-box:hover .icon {
-            font-size: 80px;
-            color: rgba(212, 175, 55, 0.2);
-        }
-        /* Specific Colors for Stats Text */
-        .small-box.bg-info h3 { color: #17a2b8 !important; }
-        .small-box.bg-success h3 { color: #28a745 !important; }
-        .small-box.bg-warning h3 { color: #ffc107 !important; }
-        .small-box.bg-danger h3 { color: #dc3545 !important; }
-
-        .small-box-footer {
-            background: rgba(0,0,0,0.2);
-            color: #d4af37;
-            display: block;
-            padding: 8px 0;
-            position: relative;
-            text-align: center;
-            text-decoration: none;
-            z-index: 10;
-            margin-top: 15px;
-            border-radius: 5px;
-            transition: background 0.2s;
-        }
-        .small-box-footer:hover {
-            color: #fff;
-            background: #d4af37;
-        }
-
-        /* Buttons - Gold & Premium */
-        .btn-primary, .btn-success, .btn-info, .btn-warning, .btn-danger {
-            border: none;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
-            transition: all 0.3s;
-        }
-        .btn-primary {
-            background: linear-gradient(45deg, #d4af37, #c5a028) !important;
-            color: #000 !important;
-            font-weight: bold;
-        }
-        .btn-primary:hover {
-            background: linear-gradient(45deg, #ffd700, #d4af37) !important;
-            box-shadow: 0 0 15px rgba(212, 175, 55, 0.5);
-            transform: scale(1.02);
-        }
+        /* 
+           Admin Luxury Styles are now handled by palestine_luxury.css 
+           Retaining only critical RTL and layout fixes here.
+        */
 
         /* RTL Layout Fixes - AdminLTE Specific */
         
@@ -767,6 +618,13 @@
 
 {% block main_menu %}
 <ul class="nav navbar-nav mr-auto">
+  <!-- Return to Site Link -->
+  <li class="nav-item ml-3">
+    <a class="btn btn-luxury-gold btn-sm mt-1" href="{{ url_for('main.hara') }}" style="color: #000 !important; font-weight: bold;">
+        <i class="fas fa-home mr-1"></i> {{ _('العودة للحارة') }}
+    </a>
+  </li>
+  
   {% for item in admin_view.admin.menu() %}
     {% if item.is_category() %}
       {% set children = item.get_children() %}
@@ -802,6 +660,18 @@
 
 {% block tail %}
     {{ super() }}
+    <script>
+        var overlay = document.createElement('div');
+        overlay.className = 'bg-keffiyeh-overlay';
+        document.body.prepend(overlay);
+        document.body.classList.add('theme-palestine', 'theme-admin');
+        {% if get_locale() == 'ar' %}
+        document.documentElement.setAttribute('dir', 'rtl');
+        document.documentElement.setAttribute('lang', 'ar');
+        {% else %}
+        document.documentElement.setAttribute('dir', 'ltr');
+        {% endif %}
+    </script>
     <script>
         (function() {
             function cleanDataDumps() {

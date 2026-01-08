@@ -1046,7 +1046,7 @@ def do_crime(crime_id):
             parts.append({'msgid': 'بس حالتها %(cond)s%% وبدها تصليح بالمرآب.', 'params': {'cond': story_vehicle_condition}})
             stats['vehicle'] = story_vehicle_name
             stats['vehicle_condition'] = story_vehicle_condition
-            alt_url = url_for('garage.index')
+            alt_url = url_for('main.garage')
             alt_label = 'المرآب'
 
         if story_item_name:

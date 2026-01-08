@@ -8,11 +8,11 @@ from models.social import Message
 from datetime import datetime, timezone, timedelta
 from models.system import SystemConfig
 from sqlalchemy import select
-import yfinance as yf
 import random
 import pandas as pd
 from .utils import update_daily_task_progress
 from services.resource_service import ResourceService
+from services.market_simulation import MarketSimulationService
 
 bp = Blueprint('market', __name__, url_prefix='/market')
 
@@ -139,33 +139,20 @@ def check_limit_orders(asset):
                 db.session.rollback()
 
 def update_market_prices():
-    """Updates prices for all tracked assets from Yahoo Finance"""
-    assets = MarketAsset.query.all()
-    
-    # If no assets exist, initialize them
-    if not assets:
-        initial_assets = [
-            {'symbol': 'BTC-USD', 'name': 'Bitcoin (Crypto)', 'type': 'crypto'},
-            {'symbol': 'ETH-USD', 'name': 'Ethereum (Crypto)', 'type': 'crypto'},
-            {'symbol': 'XRP-USD', 'name': 'XRP (Crypto)', 'type': 'crypto'},
-            {'symbol': 'NVDA', 'name': 'NVIDIA Corp', 'type': 'stock'},
-            {'symbol': 'TSLA', 'name': 'Tesla Inc', 'type': 'stock'},
-            {'symbol': 'AAPL', 'name': 'Apple Inc', 'type': 'stock'},
-            {'symbol': 'MSFT', 'name': 'Microsoft Corp', 'type': 'stock'},
-            {'symbol': 'GC=F', 'name': 'Gold Futures', 'type': 'commodity'},
-            {'symbol': 'SI=F', 'name': 'Silver Futures', 'type': 'commodity'},
-        ]
+    """Updates market prices using Simulation Service"""
+    # 1. Initialize Assets if needed
+    # Check if simulation assets exist (e.g., G-COIN)
+    if not MarketAsset.query.filter_by(symbol='G-COIN').first():
+        current_app.logger.info("Initializing simulated market assets...")
+        MarketSimulationService.initialize_assets()
+        # Also clean up any old real assets if they exist but we want to switch?
+        # For now, just ensure we have our simulated ones.
         
-        for asset_data in initial_assets:
-            new_asset = MarketAsset(
-                symbol=asset_data['symbol'],
-                name=asset_data['name'],
-                asset_type=asset_data['type']
-            )
-            db.session.add(new_asset)
-        db.session.commit()
-        assets = MarketAsset.query.all()
-    
+    # 2. Check update interval
+    assets = MarketAsset.query.all()
+    if not assets:
+        return
+
     # Check if update is needed based on configurable interval
     needs_update = False
     now = datetime.now(timezone.utc)
@@ -173,82 +160,31 @@ def update_market_prices():
         interval = int(SystemConfig.get_value('market_update_interval_seconds', '300') or '300')
     except Exception:
         interval = 300
-    for asset in assets:
-        last_updated = asset.last_updated
-        if last_updated.tzinfo is None:
-            last_updated = last_updated.replace(tzinfo=timezone.utc)
-        if (now - last_updated).total_seconds() > interval or asset.current_price <= 0:
-            needs_update = True
-            break
-            
+        
+    # Check the first asset or any asset to see if time passed
+    # Optimization: Just check the first one
+    first_asset = assets[0]
+    last_updated = first_asset.last_updated
+    if last_updated.tzinfo is None:
+        last_updated = last_updated.replace(tzinfo=timezone.utc)
+        
+    if (now - last_updated).total_seconds() > interval:
+        needs_update = True
+        
     if needs_update:
-        symbols = [a.symbol for a in assets]
         try:
-            # Batch fetch
-            current_app.logger.info(f"Fetching data for: {symbols}")
-            tickers = yf.Tickers(' '.join(symbols))
+            current_app.logger.info("Updating simulated market prices...")
+            MarketSimulationService.update_prices()
             
-            for asset in assets:
-                try:
-                    # Accessing tickers.tickers dict safely
-                    ticker = tickers.tickers.get(asset.symbol)
-                    if not ticker:
-                        # Fallback to individual fetch if batch key missing
-                        current_app.logger.warning(f"Key {asset.symbol} not in batch results, trying individual...")
-                        ticker = yf.Ticker(asset.symbol)
-                    
-                    # Try to get fast info, fallback to history
-                    price = None
-                    prev_close = None
-                    
-                    try:
-                        info = ticker.fast_info
-                        price = info.last_price
-                        prev_close = info.previous_close
-                        
-                        # Update 24h stats
-                        asset.high_24h = info.day_high
-                        asset.low_24h = info.day_low
-                        asset.volume_24h = info.last_volume
-                        
-                        current_app.logger.info(f"Got price for {asset.symbol}: {price}")
-                    except Exception as e:
-                        current_app.logger.warning(f"fast_info failed for {asset.symbol}: {e}")
-                    
-                    if not price:
-                        # Fallback to history
-                        current_app.logger.info(f"Fallback to history for {asset.symbol}")
-                        hist = ticker.history(period="1d")
-                        if not hist.empty:
-                            price = hist['Close'].iloc[-1]
-                            # Try to get prev close from history if possible (approx)
-                            if len(hist) > 1:
-                                prev_close = hist['Close'].iloc[-2]
-                            else:
-                                prev_close = price # Can't calc change accurately
-                        else:
-                            current_app.logger.warning(f"History empty for {asset.symbol}")
-
-                    if price:
-                        asset.current_price = price
-                        if prev_close and prev_close > 0:
-                            change = ((price - prev_close) / prev_close) * 100
-                            asset.price_change_24h = change
-                        asset.last_updated = now
-                        db.session.commit()
-                        
-                        # Check Limit Orders
-                        check_limit_orders(asset)
-                    else:
-                        current_app.logger.error(f"Could not determine price for {asset.symbol}")
-
-                except Exception as e:
-                    current_app.logger.error(f"Error processing {asset.symbol}: {e}")
-                    
-            db.session.commit()
+            # Check Limit Orders for all assets
+            # Reload assets after update
+            updated_assets = MarketAsset.query.all()
+            for asset in updated_assets:
+                check_limit_orders(asset)
+                
             current_app.logger.info("Market update committed.")
         except Exception as e:
-            current_app.logger.critical(f"Global fetch error: {e}")
+            current_app.logger.critical(f"Global simulation error: {e}")
 
 @bp.route('/')
 @login_required
@@ -343,16 +279,9 @@ def buy(asset_id):
     if not asset:
         abort(404)
     
-    # Refresh price just in case
-    try:
-        ticker = yf.Ticker(asset.symbol)
-        price = ticker.fast_info.last_price
-        if price:
-            asset.current_price = price
-            asset.last_updated = datetime.now(timezone.utc)
-            db.session.commit()
-    except:
-        pass # Use cached price if fetch fails
+    # Refresh price
+    # Handled by simulation service
+    pass
         
     try:
         amount_to_invest = float(request.form.get('amount', 0))
@@ -458,15 +387,8 @@ def sell(asset_id):
         return redirect(url_for('market.index'))
         
     # Refresh price
-    try:
-        ticker = yf.Ticker(asset.symbol)
-        price = ticker.fast_info.last_price
-        if price:
-            asset.current_price = price
-            asset.last_updated = datetime.now(timezone.utc)
-            db.session.commit()
-    except:
-        pass
+    # Handled by simulation service
+    pass
         
     # Start Atomic Transaction
     # 1. Lock User (via ResourceService later? No, better explicit if we want to be safe, but ResourceService is fine if it's the first lock)
@@ -570,15 +492,8 @@ def open_futures(asset_id):
         return redirect(url_for('market.trade', symbol=asset.symbol))
         
     # Refresh price
-    try:
-        ticker = yf.Ticker(asset.symbol)
-        price = ticker.fast_info.last_price
-        if price:
-            asset.current_price = price
-            asset.last_updated = datetime.now(timezone.utc)
-            db.session.commit()
-    except:
-        pass
+    # Handled by simulation service
+    pass
         
     entry_price = asset.current_price
     
@@ -651,15 +566,8 @@ def close_futures(position_id):
     asset = position.asset
     
     # Refresh price
-    try:
-        ticker = yf.Ticker(asset.symbol)
-        price = ticker.fast_info.last_price
-        if price:
-            asset.current_price = price
-            asset.last_updated = datetime.now(timezone.utc)
-            db.session.commit()
-    except:
-        pass
+    # Handled by simulation service
+    pass
         
     # DEADLOCK PREVENTION & ATOMICITY
     # Lock User First
@@ -730,27 +638,27 @@ def purchase_intel_report():
     
     # Analyze (Do this BEFORE deducting money to avoid refund logic)
     try:
-        ticker = yf.Ticker(asset.symbol)
-        # Get enough history for SMA20
-        hist = ticker.history(period="1mo")
+        # Simulate Trend Analysis based on recent performance
+        trend = "neutral"
+        change = asset.price_change_24h or 0
         
-        trend = "neutral" # Default
+        # Add some noise to make intel not 100% predictable
+        noise = random.uniform(-1, 1)
+        adjusted_change = change + noise
         
-        if hist.empty or len(hist) < 20:
-            # Fallback simple analysis
-            if asset.price_change_24h > 2:
-                trend = "bullish"
-            elif asset.price_change_24h < -2:
-                trend = "bearish"
-        else:
-            # Calculate SMA 20
-            sma_20 = hist['Close'].rolling(window=20).mean().iloc[-1]
-            current_price = hist['Close'].iloc[-1]
+        if adjusted_change > 1.5:
+            trend = "bullish"
+        elif adjusted_change < -1.5:
+            trend = "bearish"
             
-            if current_price > sma_20:
-                trend = "bullish"
-            else:
-                trend = "bearish"
+        # Mock SMA values for the report
+        current_price = asset.current_price
+        if trend == "bullish":
+            sma_20 = current_price * 0.95 # Price above SMA
+        elif trend == "bearish":
+            sma_20 = current_price * 1.05 # Price below SMA
+        else:
+            sma_20 = current_price
                 
         # Generate Message
         flavor_texts = {
@@ -1046,9 +954,8 @@ def cancel_order(order_id):
 @login_required
 def history(symbol):
     try:
-        ticker = yf.Ticker(symbol)
-        # Fetch history - fetch more to allow for MA calculation
-        hist = ticker.history(period="6mo", interval="1d")
+        # Use Simulation Service
+        hist = MarketSimulationService.get_history_data(symbol, days=180)
         
         # Calculate Indicators
         # SMA 20

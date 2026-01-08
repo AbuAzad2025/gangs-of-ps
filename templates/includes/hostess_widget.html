@@ -15,7 +15,7 @@
                   </video>
                 {% endif %}
                 {% else %}
-                <img src="{{ url_for('static', filename='images/hostesses/' + (hostess.image or 'default_hostess.jpg')) }}" class="rounded-circle border border-warning hostess-avatar-sm" onerror="this.onerror=null; this.src='{{ url_for('static', filename='images/hostesses/default_hostess.jpg') }}';">
+                <img src="{{ url_for('static', filename='images/' + (hostess.image or 'hostesses/default_hostess.jpg')) }}" class="rounded-circle border border-warning hostess-avatar-sm" onerror="this.onerror=null; this.src='{{ url_for('static', filename='images/hostesses/default_hostess.jpg') }}';">
                 {% endif %}
                 <span class="position-absolute bottom-0 right-0 bg-success border border-dark rounded-circle hostess-status-dot"></span>
             </div>
@@ -42,7 +42,7 @@
         <!-- Initial Greeting -->
         <div class="message received mb-3 fade-in">
             <div class="d-flex align-items-end">
-                <img src="{{ url_for('static', filename='images/hostesses/' + (hostess.image or 'default_hostess.jpg')) }}" class="rounded-circle mr-2 shadow-sm w-30px h-30px object-fit-cover" onerror="this.onerror=null; this.src='{{ url_for('static', filename='images/hostesses/default_hostess.jpg') }}';">
+                <img src="{{ url_for('static', filename='images/' + (hostess.image or 'hostesses/default_hostess.jpg')) }}" class="rounded-circle mr-2 shadow-sm w-30px h-30px object-fit-cover" onerror="this.onerror=null; this.src='{{ url_for('static', filename='images/hostesses/default_hostess.jpg') }}';">
                 <div class="bg-dark border border-secondary p-3 text-white shadow-sm hostess-msg-bubble-received">
                     {{ _(hostess.intro_message).replace('\n', '<br>')|safe if hostess.intro_message else _('أهلاً! أنا ياسمين. كيف بقدر أساعدك اليوم؟ 🌹') }}
                 </div>
@@ -87,7 +87,7 @@
     </video>
     {% endif %}
     {% else %}
-    <img src="{{ url_for('static', filename='images/hostesses/' + (hostess.image or 'default_hostess.jpg')) }}" class="rounded-circle mr-2 shadow-sm w-30px h-30px object-fit-cover" onerror="this.onerror=null; this.src='{{ url_for('static', filename='images/hostesses/default_hostess.jpg') }}';">
+    <img src="{{ url_for('static', filename='images/' + (hostess.image or 'hostesses/default_hostess.jpg')) }}" class="rounded-circle mr-2 shadow-sm w-30px h-30px object-fit-cover" onerror="this.onerror=null; this.src='{{ url_for('static', filename='images/hostesses/default_hostess.jpg') }}';">
     {% endif %}
     `;
 

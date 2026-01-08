@@ -1,105 +1,6 @@
 {% extends "base.html" %}
 
 {% block content %}
-<style>
-    .luxury-card {
-        background: var(--dark-card);
-        border: 1px solid rgba(212, 175, 55, 0.2);
-        box-shadow: 0 0 15px rgba(0, 0, 0, 0.5);
-        border-radius: 15px;
-        overflow: hidden;
-        margin-bottom: 20px;
-        transition: transform 0.3s ease;
-    }
-    .luxury-card:hover {
-        transform: translateY(-5px);
-        border-color: var(--gold-primary);
-    }
-    .luxury-header {
-        background: radial-gradient(circle at center, rgba(212, 175, 55, 0.2) 0%, rgba(0, 0, 0, 0.8) 100%);
-        border-bottom: 1px solid var(--gold-primary);
-        padding: 1.5rem;
-        text-align: center;
-    }
-    .small-box-luxury {
-        border-radius: 15px;
-        position: relative;
-        display: block;
-        margin-bottom: 20px;
-        box-shadow: 0 5px 15px rgba(0,0,0,0.3);
-        overflow: hidden;
-        color: #fff;
-        background: var(--dark-card);
-        border: 1px solid rgba(255,255,255,0.1);
-        transition: all 0.3s;
-    }
-    .small-box-luxury:hover {
-        transform: scale(1.02);
-        box-shadow: 0 10px 25px rgba(0,0,0,0.5);
-        border-color: var(--gold-primary);
-    }
-    .small-box-luxury .inner {
-        padding: 20px;
-    }
-    .small-box-luxury h3 {
-        font-size: 2.2rem;
-        font-weight: bold;
-        margin: 0 0 10px 0;
-        white-space: nowrap;
-        padding: 0;
-        color: var(--gold-primary);
-        text-shadow: 0 2px 5px rgba(0,0,0,0.5);
-    }
-    .small-box-luxury p {
-        font-size: 1rem;
-        color: #ccc;
-    }
-    .small-box-luxury .icon {
-        position: absolute;
-        top: 10px;
-        right: 10px;
-        z-index: 0;
-        font-size: 80px;
-        color: rgba(255, 255, 255, 0.05);
-        transition: transform 0.3s;
-    }
-    .small-box-luxury:hover .icon {
-        transform: scale(1.1) rotate(10deg);
-        color: rgba(212, 175, 55, 0.1);
-    }
-    .small-box-footer {
-        position: relative;
-        text-align: center;
-        padding: 8px 0;
-        color: rgba(255, 255, 255, 0.8);
-        display: block;
-        z-index: 10;
-        background: rgba(0, 0, 0, 0.3);
-        text-decoration: none;
-        border-top: 1px solid rgba(255,255,255,0.05);
-    }
-    .small-box-footer:hover {
-        color: #fff;
-        background: rgba(212, 175, 55, 0.2);
-    }
-    .nav-tabs-luxury {
-        border-bottom: 2px solid var(--gold-primary);
-    }
-    .nav-tabs-luxury .nav-link {
-        color: #aaa;
-        border: none;
-        font-weight: bold;
-        transition: all 0.3s;
-    }
-    .nav-tabs-luxury .nav-link:hover {
-        color: #fff;
-    }
-    .nav-tabs-luxury .nav-link.active {
-        color: var(--gold-primary);
-        background: transparent;
-        border-bottom: 3px solid var(--gold-primary);
-    }
-</style>
 
 <div class="row mb-4">
     <div class="col-12">
@@ -145,7 +46,7 @@
                     </div>
                     <div class="form-row">
                         <div class="form-group col-md-4">
-                            <label class="text-white">{{ _('نسبة بيت Azad (%)') }}</label>
+                            <label class="text-white">{{ _('نسبة بيت Azad (%%)') }}</label>
                             <input type="number" min="0" max="100" step="1" name="house_cut_percent" class="form-control form-control-luxury" value="{{ house_cut_percent }}">
                         </div>
                         <div class="form-group col-md-4">

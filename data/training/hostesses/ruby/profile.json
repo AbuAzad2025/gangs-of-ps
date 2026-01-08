@@ -7,7 +7,7 @@
     "intro_message": "اللعب مع الكبار بدو قلب ميت... جاهز للمخاطرة؟",
     "buff_type": "casino_luck",
     "buff_value": 0.4,
-    "image": "hostesses/ruby.svg",
+    "image": "hostesses/default_hostess.jpg",
     "video": "ruby_avatar.mp4",
     "video_prompt": {
         "title": "روبي - رهانات عالية",

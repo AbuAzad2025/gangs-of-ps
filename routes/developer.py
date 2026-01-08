@@ -44,27 +44,29 @@ from sqlalchemy import func
 @developer_required
 def dev_dashboard():
     # Calculate stats
+    today_start = datetime.now(timezone.utc).replace(hour=0, minute=0, second=0, microsecond=0)
+    today_start_naive = today_start.replace(tzinfo=None)
+
     total_users = User.query.count()
     total_money = db.session.query(func.sum(User.money)).scalar() or 0
     total_diamonds = db.session.query(func.sum(User.diamonds)).scalar() or 0
-    new_users_today = User.query.filter(User.created_at >= datetime.now().date()).count()
+    new_users_today = User.query.filter(User.created_at >= today_start_naive).count()
     
     # Auction Stats
     active_auctions_money = db.session.query(func.sum(Auction.current_price)).filter(Auction.status == 'active').scalar() or 0
     burned_auction_money = db.session.query(func.sum(Auction.current_price)).filter(Auction.status == 'completed', Auction.seller_id == None).scalar() or 0
 
     # Economy Sinks Stats
-    today_start = datetime.now(timezone.utc).replace(hour=0, minute=0, second=0, microsecond=0)
-    daily_sunk_money = db.session.query(func.sum(MoneySinkLog.amount)).filter(MoneySinkLog.timestamp >= today_start).scalar() or 0
+    daily_sunk_money = db.session.query(func.sum(MoneySinkLog.amount)).filter(MoneySinkLog.timestamp >= today_start_naive).scalar() or 0
     
     # Specific Sink Totals (Today)
     gang_maintenance_today = db.session.query(func.sum(MoneySinkLog.amount)).filter(
-        MoneySinkLog.timestamp >= today_start,
+        MoneySinkLog.timestamp >= today_start_naive,
         MoneySinkLog.sink_type == 'gang_property_maintenance'
     ).scalar() or 0
 
     factory_smelt_today = db.session.query(func.sum(MoneySinkLog.amount)).filter(
-        MoneySinkLog.timestamp >= today_start,
+        MoneySinkLog.timestamp >= today_start_naive,
         MoneySinkLog.sink_type == 'factory_smelt_cost'
     ).scalar() or 0
     
@@ -1182,18 +1184,30 @@ def dev_vehicle_edit(id=None):
         vehicle = Vehicle()
         title = _('إضافة مركبة')
     
+    # Get list of existing vehicle images
+    vehicles_dir = os.path.join(current_app.root_path, 'static', 'images', 'vehicles')
+    existing_images = []
+    if os.path.exists(vehicles_dir):
+        existing_images = sorted([f for f in os.listdir(vehicles_dir) if f.lower().endswith(('.png', '.jpg', '.jpeg', '.gif'))])
+
     form = VehicleForm(obj=vehicle)
     if form.validate_on_submit():
         form.populate_obj(vehicle)
         image_path = save_image(form.image.data, 'vehicles')
-        if image_path: vehicle.image = image_path
+        if image_path: 
+            vehicle.image = image_path
+        else:
+            # Handle selected image from existing files only if no new upload
+            selected_image = request.form.get('selected_image')
+            if selected_image and selected_image in existing_images:
+                vehicle.image = f"vehicles/{selected_image}"
         
         db.session.add(vehicle)
         db.session.commit()
         flash(_('تم حفظ المركبة'), 'success')
         return redirect(url_for('main.dev_vehicles'))
         
-    return render_template('developer/edit_vehicle.html', form=form, title=title)
+    return render_template('developer/edit_vehicle.html', form=form, title=title, existing_images=existing_images, vehicle=vehicle)
 
 @bp.route('/developer/vehicle/delete/<int:id>', methods=['POST'])
 @developer_required
@@ -1769,6 +1783,7 @@ def dev_config_reset_market_defaults():
         'market_futures_leverages': '1,5,10,20,50,100',
         'market_update_interval_seconds': '60',
         'market_intel_cost': '500',
+        'market_volatility_multiplier': '1.0',
     }
     for key, value in defaults.items():
         config = SystemConfig.query.filter_by(key=key).first()
@@ -2107,18 +2122,35 @@ def dev_delete_auction(auction_id):
 @bp.route('/developer/images')
 @developer_required
 def dev_images():
-    # List images from static/images/items and static/images/vehicles
+    # List images from all subdirectories in static/images
     base_path = os.path.join(current_app.root_path, 'static', 'images')
-    items_path = os.path.join(base_path, 'items')
-    vehicles_path = os.path.join(base_path, 'vehicles')
     
-    os.makedirs(items_path, exist_ok=True)
-    os.makedirs(vehicles_path, exist_ok=True)
+    if not os.path.exists(base_path):
+        os.makedirs(base_path)
+
+    # Get all subdirectories
+    all_items = os.listdir(base_path)
+    categories = [d for d in all_items if os.path.isdir(os.path.join(base_path, d))]
+    categories.sort()
     
-    item_images = [f for f in os.listdir(items_path) if f.lower().endswith(('.png', '.jpg', '.jpeg', '.svg', '.gif'))]
-    vehicle_images = [f for f in os.listdir(vehicles_path) if f.lower().endswith(('.png', '.jpg', '.jpeg', '.svg', '.gif'))]
+    # Add 'root' for files in the base images directory
+    root_images = [f for f in all_items if os.path.isfile(os.path.join(base_path, f)) and f.lower().endswith(('.png', '.jpg', '.jpeg', '.svg', '.gif'))]
+    if root_images:
+        categories.insert(0, 'root')
     
-    return render_template('developer/images.html', item_images=item_images, vehicle_images=vehicle_images, title=_('إدارة الصور'))
+    images_by_category = {}
+    
+    for category in categories:
+        if category == 'root':
+            target_path = base_path
+            imgs = root_images
+        else:
+            target_path = os.path.join(base_path, category)
+            imgs = [f for f in os.listdir(target_path) if f.lower().endswith(('.png', '.jpg', '.jpeg', '.svg', '.gif'))]
+            
+        images_by_category[category] = sorted(imgs)
+    
+    return render_template('developer/images.html', images_by_category=images_by_category, title=_('إدارة الصور'))
 
 @bp.route('/developer/images/upload', methods=['POST'])
 @developer_required
@@ -2128,21 +2160,59 @@ def dev_upload_image():
         return redirect(url_for('main.dev_images'))
     
     file = request.files['file']
-    category = request.form.get('category') # 'items' or 'vehicles'
+    category = request.form.get('category')
     
     if file.filename == '':
         flash(_('لم يتم اختيار ملف'), 'danger')
         return redirect(url_for('main.dev_images'))
         
-    if category not in ['items', 'vehicles']:
-        flash(_('فئة غير صالحة'), 'danger')
-        return redirect(url_for('main.dev_images'))
+    base_path = os.path.join(current_app.root_path, 'static', 'images')
+    
+    if category == 'root':
+        save_path = base_path
+    else:
+        # Basic validation for category name to prevent path traversal
+        if not category or '..' in category or '/' in category or '\\' in category:
+             flash(_('فئة غير صالحة'), 'danger')
+             return redirect(url_for('main.dev_images'))
         
+        save_path = os.path.join(base_path, secure_filename(category))
+        if not os.path.exists(save_path):
+             os.makedirs(save_path)
+             
     if file:
         filename = secure_filename(file.filename)
-        save_path = os.path.join(current_app.root_path, 'static', 'images', category, filename)
-        file.save(save_path)
+        full_path = os.path.join(save_path, filename)
+        file.save(full_path)
         flash(_('تم رفع الصورة بنجاح: %(name)s', name=filename), 'success')
+        
+    return redirect(url_for('main.dev_images'))
+
+@bp.route('/developer/images/delete', methods=['POST'])
+@developer_required
+def dev_delete_image():
+    category = request.form.get('category')
+    filename = request.form.get('filename')
+    
+    if not category or not filename:
+         flash(_('بيانات غير مكتملة'), 'danger')
+         return redirect(url_for('main.dev_images'))
+         
+    base_path = os.path.join(current_app.root_path, 'static', 'images')
+    
+    if category == 'root':
+        file_path = os.path.join(base_path, secure_filename(filename))
+    else:
+        file_path = os.path.join(base_path, secure_filename(category), secure_filename(filename))
+        
+    if os.path.exists(file_path):
+        try:
+            os.remove(file_path)
+            flash(_('تم حذف الصورة'), 'success')
+        except Exception as e:
+            flash(_('خطأ في الحذف: %(error)s', error=str(e)), 'danger')
+    else:
+        flash(_('الصورة غير موجودة'), 'danger')
         
     return redirect(url_for('main.dev_images'))
 

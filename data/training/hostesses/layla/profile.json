@@ -7,7 +7,7 @@
     "intro_message": "لقد عدت أقوى من أي وقت مضى... الحظ كله بين يدي الآن.",
     "buff_type": "casino_luck",
     "buff_value": 0.25,
-    "image": "hostesses/layla.svg",
+    "image": "hostesses/default_hostess.jpg",
     "video": "layla_max_intro.mp4",
     "video_prompt": {
         "title": "ليلى - همس الحظ",

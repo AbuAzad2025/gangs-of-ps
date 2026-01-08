@@ -15,11 +15,11 @@
     {% if items %}
     <div class="row">
         {% for user_item in items %}
-        <div class="col-lg-4 col-md-6 mb-4 fade-in anim-delay-{{ loop.index if loop.index <= 20 else 20 }}">
+        <div class="col-lg-3 col-md-6 mb-4 fade-in anim-delay-{{ loop.index if loop.index <= 20 else 20 }}">
             <div class="item-card {{ 'equipped' if user_item.is_equipped }}">
                 <div class="item-icon">
                     {% if user_item.item.image %}
-                        <img src="{{ url_for('static', filename=user_item.item.image) }}" alt="{{ _(user_item.item.name) }}">
+                        <img src="{{ url_for('static', filename='images/' + user_item.item.image) }}" alt="{{ _(user_item.item.name) }}">
                     {% else %}
                         <i class="fas {{ 'fa-khanda' if user_item.item.type == 'weapon' else 'fa-shield-alt' }} fa-2x text-muted"></i>
                     {% endif %}

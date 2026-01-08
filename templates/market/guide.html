@@ -3,72 +3,72 @@
 {% block content %}
 <div class="row justify-content-center">
     <div class="col-md-8">
-        <div class="card luxury-card">
-            <div class="card-header luxury-header">
-                <h3 class="card-title luxury-title"><i class="fas fa-graduation-cap mr-2"></i> {{ _('أكاديمية غسيل الأموال') }}</h3>
+        <div class="market-card shadow-lg">
+            <div class="market-card-header">
+                <h3 class="mb-0 text-neon-gold"><i class="fas fa-graduation-cap mr-2"></i> {{ _('أكاديمية غسيل الأموال') }}</h3>
             </div>
-            <div class="card-body">
-                <div class="alert alert-info border-gold">
-                    <h5><i class="fas fa-info-circle mr-2"></i> {{ _('مرحباً بك في عالم المال!') }}</h5>
-                    <p>{{ _('هنا تتعلم كيف تحول الكاش الوسخ لفلوس نظيفة وتستثمرها.') }}</p>
+            <div class="market-card-body">
+                <div class="alert bg-dark border-secondary text-light mb-4">
+                    <h5 class="text-gold"><i class="fas fa-info-circle mr-2"></i> {{ _('مرحباً بك في عالم المال!') }}</h5>
+                    <p class="mb-0 text-muted">{{ _('هنا تتعلم كيف تحول الكاش الوسخ لفلوس نظيفة وتستثمرها.') }}</p>
                 </div>
 
                 <div class="accordion" id="accordionExample">
-                    <div class="card bg-dark border-secondary mb-2">
-                        <div class="card-header" id="headingOne">
+                    <div class="card market-card border-secondary mb-2">
+                        <div class="card-header bg-dark border-bottom border-secondary p-0" id="headingOne">
                             <h2 class="mb-0">
-                                <button class="btn btn-link btn-block text-left text-gold font-weight-bold collapsed" type="button" data-toggle="collapse" data-target="#collapseOne">
-                                    {{ _('1. أساسيات التداول') }}
+                                <button class="btn btn-link btn-block text-left text-white font-weight-bold collapsed py-3" type="button" data-toggle="collapse" data-target="#collapseOne">
+                                    <span class="text-gold mr-2">1.</span> {{ _('أساسيات التداول') }}
                                 </button>
                             </h2>
                         </div>
                         <div id="collapseOne" class="collapse" data-parent="#accordionExample">
-                            <div class="card-body">
+                            <div class="card-body bg-dark text-muted">
                                 <p>{{ _('التداول هو شراء وبيع الأصول مثل الأسهم والعملات الرقمية.') }}</p>
-                                <ul>
-                                    <li><strong>{{ _('شراء:') }}</strong> {{ _('عندما تتوقع ارتفاع السعر.') }}</li>
-                                    <li><strong>{{ _('بيع:') }}</strong> {{ _('لجني الأرباح أو وقف الخسارة.') }}</li>
+                                <ul class="list-unstyled">
+                                    <li class="mb-2"><strong class="text-up">{{ _('شراء (Long):') }}</strong> {{ _('عندما تتوقع ارتفاع السعر.') }}</li>
+                                    <li><strong class="text-down">{{ _('بيع (Short):') }}</strong> {{ _('لجني الأرباح أو وقف الخسارة.') }}</li>
                                 </ul>
                             </div>
                         </div>
                     </div>
 
-                    <div class="card bg-dark border-secondary mb-2">
-                        <div class="card-header" id="headingTwo">
+                    <div class="card market-card border-secondary mb-2">
+                        <div class="card-header bg-dark border-bottom border-secondary p-0" id="headingTwo">
                             <h2 class="mb-0">
-                                <button class="btn btn-link btn-block text-left text-gold font-weight-bold collapsed" type="button" data-toggle="collapse" data-target="#collapseTwo">
-                                    {{ _('2. أنواع الأصول') }}
+                                <button class="btn btn-link btn-block text-left text-white font-weight-bold collapsed py-3" type="button" data-toggle="collapse" data-target="#collapseTwo">
+                                    <span class="text-gold mr-2">2.</span> {{ _('أنواع الأصول') }}
                                 </button>
                             </h2>
                         </div>
                         <div id="collapseTwo" class="collapse" data-parent="#accordionExample">
-                            <div class="card-body">
-                                <ul>
-                                    <li><strong>Crypto:</strong> {{ _('عملات رقمية عالية المخاطرة والربح.') }}</li>
-                                    <li><strong>Stocks:</strong> {{ _('أسهم شركات عالمية، أكثر استقراراً.') }}</li>
+                            <div class="card-body bg-dark text-muted">
+                                <ul class="list-unstyled">
+                                    <li class="mb-2"><strong class="text-white">Crypto:</strong> {{ _('عملات رقمية عالية المخاطرة والربح.') }}</li>
+                                    <li><strong class="text-white">Stocks:</strong> {{ _('أسهم شركات عالمية، أكثر استقراراً.') }}</li>
                                 </ul>
                             </div>
                         </div>
                     </div>
 
-                    <div class="card bg-dark border-secondary mb-2">
-                        <div class="card-header" id="headingThree">
+                    <div class="card market-card border-secondary mb-2">
+                        <div class="card-header bg-dark border-bottom border-secondary p-0" id="headingThree">
                             <h2 class="mb-0">
-                                <button class="btn btn-link btn-block text-left text-gold font-weight-bold collapsed" type="button" data-toggle="collapse" data-target="#collapseThree">
-                                    {{ _('3. غسيل الأموال') }}
+                                <button class="btn btn-link btn-block text-left text-white font-weight-bold collapsed py-3" type="button" data-toggle="collapse" data-target="#collapseThree">
+                                    <span class="text-gold mr-2">3.</span> {{ _('غسيل الأموال') }}
                                 </button>
                             </h2>
                         </div>
                         <div id="collapseThree" class="collapse" data-parent="#accordionExample">
-                            <div class="card-body">
-                                <p>{{ _('عندما تشتري أصولاً بالكاش المتوفر لديك، يتم "تبييض" هذه الأموال. عند البيع، تعود لك كأرباح شرعية (نظرياً).') }}</p>
+                            <div class="card-body bg-dark text-muted">
+                                <p class="mb-0">{{ _('عندما تشتري أصولاً بالكاش المتوفر لديك، يتم "تبييض" هذه الأموال. عند البيع، تعود لك كأرباح شرعية (نظرياً).') }}</p>
                             </div>
                         </div>
                     </div>
                 </div>
 
                 <div class="mt-4 text-center">
-                    <a href="{{ url_for('market.index') }}" class="btn btn-luxury-action px-5">{{ _('ابدأ التداول الآن') }}</a>
+                    <a href="{{ url_for('market.index') }}" class="btn btn-buy px-5 py-2 shadow-lg">{{ _('ابدأ التداول الآن') }}</a>
                 </div>
             </div>
         </div>

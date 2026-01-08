@@ -7,7 +7,7 @@
     "intro_message": "أهلاً فيك في أخطر حارة بفلسطين! 🇵🇸 أنا ياسمين، دليلك الشخصي في عالم العصابات. بدك تعرف كيف تعمل أول مليون؟ أو وين مخبى السلاح القوي؟ اسألني وأنا بضبطك! 😉💸",
     "buff_type": "casino_luck",
     "buff_value": 1.5,
-    "image": "hostesses/jasmin.svg",
+    "image": "hostesses/default_hostess.jpg",
     "video_prompt": "A cinematic shot of an elegant Arab woman in a luxury casino setting, wearing a stylish evening gown, confident smile, golden lighting, 8k resolution.",
     "personality_config": {
         "flirt_level": 8,

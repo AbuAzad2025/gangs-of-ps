@@ -25,7 +25,7 @@
                 
                 <div class="car-shop-image">
                     {% if car.image %}
-                        <img src="{{ url_for('static', filename=car.image) }}" alt="{{ car.name }}">
+                        <img src="{{ url_for('static', filename='images/' + car.image) }}" alt="{{ car.name }}" onerror="this.onerror=null; this.src='{{ url_for('static', filename='images/vehicles/default.jpg') }}';">
                     {% else %}
                         <i class="fas fa-car fa-4x text-muted"></i>
                     {% endif %}
@@ -86,7 +86,7 @@
                 
                 <div class="car-shop-image">
                     {% if car.image %}
-                        <img src="{{ url_for('static', filename=car.image) }}" alt="{{ car.name }}">
+                        <img src="{{ url_for('static', filename='images/' + car.image) }}" alt="{{ car.name }}" onerror="this.onerror=null; this.src='{{ url_for('static', filename='images/vehicles/default.jpg') }}';">
                     {% else %}
                         <i class="fas fa-car-crash fa-4x text-danger"></i>
                     {% endif %}

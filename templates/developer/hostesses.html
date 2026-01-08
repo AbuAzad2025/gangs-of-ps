@@ -34,10 +34,10 @@
                         {% for hostess in hostesses %}
                         <tr>
                             <td>
-                                <img src="{{ url_for('static', filename='images/hostesses/' + hostess.image) }}" 
+                                <img src="{{ url_for('static', filename='images/' + hostess.image) }}" 
                                      class="rounded-circle" width="50" height="50" 
                                      style="object-fit: cover;"
-                                     onerror="this.src='{{ url_for('static', filename='images/hostesses/default_hostess.jpg') }}'">
+                                     onerror="this.onerror=null; this.src='{{ url_for('static', filename='images/hostesses/default_hostess.jpg') }}'">
                             </td>
                             <td>{{ hostess.name }}</td>
                             <td>

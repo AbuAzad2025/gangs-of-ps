@@ -7,7 +7,7 @@
     "intro_message": "سلامتك يا بطل. خليني أهتم فيك شوي... 😉",
     "buff_type": "hospital_recovery",
     "buff_value": 0.35,
-    "image": "hostesses/sarah.svg",
+    "image": "hostesses/default_hostess.jpg",
     "video": "sara_max_intel.mp4",
     "video_prompt": {
         "title": "سارة - دعم وطمأنة",

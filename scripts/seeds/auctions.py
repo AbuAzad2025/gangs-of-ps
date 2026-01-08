@@ -27,13 +27,13 @@ def seed_auctions():
                 description="نسخة نادرة جداً مطلية بالذهب.", 
                 bonus_strength=50, 
                 ammo_needed=10,
-                image="images/items/golden_ak47.svg"
+                image="images/items/golden_ak47.jpg"
             )
             db.session.add(item)
             db.session.commit()
             print(f"Created dummy item: {item.name}")
         else:
-            item.image = "images/items/golden_ak47.svg"
+            item.image = "images/items/golden_ak47.jpg"
             db.session.commit()
             print(f"Updated existing item image: {item.name}")
             
@@ -48,13 +48,13 @@ def seed_auctions():
                 speed=80, 
                 defense=90, 
                 risk=20,
-                image="images/vehicles/mercedes_g_class.svg"
+                image="images/vehicles/mercedes_g_class.jpg"
             )
             db.session.add(vehicle)
             db.session.commit()
             print(f"Created dummy vehicle: {vehicle.name}")
         else:
-            vehicle.image = "images/vehicles/mercedes_g_class.svg"
+            vehicle.image = "images/vehicles/mercedes_g_class.jpg"
             db.session.commit()
             print(f"Updated existing vehicle image: {vehicle.name}")
 

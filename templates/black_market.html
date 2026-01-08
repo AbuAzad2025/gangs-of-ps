@@ -364,7 +364,7 @@
                     <div class="item-card h-100 p-3 text-center d-flex flex-column">
                         <div class="item-icon-wrapper">
                             {% if user_item.item.image %}
-                                <img src="{{ url_for('static', filename='images/' + user_item.item.image) }}" alt="{{ _(user_item.item.name) }}" class="item-img-70" onerror="this.onerror=null; this.src='{{ url_for('static', filename='images/crimes/wallet.svg') }}';">
+                                <img src="{{ url_for('static', filename='images/' + user_item.item.image) }}" alt="{{ _(user_item.item.name) }}" class="item-img-70" onerror="this.onerror=null; this.src='{{ url_for('static', filename='images/crimes/wallet.jpg') }}';">
                             {% else %}
                                 <i class="fas fa-gem fa-3x text-success"></i>
                             {% endif %}
@@ -504,7 +504,7 @@
                     <div class="item-card h-100 p-3 text-center d-flex flex-column">
                         <div class="item-icon-wrapper">
                             {% if item.image %}
-                                <img src="{{ url_for('static', filename='img/items/' + item.image) }}" class="img-fluid img-max-60" alt="{{ item.name }}">
+                                <img src="{{ url_for('static', filename='images/' + item.image) }}" class="img-fluid img-max-60" alt="{{ item.name }}" onerror="this.onerror=null; this.src='{{ url_for('static', filename='images/items/default.jpg') }}';">
                             {% else %}
                                 <i class="fas fa-crosshairs fa-3x text-danger"></i>
                             {% endif %}
@@ -551,7 +551,7 @@
                     <div class="item-card h-100 p-3 text-center d-flex flex-column">
                         <div class="item-icon-wrapper">
                             {% if item.image %}
-                                <img src="{{ url_for('static', filename='img/items/' + item.image) }}" class="img-fluid img-max-60" alt="{{ item.name }}">
+                                <img src="{{ url_for('static', filename='images/' + item.image) }}" class="img-fluid img-max-60" alt="{{ item.name }}">
                             {% else %}
                                 <i class="fas fa-shield-alt fa-3x text-info"></i>
                             {% endif %}
@@ -598,7 +598,7 @@
                     <div class="item-card h-100 p-3 text-center d-flex flex-column">
                         <div class="item-icon-wrapper">
                             {% if item.image %}
-                                <img src="{{ url_for('static', filename='images/' + item.image) }}" class="img-fluid img-max-60" alt="{{ item.name }}">
+                                <img src="{{ url_for('static', filename='images/' + item.image) }}" class="img-fluid img-max-60" alt="{{ item.name }}" onerror="this.onerror=null; this.src='{{ url_for('static', filename='images/items/default.jpg') }}';">
                             {% else %}
                                 <i class="fas fa-pills fa-3x text-warning"></i>
                             {% endif %}

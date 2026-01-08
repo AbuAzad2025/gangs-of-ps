@@ -58,9 +58,9 @@
     {% set is_agl_ok = user.agility >= (crime.min_agility or 0) %}
     {% set is_locked = not (is_level_ok and is_str_ok and is_agl_ok) %}
     
-    <div class="col-lg-4 col-md-6 mb-4 fade-in-up anim-delay-{{ loop.index if loop.index <= 20 else 20 }}">
+    <div class="col-lg-3 col-md-6 mb-4 fade-in-up anim-delay-{{ loop.index if loop.index <= 20 else 20 }}">
         <div class="crime-card {{ 'locked' if is_locked else '' }}">
-            <div class="card-body text-center p-4">
+            <div class="card-body text-center p-3">
                 <span class="level-badge">
                     <i class="fas fa-layer-group mr-1"></i> {{ _('مستوى') }} {{ crime.min_level }}
                 </span>
@@ -70,10 +70,10 @@
                         <i class="fas fa-lock fa-2x text-warning"></i>
                     {% else %}
                         {% if crime.image %}
-                            <img src="{{ url_for('static', filename=crime.image) }}"
-                                 class="img-fluid rounded-circle crime-image"
+                            <img src="{{ url_for('static', filename='images/' + crime.image) }}"
+                                 class="rounded-circle crime-image"
                                  alt="{{ _(crime.name) }}"
-                                 onerror="this.onerror=null; this.src='{{ url_for('static', filename='crimes/wallet.jpg') }}';">
+                                 onerror="this.onerror=null; this.src='{{ url_for('static', filename='images/crimes/wallet.jpg') }}';">
                         {% else %}
                             <i class="fas fa-fist-raised fa-2x text-gold"></i>
                         {% endif %}

@@ -8,13 +8,13 @@ basedir = os.path.abspath(os.path.dirname(__file__))
 class Config:
     SECRET_KEY = os.environ.get('SECRET_KEY') or os.urandom(24).hex() # Secure fallback if not set
     
-    # Database Configuration - PostgreSQL Only
-    # Default to local PostgreSQL if DATABASE_URL is not set
-    default_db_url = 'postgresql://postgres:123@127.0.0.1:5432/gangsofpalestine'
+    # Database Configuration
+    # Default to SQLite for easy local development
+    default_db_url = 'sqlite:///' + os.path.join(basedir, 'app.db')
     env_db_url = os.environ.get('DATABASE_URL')
     
-    if env_db_url and not env_db_url.startswith('postgresql://'):
-        raise ValueError('Only PostgreSQL is supported. DATABASE_URL must start with postgresql://')
+    # if env_db_url and not env_db_url.startswith('postgresql://'):
+    #    raise ValueError('Only PostgreSQL is supported. DATABASE_URL must start with postgresql://')
     SQLALCHEMY_DATABASE_URI = env_db_url or default_db_url
         
     SQLALCHEMY_TRACK_MODIFICATIONS = False

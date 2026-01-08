@@ -54,7 +54,34 @@
                                 <label class="custom-file-label bg-dark text-light border-secondary" for="exampleInputFile">{{ _('اختر ملف') }}</label>
                             </div>
                         </div>
+                        {% if vehicle and vehicle.image %}
+                        <div class="mt-2">
+                            <small class="text-muted">{{ _('الصورة الحالية:') }} {{ vehicle.image }}</small>
+                            <img src="{{ url_for('static', filename='images/' + vehicle.image) }}" class="d-block mt-1" style="max-height: 100px; border-radius: 5px;" onerror="this.style.display='none'">
+                        </div>
+                        {% endif %}
                     </div>
+
+                    <div class="form-group mb-3">
+                        <label class="text-gold">{{ _('أو اختر من مكتبة الصور (static/images/vehicles)') }}</label>
+                        <div class="row" style="max-height: 300px; overflow-y: auto; background: rgba(0,0,0,0.2); padding: 10px; border-radius: 5px;">
+                            {% for img in existing_images %}
+                            <div class="col-6 col-sm-4 col-md-3 mb-3">
+                                <div class="card bg-dark border-secondary h-100 image-selector {% if vehicle and vehicle.image and vehicle.image.endswith(img) %}border-success{% endif %}" onclick="selectImage(this, '{{ img }}')" style="cursor: pointer; transition: all 0.2s;">
+                                    <div class="card-body p-1 d-flex align-items-center justify-content-center" style="height: 100px; background: #2c2c2c;">
+                                        <img src="{{ url_for('static', filename='images/vehicles/' + img) }}" class="img-fluid" style="max-height: 100%; object-fit: contain;">
+                                    </div>
+                                    <div class="card-footer p-1 text-center small text-muted text-truncate" title="{{ img }}">
+                                        {{ img }}
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        <input type="hidden" name="selected_image" id="selected_image">
+                        <div id="selected_image_display" class="mt-2 text-success font-weight-bold"></div>
+                    </div>
+
                     <div class="form-check mb-3">
                         {{ form.is_active(class="form-check-input") }}
                         <label class="form-check-label text-light">{{ form.is_active.label }}</label>
@@ -68,4 +95,23 @@
         </div>
     </div>
 </div>
+
+<script>
+    function selectImage(element, filename) {
+        document.getElementById('selected_image').value = filename;
+        document.getElementById('selected_image_display').innerHTML = '<i class="fas fa-check-circle mr-1"></i> {{ _("تم اختيار:") }} ' + filename;
+        
+        // Reset all
+        document.querySelectorAll('.image-selector').forEach(el => {
+            el.classList.remove('border-success');
+            el.classList.add('border-secondary');
+            el.style.transform = 'scale(1)';
+        });
+        
+        // Highlight selected
+        element.classList.remove('border-secondary');
+        element.classList.add('border-success');
+        element.style.transform = 'scale(1.05)';
+    }
+</script>
 {% endblock %}

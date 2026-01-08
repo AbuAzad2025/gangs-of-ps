@@ -1,7 +1,20 @@
 [
     {"name": "سوبارو إمبريزا (مشطوبة)", "type": "mushtuba", "description": "صاروخ أرضي بس دير بالك من الشرطة", "price": 5000, "speed": 80, "defense": 20, "risk": 60, "image": "vehicles/subaru_impreza.jpg"},
     {"name": "جولف 2 (مشطوبة)", "type": "mushtuba", "description": "كلاسيك وقوية، صوتها برعب الحارة", "price": 3000, "speed": 60, "defense": 30, "risk": 50, "image": "vehicles/golf_2.jpg"},
+    {"name": "فورد ترانزيت (مشطوبة)", "type": "mushtuba", "description": "باص العجائب، بحمل قبيلة", "price": 4000, "speed": 50, "defense": 60, "risk": 40, "image": "vehicles/ford_transit.jpg"},
+    {"name": "هوندا سيفيك (مشطوبة)", "type": "mushtuba", "description": "فيتيك يا خال، طيارة", "price": 6000, "speed": 85, "defense": 25, "risk": 55, "image": "vehicles/honda_civic.jpg"},
+    {"name": "سيات إبيزا (مشطوبة)", "type": "mushtuba", "description": "شبابية وطايشة", "price": 8000, "speed": 82, "defense": 30, "risk": 45, "image": "vehicles/seat_ibiza.jpg"},
+    {"name": "كيا بيكانتو (مشطوبة)", "type": "mushtuba", "description": "صغيرة بس جبارة، بتفوت بالزواريب", "price": 3500, "speed": 65, "defense": 15, "risk": 30, "image": "vehicles/kia_picanto.jpg"},
+
+    {"name": "هيونداي أكسنت (نمرة فلسطينية)", "type": "legal_pal", "description": "سيارة الشعب، قطعها رخيصة", "price": 20000, "speed": 50, "defense": 30, "risk": 0, "image": "vehicles/hyundai_accent.jpg"},
+    {"name": "كيا سبورتاج (نمرة ضفة)", "type": "legal_pal", "description": "جيب البلد، الكل راكبه", "price": 85000, "speed": 70, "defense": 60, "risk": 0, "image": "vehicles/kia_sportage.jpg"},
+    {"name": "هيونداي توسان (نمرة ضفة)", "type": "legal_pal", "description": "اخت السبورتاج، مريحة وواسعة", "price": 90000, "speed": 72, "defense": 60, "risk": 0, "image": "vehicles/hyundai_tucson.jpg"},
+    {"name": "بيجو 504 (نمرة ضفة)", "type": "legal_pal", "description": "الأسد العجوز، ما بتقول لا", "price": 12000, "speed": 45, "defense": 70, "risk": 0, "image": "vehicles/peugeot_504.jpg"},
+
     {"name": "سكودا أوكتافيا (نمرة صفراء)", "type": "legal_il", "description": "فخامة وأمان، بتفوت وين ما بدك", "price": 50000, "speed": 70, "defense": 50, "risk": 0, "image": "vehicles/skoda_octavia.jpg"},
     {"name": "مازدا 3 (نمرة صفراء)", "type": "legal_il", "description": "اقتصادية وسريعة، وضعك لوز", "price": 40000, "speed": 65, "defense": 40, "risk": 0, "image": "vehicles/mazda_3.jpg"},
-    {"name": "هيونداي أكسنت (نمرة فلسطينية)", "type": "legal_pal", "description": "سيارة الشعب، قطعها رخيصة", "price": 20000, "speed": 50, "defense": 30, "risk": 0, "image": "vehicles/hyundai_accent.jpg"}
+    {"name": "مرسيدس جي كلاس (نمرة صفراء)", "type": "legal_il", "description": "هيبة وفخامة، دبابة بتمشي عالأرض. صعب جداً تنطال بالسرقة.", "price": 1200000, "speed": 85, "defense": 95, "risk": 0, "image": "vehicles/mercedes_g_class.jpg"},
+    {"name": "تويوتا لاند كروزر (نمرة صفراء)", "type": "legal_il", "description": "ملك الصحراء، ما بوقف بوجهه اشي", "price": 350000, "speed": 80, "defense": 90, "risk": 0, "image": "vehicles/toyota_landcruiser.jpg"},
+    {"name": "بي إم دبليو X5 (نمرة صفراء)", "type": "legal_il", "description": "قمة الرفاهية والسرعة الألمانية", "price": 450000, "speed": 90, "defense": 75, "risk": 0, "image": "vehicles/bmw_x5.jpg"},
+    {"name": "أودي Q7 (نمرة صفراء)", "type": "legal_il", "description": "وحش ألماني، تكنولوجيا سابقة عصرها", "price": 400000, "speed": 88, "defense": 80, "risk": 0, "image": "vehicles/audi_q7.jpg"}
 ]

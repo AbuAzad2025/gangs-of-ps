@@ -33,7 +33,7 @@
       <div class="row">
         {% for lobby in active_lobbies %}
         {% set lobby_access = (crime_access.get(lobby.crime.id) if crime_access else None) %}
-        <div class="col-md-6 mb-3">
+        <div class="col-xl-4 col-lg-6 mb-3">
           <div class="heist-card">
             <div class="heist-body d-flex justify-content-between align-items-center">
               <div>
@@ -81,7 +81,7 @@
       {% for crime in crimes %}
       {% set access = (crime_access.get(crime.id) if crime_access else None) %}
       {% set unlocked = (access.unlocked if access else true) %}
-      <div class="col-lg-4 col-md-6 mb-4">
+      <div class="col-xl-4 col-lg-6 col-md-6 mb-4">
         <div class="heist-card">
           <div class="heist-hero">
             {% if not unlocked %}
@@ -89,9 +89,9 @@
                 <i class="fas fa-lock fa-3x text-warning"></i>
               </div>
             {% else %}
-              <img src="{{ url_for('static', filename=(crime.image or 'crimes/bank_heist.jpg')) }}"
-                   alt="{{ _(crime.name) }}"
-                   onerror="this.onerror=null; this.src='{{ url_for('static', filename='crimes/bank_heist.jpg') }}';">
+              <img src="{{ url_for('static', filename='images/' + (crime.image or 'crimes/bank_heist.jpg')) }}"
+                   alt="{{ crime.name }}" class="crime-img"
+                   onerror="this.onerror=null; this.src='{{ url_for('static', filename='images/crimes/bank_heist.jpg') }}';">
             {% endif %}
           </div>
           <div class="heist-body">

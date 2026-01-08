@@ -47,7 +47,7 @@
                                 <video src="{{ url_for('static', filename='videos/hostesses/' + active_h.video) }}" autoplay loop muted playsinline class="h-100-cover"></video>
                               {% endif %}
                             {% else %}
-                            <img src="{{ url_for('static', filename='images/hostesses/' + (active_h.image or 'default_hostess.jpg')) }}" class="h-100-cover" onerror="this.onerror=null; this.src='{{ url_for('static', filename='images/hostesses/default_hostess.jpg') }}';">
+                            <img src="{{ url_for('static', filename='images/' + (active_h.image or 'hostesses/default_hostess.jpg')) }}" class="h-100-cover" onerror="this.onerror=null; this.src='{{ url_for('static', filename='images/hostesses/default_hostess.jpg') }}';">
                             {% endif %}
                         </div>
                         <h4 class="mt-2 text-gold">{{ _(active_h.name) }}</h4>
@@ -99,7 +99,7 @@
                           <video src="{{ url_for('static', filename='videos/hostesses/' + h.video) }}" autoplay loop muted playsinline class="h-100-cover opacity-80"></video>
                         {% endif %}
                     {% else %}
-                        <img src="{{ url_for('static', filename='images/hostesses/' + (h.image or 'default_hostess.jpg')) }}" class="h-100-cover opacity-80" onerror="this.onerror=null; this.src='{{ url_for('static', filename='images/hostesses/default_hostess.jpg') }}';">
+                        <img src="{{ url_for('static', filename='images/' + (h.image or 'hostesses/default_hostess.jpg')) }}" class="h-100-cover opacity-80" onerror="this.onerror=null; this.src='{{ url_for('static', filename='images/hostesses/default_hostess.jpg') }}';">
                     {% endif %}
                     
                     <span class="hostess-badge badge-{{ h.role }}">

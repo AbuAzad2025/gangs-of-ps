@@ -19,10 +19,11 @@
                 <div class="card-body">
                     {% if my_car %}
                         <div class="text-center mb-3">
-                            <img src="{{ url_for('static', filename='images/' + (my_car.vehicle.image if my_car.vehicle.image else 'vehicles/default.svg')) }}" 
+                            <img src="{{ url_for('static', filename='images/' + (my_car.vehicle.image if my_car.vehicle.image else 'vehicles/default.jpg')) }}" 
                                  alt="{{ my_car.vehicle.name }}" 
                                  class="img-fluid mb-2" 
-                                 style="max-height: 120px; border-radius: 8px;">
+                                 style="max-height: 120px; border-radius: 8px;"
+                                 onerror="this.onerror=null; this.src='{{ url_for('static', filename='images/vehicles/default.jpg') }}';">
                             <h4 class="text-warning">{{ my_car.vehicle.name }}</h4>
                             <div class="badge badge-secondary p-2">{{ _('السرعة الأساسية:') }} {{ my_car.vehicle.speed }}</div>
                         </div>

@@ -35,7 +35,7 @@
                         </td>
                         <td>
                             {% if item.image %}
-                            <img alt="Item Image" class="table-avatar rounded" src="{{ url_for('static', filename=item.image) }}" style="width: 50px; height: 50px; object-fit: cover; border: 1px solid rgba(212,175,55,0.3);">
+                            <img alt="Item Image" class="table-avatar rounded" src="{{ url_for('static', filename='images/' + item.image) }}" style="width: 50px; height: 50px; object-fit: cover; border: 1px solid rgba(212,175,55,0.3);" onerror="this.onerror=null; this.src='{{ url_for('static', filename='images/items/default.jpg') }}';">
                             {% else %}
                             <span class="text-muted">{{ _('لا توجد صورة') }}</span>
                             {% endif %}

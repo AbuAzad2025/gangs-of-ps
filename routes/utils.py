@@ -117,6 +117,9 @@ def update_daily_task_progress(user, target_type):
     Updates progress for daily tasks based on target_type.
     """
     try:
+        # Ensure tasks exist for today
+        sync_daily_tasks(user)
+        
         today = datetime.now(timezone.utc).date()
         
         # Map specific types to generic categories

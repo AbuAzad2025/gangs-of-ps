@@ -34,9 +34,10 @@
                 <div class="flight-row row align-items-center py-2 border-bottom border-dark">
                     <div class="col-md-4 col-12 d-flex align-items-center">
                         {% set image_path = location.image if location.image else 'locations/default_city.jpg' %}
-                        <img src="{{ url_for('static', filename=image_path) }}" 
+                        <img src="{{ url_for('static', filename='images/' + image_path) }}" 
                              alt="{{ _(location.name) }}" 
-                             class="img-thumbnail mr-3 location-thumbnail">
+                             class="img-thumbnail mr-3 location-thumbnail"
+                             onerror="this.onerror=null; this.src='{{ url_for('static', filename='images/locations/default_city.jpg') }}';">
                         <div>
                             <h5 class="mb-0 text-white font-weight-bold">{{ _(location.name) }}</h5>
                             <small class="text-muted d-block line-height-12">{{ _(location.description) }}</small>

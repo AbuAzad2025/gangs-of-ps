@@ -58,7 +58,7 @@
                                 </div>
                                 <div class="col-5 text-center">
                                     {% if item.item_image %}
-                                        <img src="{{ url_for('static', filename=item.item_image) }}" alt="Item Image" class="img-circle img-fluid" style="width: 80px; height: 80px; object-fit: cover;">
+                                        <img src="{{ url_for('static', filename='images/' + item.item_image) }}" alt="Item Image" class="img-circle img-fluid" style="width: 80px; height: 80px; object-fit: cover;">
                                     {% else %}
                                         <div class="img-circle bg-secondary d-flex align-items-center justify-content-center mx-auto" style="width: 80px; height: 80px;">
                                             {% if item.item_type == 'vehicle' %}

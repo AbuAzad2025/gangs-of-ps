@@ -1,51 +1,14 @@
 /* Mobile App Experience Enhancements */
 :root {
-  --sat: env(safe-area-inset-top);
-  --sar: env(safe-area-inset-right);
-  --sab: env(safe-area-inset-bottom);
-  --sal: env(safe-area-inset-left);
-  --gold-color: #d4af37;
-  --dark-bg: #1a1a1a;
+  --market-up: #0ecb81;
+  --market-down: #f6465d;
+  --market-card-bg: #1e222d;
 }
 
 /* 1. Global "Native" Feel */
 * {
   /* Remove the ugly gray highlight box on tap */
   -webkit-tap-highlight-color: transparent;
-  /* Prevent context menu on long press (except inputs) */
-  -webkit-touch-callout: none;
-}
-
-body {
-  /* Use full height including safe areas */
-  min-height: 100vh;
-  min-height: -webkit-fill-available;
-  
-  /* Padding for notches and home indicators */
-  padding-top: var(--sat);
-  padding-right: var(--sar);
-  padding-bottom: var(--sab);
-  padding-left: var(--sal);
-  
-  /* Prevent text selection to feel like an app */
-  -webkit-user-select: none;
-  -moz-user-select: none;
-  -ms-user-select: none;
-  user-select: none;
-  
-  /* Disable pull-to-refresh on mobile */
-  overscroll-behavior-y: none;
-  
-  /* Smooth scrolling */
-  scroll-behavior: smooth;
-}
-
-/* 2. Prevent Image Interaction */
-img {
-  /* Prevent dragging images like a webpage */
-  -webkit-user-drag: none;
-  user-drag: none;
-  pointer-events: none; /* Optional: completely ignore touches on decorative images */
 }
 
 /* 3. Interactive Feedback (Button Press) */
@@ -59,26 +22,7 @@ img {
   opacity: 0.9;
 }
 
-/* 4. Custom Scrollbar (Sleek & Dark) */
-::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
-}
-
-::-webkit-scrollbar-track {
-  background: var(--dark-bg);
-}
-
-::-webkit-scrollbar-thumb {
-  background: #444;
-  border-radius: 3px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: var(--gold-color);
-}
-
-/* 5. Input Fields Exceptions */
+/* 4. Input Fields Exceptions */
 input, textarea {
   /* Allow text selection in inputs */
   -webkit-user-select: text;
@@ -94,4 +38,135 @@ input, textarea {
 .full-height {
   height: 100vh;
   height: -webkit-fill-available;
+}
+
+/* --- Market Specific Styles --- */
+.market-ticker-container {
+    background: #0b0e11;
+    overflow: hidden;
+    white-space: nowrap;
+    position: relative;
+    padding: 8px 0;
+    border-bottom: 1px solid #2b3139;
+}
+
+.market-ticker-track {
+    display: inline-block;
+    animation: ticker 30s linear infinite;
+}
+
+@keyframes ticker {
+    0% { transform: translateX(100%); }
+    100% { transform: translateX(-100%); }
+}
+
+.ticker-item {
+    display: inline-block;
+    padding: 0 20px;
+    font-family: 'Roboto Mono', monospace;
+    font-size: 0.9rem;
+}
+
+.ticker-up { color: var(--market-up); }
+.ticker-down { color: var(--market-down); }
+
+.market-card {
+    background: var(--market-card-bg);
+    border: 1px solid #2b3139;
+    border-radius: 8px;
+    margin-bottom: 15px;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.market-card:active {
+    transform: scale(0.98);
+    box-shadow: 0 0 10px rgba(0,0,0,0.5);
+}
+
+.market-card-header {
+    padding: 15px;
+    border-bottom: 1px solid #2b3139;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.market-card-body {
+    padding: 15px;
+}
+
+.market-price-large {
+    font-size: 1.5rem;
+    font-weight: bold;
+    font-family: 'Roboto Mono', monospace;
+}
+
+.btn-buy {
+    background-color: var(--market-up);
+    color: #fff;
+    border: none;
+    font-weight: bold;
+}
+.btn-sell {
+    background-color: var(--market-down);
+    color: #fff;
+    border: none;
+    font-weight: bold;
+}
+
+/* Order Book Styling */
+.order-book-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 2px 8px;
+    font-family: 'Roboto Mono', monospace;
+    font-size: 0.8rem;
+    cursor: pointer;
+}
+.order-book-row:hover {
+    background-color: #2b3139;
+}
+
+/* Neon Text for Portfolio */
+.text-neon-gold {
+    color: var(--gold-color);
+    text-shadow: 0 0 5px rgba(212, 175, 55, 0.5);
+}
+
+/* Utility Classes */
+.text-up { color: var(--market-up) !important; }
+.text-down { color: var(--market-down) !important; }
+
+.nav-tabs-dark .nav-link {
+    color: #848e9c;
+    border: none;
+    border-bottom: 2px solid transparent;
+}
+.nav-tabs-dark .nav-link.active {
+    color: var(--gold-color);
+    background: transparent;
+    border-bottom: 2px solid var(--gold-color);
+}
+.nav-tabs-dark .nav-link:hover {
+    color: #fff;
+    border-color: transparent;
+}
+
+.h-40vh-rel {
+    height: 40vh;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+}
+
+.form-control-dark {
+    background-color: #2b3139;
+    border: 1px solid #2b3139;
+    color: #fff;
+}
+.form-control-dark:focus {
+    background-color: #2b3139;
+    border-color: var(--gold-color);
+    color: #fff;
+    box-shadow: none;
 }

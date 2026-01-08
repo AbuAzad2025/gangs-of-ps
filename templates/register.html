@@ -2,18 +2,15 @@
 
 {% block content %}
 
-<div class="container-fluid position-relative min-h-80vh d-flex align-items-center">
-    <div class="auth-bg-pattern"></div>
-    
-    <div class="row justify-content-center w-100">
+<div class="container h-100">
+    <div class="row h-100 justify-content-center align-items-center">
         <div class="col-md-6 col-lg-5 col-xl-4">
-            <div class="card luxury-card">
-                <div class="card-header luxury-header text-center">
-                    <h2 class="mb-0 gold-text-gradient font-weight-bold">
-                        <i class="fas fa-user-plus mr-2"></i> {{ title }}
-                    </h2>
+            <div class="auth-card card-luxury">
+                <div class="card-header text-center border-0 bg-transparent pt-4">
+                    <h2 class="auth-title mb-0">إنشاء حساب جديد</h2>
+                    <p class="text-muted mt-2">انضم إلى عصابات فلسطين</p>
                 </div>
-                <div class="card-body p-4 p-md-5">
+                <div class="card-body p-4">
                     <form method="POST">
                         {{ form.hidden_tag() }}
                         <div class="mb-4">
@@ -81,7 +78,9 @@
                             {% endfor %}
                         </div>
                         <div class="d-grid mb-4">
-                            {{ form.submit(class="btn btn-auth btn-block") }}
+                            <button type="submit" class="btn btn-luxury-gold btn-block btn-lg shadow-sm font-weight-bold">
+                                {{ _('إنشاء الحساب') }} <i class="fas fa-user-plus ml-2"></i>
+                            </button>
                         </div>
                         
                         <div class="text-center mt-3">

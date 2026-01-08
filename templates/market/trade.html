@@ -4,10 +4,13 @@
 
 <div class="trade-container">
     <!-- Top Bar: Ticker -->
-    <div class="d-flex align-items-center bg-dark border-bottom border-secondary px-4 py-2 trade-ticker-bar">
-        <h4 class="mb-0 font-weight-bold mr-4 text-white">{{ asset.symbol }} <span class="text-muted small">{{ asset.name }}</span></h4>
+    <div class="d-flex align-items-center market-ticker-container px-4 py-2">
+        <div class="d-flex align-items-center">
+            <img src="{{ url_for('static', filename=asset.image_path) }}" alt="{{ asset.symbol }}" class="rounded-circle mr-3" style="width: 32px; height: 32px; border: 1px solid #2b3139;">
+            <h4 class="mb-0 font-weight-bold mr-4 text-white">{{ asset.symbol }} <span class="text-muted small">{{ asset.name }}</span></h4>
+        </div>
         <div class="mr-4">
-            <span class="h5 font-weight-bold {{ 'text-up' if asset.price_change_24h >= 0 else 'text-down' }}">
+            <span class="market-price-large {{ 'text-up' if asset.price_change_24h >= 0 else 'text-down' }}">
                 {{ "{:,.2f}".format(asset.current_price) }}
             </span>
             <span class="small ml-2 {{ 'text-up' if asset.price_change_24h >= 0 else 'text-down' }}">
@@ -16,15 +19,15 @@
         </div>
         <div class="d-none d-md-block mr-4">
             <span class="d-block text-muted fs-10">{{ _('أعلى 24س') }}</span>
-            <span class="small">{{ "{:,.2f}".format(asset.high_24h) }}</span>
+            <span class="small text-white">{{ "{:,.2f}".format(asset.high_24h) }}</span>
         </div>
         <div class="d-none d-md-block mr-4">
             <span class="d-block text-muted fs-10">{{ _('أدنى 24س') }}</span>
-            <span class="small">{{ "{:,.2f}".format(asset.low_24h) }}</span>
+            <span class="small text-white">{{ "{:,.2f}".format(asset.low_24h) }}</span>
         </div>
         <div class="d-none d-md-block mr-4">
             <span class="d-block text-muted fs-10">{{ _('حجم 24س') }}</span>
-            <span class="small">{{ "{:,.0f}".format(asset.volume_24h) }}</span>
+            <span class="small text-white">{{ "{:,.0f}".format(asset.volume_24h) }}</span>
         </div>
         
         <div class="ml-auto">
@@ -36,11 +39,11 @@
 
     <div class="row no-gutters h-100">
         <!-- LEFT: Order Book -->
-        <div class="col-lg-2 d-none d-lg-block border-right border-secondary border-trade">
-            <div class="panel border-0 rounded-0">
-                <div class="panel-header">{{ _('سجل الطلبات') }}</div>
+        <div class="col-lg-2 d-none d-lg-block border-right border-secondary border-trade bg-dark">
+            <div class="market-card border-0 rounded-0 mb-0 h-100">
+                <div class="market-card-header py-2 text-muted small font-weight-bold">{{ _('سجل الطلبات') }}</div>
                 <div class="p-0">
-                    <div class="d-flex justify-content-between text-muted small px-2 py-1">
+                    <div class="d-flex justify-content-between text-muted small px-2 py-1 border-bottom border-secondary">
                         <span>{{ _('السعر(USD)') }}</span>
                         <span>{{ _('الكمية') }}</span>
                     </div>
@@ -57,7 +60,7 @@
 
                     <!-- Current Price -->
                     <div class="py-2 px-2 text-center h5 mb-0 border-top border-bottom border-secondary bg-dark border-trade">
-                        <span class="{{ 'text-up' if asset.price_change_24h >= 0 else 'text-down' }}">
+                        <span class="{{ 'text-up' if asset.price_change_24h >= 0 else 'text-down' }} font-weight-bold">
                             {{ "{:,.2f}".format(asset.current_price) }} <i class="fas fa-arrow-{{ 'up' if asset.price_change_24h >= 0 else 'down' }}"></i>
                         </span>
                     </div>
@@ -76,7 +79,7 @@
         </div>
 
         <!-- CENTER: Chart & Bottom Orders -->
-        <div class="col-lg-7 col-md-8 border-right border-secondary border-trade">
+        <div class="col-lg-7 col-md-8 border-right border-secondary border-trade bg-dark">
             <!-- Chart Container -->
             <div class="h-60vh-rel">
                  <!-- Chart Toolbar -->
@@ -103,107 +106,111 @@
             </div>
             
             <!-- User Orders / History -->
-            <div class="trade-history-container">
-                <ul class="nav nav-tabs nav-tabs-dark px-2 pt-2" role="tablist">
+            <div class="market-card border-0 rounded-0 mt-0 mb-0 border-top border-secondary h-40vh-rel">
+                <ul class="nav nav-tabs nav-tabs-dark px-2 pt-2 border-bottom-0" role="tablist">
                     <li class="nav-item">
-                        <a class="nav-link active" data-toggle="tab" href="#open-orders">{{ _('طلبات مفتوحة') }} ({{ open_orders|length }})</a>
+                        <a class="nav-link active small py-1" data-toggle="tab" href="#open-orders">{{ _('طلبات مفتوحة') }} ({{ open_orders|length }})</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" data-toggle="tab" href="#positions">{{ _('صفقات فيوتشر') }} ({{ futures_positions|length }})</a>
+                        <a class="nav-link small py-1" data-toggle="tab" href="#positions">{{ _('صفقات فيوتشر') }} ({{ futures_positions|length }})</a>
                     </li>
                 </ul>
-                <div class="tab-content p-0">
+                <div class="tab-content p-0 border-top border-secondary">
                     <!-- Open Orders -->
                     <div id="open-orders" class="tab-pane active">
-                        <table class="table table-sm table-dark mb-0 small bg-transparent">
-                            <thead class="text-muted">
-                                <tr>
-                                    <th>{{ _('الوقت') }}</th>
-                                    <th>{{ _('النوع') }}</th>
-                                    <th>{{ _('السعر') }}</th>
-                                    <th>{{ _('الكمية') }}</th>
-                                    <th>{{ _('مكتمل') }}</th>
-                                    <th>{{ _('إلغاء') }}</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% if open_orders %}
-                                    {% for order in open_orders %}
+                        <div class="table-responsive" style="max-height: 250px;">
+                            <table class="table table-sm table-dark mb-0 small bg-transparent table-hover">
+                                <thead class="text-muted sticky-top bg-dark">
                                     <tr>
-                                        <td>{{ order.created_at.strftime('%H:%M:%S') }}</td>
-                                        <td class="{{ 'text-up' if order.order_type == 'buy' else 'text-down' }}">
-                                            {{ _('شراء') if order.order_type == 'buy' else _('بيع') }}
-                                        </td>
-                                        <td>{{ "{:,.2f}".format(order.price) }}</td>
-                                        <td>{{ "{:.4f}".format(order.quantity) }}</td>
-                                        <td>{{ "{:.1f}".format(order.progress_percent()) }}%</td>
-                                        <td>
-                                            <form action="{{ url_for('market.cancel_order', order_id=order.id) }}" method="POST">
-                                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-                                                <button type="submit" class="btn btn-xs btn-outline-secondary py-0"><i class="fas fa-times"></i></button>
-                                            </form>
-                                        </td>
+                                        <th class="border-top-0">{{ _('الوقت') }}</th>
+                                        <th class="border-top-0">{{ _('النوع') }}</th>
+                                        <th class="border-top-0">{{ _('السعر') }}</th>
+                                        <th class="border-top-0">{{ _('الكمية') }}</th>
+                                        <th class="border-top-0">{{ _('مكتمل') }}</th>
+                                        <th class="border-top-0">{{ _('إلغاء') }}</th>
                                     </tr>
-                                    {% endfor %}
-                                {% else %}
-                                    <tr><td colspan="6" class="text-center text-muted py-3">{{ _('لا توجد طلبات مفتوحة') }}</td></tr>
-                                {% endif %}
-                            </tbody>
-                        </table>
+                                </thead>
+                                <tbody>
+                                    {% if open_orders %}
+                                        {% for order in open_orders %}
+                                        <tr>
+                                            <td>{{ order.created_at.strftime('%H:%M:%S') }}</td>
+                                            <td class="{{ 'text-up' if order.order_type == 'buy' else 'text-down' }}">
+                                                {{ _('شراء') if order.order_type == 'buy' else _('بيع') }}
+                                            </td>
+                                            <td>{{ "{:,.2f}".format(order.price) }}</td>
+                                            <td>{{ "{:.4f}".format(order.quantity) }}</td>
+                                            <td>{{ "{:.1f}".format(order.progress_percent()) }}%</td>
+                                            <td>
+                                                <form action="{{ url_for('market.cancel_order', order_id=order.id) }}" method="POST">
+                                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                                                    <button type="submit" class="btn btn-xs btn-outline-secondary py-0 border-0"><i class="fas fa-times"></i></button>
+                                                </form>
+                                            </td>
+                                        </tr>
+                                        {% endfor %}
+                                    {% else %}
+                                        <tr><td colspan="6" class="text-center text-muted py-3">{{ _('لا توجد طلبات مفتوحة') }}</td></tr>
+                                    {% endif %}
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
                     
                     <!-- Futures Positions -->
                     <div id="positions" class="tab-pane">
-                        <table class="table table-sm table-dark mb-0 small bg-transparent">
-                            <thead class="text-muted">
-                                <tr>
-                                    <th>{{ _('النوع') }}</th>
-                                    <th>{{ _('رافعة') }}</th>
-                                    <th>{{ _('دخول') }}</th>
-                                    <th>{{ _('هامش') }}</th>
-                                    <th>{{ _('PNL') }}</th>
-                                    <th>{{ _('إغلاق') }}</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% if futures_positions %}
-                                    {% for pos in futures_positions %}
+                        <div class="table-responsive" style="max-height: 250px;">
+                            <table class="table table-sm table-dark mb-0 small bg-transparent table-hover">
+                                <thead class="text-muted sticky-top bg-dark">
                                     <tr>
-                                        <td class="{{ 'text-up' if pos.position_type == 'long' else 'text-down' }}">{{ pos.position_type|upper }}</td>
-                                        <td>{{ pos.leverage }}x</td>
-                                        <td>{{ "{:,.2f}".format(pos.entry_price) }}</td>
-                                        <td>{{ "{:,.0f}".format(pos.margin_amount) }}</td>
-                                        <td class="{{ 'text-up' if pos.calculate_pnl() >= 0 else 'text-down' }}">
-                                            {{ "{:+,.2f}".format(pos.calculate_pnl()) }}
-                                        </td>
-                                        <td>
-                                            <form action="{{ url_for('market.close_futures', position_id=pos.id) }}" method="POST">
-                                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-                                                <button type="submit" class="btn btn-xs btn-outline-light py-0">{{ _('إغلاق') }}</button>
-                                            </form>
-                                        </td>
+                                        <th class="border-top-0">{{ _('النوع') }}</th>
+                                        <th class="border-top-0">{{ _('رافعة') }}</th>
+                                        <th class="border-top-0">{{ _('دخول') }}</th>
+                                        <th class="border-top-0">{{ _('هامش') }}</th>
+                                        <th class="border-top-0">{{ _('PNL') }}</th>
+                                        <th class="border-top-0">{{ _('إغلاق') }}</th>
                                     </tr>
-                                    {% endfor %}
-                                {% else %}
-                                    <tr><td colspan="6" class="text-center text-muted py-3">{{ _('لا توجد صفقات مفتوحة') }}</td></tr>
-                                {% endif %}
-                            </tbody>
-                        </table>
+                                </thead>
+                                <tbody>
+                                    {% if futures_positions %}
+                                        {% for pos in futures_positions %}
+                                        <tr>
+                                            <td class="{{ 'text-up' if pos.position_type == 'long' else 'text-down' }} font-weight-bold">{{ pos.position_type|upper }}</td>
+                                            <td><span class="badge badge-secondary">{{ pos.leverage }}x</span></td>
+                                            <td>{{ "{:,.2f}".format(pos.entry_price) }}</td>
+                                            <td>{{ "{:,.0f}".format(pos.margin_amount) }}</td>
+                                            <td class="{{ 'text-up' if pos.calculate_pnl() >= 0 else 'text-down' }} font-weight-bold">
+                                                {{ "{:+,.2f}".format(pos.calculate_pnl()) }}
+                                            </td>
+                                            <td>
+                                                <form action="{{ url_for('market.close_futures', position_id=pos.id) }}" method="POST">
+                                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                                                    <button type="submit" class="btn btn-xs btn-outline-danger py-0">{{ _('إغلاق') }}</button>
+                                                </form>
+                                            </td>
+                                        </tr>
+                                        {% endfor %}
+                                    {% else %}
+                                        <tr><td colspan="6" class="text-center text-muted py-3">{{ _('لا توجد صفقات مفتوحة') }}</td></tr>
+                                    {% endif %}
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
 
         <!-- RIGHT: Trade Forms -->
-        <div class="col-lg-3 col-md-4">
-            <div class="panel border-0 rounded-0">
+        <div class="col-lg-3 col-md-4 bg-dark">
+            <div class="market-card border-0 rounded-0 h-100 mb-0">
                 <!-- Main Tabs: Spot / Futures -->
-                <ul class="nav nav-tabs nav-tabs-dark" role="tablist">
+                <ul class="nav nav-tabs nav-tabs-dark border-bottom border-secondary" role="tablist">
                     <li class="nav-item w-50 text-center">
-                        <a class="nav-link active" data-toggle="tab" href="#spot-panel">{{ _('Spot') }}</a>
+                        <a class="nav-link active py-3 font-weight-bold" data-toggle="tab" href="#spot-panel">{{ _('Spot') }}</a>
                     </li>
                     <li class="nav-item w-50 text-center">
-                        <a class="nav-link" data-toggle="tab" href="#futures-panel">{{ _('Futures') }}</a>
+                        <a class="nav-link py-3 font-weight-bold" data-toggle="tab" href="#futures-panel">{{ _('Futures') }}</a>
                     </li>
                 </ul>
 
@@ -232,7 +239,7 @@
                                         <div class="input-group input-group-sm">
                                             <input type="number" step="any" name="price" id="limit-price" class="form-control form-control-dark" value="{{ asset.current_price }}" required>
                                             <div class="input-group-append">
-                                                <span class="input-group-text">USD</span>
+                                                <span class="input-group-text bg-dark border-secondary text-muted">USD</span>
                                             </div>
                                         </div>
                                     </div>
@@ -242,23 +249,23 @@
                                         <div class="input-group input-group-sm">
                                             <input type="number" step="any" name="amount" class="form-control form-control-dark" required>
                                             <div class="input-group-append">
-                                                <span class="input-group-text">{{ asset.symbol }}</span>
+                                                <span class="input-group-text bg-dark border-secondary text-muted">{{ asset.symbol }}</span>
                                             </div>
                                         </div>
                                     </div>
                                     
                                     <!-- Assets Info -->
                                     <div class="d-flex justify-content-between small mb-3">
-                                        <span class="text-muted">{{ _('كاش:') }} {{ "{:,.0f}".format(current_user.money) }}$</span>
-                                        <span class="text-muted">{{ _('أملك:') }} {{ "{:.4f}".format(investment.quantity if investment else 0) }}</span>
+                                        <span class="text-muted">{{ _('كاش:') }} <span class="text-neon-gold">{{ "{:,.0f}".format(current_user.money) }}$</span></span>
+                                        <span class="text-muted">{{ _('أملك:') }} <span class="text-white">{{ "{:.4f}".format(investment.quantity if investment else 0) }}</span></span>
                                     </div>
 
                                     <div class="row no-gutters">
                                         <div class="col-6 pr-1">
-                                            <button type="submit" name="type" value="buy" class="btn btn-buy btn-block btn-sm py-2">{{ _('شراء') }}</button>
+                                            <button type="submit" name="type" value="buy" class="btn btn-buy btn-block btn-sm py-2 shadow-sm">{{ _('شراء') }}</button>
                                         </div>
                                         <div class="col-6 pl-1">
-                                            <button type="submit" name="type" value="sell" class="btn btn-sell btn-block btn-sm py-2">{{ _('بيع') }}</button>
+                                            <button type="submit" name="type" value="sell" class="btn btn-sell btn-block btn-sm py-2 shadow-sm">{{ _('بيع') }}</button>
                                         </div>
                                     </div>
                                 </form>
@@ -266,7 +273,7 @@
 
                             <!-- SPOT MARKET -->
                             <div id="spot-market" class="tab-pane">
-                                <div class="alert alert-dark p-2 small text-muted mb-3 border border-secondary">
+                                <div class="alert alert-dark p-2 small text-muted mb-3 border border-secondary bg-darker">
                                     {{ _('الشراء/البيع بأفضل سعر متاح حالياً في السوق.') }}
                                 </div>
                                 
@@ -280,11 +287,11 @@
                                         <div class="input-group input-group-sm mb-2">
                                             <input type="number" step="any" name="amount" class="form-control form-control-dark" placeholder="{{ _('Total USD') }}">
                                             <div class="input-group-append">
-                                                <span class="input-group-text">USD</span>
+                                                <span class="input-group-text bg-dark border-secondary text-muted">USD</span>
                                             </div>
                                         </div>
-                                        <button type="submit" name="type" value="buy" class="btn btn-buy btn-block btn-sm">{{ _('شراء') }} {{ asset.symbol }}</button>
-                                        <div class="small text-muted mt-1 text-right">{{ _('متاح:') }} {{ "{:,.0f}".format(current_user.money) }}$</div>
+                                        <button type="submit" name="type" value="buy" class="btn btn-buy btn-block btn-sm shadow-sm">{{ _('شراء') }} {{ asset.symbol }}</button>
+                                        <div class="small text-muted mt-1 text-right">{{ _('متاح:') }} <span class="text-neon-gold">{{ "{:,.0f}".format(current_user.money) }}$</span></div>
                                     </div>
 
                                     <hr class="border-secondary my-3">
@@ -295,11 +302,11 @@
                                         <div class="input-group input-group-sm mb-2">
                                             <input type="number" step="any" name="amount" class="form-control form-control-dark" placeholder="{{ _('Quantity') }}">
                                             <div class="input-group-append">
-                                                <span class="input-group-text">{{ asset.symbol }}</span>
+                                                <span class="input-group-text bg-dark border-secondary text-muted">{{ asset.symbol }}</span>
                                             </div>
                                         </div>
-                                        <button type="submit" name="type" value="sell" class="btn btn-sell btn-block btn-sm">{{ _('بيع') }} {{ asset.symbol }}</button>
-                                        <div class="small text-muted mt-1 text-right">{{ _('أملك:') }} {{ "{:.4f}".format(investment.quantity if investment else 0) }}</div>
+                                        <button type="submit" name="type" value="sell" class="btn btn-sell btn-block btn-sm shadow-sm">{{ _('بيع') }} {{ asset.symbol }}</button>
+                                        <div class="small text-muted mt-1 text-right">{{ _('أملك:') }} <span class="text-white">{{ "{:.4f}".format(investment.quantity if investment else 0) }}</span></div>
                                     </div>
                                 </form>
                             </div>
@@ -323,27 +330,39 @@
                                     <label class="btn btn-outline-secondary">
                                         <input type="radio" name="leverage" value="50"> 50x
                                     </label>
+                                    <label class="btn btn-outline-secondary">
+                                        <input type="radio" name="leverage" value="100"> 100x
+                                    </label>
                                 </div>
                             </div>
                             
                             <div class="form-group mb-3">
                                 <label class="small text-muted mb-1">{{ _('الهامش (Margin USD)') }}</label>
                                 <div class="input-group input-group-sm">
-                                    <input type="number" step="any" name="amount" class="form-control form-control-dark" min="100" required>
+                                    <input type="number" step="any" name="amount" class="form-control form-control-dark" min="10" placeholder="Min 10$" required>
                                     <div class="input-group-append">
-                                        <span class="input-group-text">USD</span>
+                                        <span class="input-group-text bg-dark border-secondary text-muted">USD</span>
                                     </div>
                                 </div>
-                                <small class="text-muted d-block mt-1">{{ _('متاح:') }} {{ "{:,.0f}".format(current_user.money) }}$</small>
+                                <div class="small text-muted mt-1 text-right">{{ _('متاح:') }} <span class="text-neon-gold">{{ "{:,.0f}".format(current_user.money) }}$</span></div>
                             </div>
                             
                             <div class="row no-gutters">
                                 <div class="col-6 pr-1">
-                                    <button type="submit" name="type" value="long" class="btn btn-buy btn-block btn-sm py-2">{{ _('Long') }}</button>
+                                    <button type="submit" name="type" value="long" class="btn btn-buy btn-block btn-sm py-2 shadow-sm">
+                                        {{ _('Long') }} <i class="fas fa-arrow-up ml-1"></i>
+                                    </button>
                                 </div>
                                 <div class="col-6 pl-1">
-                                    <button type="submit" name="type" value="short" class="btn btn-sell btn-block btn-sm py-2">{{ _('Short') }}</button>
+                                    <button type="submit" name="type" value="short" class="btn btn-sell btn-block btn-sm py-2 shadow-sm">
+                                        {{ _('Short') }} <i class="fas fa-arrow-down ml-1"></i>
+                                    </button>
                                 </div>
+                            </div>
+                            <div class="mt-2 text-center">
+                                <small class="text-muted" style="font-size: 0.7rem;">
+                                    {{ _('تنبيه: التداول بالرافعة المالية عالي المخاطر.') }}
+                                </small>
                             </div>
                         </form>
                     </div>

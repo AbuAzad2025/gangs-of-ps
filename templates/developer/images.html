@@ -18,8 +18,9 @@
                         <div class="form-group mr-2">
                             <label class="mr-2">{{ _('الفئة:') }}</label>
                             <select name="category" class="form-control bg-dark text-white">
-                                <option value="items">{{ _('عناصر (Items)') }}</option>
-                                <option value="vehicles">{{ _('مركبات (Vehicles)') }}</option>
+                                {% for category in images_by_category.keys() %}
+                                <option value="{{ category }}">{{ category|capitalize }}</option>
+                                {% endfor %}
                             </select>
                         </div>
                         <div class="form-group mr-2">
@@ -30,42 +31,41 @@
                 </div>
 
                 <ul class="nav nav-tabs" id="imageTabs" role="tablist">
+                    {% for category in images_by_category.keys() %}
                     <li class="nav-item">
-                        <a class="nav-link active" id="items-tab" data-toggle="tab" href="#items" role="tab">{{ _('العناصر') }}</a>
+                        <a class="nav-link {% if loop.first %}active{% endif %}" id="{{ category }}-tab" data-toggle="tab" href="#{{ category }}" role="tab">{{ category|capitalize }}</a>
                     </li>
-                    <li class="nav-item">
-                        <a class="nav-link" id="vehicles-tab" data-toggle="tab" href="#vehicles" role="tab">{{ _('المركبات') }}</a>
-                    </li>
+                    {% endfor %}
                 </ul>
+                
                 <div class="tab-content p-3 border border-top-0 border-secondary rounded-bottom" id="imageTabsContent">
-                    <div class="tab-pane fade show active" id="items" role="tabpanel">
+                    {% for category, images in images_by_category.items() %}
+                    <div class="tab-pane fade {% if loop.first %}show active{% endif %}" id="{{ category }}" role="tabpanel">
                         <div class="row">
-                            {% for img in item_images %}
+                            {% for img in images %}
                             <div class="col-md-2 col-sm-4 mb-3 text-center">
-                                <div class="img-thumbnail bg-secondary p-1">
-                                    <img src="{{ url_for('static', filename='images/items/' + img) }}" class="img-fluid" style="max-height: 100px;">
+                                <div class="img-thumbnail bg-secondary p-1 position-relative">
+                                    {% set img_url = url_for('static', filename='images/' + ('' if category == 'root' else category + '/') + img) %}
+                                    <a href="{{ img_url }}" target="_blank">
+                                        <img src="{{ img_url }}" class="img-fluid" style="max-height: 100px; object-fit: contain;">
+                                    </a>
                                     <div class="mt-1 small text-truncate" title="{{ img }}">{{ img }}</div>
+                                    
+                                    <!-- Delete Button -->
+                                    <form action="{{ url_for('main.dev_delete_image') }}" method="POST" class="mt-1" onsubmit="return confirm('{{ _('هل أنت متأكد من حذف هذه الصورة؟') }}');">
+                                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                        <input type="hidden" name="category" value="{{ category }}">
+                                        <input type="hidden" name="filename" value="{{ img }}">
+                                        <button type="submit" class="btn btn-danger btn-sm py-0 px-1" title="{{ _('حذف') }}">&times;</button>
+                                    </form>
                                 </div>
                             </div>
                             {% else %}
-                            <div class="col-12 text-center">{{ _('لا توجد صور') }}</div>
+                            <div class="col-12 text-center">{{ _('لا توجد صور في هذه الفئة') }}</div>
                             {% endfor %}
                         </div>
                     </div>
-                    <div class="tab-pane fade" id="vehicles" role="tabpanel">
-                        <div class="row">
-                            {% for img in vehicle_images %}
-                            <div class="col-md-2 col-sm-4 mb-3 text-center">
-                                <div class="img-thumbnail bg-secondary p-1">
-                                    <img src="{{ url_for('static', filename='images/vehicles/' + img) }}" class="img-fluid" style="max-height: 100px;">
-                                    <div class="mt-1 small text-truncate" title="{{ img }}">{{ img }}</div>
-                                </div>
-                            </div>
-                            {% else %}
-                            <div class="col-12 text-center">{{ _('لا توجد صور') }}</div>
-                            {% endfor %}
-                        </div>
-                    </div>
+                    {% endfor %}
                 </div>
             </div>
         </div>

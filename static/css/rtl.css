@@ -1,204 +1,204 @@
 /* Custom RTL Overrides for AdminLTE 3 */
-body {
+html[dir="rtl"] body {
     direction: rtl;
     text-align: right;
 }
 
 /* Sidebar Position */
-.main-sidebar {
+html[dir="rtl"] .main-sidebar {
     right: 0;
     left: auto;
 }
 
 /* Content Wrapper & Header Margins */
 @media (min-width: 992px) {
-    .sidebar-mini.layout-fixed .content-wrapper,
-    .sidebar-mini.layout-fixed .main-footer,
-    .sidebar-mini.layout-fixed .main-header {
+    html[dir="rtl"] .sidebar-mini.layout-fixed .content-wrapper,
+    html[dir="rtl"] .sidebar-mini.layout-fixed .main-footer,
+    html[dir="rtl"] .sidebar-mini.layout-fixed .main-header {
         margin-left: 0 !important;
         margin-right: 250px !important;
     }
     
-    .sidebar-mini.sidebar-collapse.layout-fixed .content-wrapper,
-    .sidebar-mini.sidebar-collapse.layout-fixed .main-footer,
-    .sidebar-mini.sidebar-collapse.layout-fixed .main-header {
+    html[dir="rtl"] .sidebar-mini.sidebar-collapse.layout-fixed .content-wrapper,
+    html[dir="rtl"] .sidebar-mini.sidebar-collapse.layout-fixed .main-footer,
+    html[dir="rtl"] .sidebar-mini.sidebar-collapse.layout-fixed .main-header {
         margin-left: 0 !important;
         margin-right: 4.6rem !important;
     }
 }
 
 /* Navbar alignment */
-.navbar-expand .navbar-nav {
+html[dir="rtl"] .navbar-expand .navbar-nav {
     flex-direction: row;
     padding-right: 0;
 }
 
-.navbar-nav .nav-item {
+html[dir="rtl"] .navbar-nav .nav-item {
     float: right; 
 }
 
 /* Fix ml-auto/mr-auto */
-.ml-auto {
+html[dir="rtl"] .ml-auto {
     margin-right: auto !important;
     margin-left: 0 !important;
 }
 
-.mr-auto {
+html[dir="rtl"] .mr-auto {
     margin-left: auto !important;
     margin-right: 0 !important;
 }
 
 /* Dropdowns */
-.dropdown-menu {
+html[dir="rtl"] .dropdown-menu {
     text-align: right;
     right: 0 !important; 
     left: auto !important;
 }
 
-.dropdown-menu-right {
+html[dir="rtl"] .dropdown-menu-right {
     right: auto !important;
     left: 0 !important;
 }
 
 /* Icons */
-.nav-icon {
+html[dir="rtl"] .nav-icon {
     margin-left: .5rem;
     margin-right: 0;
 }
 
 /* Cards */
-.card-header > .card-tools {
+html[dir="rtl"] .card-header > .card-tools {
     float: left;
     margin-right: -0.625rem;
 }
 
-.card-title {
+html[dir="rtl"] .card-title {
     float: right;
 }
 
 /* Brand Link */
-.brand-link {
+html[dir="rtl"] .brand-link {
     text-align: right;
 }
-.brand-link .brand-image {
+html[dir="rtl"] .brand-link .brand-image {
     float: right;
     margin-left: .8rem;
     margin-right: 0;
 }
 
 /* Sidebar User Panel */
-.user-panel .image {
+html[dir="rtl"] .user-panel .image {
     float: right;
 }
-.user-panel .info {
+html[dir="rtl"] .user-panel .info {
     padding-right: 10px;
     padding-left: 0;
 }
 
 /* Footer */
-.main-footer {
+html[dir="rtl"] .main-footer {
     text-align: right;
 }
 
 /* Footer Title Underline */
-.footer-title::after {
+html[dir="rtl"] .footer-title::after {
     right: 0;
     left: auto;
 }
 
 /* Flag Icon Spacing */
-.flag-icon.mr-2 {
+html[dir="rtl"] .flag-icon.mr-2 {
     margin-left: 0.5rem !important;
     margin-right: 0 !important;
 }
 
 /* General Spacing Overrides */
-.mr-1 {
+html[dir="rtl"] .mr-1 {
     margin-left: .25rem!important;
     margin-right: 0!important;
 }
-.mr-2 {
+html[dir="rtl"] .mr-2 {
     margin-left: .5rem!important;
     margin-right: 0!important;
 }
-.mr-3 {
+html[dir="rtl"] .mr-3 {
     margin-left: 1rem!important;
     margin-right: 0!important;
 }
-.mr-4 {
+html[dir="rtl"] .mr-4 {
     margin-left: 1.5rem!important;
     margin-right: 0!important;
 }
-.mr-5 {
+html[dir="rtl"] .mr-5 {
     margin-left: 3rem!important;
     margin-right: 0!important;
 }
 
-.ml-1 {
+html[dir="rtl"] .ml-1 {
     margin-right: .25rem!important;
     margin-left: 0!important;
 }
-.ml-2 {
+html[dir="rtl"] .ml-2 {
     margin-right: .5rem!important;
     margin-left: 0!important;
 }
-.ml-3 {
+html[dir="rtl"] .ml-3 {
     margin-right: 1rem!important;
     margin-left: 0!important;
 }
-.ml-4 {
+html[dir="rtl"] .ml-4 {
     margin-right: 1.5rem!important;
     margin-left: 0!important;
 }
-.ml-5 {
+html[dir="rtl"] .ml-5 {
     margin-right: 3rem!important;
     margin-left: 0!important;
 }
 
-.mx-1 {
+html[dir="rtl"] .mx-1 {
     margin-left: .25rem!important;
     margin-right: .25rem!important;
 }
-.mx-2 {
+html[dir="rtl"] .mx-2 {
     margin-left: .5rem!important;
     margin-right: .5rem!important;
 }
-.mx-3 {
+html[dir="rtl"] .mx-3 {
     margin-left: 1rem!important;
     margin-right: 1rem!important;
 }
-.mx-4 {
+html[dir="rtl"] .mx-4 {
     margin-left: 1.5rem!important;
     margin-right: 1.5rem!important;
 }
-.mx-5 {
+html[dir="rtl"] .mx-5 {
     margin-left: 3rem!important;
     margin-right: 3rem!important;
 }
 
-.pl-2 {
+html[dir="rtl"] .pl-2 {
     padding-right: 0.5rem !important;
     padding-left: 0 !important;
 }
 
 /* Directional Icons Flipping */
-.fa-arrow-right {
+html[dir="rtl"] .fa-arrow-right {
     transform: rotate(180deg);
 }
-.fa-chevron-right {
+html[dir="rtl"] .fa-chevron-right {
     transform: rotate(180deg);
 }
-.fa-arrow-left {
+html[dir="rtl"] .fa-arrow-left {
     transform: rotate(180deg);
 }
-.fa-chevron-left {
+html[dir="rtl"] .fa-chevron-left {
     transform: rotate(180deg);
 }
 
 /* Float Overrides */
-.float-right {
+html[dir="rtl"] .float-right {
     float: left !important;
 }
-.float-left {
+html[dir="rtl"] .float-left {
     float: right !important;
 }
