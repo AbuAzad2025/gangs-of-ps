@@ -784,7 +784,7 @@ def dev_hostess_edit(id=None):
         if form.image.data:
             image_path = save_image(form.image.data, 'hostesses')
             if image_path:
-                hostess.image = os.path.basename(image_path)
+                hostess.image = image_path
                 
         # Handle Video
         if form.video.data:

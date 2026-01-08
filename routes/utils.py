@@ -83,8 +83,8 @@ def save_image(form_image, folder):
     timestamp = datetime.now().strftime('%Y%m%d%H%M%S')
     new_filename = f"{timestamp}_{os.urandom(8).hex()}{ext}" # Add random string for extra safety
     
-    # Ensure directory exists
-    upload_path = os.path.join(current_app.root_path, 'static', 'uploads', folder)
+    # Ensure directory exists (unified under static/images)
+    upload_path = os.path.join(current_app.root_path, 'static', 'images', folder)
     os.makedirs(upload_path, exist_ok=True)
     
     filepath = os.path.join(upload_path, new_filename)
@@ -105,7 +105,8 @@ def save_image(form_image, folder):
         
         image_without_exif.save(filepath)
         
-        return f"uploads/{folder}/{new_filename}"
+        # Return path relative to images root (e.g., "hostesses/<file>")
+        return f"{folder}/{new_filename}"
     except Exception as e:
         current_app.logger.error(f"Image validation failed: {e}")
         return None

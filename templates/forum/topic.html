@@ -57,7 +57,7 @@
     <div class="card-body">
         <div class="row">
             <div class="col-md-2 text-center border-left border-secondary">
-                <img src="{{ url_for('static', filename='avatars/' + (post.user.avatar if post.user.avatar else 'default.png')) }}" class="img-fluid rounded-circle mb-2 mw-80px" onerror="this.onerror=null; this.src='{{ url_for('static', filename='avatars/default.png') }}';">
+                <img src="{{ url_for('static', filename='images/avatars/' + (post.user.avatar if post.user.avatar else 'default.png')) }}" class="img-fluid rounded-circle mb-2 mw-80px" onerror="this.onerror=null; this.src='{{ url_for('static', filename='images/avatars/default.png') }}';">
                 <br>
                 <a href="{{ url_for('main.profile', user_id=post.user_id) }}" class="text-gold font-weight-bold">
                     {{ post.user.username }}

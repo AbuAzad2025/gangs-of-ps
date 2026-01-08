@@ -261,7 +261,7 @@ def profile(user_id):
 @bp.route('/profile/edit', methods=['GET', 'POST'])
 @login_required
 def edit_profile():
-    avatars_dir = os.path.join(current_app.root_path, 'static', 'avatars')
+    avatars_dir = os.path.join(current_app.root_path, 'static', 'images', 'avatars')
     if not os.path.exists(avatars_dir):
         os.makedirs(avatars_dir)
         

@@ -206,7 +206,7 @@
                                 <tr>
                                     <td class="pl-4">
                                         <span class="badge badge-warning mr-2">{{ loop.index }}</span>
-                                        <img src="{{ url_for('static', filename='avatars/' + (player.avatar if player.avatar else 'default.png')) }}" class="img-circle elevation-1 avatar-30" alt="User" onerror="this.src='{{ url_for('static', filename='avatars/default.png') }}'">
+                                        <img src="{{ url_for('static', filename='images/avatars/' + (player.avatar if player.avatar else 'default.png')) }}" class="img-circle elevation-1 avatar-30" alt="User" onerror="this.src='{{ url_for('static', filename='images/avatars/default.png') }}'">
                                         <span class="font-weight-bold ml-2">{{ player.username }}</span>
                                     </td>
                                     <td class="text-right pr-4">

@@ -18,9 +18,9 @@ def fix_locations():
         locations = Location.query.all()
         count = 0
         for loc in locations:
-            # Check if image is just a filename (no slash) and exists in static/locations
+            # Check if image is just a filename (no slash) and exists in static/images/locations
             if loc.image and '/' not in loc.image:
-                possible_path = os.path.join(app.root_path, 'static', 'locations', loc.image)
+                possible_path = os.path.join(app.root_path, 'static', 'images', 'locations', loc.image)
                 if os.path.exists(possible_path):
                     print(f"Fixing location {loc.name}: {loc.image} -> locations/{loc.image}")
                     loc.image = f"locations/{loc.image}"
