@@ -1,5 +1,6 @@
 {% if hostess %}
 <!-- Hostess Chat Widget (Enhanced UI) -->
+{% set hostess_img = hostess.image if hostess.image and ('/' in hostess.image) else ('hostesses/' + (hostess.image or 'default_hostess.jpg')) %}
 <div id="hostess-chat-widget" class="hostess-widget-container shadow-lg fade-in">
     
     <!-- Header -->
@@ -8,14 +9,14 @@
             <div class="position-relative">
                 {% if hostess.is_avatar_active and hostess.video %}
                 {% if hostess.video.endswith('.gif') %}
-                  <img src="{{ url_for('static', filename='videos/hostesses/' + hostess.video) }}" class="rounded-circle border border-warning hostess-avatar-sm">
+                  <img src="{{ url_for('static', filename='videos/hostesses/' + hostess.video) }}" class="rounded-circle border border-gold hostess-avatar-sm">
                 {% else %}
-                  <video autoplay loop muted playsinline class="rounded-circle border border-warning hostess-avatar-sm">
+                  <video autoplay loop muted playsinline class="rounded-circle border border-gold hostess-avatar-sm">
                       <source src="{{ url_for('static', filename='videos/hostesses/' + hostess.video) }}" type="video/mp4">
                   </video>
                 {% endif %}
                 {% else %}
-                <img src="{{ url_for('static', filename='images/' + (hostess.image or 'hostesses/default_hostess.jpg')) }}" class="rounded-circle border border-warning hostess-avatar-sm" onerror="this.onerror=null; this.src='{{ url_for('static', filename='images/hostesses/default_hostess.jpg') }}';">
+                <img src="{{ url_for('static', filename='images/' + hostess_img) }}" class="rounded-circle border border-gold hostess-avatar-sm" onerror="this.onerror=null; this.src='{{ url_for('static', filename='images/hostesses/default_hostess.jpg') }}';">
                 {% endif %}
                 <span class="position-absolute bottom-0 right-0 bg-success border border-dark rounded-circle hostess-status-dot"></span>
             </div>
@@ -26,7 +27,7 @@
         </div>
         <div class="d-flex align-items-center">
             <span class="badge badge-dark text-muted mr-2 fs-0-7">EN / AR</span>
-            <button type="button" class="btn btn-sm text-white-50 hover-text-white rounded-circle p-1 w-30px h-30px" onclick="toggleHostessChat()">
+            <button type="button" class="btn btn-sm text-white-50 hover-text-white rounded-circle p-1 w-30px h-30px" onclick="toggleHostessChat()" aria-label="{{ _('إغلاق المحادثة') }}">
                 <i class="fas fa-times"></i>
             </button>
         </div>
@@ -42,7 +43,7 @@
         <!-- Initial Greeting -->
         <div class="message received mb-3 fade-in">
             <div class="d-flex align-items-end">
-                <img src="{{ url_for('static', filename='images/' + (hostess.image or 'hostesses/default_hostess.jpg')) }}" class="rounded-circle mr-2 shadow-sm w-30px h-30px object-fit-cover" onerror="this.onerror=null; this.src='{{ url_for('static', filename='images/hostesses/default_hostess.jpg') }}';">
+                <img src="{{ url_for('static', filename='images/' + hostess_img) }}" class="rounded-circle mr-2 shadow-sm w-30px h-30px object-fit-cover" onerror="this.onerror=null; this.src='{{ url_for('static', filename='images/hostesses/default_hostess.jpg') }}';">
                 <div class="bg-dark border border-secondary p-3 text-white shadow-sm hostess-msg-bubble-received">
                     {{ _(hostess.intro_message).replace('\n', '<br>')|safe if hostess.intro_message else _('أهلاً! أنا ياسمين. كيف بقدر أساعدك اليوم؟ 🌹') }}
                 </div>
@@ -73,7 +74,7 @@
 
 <!-- Floating Trigger Button (If not triggered by other means) -->
 <button onclick="toggleHostessChat()" class="btn btn-gold rounded-circle shadow-lg pulse-btn hostess-trigger-btn">
-    <img src="{{ url_for('static', filename='images/hostesses/' + (hostess.image or 'default_hostess.jpg')) }}" class="rounded-circle w-100 h-100 object-fit-cover" onerror="this.onerror=null; this.src='{{ url_for('static', filename='images/hostesses/default_hostess.jpg') }}';">
+    <img src="{{ url_for('static', filename='images/' + hostess_img) }}" class="rounded-circle w-100 h-100 object-fit-cover" onerror="this.onerror=null; this.src='{{ url_for('static', filename='images/hostesses/default_hostess.jpg') }}';">
 </button>
 
 <script>
@@ -87,13 +88,14 @@
     </video>
     {% endif %}
     {% else %}
-    <img src="{{ url_for('static', filename='images/' + (hostess.image or 'hostesses/default_hostess.jpg')) }}" class="rounded-circle mr-2 shadow-sm w-30px h-30px object-fit-cover" onerror="this.onerror=null; this.src='{{ url_for('static', filename='images/hostesses/default_hostess.jpg') }}';">
+    <img src="{{ url_for('static', filename='images/' + hostess_img) }}" class="rounded-circle mr-2 shadow-sm w-30px h-30px object-fit-cover" onerror="this.onerror=null; this.src='{{ url_for('static', filename='images/hostesses/default_hostess.jpg') }}';">
     {% endif %}
     `;
 
     function toggleHostessChat() {
         var widget = document.getElementById('hostess-chat-widget');
-        if (widget.style.display === 'none') {
+        var display = widget.style.display || (window.getComputedStyle ? window.getComputedStyle(widget).display : '');
+        if (display === 'none') {
             widget.style.display = 'flex';
             widget.style.opacity = '0';
             widget.style.transform = 'scale(0.9) translateY(20px)';
@@ -156,11 +158,16 @@
         scrollToBottom();
 
         try {
-            // Get CSRF token
             let csrfToken = '';
-            const csrfInput = document.querySelector('input[name="csrf_token"]');
-            if (csrfInput) {
-                csrfToken = csrfInput.value;
+            const csrfMeta = document.querySelector('meta[name="csrf-token"]');
+            if (csrfMeta) {
+                csrfToken = csrfMeta.getAttribute('content') || '';
+            }
+            if (!csrfToken) {
+                const csrfInput = document.querySelector('input[name="csrf_token"]');
+                if (csrfInput) {
+                    csrfToken = csrfInput.value;
+                }
             }
             
             const response = await fetch('/api/public/chat', {
@@ -175,13 +182,18 @@
                 })
             });
 
-            const data = await response.json();
+            let data = null;
+            try {
+                data = await response.json();
+            } catch (e) {
+                data = null;
+            }
             
             // Remove typing indicator
             const typingEl = document.getElementById(typingId);
             if (typingEl) typingEl.remove();
 
-            if (data.response) {
+            if (response.ok && data && data.response) {
                 const botMsgHtml = `
                     <div class="message received mb-3 fade-in">
                         <div class="d-flex align-items-end">
@@ -193,10 +205,17 @@
                     </div>
                 `;
                 chatBody.insertAdjacentHTML('beforeend', botMsgHtml);
-            } else if (data.error) {
+            } else if (data && data.error) {
                  const errorHtml = `
                     <div class="message received mb-3 fade-in">
                         <small class="text-danger">${data.error}</small>
+                    </div>
+                `;
+                chatBody.insertAdjacentHTML('beforeend', errorHtml);
+            } else if (!response.ok) {
+                const errorHtml = `
+                    <div class="message received mb-3 fade-in">
+                        <small class="text-danger">Chat Error (${response.status})</small>
                     </div>
                 `;
                 chatBody.insertAdjacentHTML('beforeend', errorHtml);
@@ -205,6 +224,13 @@
             console.error('Error:', error);
             const typingEl = document.getElementById(typingId);
             if (typingEl) typingEl.remove();
+            const chatBody = document.getElementById('chat-messages');
+            const errorHtml = `
+                <div class="message received mb-3 fade-in">
+                    <small class="text-danger">Network Error</small>
+                </div>
+            `;
+            chatBody.insertAdjacentHTML('beforeend', errorHtml);
         }
         
         scrollToBottom();

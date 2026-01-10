@@ -63,7 +63,7 @@
             "@type": "VideoObject",
             "name": "Gangs of Palestine Official Trailer",
             "description": "Join the strongest Arab mafia strategy game. Build your empire in Palestine.",
-            "thumbnailUrl": "{{ url_for('static', filename='img/azad_logo_white_on_dark.png', _external=True) }}",
+            "thumbnailUrl": "{{ url_for('static', filename='images/azad_logo_white_on_dark.png', _external=True) }}",
             "uploadDate": "2024-01-01",
             "contentUrl": "https://www.youtube.com/watch?v=placeholder"
           }
@@ -114,10 +114,11 @@
     <!-- Custom Luxury CSS -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/palestine_luxury.css') }}?v=3.1">
 </head>
-<body class="hold-transition sidebar-mini layout-fixed theme-palestine">
+<body class="hold-transition sidebar-mini layout-fixed theme-palestine {{ body_extra_class|default('') }}">
 <div class="bg-keffiyeh-overlay"></div>
 <div class="wrapper">
 
+  {% if not hide_navbar %}
   <!-- Navbar -->
   <nav class="main-header navbar navbar-expand navbar-dark navbar-luxury">
     <!-- Left navbar links -->
@@ -137,7 +138,7 @@
     <ul class="navbar-nav ml-auto">
       <!-- Language Dropdown -->
       <li class="nav-item dropdown">
-        <a class="nav-link" data-toggle="dropdown" href="#">
+        <a class="nav-link" data-toggle="dropdown" href="#" aria-label="{{ _('Change Language') }}">
           <i class="flag-icon flag-icon-{{ 'ps' if get_locale() == 'ar' else 'us' }}"></i>
         </a>
         <div class="dropdown-menu dropdown-menu-right p-0">
@@ -165,7 +166,7 @@
       </li>
       <li class="nav-item nav-stat-item">
         <a class="nav-link" href="#" role="button">
-          <i class="fas fa-coins text-warning"></i> <span id="user-money" class="d-none d-sm-inline">{{ current_user.money }}</span>
+          <i class="fas fa-coins text-gold"></i> <span id="user-money" class="d-none d-sm-inline">{{ current_user.money }}</span>
           <span class="d-inline d-sm-none small">{{ current_user.money }}</span>
         </a>
       </li>
@@ -208,9 +209,9 @@
       <li class="nav-item dropdown user-menu">
         <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" id="userDropdown" role="button" data-toggle="dropdown">
             {% if current_user.avatar and (current_user.avatar.startswith('http://') or current_user.avatar.startswith('https://')) %}
-            <img src="{{ current_user.avatar }}" class="rounded-circle mr-2 user-avatar-small" onerror="this.onerror=null; this.src='{{ url_for('static', filename='images/default_avatar.png') }}';">
+            <img src="{{ current_user.avatar }}" class="rounded-circle mr-2 user-avatar-small" onerror="this.onerror=null; this.src='{{ url_for('static', filename='images/avatars/default.png') }}';">
             {% else %}
-            <img src="{{ url_for('static', filename='avatars/' + (current_user.avatar if current_user.avatar else 'default.png')) }}" class="rounded-circle mr-2 user-avatar-small" onerror="this.onerror=null; this.src='{{ url_for('static', filename='images/default_avatar.png') }}';">
+            <img src="{{ url_for('static', filename='images/avatars/' + (current_user.avatar if current_user.avatar else 'default.png')) }}" class="rounded-circle mr-2 user-avatar-small" onerror="this.onerror=null; this.src='{{ url_for('static', filename='images/avatars/default.png') }}';">
             {% endif %}
             <span>{{ current_user.username }}</span>
         </a>
@@ -233,13 +234,15 @@
         {% endif %}
     </ul>
   </nav>
+  {% endif %}
   <!-- /.navbar -->
 
+  {% if not hide_sidebar %}
   <!-- Main Sidebar Container -->
   <aside class="main-sidebar sidebar-luxury elevation-4">
     <!-- Brand Logo -->
     <a href="{{ url_for('main.index') }}" class="brand-link text-center pb-3 pt-3">
-      <img src="{{ url_for('static', filename='img/azad_logo_white_on_dark.png') }}" alt="Gangs of Palestine" class="brand-image-xl elevation-3 brand-image-custom">
+      <img src="{{ url_for('static', filename='images/azad_logo_white_on_dark.png') }}" alt="Gangs of Palestine" class="brand-image-xl elevation-3 brand-image-custom">
       <span class="brand-text font-weight-light d-block mt-2 brand-text-custom">{{ _('عصابات فلسطين') }}</span>
     </a>
 
@@ -250,7 +253,7 @@
       <div class="user-panel sidebar-user-card mt-3 pb-3 mb-3 d-flex flex-column align-items-center">
         <div class="image mb-2">
           {% if current_user.avatar and current_user.avatar != 'default.png' %}
-            <img src="{{ url_for('static', filename='avatars/' + current_user.avatar) }}" class="img-circle elevation-2 user-avatar-sidebar" alt="User Image">
+            <img src="{{ url_for('static', filename='images/avatars/' + current_user.avatar) }}" class="img-circle elevation-2 user-avatar-sidebar" alt="User Image" onerror="this.onerror=null; this.src='{{ url_for('static', filename='images/avatars/default.png') }}';">
           {% else %}
             <img src="https://ui-avatars.com/api/?name={{ current_user.username }}&background=random" class="img-circle elevation-2" alt="User Image">
           {% endif %}
@@ -263,7 +266,7 @@
               {{ current_user.username }}
           </a>
           <div class="user-rank-badge mb-2">
-            <i class="fas fa-crown text-warning"></i> <span id="user-rank-title">{{ _(current_user.rank_title) }}</span>
+            <i class="fas fa-crown text-gold"></i> <span id="user-rank-title">{{ _(current_user.rank_title) }}</span>
           </div>
           
           <div class="d-flex justify-content-between small text-muted mb-1 px-2">
@@ -511,9 +514,10 @@
     </div>
     <!-- /.sidebar -->
   </aside>
+  {% endif %}
 
   <!-- Content Wrapper. Contains page content -->
-  <div class="content-wrapper">
+  <div class="content-wrapper" {% if hide_sidebar or hide_navbar %}style="{% if hide_sidebar %}margin-left:0;{% endif %}{% if hide_navbar %}margin-top:0;{% endif %}"{% endif %}>
     
     {% if global_announcement %}
     <div class="announcement-bar" id="global-announcement">
@@ -523,7 +527,7 @@
     </div>
     {% endif %}
 
-    {% if title %}
+    {% if title and not hide_page_title %}
     <div class="content-header">
       <div class="container-fluid">
         <div class="row mb-2">
@@ -537,7 +541,7 @@
 
     <!-- Main content -->
     <section class="content">
-      <div class="container-fluid">
+      <div class="{{ page_container_class|default('container-fluid') }}">
         {% with messages = get_flashed_messages(with_categories=true) %}
             {% if messages %}
                 {% for category, message in messages %}
@@ -558,6 +562,7 @@
   </div>
   <!-- /.content-wrapper -->
 
+  {% if not hide_footer %}
   <footer class="main-footer">
     <div class="container">
         <div class="row">
@@ -622,6 +627,7 @@
         </div>
     </div>
   </footer>
+  {% endif %}
 
   {% if ticker_news %}
   <div class="news-ticker-container">
@@ -661,6 +667,10 @@
 <script>
     // Tooltip initialization
     $(function () {
+        $('.modal').each(function () {
+            $(this).appendTo('body');
+        });
+
         $('[data-toggle="tooltip"]').tooltip()
     })
 
@@ -718,7 +728,7 @@
                  HostessToast.fire({
                    html: `
                      <div class="hostess-reaction-toast fade-in-up">
-                        <img src="/static/images/hostesses/${hImg}" class="hostess-reaction-img">
+                        <img src="{{ url_for('static', filename='images/hostesses/') }}${hImg}" class="hostess-reaction-img">
                         <div class="hostess-reaction-content">
                             <div class="hostess-reaction-title">${hName}</div>
                             <div class="hostess-reaction-msg">${hMsg}</div>
@@ -766,13 +776,34 @@
                 const animateValue = (id, newValue) => {
                     const el = document.getElementById(id);
                     if (!el) return;
-                    const currentText = el.innerText.replace(/,/g, '');
-                    const current = parseInt(currentText) || 0;
+                    // Remove commas and non-numeric chars for comparison
+                    const currentText = el.innerText.replace(/,/g, '').replace(/[^\d.-]/g, '');
+                    const current = parseFloat(currentText) || 0;
                     
                     if (current !== newValue) {
                         el.innerText = newValue.toLocaleString();
-                        el.classList.add('text-gold');
-                        setTimeout(() => el.classList.remove('text-gold'), 1000);
+                        
+                        // Add flash animation based on direction
+                        el.classList.remove('text-gold', 'flash-up', 'flash-down');
+                        
+                        if (newValue > current) {
+                             el.classList.add('flash-up');
+                             // Also flash the icon if possible (parent's previous sibling)
+                             const icon = el.previousElementSibling;
+                             if(icon && icon.tagName === 'I') {
+                                 icon.classList.add('flash-up');
+                                 setTimeout(() => icon.classList.remove('flash-up'), 1000);
+                             }
+                        } else {
+                             el.classList.add('flash-down');
+                             const icon = el.previousElementSibling;
+                             if(icon && icon.tagName === 'I') {
+                                 icon.classList.add('flash-down');
+                                 setTimeout(() => icon.classList.remove('flash-down'), 1000);
+                             }
+                        }
+                        
+                        setTimeout(() => el.classList.remove('flash-up', 'flash-down'), 1000);
                     }
                 };
 
@@ -891,7 +922,7 @@
     // Register Service Worker
     if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {
-            navigator.serviceWorker.register('/static/sw.js')
+            navigator.serviceWorker.register('{{ url_for('static', filename='sw.js') }}')
                 .then((reg) => {
                     console.log('Service worker registered.', reg);
                 })
@@ -1011,7 +1042,7 @@
 
                     div.innerHTML = `
                         <div class="sender">
-                            <img src="/static/avatars/${msg.avatar}" style="width:20px;height:20px;border-radius:50%;${avatarMargin}vertical-align:middle;" onerror="this.src='/static/avatars/default.png'">
+                            <img src="{{ url_for('static', filename='images/avatars/') }}${msg.avatar}" style="width:20px;height:20px;border-radius:50%;${avatarMargin}vertical-align:middle;" onerror="this.src='{{ url_for('static', filename='images/avatars/default.png') }}'">
                             ${msg.username}
                             ${actionBtn}
                         </div>

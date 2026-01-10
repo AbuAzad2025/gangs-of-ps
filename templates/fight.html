@@ -207,7 +207,7 @@
         <div class="col-md-6 col-lg-4 col-xl-3 mb-4 opponent-col">
             <div class="opponent-card fade-in-up">
                 <div class="opponent-avatar-container">
-                    <img src="{{ url_for('static', filename='avatars/' + opponent.avatar) }}" class="opponent-avatar" alt="{{ opponent.username }}">
+                    <img src="{{ url_for('static', filename='images/avatars/' + opponent.avatar) }}" class="opponent-avatar" alt="{{ opponent.username }}" onerror="this.onerror=null; this.src='{{ url_for('static', filename='images/avatars/default.png') }}';">
                     <div class="level-badge" title="{{ _('المستوى') }}">
                         {{ opponent.level }}
                     </div>

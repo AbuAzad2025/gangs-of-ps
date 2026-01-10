@@ -33,7 +33,7 @@
                                 </div>
                                 {{ form.password(class="form-control form-control-luxury", placeholder=_("كلمة المرور"), id="password") }}
                                 <div class="input-group-append">
-                                    <button class="btn btn-outline-secondary bg-dark border-secondary text-gold" type="button" onclick="togglePasswordVisibility('password', this)">
+                                    <button class="btn btn-outline-secondary bg-dark border-secondary text-gold" type="button" onclick="togglePasswordVisibility('password', this)" aria-label="{{ _('إظهار/إخفاء كلمة المرور') }}">
                                         <i class="fas fa-eye"></i>
                                     </button>
                                 </div>
@@ -50,7 +50,7 @@
                                 </div>
                                 {{ form.confirm_password(class="form-control form-control-luxury", placeholder=_("تأكيد كلمة المرور"), id="confirm_password") }}
                                 <div class="input-group-append">
-                                    <button class="btn btn-outline-secondary bg-dark border-secondary text-gold" type="button" onclick="togglePasswordVisibility('confirm_password', this)">
+                                    <button class="btn btn-outline-secondary bg-dark border-secondary text-gold" type="button" onclick="togglePasswordVisibility('confirm_password', this)" aria-label="{{ _('إظهار/إخفاء تأكيد كلمة المرور') }}">
                                         <i class="fas fa-eye"></i>
                                     </button>
                                 </div>

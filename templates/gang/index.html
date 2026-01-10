@@ -44,7 +44,7 @@
                                 <td>{{ gang.exp }}</td>
                                 <td>{{ gang.members|length }}</td>
                                 <td>
-                                    <a href="{{ url_for('gang.view', gang_id=gang.id) }}" class="btn btn-sm btn-outline-light" title="{{ _('عرض') }}">
+                                    <a href="{{ url_for('gang.view', gang_id=gang.id) }}" class="btn btn-sm btn-outline-gold" title="{{ _('عرض') }}">
                                         <i class="fas fa-eye"></i>
                                     </a>
                                     {% if current_user.is_authenticated and current_user.gang_id and current_user.gang_id != gang.id and (current_user.id == current_user.gang.leader_id or current_user.id == current_user.gang.underboss_id) %}

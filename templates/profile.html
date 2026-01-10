@@ -15,7 +15,7 @@
                 
                 <div class="profile-avatar-container">
                     {% if user.avatar and user.avatar != 'default.png' %}
-                        <img class="profile-avatar" src="{{ url_for('static', filename='avatars/' + user.avatar) }}" alt="{{ user.username }}">
+                        <img class="profile-avatar" src="{{ url_for('static', filename='images/avatars/' + user.avatar) }}" alt="{{ user.username }}" onerror="this.onerror=null; this.src='{{ url_for('static', filename='images/avatars/default.png') }}';">
                     {% else %}
                         <!-- Fallback to clearer avatar service or local default -->
                         <img class="profile-avatar" src="https://ui-avatars.com/api/?name={{ user.username }}&background=1e1e24&color=d4af37&size=256&bold=true&font-size=0.4" alt="{{ user.username }}">

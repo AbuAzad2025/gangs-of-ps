@@ -115,7 +115,7 @@ def riot():
         new_jail_until = current_jail_until + timedelta(minutes=penalty_minutes)
         set_fields['jail_until'] = new_jail_until
 
-    if not ResourceService.modify_resources(current_user.id, changes, 'jail_riot_attempt', auto_commit=True, expected_version=current_user.version, set_fields=set_fields):
+    if not ResourceService.modify_resources(current_user.id, changes, 'jail_riot_attempt', auto_commit=False, expected_version=current_user.version, set_fields=set_fields):
         flash(_('تحتاج إلى %(cost)s طاقة للتحريض على التمرد! أو حدث خطأ في التزامن.', cost=energy_cost), 'danger')
         return redirect(url_for('jail.index'))
 
@@ -227,7 +227,7 @@ def hunger_strike():
         new_jail_until = current_jail_until + timedelta(minutes=extension_minutes)
         set_fields['jail_until'] = new_jail_until
 
-    if not ResourceService.modify_resources(current_user.id, changes, 'jail_hunger_strike', auto_commit=True, expected_version=current_user.version, set_fields=set_fields):
+    if not ResourceService.modify_resources(current_user.id, changes, 'jail_hunger_strike', auto_commit=False, expected_version=current_user.version, set_fields=set_fields):
          flash(_('حدث خطأ أثناء معالجة الإضراب. قد تكون حالتك تغيرت.'), 'danger')
          return redirect(url_for('jail.index'))
 
@@ -269,15 +269,16 @@ def lawyer_visit():
     # Cost Calculation
     cost = (current_user.level * 200) + 1000
     reduction_minutes = 20
+    
+    # Calculate new jail time
+    current_jail_until = current_user.jail_until
+    if current_jail_until.tzinfo is None:
+        current_jail_until = current_jail_until.replace(tzinfo=timezone.utc)
+    new_jail_until = current_jail_until - timedelta(minutes=reduction_minutes)
 
-    if not ResourceService.modify_resources(current_user.id, {'money': -cost}, 'jail_lawyer_visit', auto_commit=False, expected_version=current_user.version):
+    if not ResourceService.modify_resources(current_user.id, {'money': -cost}, 'jail_lawyer_visit', auto_commit=True, expected_version=current_user.version, set_fields={'jail_until': new_jail_until}):
         flash(_('لا تملك تكاليف المحامي! تحتاج إلى %(cost)d$.', cost=cost), 'danger')
         return redirect(url_for('jail.index'))
-
-    # Apply Reduction
-    current_user.jail_until -= timedelta(minutes=reduction_minutes)
-    
-    db.session.commit()
     
     flash(_('قام المحامي بتقديم استئناف عاجل! تم تخفيض الحكم %(min)s دقيقة.', min=reduction_minutes), 'success')
     return redirect(url_for('jail.index'))

@@ -4,7 +4,7 @@
 
 <div class="trade-container">
     <!-- Top Bar: Ticker -->
-    <div class="d-flex align-items-center market-ticker-container px-4 py-2">
+    <div class="d-flex align-items-center market-ticker-container trade-ticker-bar px-4 py-2">
         <div class="d-flex align-items-center">
             <img src="{{ url_for('static', filename=asset.image_path) }}" alt="{{ asset.symbol }}" class="rounded-circle mr-3" style="width: 32px; height: 32px; border: 1px solid #2b3139;">
             <h4 class="mb-0 font-weight-bold mr-4 text-white">{{ asset.symbol }} <span class="text-muted small">{{ asset.name }}</span></h4>
@@ -379,6 +379,16 @@
     }
 
     document.addEventListener('DOMContentLoaded', function() {
+        try {
+            const params = new URLSearchParams(window.location.search);
+            const tab = (params.get('tab') || '').toLowerCase();
+            if (tab === 'futures') {
+                $('a[href="#futures-panel"]').tab('show');
+            } else if (tab === 'spot') {
+                $('a[href="#spot-panel"]').tab('show');
+            }
+        } catch (e) {}
+
         // Order book row click handler
         document.querySelectorAll('.order-book-row').forEach(row => {
             row.addEventListener('click', function() {

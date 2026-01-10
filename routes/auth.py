@@ -4,7 +4,7 @@
 from flask import render_template, redirect, url_for, flash, request, session, abort, Response, current_app
 from flask_login import login_user, logout_user, current_user, login_required
 from flask_babel import _
-from extensions import db, login, limiter
+from extensions import db, login, limiter, csrf
 from models import User, Referral, Gang, CombatLog, SystemConfig, UserRole, Hostess, SecurityLog, UserLog
 from services.ai_hostess_service import AIHostessService
 from services.hostess_training_service import build_greeter_leader_prompt, build_greeter_leader_training_json
@@ -351,9 +351,10 @@ def logout():
 
 @bp.route('/api/public/chat', methods=['POST'])
 @limiter.limit("20 per minute")
+@csrf.exempt
 def public_hostess_chat():
-    data = request.get_json()
-    message = data.get('message')
+    data = request.get_json(silent=True) or {}
+    message = (data.get('message') or '').strip()
     # Use default ID for 'Jasmin' if not provided, or search by role
     hostess_id = data.get('hostess_id')
     
@@ -400,12 +401,19 @@ def public_hostess_chat():
     chat_history = session.get(session_key, [])
     
     # 2. Get Response
-    response_text = ai_service.get_response(
-        user_message=message,
-        hostess_context=hostess.to_dict(),
-        user_context=user_context,
-        chat_history=chat_history
-    )
+    try:
+        response_text = ai_service.get_response(
+            user_message=message,
+            hostess_context=hostess.to_dict(),
+            user_context=user_context,
+            chat_history=chat_history
+        )
+    except Exception as e:
+        try:
+            current_app.logger.error(f"Public hostess chat error: {e}")
+        except Exception:
+            pass
+        response_text = ai_service._rule_based_response(message, hostess.to_dict(), user_context)
     
     # 3. Update History
     # Append User Message

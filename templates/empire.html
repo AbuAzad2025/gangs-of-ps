@@ -8,7 +8,7 @@
         <div class="card empire-card">
             <div class="card-body">
                 <div class="d-flex align-items-center">
-                    <img src="{{ user.avatar }}" class="rounded-circle mr-3 avatar-img" onerror="this.onerror=null; this.src='{{ url_for('static', filename='images/default_avatar.png') }}';">
+                    <img src="{{ user.avatar }}" class="rounded-circle mr-3 avatar-img" onerror="this.onerror=null; this.src='{{ url_for('static', filename='images/avatars/default.png') }}';">
                     <div>
                         <h5 class="mb-0 empire-header">{{ user.username }}</h5>
                         <small class="text-muted">{{ _('المستوى') }} {{ user.level }}</small>

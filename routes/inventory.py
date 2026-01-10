@@ -13,7 +13,7 @@ bp = Blueprint('inventory', __name__, url_prefix='/inventory')
 @bp.route('/')
 @login_required
 def index():
-    items = UserItem.query.filter_by(user_id=current_user.id).join(Item).filter(UserItem.quantity > 0).all()
+    items = UserItem.query.filter_by(user_id=current_user.id).join(Item).filter(UserItem.quantity > 0).limit(100).all()
     return render_template('inventory.html', items=items)
 
 @bp.route('/equip/<int:item_id>', methods=['POST'])

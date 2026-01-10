@@ -33,7 +33,7 @@
                 {% for location in locations %}
                 <div class="flight-row row align-items-center py-2 border-bottom border-dark">
                     <div class="col-md-4 col-12 d-flex align-items-center">
-                        {% set image_path = location.image if location.image else 'locations/default_city.jpg' %}
+                        {% set image_path = location.image if location.image and ('/' in location.image) else 'locations/' + (location.image or 'default_city.jpg') %}
                         <img src="{{ url_for('static', filename='images/' + image_path) }}" 
                              alt="{{ _(location.name) }}" 
                              class="img-thumbnail mr-3 location-thumbnail"

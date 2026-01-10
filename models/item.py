@@ -27,8 +27,8 @@ class Item(db.Model):
 
 class UserItem(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
-    item_id = db.Column(db.Integer, db.ForeignKey('item.id'), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False, index=True)
+    item_id = db.Column(db.Integer, db.ForeignKey('item.id'), nullable=False, index=True)
     quantity = db.Column(db.Integer, default=1)
     is_equipped = db.Column(db.Boolean, default=False)
     condition = db.Column(db.Integer, default=100)

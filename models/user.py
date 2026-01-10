@@ -311,11 +311,11 @@ class User(UserMixin, db.Model):
     safe_house_until = db.Column(db.DateTime, nullable=True)
     is_admin_protected = db.Column(db.Boolean, default=False)
     heat_points = db.Column(db.Integer, default=0)
-    heat_updated_at = db.Column(db.DateTime, nullable=True)
+    heat_updated_at = db.Column(db.DateTime, nullable=True, index=True)
     is_disguised = db.Column(db.Boolean, default=False)
     disguise_until = db.Column(db.DateTime, nullable=True)
     casino_luck_until = db.Column(db.DateTime, nullable=True)
-    active_hostess_id = db.Column(db.Integer, nullable=True)
+    active_hostess_id = db.Column(db.Integer, db.ForeignKey('hostesses.id'), nullable=True, index=True)
 
     # Security
     failed_login_attempts = db.Column(db.Integer, default=0)
@@ -341,17 +341,17 @@ class User(UserMixin, db.Model):
     
     # Referrals
     referral_code = db.Column(db.String(16), unique=True, nullable=True, index=True)
-    referred_by_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True)
+    referred_by_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True, index=True)
     
     # Timestamps
-    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
-    last_daily_reward = db.Column(db.DateTime)
+    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), index=True)
+    last_daily_reward = db.Column(db.DateTime, index=True)
     daily_streak = db.Column(db.Integer, default=0)
     last_chase = db.Column(db.DateTime)
     crime_cooldown_until = db.Column(db.DateTime)
     organized_crime_cooldown_until = db.Column(db.DateTime)
-    last_crime = db.Column(db.DateTime)
-    last_travel = db.Column(db.DateTime)
+    last_crime = db.Column(db.DateTime, index=True)
+    last_travel = db.Column(db.DateTime, index=True)
     last_gym_training = db.Column(db.DateTime)
     last_attack = db.Column(db.DateTime)
 

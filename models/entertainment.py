@@ -40,8 +40,8 @@ class GamePlayer(db.Model):
     __tablename__ = 'game_players'
 
     id = db.Column(db.Integer, primary_key=True)
-    room_id = db.Column(db.Integer, db.ForeignKey('game_rooms.id'), nullable=False)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    room_id = db.Column(db.Integer, db.ForeignKey('game_rooms.id'), nullable=False, index=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False, index=True)
     joined_at = db.Column(db.DateTime, default=datetime.utcnow)
     seat_index = db.Column(db.Integer) # 0 for White/Player1, 1 for Black/Player2, etc.
     is_ready = db.Column(db.Boolean, default=False)
@@ -61,8 +61,8 @@ class GameChat(db.Model):
     __tablename__ = 'game_chat'
 
     id = db.Column(db.Integer, primary_key=True)
-    room_id = db.Column(db.Integer, db.ForeignKey('game_rooms.id'), nullable=False)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    room_id = db.Column(db.Integer, db.ForeignKey('game_rooms.id'), nullable=False, index=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False, index=True)
     message = db.Column(db.String(500), nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     

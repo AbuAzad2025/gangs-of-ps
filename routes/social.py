@@ -1,6 +1,6 @@
 from flask import render_template, redirect, url_for, flash, abort, request, current_app, jsonify
 from flask_login import login_required, current_user
-from extensions import db, limiter
+from extensions import db, limiter, cache
 from sqlalchemy import or_
 from models import Gang, Message, User, Notification, CombatLog
 from models.social import PublicChat
@@ -217,10 +217,18 @@ def bulk_delete_messages():
         flash(_('لم يتم تحديد أي رسالة!'), 'warning')
         return redirect(url_for('main.messages', box=box))
         
-    count = 0
-    for msg_id in msg_ids:
-        msg = db.session.get(Message, int(msg_id))
-        if msg:
+    try:
+        # Convert IDs to integers
+        msg_ids = [int(mid) for mid in msg_ids]
+        
+        # Limit to 50 messages to prevent abuse/memory issues
+        msg_ids = msg_ids[:50]
+        
+        # Optimization: Fetch all messages in one query
+        messages = Message.query.filter(Message.id.in_(msg_ids)).all()
+        
+        count = 0
+        for msg in messages:
             if msg.receiver_id == current_user.id and box == 'inbox':
                 msg.deleted_by_receiver = True
                 count += 1
@@ -231,9 +239,12 @@ def bulk_delete_messages():
             if msg.deleted_by_sender and msg.deleted_by_receiver:
                 db.session.delete(msg)
     
-    db.session.commit()
-    if count > 0:
-        flash(_('تم حذف %(count)d رسالة.', count=count), 'success')
+        db.session.commit()
+        if count > 0:
+            flash(_('تم حذف %(count)d رسالة.', count=count), 'success')
+    except ValueError:
+        flash(_('بيانات غير صالحة'), 'danger')
+        
     return redirect(url_for('main.messages', box=box))
 
 @bp.route('/profile/<int:user_id>')
@@ -297,6 +308,7 @@ def edit_profile():
 
 @bp.route('/leaderboard')
 @limiter.limit("20 per minute")
+@cache.cached(timeout=300)
 def leaderboard():
     # SEO
     from extensions import seo_manager

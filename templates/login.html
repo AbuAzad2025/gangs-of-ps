@@ -22,7 +22,8 @@
                             </video>
                           {% endif %}
                         {% else %}
-                        <img src="{{ url_for('static', filename='images/hostesses/' + greeter.image) }}" alt="{{ greeter.name }}" class="rounded-circle border border-warning greeter-img">
+                        {% set greeter_img = greeter.image if greeter.image and ('/' in greeter.image) else ('hostesses/' + (greeter.image or 'default_hostess.jpg')) %}
+                        <img src="{{ url_for('static', filename='images/' + greeter_img) }}" alt="{{ greeter.name }}" class="rounded-circle border border-warning greeter-img" onerror="this.onerror=null; this.src='{{ url_for('static', filename='images/hostesses/default_hostess.jpg') }}';">
                         {% endif %}
                         <span class="position-absolute bottom-0 right-0 bg-success border border-dark rounded-circle status-dot"></span>
                     </div>

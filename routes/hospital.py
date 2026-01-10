@@ -158,7 +158,7 @@ def buy_energy():
         user_id=user.id,
         changes={'money': -cost, 'energy': actual_gain},
         reason='hospital_buy_energy',
-        auto_commit=True,
+        auto_commit=False,
         expected_version=None
     )
 
@@ -168,6 +168,7 @@ def buy_energy():
         return redirect(url_for('hospital.index'))
     
     update_daily_task_progress(current_user, 'buy')
+    db.session.commit()
     return redirect(url_for('hospital.index'))
 
 @bp.route('/experimental_surgery', methods=['POST'])

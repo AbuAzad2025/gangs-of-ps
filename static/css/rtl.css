@@ -1,16 +1,21 @@
-/* Custom RTL Overrides for AdminLTE 3 */
+/* RTL Overrides - Optimized */
+html[dir="rtl"] {
+    direction: rtl;
+    text-align: right;
+}
+
 html[dir="rtl"] body {
     direction: rtl;
     text-align: right;
 }
 
-/* Sidebar Position */
+/* Sidebar Position - RTL */
 html[dir="rtl"] .main-sidebar {
     right: 0;
     left: auto;
 }
 
-/* Content Wrapper & Header Margins */
+/* Content Wrapper & Header Margins - RTL */
 @media (min-width: 992px) {
     html[dir="rtl"] .sidebar-mini.layout-fixed .content-wrapper,
     html[dir="rtl"] .sidebar-mini.layout-fixed .main-footer,
@@ -112,74 +117,26 @@ html[dir="rtl"] .flag-icon.mr-2 {
     margin-right: 0 !important;
 }
 
-/* General Spacing Overrides */
-html[dir="rtl"] .mr-1 {
-    margin-left: .25rem!important;
-    margin-right: 0!important;
-}
-html[dir="rtl"] .mr-2 {
-    margin-left: .5rem!important;
-    margin-right: 0!important;
-}
-html[dir="rtl"] .mr-3 {
-    margin-left: 1rem!important;
-    margin-right: 0!important;
-}
-html[dir="rtl"] .mr-4 {
-    margin-left: 1.5rem!important;
-    margin-right: 0!important;
-}
-html[dir="rtl"] .mr-5 {
-    margin-left: 3rem!important;
-    margin-right: 0!important;
-}
+/* Spacing Utilities - Consolidated */
+html[dir="rtl"] .mr-1 { margin-left: .25rem!important; margin-right: 0!important; }
+html[dir="rtl"] .mr-2 { margin-left: .5rem!important; margin-right: 0!important; }
+html[dir="rtl"] .mr-3 { margin-left: 1rem!important; margin-right: 0!important; }
+html[dir="rtl"] .mr-4 { margin-left: 1.5rem!important; margin-right: 0!important; }
+html[dir="rtl"] .mr-5 { margin-left: 3rem!important; margin-right: 0!important; }
 
-html[dir="rtl"] .ml-1 {
-    margin-right: .25rem!important;
-    margin-left: 0!important;
-}
-html[dir="rtl"] .ml-2 {
-    margin-right: .5rem!important;
-    margin-left: 0!important;
-}
-html[dir="rtl"] .ml-3 {
-    margin-right: 1rem!important;
-    margin-left: 0!important;
-}
-html[dir="rtl"] .ml-4 {
-    margin-right: 1.5rem!important;
-    margin-left: 0!important;
-}
-html[dir="rtl"] .ml-5 {
-    margin-right: 3rem!important;
-    margin-left: 0!important;
-}
+html[dir="rtl"] .ml-1 { margin-right: .25rem!important; margin-left: 0!important; }
+html[dir="rtl"] .ml-2 { margin-right: .5rem!important; margin-left: 0!important; }
+html[dir="rtl"] .ml-3 { margin-right: 1rem!important; margin-left: 0!important; }
+html[dir="rtl"] .ml-4 { margin-right: 1.5rem!important; margin-left: 0!important; }
+html[dir="rtl"] .ml-5 { margin-right: 3rem!important; margin-left: 0!important; }
 
-html[dir="rtl"] .mx-1 {
-    margin-left: .25rem!important;
-    margin-right: .25rem!important;
-}
-html[dir="rtl"] .mx-2 {
-    margin-left: .5rem!important;
-    margin-right: .5rem!important;
-}
-html[dir="rtl"] .mx-3 {
-    margin-left: 1rem!important;
-    margin-right: 1rem!important;
-}
-html[dir="rtl"] .mx-4 {
-    margin-left: 1.5rem!important;
-    margin-right: 1.5rem!important;
-}
-html[dir="rtl"] .mx-5 {
-    margin-left: 3rem!important;
-    margin-right: 3rem!important;
-}
+html[dir="rtl"] .mx-1 { margin-left: .25rem!important; margin-right: .25rem!important; }
+html[dir="rtl"] .mx-2 { margin-left: .5rem!important; margin-right: .5rem!important; }
+html[dir="rtl"] .mx-3 { margin-left: 1rem!important; margin-right: 1rem!important; }
+html[dir="rtl"] .mx-4 { margin-left: 1.5rem!important; margin-right: 1.5rem!important; }
+html[dir="rtl"] .mx-5 { margin-left: 3rem!important; margin-right: 3rem!important; }
 
-html[dir="rtl"] .pl-2 {
-    padding-right: 0.5rem !important;
-    padding-left: 0 !important;
-}
+html[dir="rtl"] .pl-2 { padding-right: 0.5rem !important; padding-left: 0 !important; }
 
 /* Directional Icons Flipping */
 html[dir="rtl"] .fa-arrow-right {

@@ -4,25 +4,33 @@
    Palestine Luxury Theme - Consolidated Styles
    ========================================================================== */
 
-/* Variables */
+/* Variables - Optimized for performance and consistency */
 :root {
+    /* Gold Palette */
     --gold-primary: #ffd700;
     --gold-secondary: #d4af37;
     --gold-dark: #c5a028;
     --gold-light: #fff8e1;
+    
+    /* Background Colors */
     --bg-dark: #121212;
     --bg-card: #1e1e1e;
     --bg-darker: #0d0d0d;
-    --dark-card: #1e1e1e;
+    
+    /* Text Colors */
     --text-primary: #ffffff;
     --text-secondary: #b0b0b0;
     --text-muted: #b0b0b0;
     --text-light: #ffffff;
+    
+    /* Status Colors */
     --danger: #dc3545;
     --success: #28a745;
     --primary: #007bff;
     --secondary: #6c757d;
     --warning: #ffc107;
+    
+    /* UI Elements */
     --border-color: #333;
     --shadow-soft: 0 4px 6px rgba(0, 0, 0, 0.3);
     --shadow-gold: 0 0 15px rgba(255, 215, 0, 0.3);
@@ -152,10 +160,26 @@ h1, h2, h3, h4, h5, h6, .brand-text-custom, .luxury-title {
 .fade-in-left { animation: fadeInLeft 0.8s ease-out forwards; opacity: 0; }
 .fade-in-right { animation: fadeInRight 0.8s ease-out forwards; opacity: 0; }
 
+/* Animations - Enhanced with performance optimizations */
 @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 @keyframes fadeInDown { from { opacity: 0; transform: translateY(-16px); } to { opacity: 1; transform: translateY(0); } }
 @keyframes fadeInLeft { from { opacity: 0; transform: translateX(-16px); } to { opacity: 1; transform: translateX(0); } }
 @keyframes fadeInRight { from { opacity: 0; transform: translateX(16px); } to { opacity: 1; transform: translateX(0); } }
+
+/* Performance optimization for animated elements */
+.fade-in, .fade-in-up, .fade-in-down, .fade-in-left, .fade-in-right {
+    will-change: opacity, transform;
+}
+
+/* Respect user preference for reduced motion */
+@media (prefers-reduced-motion: reduce) {
+    .fade-in, .fade-in-up, .fade-in-down, .fade-in-left, .fade-in-right,
+    .pulse-button, .pulse-text {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+}
 
 .hover-text-white:hover { color: #fff !important; }
 
@@ -310,12 +334,18 @@ h1, h2, h3, h4, h5, h6, .brand-text-custom, .luxury-title {
 .input-max-200 { max-width: 200px; }
 .max-w-300 { max-width: 300px; }
 
-/* Animations */
+/* Animations - Consolidated */
 .pulse-button {
     animation: pulse 2s infinite;
 }
 .pulse-text {
     animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+    0% { opacity: 1; }
+    50% { opacity: 0.7; }
+    100% { opacity: 1; }
 }
 .overlay-gradient {
     position: absolute;
@@ -437,7 +467,7 @@ h1, h2, h3, h4, h5, h6, .brand-text-custom, .luxury-title {
     text-align: right;
 }
 
-/* Animations */
+/* Animations - Consolidated delay classes */
 .anim-delay-1 { animation-delay: 0.1s; }
 .anim-delay-2 { animation-delay: 0.2s; }
 .anim-delay-3 { animation-delay: 0.3s; }
@@ -445,7 +475,6 @@ h1, h2, h3, h4, h5, h6, .brand-text-custom, .luxury-title {
 .anim-delay-5 { animation-delay: 0.5s; }
 .anim-delay-6 { animation-delay: 0.6s; }
 .anim-delay-7 { animation-delay: 0.7s; }
-.anim-delay-dynamic { animation-delay: var(--delay, 0s); }
 .anim-delay-8 { animation-delay: 0.8s; }
 .anim-delay-9 { animation-delay: 0.9s; }
 .anim-delay-10 { animation-delay: 1.0s; }
@@ -459,6 +488,7 @@ h1, h2, h3, h4, h5, h6, .brand-text-custom, .luxury-title {
 .anim-delay-18 { animation-delay: 1.8s; }
 .anim-delay-19 { animation-delay: 1.9s; }
 .anim-delay-20 { animation-delay: 2.0s; }
+.anim-delay-dynamic { animation-delay: var(--delay, 0s); }
 
 /* ==========================================================================
    Combat Template Styles
@@ -1616,8 +1646,45 @@ h1, h2, h3, h4, h5, h6, .brand-text-custom, .luxury-title {
     height: calc(100vh - 60px);
     overflow: hidden;
 }
+.trade-fullscreen .trade-container {
+    height: 100vh;
+}
 .trade-ticker-bar {
     flex-shrink: 0;
+}
+.trade-container .market-ticker-container.trade-ticker-bar {
+    background: linear-gradient(180deg, rgba(15, 18, 22, 0.98) 0%, rgba(11, 14, 17, 0.92) 100%);
+    border-bottom: 1px solid rgba(212, 175, 55, 0.16);
+    padding: 12px 16px;
+    overflow: visible;
+    white-space: normal;
+}
+.trade-container .market-ticker-container.trade-ticker-bar > * {
+    min-width: 0;
+}
+.trade-container .market-ticker-container.trade-ticker-bar h4 {
+    font-size: 1.05rem;
+    letter-spacing: 0.2px;
+}
+.trade-container .market-ticker-container.trade-ticker-bar .market-price-large {
+    font-size: 1.75rem;
+    line-height: 1.1;
+}
+.trade-container .market-ticker-container.trade-ticker-bar .fs-10 {
+    font-size: 11px;
+}
+@media (max-width: 992px) {
+    .trade-container .market-ticker-container.trade-ticker-bar {
+        padding: 10px 12px;
+        gap: 8px;
+        flex-wrap: wrap;
+    }
+    .trade-container .market-ticker-container.trade-ticker-bar h4 {
+        margin-right: 0 !important;
+    }
+    .trade-container .market-ticker-container.trade-ticker-bar .mr-4 {
+        margin-right: 0 !important;
+    }
 }
 .h-60vh-rel {
     height: 60vh;
@@ -3587,6 +3654,98 @@ h1, h2, h3, h4, h5, h6, .brand-text-custom, .luxury-title {
     z-index: 1;
 }
 
+.locations-section-title {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    margin: 14px 0 22px;
+    text-align: center;
+}
+.locations-section-title h2 {
+    margin: 0;
+    font-weight: 800;
+    font-size: 1.6rem;
+    color: #e9ecef;
+    letter-spacing: 0.3px;
+    text-shadow: 0 0 16px rgba(0, 0, 0, 0.7);
+}
+.locations-section-title .title-line {
+    height: 1px;
+    flex: 1;
+    max-width: 220px;
+    background: linear-gradient(90deg, rgba(212, 175, 55, 0) 0%, rgba(212, 175, 55, 0.55) 50%, rgba(212, 175, 55, 0) 100%);
+}
+
+.location-card-modern {
+    position: relative;
+    min-height: 160px;
+    border-radius: 16px;
+    overflow: hidden;
+    background: #0e1116;
+    border: 1px solid rgba(212, 175, 55, 0.18);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.45);
+    transform: translateZ(0);
+    transition: transform 160ms ease, box-shadow 160ms ease, border-color 160ms ease;
+}
+.location-bg {
+    position: absolute;
+    inset: 0;
+    background-size: cover;
+    background-position: center;
+    filter: saturate(0.85) contrast(1.05) brightness(0.55);
+    transform: scale(1.02);
+    transition: transform 260ms ease, filter 260ms ease;
+}
+.location-overlay {
+    position: relative;
+    height: 100%;
+    padding: 16px;
+    display: flex;
+    align-items: flex-end;
+    background: linear-gradient(180deg, rgba(0,0,0,0.05) 0%, rgba(0,0,0,0.55) 48%, rgba(0,0,0,0.88) 100%);
+}
+.location-icon-floating {
+    position: absolute;
+    top: 14px;
+    right: 14px;
+    width: 46px;
+    height: 46px;
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(15, 18, 22, 0.78);
+    border: 1px solid rgba(212, 175, 55, 0.35);
+    box-shadow: 0 8px 18px rgba(0, 0, 0, 0.45);
+    color: var(--gold-primary);
+}
+[dir="rtl"] .location-icon-floating {
+    right: auto;
+    left: 14px;
+}
+.location-info h4 {
+    margin: 0 0 4px;
+    font-size: 1.15rem;
+    font-weight: 900;
+    color: #f8f9fa;
+    text-shadow: 0 0 14px rgba(0, 0, 0, 0.75);
+}
+.location-info p {
+    margin: 0;
+    font-size: 0.9rem;
+    color: rgba(255, 255, 255, 0.68);
+}
+.group:hover .location-card-modern {
+    transform: translateY(-3px);
+    border-color: rgba(212, 175, 55, 0.38);
+    box-shadow: 0 16px 38px rgba(0, 0, 0, 0.55);
+}
+.group:hover .location-bg {
+    transform: scale(1.08);
+    filter: saturate(1.0) contrast(1.05) brightness(0.62);
+}
+
 /* Gang View Styles */
 .widget-user-luxury {
     background: var(--bg-card);
@@ -5020,4 +5179,77 @@ h1, h2, h3, h4, h5, h6, .brand-text-custom, .luxury-title {
 /* Ensure bottom items are reachable */
 .nav-sidebar {
     padding-bottom: 80px;
+}
+
+.theme-palestine {
+    background-color: var(--bg-dark);
+}
+
+.bg-keffiyeh-overlay {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 0;
+    opacity: 0.05;
+    background-image:
+        linear-gradient(45deg, rgba(212, 175, 55, 0.12) 25%, transparent 25%),
+        linear-gradient(-45deg, rgba(212, 175, 55, 0.12) 25%, transparent 25%),
+        linear-gradient(45deg, transparent 75%, rgba(212, 175, 55, 0.12) 75%),
+        linear-gradient(-45deg, transparent 75%, rgba(212, 175, 55, 0.12) 75%);
+    background-size: 60px 60px;
+    background-position: 0 0, 0 30px, 30px -30px, -30px 0px;
+}
+
+.wrapper {
+    position: relative;
+    z-index: 1;
+}
+
+.navbar-luxury {
+    background: linear-gradient(180deg, rgba(10, 10, 10, 0.95) 0%, rgba(18, 18, 18, 0.92) 100%) !important;
+    border-bottom: 1px solid rgba(212, 175, 55, 0.28) !important;
+    backdrop-filter: blur(10px);
+}
+
+.sidebar-luxury {
+    background: linear-gradient(180deg, rgba(8, 8, 8, 0.98) 0%, rgba(18, 18, 18, 0.96) 100%) !important;
+    border-right: 1px solid rgba(212, 175, 55, 0.22) !important;
+}
+
+.sidebar-luxury .nav-link.active {
+    background: linear-gradient(90deg, rgba(255, 215, 0, 0.12), transparent) !important;
+    border-left: 3px solid var(--gold-primary);
+    color: var(--gold-primary) !important;
+    box-shadow: none !important;
+}
+
+.sidebar-luxury .nav-link:hover {
+    color: var(--gold-light) !important;
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.sidebar-user-card {
+    background: rgba(30, 30, 30, 0.5);
+    border: 1px solid rgba(255, 215, 0, 0.12);
+    border-radius: 10px;
+    padding: 15px;
+}
+
+.user-rank-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 6px 12px;
+    border-radius: 999px;
+    background: rgba(0, 0, 0, 0.35);
+    border: 1px solid rgba(212, 175, 55, 0.25);
+    color: rgba(255, 255, 255, 0.9);
+    font-weight: 800;
+}
+
+.card-luxury {
+    background: linear-gradient(145deg, rgba(30, 30, 30, 0.92), rgba(12, 12, 12, 0.96));
+    border: 1px solid rgba(212, 175, 55, 0.22);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
 }

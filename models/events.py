@@ -3,7 +3,7 @@ from datetime import datetime, timezone
 
 class WeeklyWinner(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False, index=True)
     week_number = db.Column(db.Integer, nullable=False) # e.g., week number of the year
     year = db.Column(db.Integer, nullable=False)
     amount_won = db.Column(db.Integer, default=100) # $100

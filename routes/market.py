@@ -1,7 +1,7 @@
 from flask import Blueprint, render_template, redirect, url_for, flash, request, jsonify, current_app, abort
 from flask_login import login_required, current_user
 from flask_babel import _
-from extensions import db, limiter
+from extensions import db, limiter, cache
 from models.market import MarketAsset, UserInvestment, FuturesPosition, SpotOrder
 from models.user import User
 from models.social import Message
@@ -13,140 +13,224 @@ import pandas as pd
 from .utils import update_daily_task_progress
 from services.resource_service import ResourceService
 from services.market_simulation import MarketSimulationService
+from utils.decorators import check_player_status
 
 bp = Blueprint('market', __name__, url_prefix='/market')
+
+def check_liquidations(asset):
+    """Checks and liquidates positions that hit liquidation price"""
+    # Fetch all open positions for this asset
+    # This might be heavy if there are thousands, but for now it's fine.
+    # Optimization: Filter by liquidation criteria in DB query
+    # Long: current_price <= liquidation_price
+    # Short: current_price >= liquidation_price
+    
+    # 1. Liquidate Longs
+    longs = FuturesPosition.query.filter(
+        FuturesPosition.asset_id == asset.id,
+        FuturesPosition.is_open == True,
+        FuturesPosition.position_type == 'long',
+        FuturesPosition.liquidation_price >= asset.current_price
+    ).limit(50).all()
+    
+    for pos in longs:
+        liquidate_position(pos, asset.current_price)
+        
+    # 2. Liquidate Shorts
+    shorts = FuturesPosition.query.filter(
+        FuturesPosition.asset_id == asset.id,
+        FuturesPosition.is_open == True,
+        FuturesPosition.position_type == 'short',
+        FuturesPosition.liquidation_price <= asset.current_price
+    ).limit(50).all()
+    
+    for pos in shorts:
+        liquidate_position(pos, asset.current_price)
+
+def liquidate_position(position, current_price):
+    """Executes liquidation for a single position"""
+    try:
+        # Lock Position
+        # We need to re-fetch with lock to be safe, though we just fetched it.
+        # But since we are iterating, another thread might have closed it.
+        pos_locked = db.session.query(FuturesPosition).filter_by(id=position.id).with_for_update().first()
+        if not pos_locked or not pos_locked.is_open:
+            return
+
+        # Double check price condition (race condition with price update?)
+        # Assume 'current_price' is the source of truth for this liquidation event.
+        
+        # Close it
+        pos_locked.is_open = False
+        pos_locked.exit_price = current_price
+        pos_locked.closed_at = datetime.now(timezone.utc)
+        
+        # Calculate PnL (Should be roughly -Margin)
+        # But we just set it to -Margin effectively (user gets 0 back)
+        # Actually calculate it for records
+        pnl = pos_locked.calculate_pnl()
+        
+        # User gets nothing back (Liquidation)
+        # Or maybe a tiny dust amount if we are generous? No, REKT.
+        
+        # Notify User
+        msg = Message(
+            sender_id=1, # System
+            receiver_id=pos_locked.user_id,
+            subject=_('تصفية قسرية: عقد %(sym)s', sym=pos_locked.asset.symbol),
+            body=_('للأسف، تم تصفية صفقتك (Liquidation) على سعر %(price)s. خسرت الهامش بالكامل.', price=current_price),
+            delivery_time=datetime.now(timezone.utc)
+        )
+        db.session.add(msg)
+        
+        # Log it
+        current_app.logger.info(f"Liquidated Position {pos_locked.id} for User {pos_locked.user_id} at {current_price}")
+        
+        # We assume margin is already deducted from user balance when opened.
+        # So we simply don't give anything back.
+        
+        # Force version update for user to sync client state?
+        # Maybe not strictly necessary if they have 0 balance change, but good for consistency.
+        # But we don't want to lock user row here if we can avoid it to prevent bottlenecks during mass liquidation.
+        # Only lock user if we are modifying balance. Here we are NOT.
+        
+        db.session.commit()
+        
+    except Exception as e:
+        current_app.logger.error(f"Error liquidating position {position.id}: {e}")
+        db.session.rollback()
 
 def check_limit_orders(asset):
     """Checks and executes limit orders for a given asset"""
     # Buy Orders: Execute if current_price <= limit_price
-    # Fetch potential candidates
-    buy_orders = SpotOrder.query.filter_by(asset_id=asset.id, status='open', order_type='buy').all()
+    # Optimization: Filter by price in DB query
+    buy_orders = SpotOrder.query.filter(
+        SpotOrder.asset_id == asset.id,
+        SpotOrder.status == 'open',
+        SpotOrder.order_type == 'buy',
+        SpotOrder.price >= asset.current_price
+    ).all()
+
     for order in buy_orders:
-        if asset.current_price <= order.price:
-            # Deadlock Prevention: Lock User FIRST, then Investment
-            # We must lock the user to safely handle money refunds and consistent ordering
-            try:
-                # 1. Lock User
-                user = db.session.query(User).filter_by(id=order.user_id).with_for_update().first()
-                if not user:
-                    continue
-                
-                # 2. Lock Investment (to prevent concurrent buy/sell/limit execution)
-                investment = UserInvestment.query.filter_by(user_id=order.user_id, asset_id=asset.id).with_for_update().first()
-                
-                # Optimistic Lock: Try to set status to 'filled' atomically
-                # This prevents multiple threads from processing the same order
-                rows = SpotOrder.query.filter(
-                    SpotOrder.id == order.id, 
-                    SpotOrder.status == 'open'
-                ).update({
-                    SpotOrder.status: 'filled', 
-                    SpotOrder.filled_quantity: order.quantity
-                }, synchronize_session=False)
-                
-                if rows == 0:
-                    continue # Already processed by another thread
-                
-                # User already paid (locked money) at limit price.
-                # If we fill at a better price (current_price < limit_price), refund the difference.
-                fill_price = asset.current_price
-                refund_amount = 0
-                if fill_price < order.price:
-                    refund_amount = (order.price - fill_price) * order.quantity
-                
-                if refund_amount > 0:
-                    # Refund the difference atomically
-                    # We already locked the user, so we can update directly or use ResourceService without auto_commit
-                    # But ResourceService handles logging, so let's use it but careful about double locking if it re-locks?
-                    # ResourceService.modify_resources uses with_for_update(). 
-                    # Nested locks are fine in same transaction.
-                    if not ResourceService.modify_resources(order.user_id, {'money': refund_amount}, 'spot_limit_buy_refund', auto_commit=False, expected_version=None):
-                        db.session.rollback()
-                        continue
-
-                if investment:
-                    # Avg Price update
-                    total_cost_old = investment.quantity * investment.average_buy_price
-                    total_cost_new = order.quantity * fill_price # Use actual fill price
-                    total_qty = investment.quantity + order.quantity
-                    if total_qty > 0:
-                        investment.average_buy_price = (total_cost_old + total_cost_new) / total_qty
-                    investment.quantity = total_qty
-                else:
-                    investment = UserInvestment(
-                        user_id=order.user_id,
-                        asset_id=asset.id,
-                        quantity=order.quantity,
-                        average_buy_price=fill_price # Use actual fill price
-                    )
-                    db.session.add(investment)
-                
-                # Commit immediately to finalize this order
-                db.session.commit()
-            except Exception as e:
-                current_app.logger.error(f"Error processing buy order {order.id}: {e}")
-                db.session.rollback()
+        # Deadlock Prevention: Lock User FIRST, then Investment
+        # We must lock the user to safely handle money refunds and consistent ordering
+        try:
+            # 1. Lock User
+            user = db.session.query(User).filter_by(id=order.user_id).with_for_update().first()
+            if not user:
+                continue
             
-    # Sell Orders: Execute if current_price >= limit_price
-    sell_orders = SpotOrder.query.filter_by(asset_id=asset.id, status='open', order_type='sell').all()
-    for order in sell_orders:
-        if asset.current_price >= order.price:
-            try:
-                # Deadlock Prevention: Lock User FIRST
-                user = db.session.query(User).filter_by(id=order.user_id).with_for_update().first()
-                if not user:
-                    continue
-
-                # Lock Investment (User -> Investment order)
-                # Even if we don't strictly modify investment here (we modify user money),
-                # consistency with other routes is key.
-                # Actually, selling DOES modify investment (quantity decreases).
-                # Wait, where is the quantity deduction?
-                # Ah, limit sell orders DEDUCT quantity when PLACED (locking it).
-                # So we don't need to deduct quantity here.
-                # BUT we should probably lock it to be safe or if we update stats.
-                # Let's lock it to be consistent.
-                investment = UserInvestment.query.filter_by(user_id=order.user_id, asset_id=asset.id).with_for_update().first()
-
-                # Optimistic Lock
-                rows = SpotOrder.query.filter(
-                    SpotOrder.id == order.id, 
-                    SpotOrder.status == 'open'
-                ).update({
-                    SpotOrder.status: 'filled', 
-                    SpotOrder.filled_quantity: order.quantity
-                }, synchronize_session=False)
-                
-                if rows == 0:
-                    continue # Already processed
-                
-                # Assets already locked/deducted at placement, give money
-                total_value = order.quantity * order.price
-                
-                # Atomic update with logging
-                if not ResourceService.modify_resources(order.user_id, {'money': total_value}, 'spot_limit_sell_fill', auto_commit=False, expected_version=None):
+            # 2. Lock Investment (to prevent concurrent buy/sell/limit execution)
+            investment = UserInvestment.query.filter_by(user_id=order.user_id, asset_id=asset.id).with_for_update().first()
+            
+            # Optimistic Lock: Try to set status to 'filled' atomically
+            # This prevents multiple threads from processing the same order
+            rows = SpotOrder.query.filter(
+                SpotOrder.id == order.id, 
+                SpotOrder.status == 'open'
+            ).update({
+                SpotOrder.status: 'filled', 
+                SpotOrder.filled_quantity: order.quantity
+            }, synchronize_session=False)
+            
+            if rows == 0:
+                continue # Already processed by another thread
+            
+            # User already paid (locked money) at limit price.
+            # If we fill at a better price (current_price < limit_price), refund the difference.
+            fill_price = asset.current_price
+            refund_amount = 0
+            if fill_price < order.price:
+                refund_amount = (order.price - fill_price) * order.quantity
+            
+            if refund_amount > 0:
+                # Refund the difference atomically
+                # We already locked the user, so we can update directly or use ResourceService without auto_commit
+                # But ResourceService handles logging, so let's use it but careful about double locking if it re-locks?
+                # ResourceService.modify_resources uses with_for_update(). 
+                # Nested locks are fine in same transaction.
+                if not ResourceService.modify_resources(order.user_id, {'money': refund_amount}, 'spot_limit_buy_refund', auto_commit=False, expected_version=None):
                     db.session.rollback()
                     continue
-                
-                try:
-                    update_daily_task_progress(user, 'buy') # Should be sell? But tracking 'buy' usually covers trading
-                except Exception:
-                    pass
-                
-                db.session.commit()
-            except Exception as e:
-                current_app.logger.error(f"Error processing sell order {order.id}: {e}")
+
+            if investment:
+                # Avg Price update
+                total_cost_old = investment.quantity * investment.average_buy_price
+                total_cost_new = order.quantity * fill_price # Use actual fill price
+                total_qty = investment.quantity + order.quantity
+                if total_qty > 0:
+                    investment.average_buy_price = (total_cost_old + total_cost_new) / total_qty
+                investment.quantity = total_qty
+            else:
+                investment = UserInvestment(
+                    user_id=order.user_id,
+                    asset_id=asset.id,
+                    quantity=order.quantity,
+                    average_buy_price=fill_price # Use actual fill price
+                )
+                db.session.add(investment)
+            
+            # Commit immediately to finalize this order
+            db.session.commit()
+        except Exception as e:
+            current_app.logger.error(f"Error processing buy order {order.id}: {e}")
+            db.session.rollback()
+        
+    # Sell Orders: Execute if current_price >= limit_price
+    # Optimization: Filter by price in DB query
+    sell_orders = SpotOrder.query.filter(
+        SpotOrder.asset_id == asset.id,
+        SpotOrder.status == 'open',
+        SpotOrder.order_type == 'sell',
+        SpotOrder.price <= asset.current_price
+    ).limit(50).all()
+
+    for order in sell_orders:
+        try:
+            # Deadlock Prevention: Lock User FIRST
+            user = db.session.query(User).filter_by(id=order.user_id).with_for_update().first()
+            if not user:
+                continue
+
+            # Lock Investment (User -> Investment order)
+            investment = UserInvestment.query.filter_by(user_id=order.user_id, asset_id=asset.id).with_for_update().first()
+
+            # Optimistic Lock
+            rows = SpotOrder.query.filter(
+                SpotOrder.id == order.id, 
+                SpotOrder.status == 'open'
+            ).update({
+                SpotOrder.status: 'filled', 
+                SpotOrder.filled_quantity: order.quantity
+            }, synchronize_session=False)
+            
+            if rows == 0:
+                continue # Already processed
+            
+            # Assets already locked/deducted at placement, give money
+            total_value = order.quantity * order.price
+            
+            # Atomic update with logging
+            if not ResourceService.modify_resources(order.user_id, {'money': total_value}, 'spot_limit_sell_fill', auto_commit=False, expected_version=None):
                 db.session.rollback()
+                continue
+            
+            db.session.commit()
+        except Exception as e:
+            current_app.logger.error(f"Error processing sell order {order.id}: {e}")
+            db.session.rollback()
 
 def update_market_prices():
     """Updates market prices using Simulation Service"""
-    # 1. Initialize Assets if needed
-    # Check if simulation assets exist (e.g., G-COIN)
-    if not MarketAsset.query.filter_by(symbol='G-COIN').first():
-        current_app.logger.info("Initializing simulated market assets...")
-        MarketSimulationService.initialize_assets()
-        # Also clean up any old real assets if they exist but we want to switch?
-        # For now, just ensure we have our simulated ones.
+    # Use cache to debounce updates (allow only 1 update every 10 seconds across all threads)
+    lock_key = 'market_update_lock'
+    if cache.get(lock_key):
+        return # Already updating or recently updated
+        
+    cache.set(lock_key, 'locked', timeout=10) # Lock for 10 seconds
+
+    current_app.logger.info("Ensuring fictional market assets...")
+    MarketSimulationService.initialize_assets()
         
     # 2. Check update interval
     assets = MarketAsset.query.all()
@@ -181,18 +265,41 @@ def update_market_prices():
             updated_assets = MarketAsset.query.all()
             for asset in updated_assets:
                 check_limit_orders(asset)
+                check_liquidations(asset)
                 
             current_app.logger.info("Market update committed.")
         except Exception as e:
             current_app.logger.critical(f"Global simulation error: {e}")
 
+@bp.route('/api/prices')
+@login_required
+@cache.cached(timeout=60)
+def get_prices():
+    """API to get current prices for real-time updates"""
+    # Trigger lazy update if needed
+    update_market_prices()
+    
+    allowed = MarketSimulationService.allowed_symbols()
+    assets = MarketAsset.query.filter(MarketAsset.symbol.in_(allowed)).all()
+    data = {}
+    for asset in assets:
+        data[asset.id] = {
+            'symbol': asset.symbol,
+            'price': asset.current_price,
+            'change': asset.price_change_24h,
+            'volume': asset.volume_24h,
+            'high': asset.high_24h,
+            'low': asset.low_24h
+        }
+    return jsonify(data)
+
 @bp.route('/')
 @login_required
 def index():
-    # Trigger update (lazy loading)
     update_market_prices()
     
-    assets = MarketAsset.query.all()
+    allowed = MarketSimulationService.allowed_symbols()
+    assets = MarketAsset.query.filter(MarketAsset.symbol.in_(allowed)).all()
     
     # User portfolio
     investments = UserInvestment.query.filter_by(user_id=current_user.id).all()
@@ -200,28 +307,387 @@ def index():
     total_invested = sum([inv.quantity * inv.average_buy_price for inv in investments])
     total_profit = portfolio_value - total_invested
     
+    try:
+        market_update_interval_seconds = int(SystemConfig.get_value('market_update_interval_seconds', '5') or 5)
+    except Exception:
+        market_update_interval_seconds = 5
+    market_update_interval_seconds = max(2, min(market_update_interval_seconds, 300))
+    
     return render_template('market/index.html', 
                           title=_('بورصة غسيل الأموال'), 
                           assets=assets, 
                           investments=investments,
                           portfolio_value=portfolio_value,
-                          total_profit=total_profit)
+                          total_profit=total_profit,
+                          market_update_interval_ms=market_update_interval_seconds * 1000)
 
 @bp.route('/guide')
 @login_required
 def guide():
     return render_template('market/guide.html', title=_('أكاديمية غسيل الأموال'))
 
+@bp.route('/trade/<int:asset_id>')
+@login_required
+def trade(asset_id):
+    update_market_prices()
+
+    asset = db.session.get(MarketAsset, asset_id)
+    if not asset:
+        abort(404)
+
+    investment = UserInvestment.query.filter_by(user_id=current_user.id, asset_id=asset.id).first()
+    open_orders = SpotOrder.query.filter_by(user_id=current_user.id, asset_id=asset.id, status='open').order_by(SpotOrder.created_at.desc()).all()
+    futures_positions = FuturesPosition.query.filter_by(user_id=current_user.id, asset_id=asset.id, is_open=True).order_by(FuturesPosition.opened_at.desc()).all()
+
+    return render_template(
+        'market/trade.html',
+        title=_('التداول'),
+        hide_page_title=True,
+        hide_footer=True,
+        body_extra_class='',
+        page_container_class='container-fluid p-0',
+        asset=asset,
+        investment=investment,
+        open_orders=open_orders,
+        futures_positions=futures_positions,
+    )
+
+@bp.route('/history/<symbol>')
+@login_required
+@cache.cached(timeout=300)
+def history(symbol):
+    update_market_prices()
+    allowed = MarketSimulationService.allowed_symbols()
+    if symbol not in allowed:
+        abort(404)
+
+    try:
+        days = int(request.args.get('days', 180) or 180)
+    except Exception:
+        days = 180
+    days = max(30, min(days, 365))
+
+    df = MarketSimulationService.get_history_data(symbol, days=days)
+    if df is None or df.empty:
+        return jsonify([])
+
+    df = df.copy()
+    df.index = pd.to_datetime(df.index)
+    df.sort_index(inplace=True)
+
+    close = df['Close'].astype(float)
+    sma_20 = close.rolling(20).mean()
+    ema_50 = close.ewm(span=50, adjust=False).mean()
+    std_20 = close.rolling(20).std()
+    bb_upper = sma_20 + (2 * std_20)
+    bb_lower = sma_20 - (2 * std_20)
+
+    out = []
+    for idx, row in df.iterrows():
+        ts = idx.to_pydatetime()
+        if ts.tzinfo is None:
+            ts = ts.replace(tzinfo=timezone.utc)
+        else:
+            ts = ts.astimezone(timezone.utc)
+
+        i = df.index.get_loc(idx)
+        v_sma = sma_20.iloc[i]
+        v_ema = ema_50.iloc[i]
+        v_bbu = bb_upper.iloc[i]
+        v_bbl = bb_lower.iloc[i]
+
+        out.append({
+            'time': int(ts.timestamp()),
+            'open': float(row['Open']),
+            'high': float(row['High']),
+            'low': float(row['Low']),
+            'close': float(row['Close']),
+            'volume': float(row.get('Volume', 0) or 0),
+            'sma_20': None if pd.isna(v_sma) else float(v_sma),
+            'ema_50': None if pd.isna(v_ema) else float(v_ema),
+            'bb_upper': None if pd.isna(v_bbu) else float(v_bbu),
+            'bb_lower': None if pd.isna(v_bbl) else float(v_bbl),
+        })
+
+    return jsonify(out)
+
+@bp.route('/place_order/<int:asset_id>', methods=['POST'])
+@login_required
+@limiter.limit("30 per minute")
+@check_player_status
+def place_order(asset_id):
+    update_market_prices()
+    asset = db.session.get(MarketAsset, asset_id)
+    if not asset:
+        abort(404)
+
+    trade_type = (request.form.get('trade_type') or 'limit').strip().lower()
+    order_type = (request.form.get('type') or '').strip().lower()
+
+    if order_type not in {'buy', 'sell'}:
+        flash(_('نوع عملية غير صحيح.'), 'danger')
+        return redirect(url_for('market.trade', asset_id=asset.id))
+
+    try:
+        amount = float(request.form.get('amount', 0) or 0)
+    except Exception:
+        amount = 0.0
+
+    if amount <= 0:
+        flash(_('كمية/مبلغ غير صحيح.'), 'danger')
+        return redirect(url_for('market.trade', asset_id=asset.id))
+
+    user = db.session.query(User).filter_by(id=current_user.id).with_for_update().first()
+    if not user:
+        abort(404)
+
+    if trade_type == 'market':
+        if asset.current_price <= 0:
+            flash(_('سعر غير صالح حالياً.'), 'danger')
+            return redirect(url_for('market.trade', asset_id=asset.id))
+
+        if order_type == 'buy':
+            usd_to_spend = amount
+            if user.money < usd_to_spend:
+                flash(_('لا تملك كاش كافي.'), 'danger')
+                return redirect(url_for('market.trade', asset_id=asset.id))
+
+            quantity = usd_to_spend / asset.current_price
+            if not ResourceService.modify_resources(user.id, {'money': -usd_to_spend}, 'spot_market_buy', auto_commit=False, expected_version=None):
+                db.session.rollback()
+                flash(_('لا تملك كاش كافي.'), 'danger')
+                return redirect(url_for('market.trade', asset_id=asset.id))
+
+            investment = UserInvestment.query.filter_by(user_id=user.id, asset_id=asset.id).with_for_update().first()
+            if investment:
+                total_cost_old = investment.quantity * investment.average_buy_price
+                total_cost_new = usd_to_spend
+                total_qty = investment.quantity + quantity
+                if total_qty > 0:
+                    investment.average_buy_price = (total_cost_old + total_cost_new) / total_qty
+                investment.quantity = total_qty
+            else:
+                investment = UserInvestment(user_id=user.id, asset_id=asset.id, quantity=quantity, average_buy_price=asset.current_price)
+                db.session.add(investment)
+
+            db.session.commit()
+            flash(_('تم تنفيذ شراء Market بنجاح.'), 'success')
+            return redirect(url_for('market.trade', asset_id=asset.id))
+
+        if order_type == 'sell':
+            qty_to_sell = amount
+            investment = UserInvestment.query.filter_by(user_id=user.id, asset_id=asset.id).with_for_update().first()
+            if not investment or investment.quantity < qty_to_sell:
+                db.session.rollback()
+                flash(_('لا تملك كمية كافية للبيع.'), 'danger')
+                return redirect(url_for('market.trade', asset_id=asset.id))
+
+            sell_value = qty_to_sell * asset.current_price
+            investment.quantity -= qty_to_sell
+            if investment.quantity <= 0:
+                db.session.delete(investment)
+
+            if not ResourceService.modify_resources(user.id, {'money': sell_value}, 'spot_market_sell', auto_commit=False, expected_version=None):
+                db.session.rollback()
+                flash(_('حدث خطأ أثناء البيع.'), 'danger')
+                return redirect(url_for('market.trade', asset_id=asset.id))
+
+            db.session.commit()
+            flash(_('تم تنفيذ بيع Market بنجاح.'), 'success')
+            return redirect(url_for('market.trade', asset_id=asset.id))
+
+    if trade_type == 'limit':
+        try:
+            price = float(request.form.get('price', 0) or 0)
+        except Exception:
+            price = 0.0
+
+        quantity = amount
+        if price <= 0 or quantity <= 0:
+            flash(_('السعر/الكمية غير صحيحين.'), 'danger')
+            return redirect(url_for('market.trade', asset_id=asset.id))
+
+        if order_type == 'buy':
+            total_cost = price * quantity
+            if user.money < total_cost:
+                flash(_('لا تملك كاش كافي.'), 'danger')
+                return redirect(url_for('market.trade', asset_id=asset.id))
+
+            if not ResourceService.modify_resources(user.id, {'money': -total_cost}, 'spot_limit_buy_place', auto_commit=False, expected_version=None):
+                db.session.rollback()
+                flash(_('لا تملك كاش كافي.'), 'danger')
+                return redirect(url_for('market.trade', asset_id=asset.id))
+
+            order = SpotOrder(user_id=user.id, asset_id=asset.id, order_type='buy', price=price, quantity=quantity, status='open')
+            db.session.add(order)
+            db.session.commit()
+            flash(_('تم وضع أمر Limit شراء.'), 'success')
+            return redirect(url_for('market.trade', asset_id=asset.id))
+
+        investment = UserInvestment.query.filter_by(user_id=user.id, asset_id=asset.id).with_for_update().first()
+        if not investment or investment.quantity < quantity:
+            db.session.rollback()
+            flash(_('لا تملك كمية كافية للبيع.'), 'danger')
+            return redirect(url_for('market.trade', asset_id=asset.id))
+
+        investment.quantity -= quantity
+        if investment.quantity <= 0:
+            db.session.delete(investment)
+
+        order = SpotOrder(user_id=user.id, asset_id=asset.id, order_type='sell', price=price, quantity=quantity, status='open')
+        db.session.add(order)
+        db.session.commit()
+        flash(_('تم وضع أمر Limit بيع.'), 'success')
+        return redirect(url_for('market.trade', asset_id=asset.id))
+
+    flash(_('نوع تداول غير مدعوم.'), 'danger')
+    return redirect(url_for('market.trade', asset_id=asset.id))
+
+@bp.route('/cancel_order/<int:order_id>', methods=['POST'])
+@login_required
+@limiter.limit("30 per minute")
+@check_player_status
+def cancel_order(order_id):
+    order = db.session.query(SpotOrder).filter_by(id=order_id).with_for_update().first()
+    if not order or order.user_id != current_user.id:
+        abort(404)
+
+    if order.status != 'open':
+        flash(_('الطلب ليس مفتوحاً.'), 'warning')
+        return redirect(url_for('market.trade', asset_id=order.asset_id))
+
+    user = db.session.query(User).filter_by(id=current_user.id).with_for_update().first()
+    if not user:
+        abort(404)
+
+    if order.order_type == 'buy':
+        refund = (order.quantity - (order.filled_quantity or 0)) * order.price
+        if refund > 0:
+            ResourceService.modify_resources(user.id, {'money': refund}, 'spot_limit_buy_cancel_refund', auto_commit=False, expected_version=None)
+    else:
+        qty = order.quantity - (order.filled_quantity or 0)
+        if qty > 0:
+            investment = UserInvestment.query.filter_by(user_id=user.id, asset_id=order.asset_id).with_for_update().first()
+            if investment:
+                investment.quantity += qty
+            else:
+                investment = UserInvestment(user_id=user.id, asset_id=order.asset_id, quantity=qty, average_buy_price=order.price)
+                db.session.add(investment)
+
+    order.status = 'cancelled'
+    db.session.commit()
+    flash(_('تم إلغاء الطلب.'), 'success')
+    return redirect(url_for('market.trade', asset_id=order.asset_id))
+
+@bp.route('/open_futures/<int:asset_id>', methods=['POST'])
+@login_required
+@limiter.limit("20 per minute")
+@check_player_status
+def open_futures(asset_id):
+    update_market_prices()
+    asset = db.session.get(MarketAsset, asset_id)
+    if not asset:
+        abort(404)
+
+    pos_type = (request.form.get('type') or '').strip().lower()
+    if pos_type not in {'long', 'short'}:
+        flash(_('نوع صفقة غير صحيح.'), 'danger')
+        return redirect(url_for('market.trade', asset_id=asset.id))
+
+    leverage = request.form.get('leverage', type=int) or 10
+    if leverage not in {10, 20, 50, 100}:
+        leverage = 10
+
+    try:
+        margin = float(request.form.get('amount', 0) or 0)
+    except Exception:
+        margin = 0.0
+
+    if margin <= 0:
+        flash(_('الهامش غير صحيح.'), 'danger')
+        return redirect(url_for('market.trade', asset_id=asset.id))
+
+    user = db.session.query(User).filter_by(id=current_user.id).with_for_update().first()
+    if not user:
+        abort(404)
+
+    if user.money < margin:
+        flash(_('لا تملك كاش كافي.'), 'danger')
+        return redirect(url_for('market.trade', asset_id=asset.id))
+
+    if asset.current_price <= 0:
+        flash(_('سعر غير صالح حالياً.'), 'danger')
+        return redirect(url_for('market.trade', asset_id=asset.id))
+
+    if not ResourceService.modify_resources(user.id, {'money': -margin}, 'futures_open_margin', auto_commit=False, expected_version=None):
+        db.session.rollback()
+        flash(_('لا تملك كاش كافي.'), 'danger')
+        return redirect(url_for('market.trade', asset_id=asset.id))
+
+    entry_price = asset.current_price
+    quantity = (margin * leverage) / entry_price
+    if pos_type == 'long':
+        liquidation_price = entry_price * (1 - (1 / leverage))
+    else:
+        liquidation_price = entry_price * (1 + (1 / leverage))
+
+    pos = FuturesPosition(
+        user_id=user.id,
+        asset_id=asset.id,
+        position_type=pos_type,
+        entry_price=entry_price,
+        margin_amount=margin,
+        leverage=leverage,
+        quantity=quantity,
+        liquidation_price=liquidation_price,
+        is_open=True,
+    )
+    db.session.add(pos)
+    db.session.commit()
+    flash(_('تم فتح صفقة Futures بنجاح.'), 'success')
+    return redirect(url_for('market.trade', asset_id=asset.id))
+
+@bp.route('/close_futures/<int:position_id>', methods=['POST'])
+@login_required
+@limiter.limit("30 per minute")
+@check_player_status
+def close_futures(position_id):
+    pos = db.session.query(FuturesPosition).filter_by(id=position_id).with_for_update().first()
+    if not pos or pos.user_id != current_user.id:
+        abort(404)
+
+    if not pos.is_open:
+        flash(_('الصفقة مغلقة بالفعل.'), 'warning')
+        return redirect(url_for('market.trade', asset_id=pos.asset_id))
+
+    user = db.session.query(User).filter_by(id=current_user.id).with_for_update().first()
+    if not user:
+        abort(404)
+
+    update_market_prices()
+    pnl = float(pos.calculate_pnl() or 0.0)
+    payout = float(pos.margin_amount or 0.0) + pnl
+    if payout < 0:
+        payout = 0.0
+
+    pos.is_open = False
+    pos.closed_at = datetime.now(timezone.utc)
+
+    if payout > 0:
+        ResourceService.modify_resources(user.id, {'money': payout}, 'futures_close_payout', auto_commit=False, expected_version=None)
+
+    db.session.commit()
+    flash(_('تم إغلاق الصفقة.'), 'success')
+    return redirect(url_for('market.trade', asset_id=pos.asset_id))
+
 @bp.route('/buy_intel', methods=['POST'])
 @login_required
+@check_player_status
 def buy_intel():
-    # Status Check
-    now = datetime.now(timezone.utc)
-    if current_user.jail_until and current_user.jail_until.replace(tzinfo=timezone.utc) > now:
-        flash(_('أنت في السجن!'), 'danger')
-        return redirect(url_for('market.index'))
-        
-    cost = 500
+    try:
+        cost = int(SystemConfig.get_value('market_intel_cost', '500') or 500)
+    except Exception:
+        cost = 500
     if current_user.money < cost:
         flash(_('لا تملك كاش كافي لشراء المعلومة!'), 'danger')
         return redirect(url_for('market.index'))
@@ -231,50 +697,76 @@ def buy_intel():
         flash(_('لا تملك كاش كافي لشراء المعلومة!'), 'danger')
         return redirect(url_for('market.index'))
     
-    # Generate random intel
-    intels = [
-        _("سمعت أن البيتكوين رح يطير اليوم... بس مش أكيد."),
-        _("في حيتان ببيعوا أسهم تسلا، دير بالك."),
-        _("الذهب هو الملاذ الآمن يا صاحبي."),
-        _("الشرطة بتراقب سوق الكريبتو، خليك حذر."),
-        _("اشتري في الانخفاض وبيع في الارتفاع... نصيحة بمليون دولار.")
-    ]
-    intel = random.choice(intels)
+    update_market_prices()
+
+    def _fmt_money(x):
+        try:
+            return f"{float(x):,.2f}"
+        except Exception:
+            return "0.00"
+
+    allowed = MarketSimulationService.allowed_symbols()
+    assets = MarketAsset.query.filter(MarketAsset.symbol.in_(allowed)).all()
+    asset = random.choice(assets) if assets else None
+
+    if asset:
+        sym = asset.symbol
+        name = asset.name
+        price = float(asset.current_price or 0.0)
+        chg = float(asset.price_change_24h or 0.0)
+        vol = float(asset.volume_24h or 0.0)
+        up = chg >= 0
+
+        pivot_up = price * (1 + random.uniform(0.008, 0.02)) if price > 0 else 0
+        pivot_down = price * (1 - random.uniform(0.008, 0.02)) if price > 0 else 0
+        liq_level = price * (1 + (0.03 if up else -0.03)) if price > 0 else 0
+        funding = random.choice(["-0.02%", "-0.01%", "+0.01%", "+0.02%", "+0.03%"])
+
+        intel_pool = []
+        if asset.asset_type == 'crypto':
+            intel_pool.extend([
+                _(f"معلومة مسربة: فيه نشاط غير طبيعي على {name} ({sym}). حجم 24س: {_fmt_money(vol)}. انتبه للذبذبة."),
+                _(f"معلومة مسربة: إذا {sym} اخترق {_fmt_money(pivot_up)} ممكن نشوف تسارع قوي. لو كسر {_fmt_money(pivot_down)} خفف مخاطرة."),
+                _(f"معلومة مسربة: تمويل الفيوتشر على {sym} حوالي {funding}. خليك واعي من تصفيات الرافعة قرب {_fmt_money(liq_level)}."),
+                _(f"معلومة مسربة: مراقبة أمنية مشددة على تداولات الكريبتو اليوم… لا تفتح صفقات كبيرة دفعة وحدة.")
+            ])
+        elif asset.asset_type == 'stock':
+            intel_pool.extend([
+                _(f"معلومة مسربة: في صانع سوق عم يلمّ سيولة على {name} ({sym}). إذا ثبت فوق {_fmt_money(pivot_up)} بيصير الاختراق أقرب."),
+                _(f"معلومة مسربة: {sym} عليه تذبذب {abs(chg):.2f}% خلال 24س. إذا بتشتغل فيوتشر خفف الرافعة."),
+                _(f"معلومة مسربة: في أوامر معلّقة كبيرة حوالين {_fmt_money(pivot_down)} على {sym}… ممكن يعمل ارتداد سريع.")
+            ])
+        elif asset.asset_type == 'commodity':
+            intel_pool.extend([
+                _(f"معلومة مسربة: شحنة جديدة أثرت على {name} ({sym}). توقع حركة سريعة حوالين {_fmt_money(pivot_up)} و{_fmt_money(pivot_down)}."),
+                _(f"معلومة مسربة: سيولة {sym} اليوم أعلى من المعتاد. لو بتدخل، ادخل تدريجي وخلي وقف خسارة واضح.")
+            ])
+        elif asset.asset_type == 'index':
+            intel_pool.extend([
+                _(f"معلومة مسربة: مؤشر {name} ({sym}) عم يعطي مزاج السوق. إذا ظل أخضر، فرص السبوت أحسن من الفيوتشر."),
+                _(f"معلومة مسربة: تحرك {sym} اليوم هادي… بس ممكن يصير دفع مفاجئ إذا زاد الحجم.")
+            ])
+
+        intel_pool.extend([
+            _("معلومة مسربة: لا تلحق الشمعة… خليك مع الخطة ووزّع دخولك."),
+            _("معلومة مسربة: إذا فتحت فيوتشر، خلي إدارة المخاطر أولاً… الرافعة بتكبر الربح والخسارة."),
+        ])
+        intel = random.choice(intel_pool)
+    else:
+        intel = _("معلومة مسربة: السوق اليوم حساس… اشتغل بحذر ولا تفتح صفقات كبيرة.")
     
-    flash(_('معلومة مسربة: %(msg)s', msg=intel), 'info')
+    if intel.startswith("معلومة مسربة:"):
+        flash(_('%(msg)s', msg=intel), 'info')
+    else:
+        flash(_('معلومة مسربة: %(msg)s', msg=intel), 'info')
     db.session.commit()
     return redirect(url_for('market.index'))
 
 
 @bp.route('/buy/<int:asset_id>', methods=['POST'])
 @login_required
+@check_player_status
 def buy(asset_id):
-    # Status Check
-    now = datetime.now(timezone.utc)
-    if current_user.jail_until:
-        jail_until = current_user.jail_until
-        if jail_until.tzinfo is None:
-            jail_until = jail_until.replace(tzinfo=timezone.utc)
-        if jail_until > now:
-            flash(_('أنت في السجن ولا يمكنك التداول!'), 'danger')
-            return redirect(url_for('jail.index'))
-    
-    if current_user.hospital_until:
-        hospital_until = current_user.hospital_until
-        if hospital_until.tzinfo is None:
-            hospital_until = hospital_until.replace(tzinfo=timezone.utc)
-        if hospital_until > now:
-            flash(_('أنت في المستشفى ولا يمكنك التداول!'), 'danger')
-            return redirect(url_for('hospital.index'))
-
-    if current_user.gym_until:
-        gym_until = current_user.gym_until
-        if gym_until.tzinfo is None:
-            gym_until = gym_until.replace(tzinfo=timezone.utc)
-        if gym_until > now:
-            flash(_('أنت تتدرب ولا يمكنك التداول!'), 'danger')
-            return redirect(url_for('gym.index'))
-
     asset = db.session.get(MarketAsset, asset_id)
     if not asset:
         abort(404)
@@ -336,661 +828,46 @@ def buy(asset_id):
 @bp.route('/sell/<int:asset_id>', methods=['POST'])
 @login_required
 @limiter.limit("10 per minute")
+@check_player_status
 def sell(asset_id):
-    # Status Check
-    now = datetime.now(timezone.utc)
-    if current_user.jail_until:
-        jail_until = current_user.jail_until
-        if jail_until.tzinfo is None:
-            jail_until = jail_until.replace(tzinfo=timezone.utc)
-        if jail_until > now:
-            flash(_('أنت في السجن ولا يمكنك التداول!'), 'danger')
-            return redirect(url_for('jail.index'))
-    
-    if current_user.hospital_until:
-        hospital_until = current_user.hospital_until
-        if hospital_until.tzinfo is None:
-            hospital_until = hospital_until.replace(tzinfo=timezone.utc)
-        if hospital_until > now:
-            flash(_('أنت في المستشفى ولا يمكنك التداول!'), 'danger')
-            return redirect(url_for('hospital.index'))
-
-    if current_user.gym_until:
-        gym_until = current_user.gym_until
-        if gym_until.tzinfo is None:
-            gym_until = gym_until.replace(tzinfo=timezone.utc)
-        if gym_until > now:
-            flash(_('أنت تتدرب ولا يمكنك التداول!'), 'danger')
-            return redirect(url_for('gym.index'))
-
     asset = db.session.get(MarketAsset, asset_id)
     if not asset:
         abort(404)
 
-    # Deadlock Prevention: Lock User first, then Investment
-    # 1. Lock User (via dummy select or just rely on ResourceService if we call it first? 
-    # ResourceService calls with_for_update on User.
-    # But we need to know the investment quantity BEFORE calling ResourceService to know how much to sell?
-    # No, we can read investment (no lock), calculate, then start transaction: Lock User, Lock Investment, Verify Investment Quantity again.
-    
-    # 1. Read Investment (Snapshot)
-    investment = UserInvestment.query.filter_by(user_id=current_user.id, asset_id=asset.id).first()
-    
-    if not investment or investment.quantity <= 0:
-        flash(_('لا تملك أسهم في هذه الشركة!'), 'danger')
-        return redirect(url_for('market.index'))
-        
-    # Percentage to sell
-    percent = int(request.form.get('percent', 0))
-    if percent not in [25, 50, 100]:
-        flash(_('نسبة بيع غير صحيحة!'), 'danger')
-        return redirect(url_for('market.index'))
-        
-    # Refresh price
-    # Handled by simulation service
-    pass
-        
-    # Start Atomic Transaction
-    # 1. Lock User (via ResourceService later? No, better explicit if we want to be safe, but ResourceService is fine if it's the first lock)
-    # BUT we need to calculate 'sale_value' based on 'quantity_to_sell'.
-    # If we don't lock investment, quantity might change.
-    # Standard Order: User -> Investment.
-    
-    # So:
-    # 1. Lock User
-    # 2. Lock Investment
-    # 3. Calculate
-    # 4. Apply changes
-    
-    # We can use ResourceService to lock User implicitly, BUT ResourceService expects 'changes' dict.
-    # We don't know 'changes' (money gain) until we calculate based on Investment.
-    # So we MUST lock User explicitly first.
-    
-    db.session.execute(select(User).where(User.id == current_user.id).with_for_update()).scalar_one()
-    
-    # 2. Lock Investment
-    investment = UserInvestment.query.filter_by(user_id=current_user.id, asset_id=asset.id).with_for_update().first()
-    
-    if not investment or investment.quantity <= 0:
-        db.session.rollback()
-        flash(_('لا تملك أسهم في هذه الشركة!'), 'danger')
-        return redirect(url_for('market.index'))
-
-    quantity_to_sell = investment.quantity * (percent / 100)
-    sale_value = quantity_to_sell * asset.current_price
-    
-    # Calculate Profit
-    cost_basis = quantity_to_sell * investment.average_buy_price
-    profit = sale_value - cost_basis
-    
-    # Intelligence Reward (1 IQ per $1000 profit)
-    changes = {'money': sale_value}
-    if profit > 0:
-        iq_gain = int(profit / 1000)
-        if iq_gain > 0:
-            changes['intelligence'] = iq_gain
-            flash(_('ربح ممتاز! اكتسبت %(iq)s نقطة ذكاء.', iq=iq_gain), 'success')
-
-    # Atomic Update User Money with logging
-    # Note: User is already locked by us. ResourceService should handle this (nested check or re-entrant).
-    # ResourceService uses db.session.get(User, user_id, with_for_update=True).
-    # In SQLAlchemy, with_for_update is re-entrant in same transaction.
-    ResourceService.modify_resources(current_user.id, changes, 'sell_asset_spot', auto_commit=False, expected_version=None)
-    
-    # Update Investment
-    investment.quantity -= quantity_to_sell
-    
-    if investment.quantity < 0.000001: # Floating point fix
-        db.session.delete(investment)
-    
-    db.session.commit()
-    
-    flash(_('تم تسييل المحفظة بنجاح!'), 'success')
-    return redirect(url_for('market.trade', symbol=asset.symbol))
-
-@bp.route('/futures/open/<int:asset_id>', methods=['POST'])
-@login_required
-def open_futures(asset_id):
-    if SystemConfig.get_value('market_enable_futures', 'true') != 'true':
-        flash(_('تم تعطيل تداول الفيوتشر من لوحة المطور'), 'warning')
-        return redirect(url_for('market.index'))
-    asset = db.session.get(MarketAsset, asset_id)
-    if not asset:
-        abort(404)
-        
+    # Deadlock Prevention: Lock User FIRST, then Investment
+    # We must ensure consistent locking order (User -> Investment) to avoid deadlocks with 'buy' and 'check_limit_orders'
     try:
-        amount = float(request.form.get('amount', 0))
-        leverage = int(request.form.get('leverage', 1))
-        position_type = request.form.get('type', 'long') # long or short
-    except ValueError:
-        flash(_('بيانات غير صحيحة!'), 'danger')
-        return redirect(url_for('market.trade', symbol=asset.symbol))
+        # 1. Lock User
+        # We lock the user row to establish the lock order.
+        user = db.session.query(User).filter_by(id=current_user.id).with_for_update().first()
         
-    try:
-        min_amount = float(SystemConfig.get_value('market_spot_min_buy_usd', '10') or '10')
-    except Exception:
-        min_amount = 10.0
-    if amount < min_amount:
-        flash(_('الحد الأدنى للصفقة %(val)s$', val=min_amount), 'danger')
-        return redirect(url_for('market.trade', symbol=asset.symbol))
+        # 2. Lock Investment
+        investment = UserInvestment.query.filter_by(user_id=current_user.id, asset_id=asset.id).with_for_update().first()
         
-    leverages_cfg = SystemConfig.get_value('market_futures_leverages', '1,5,10,20,50,100') or '1,5,10,20,50,100'
-    try:
-        supported_leverages = [int(x.strip()) for x in leverages_cfg.split(',') if x.strip()]
-    except Exception:
-        supported_leverages = [1, 5, 10, 20, 50, 100]
-    if leverage not in supported_leverages:
-        flash(_('رافعة مالية غير مدعومة!'), 'danger')
-        return redirect(url_for('market.trade', symbol=asset.symbol))
-        
-    if position_type not in ['long', 'short']:
-        flash(_('نوع صفقة غير صحيح!'), 'danger')
-        return redirect(url_for('market.trade', symbol=asset.symbol))
-        
-    if current_user.money < amount:
-        flash(_('لا تملك رصيد كافي!'), 'danger')
-        return redirect(url_for('market.trade', symbol=asset.symbol))
-        
-    # Refresh price
-    # Handled by simulation service
-    pass
-        
-    entry_price = asset.current_price
-    
-    # Calculate Liquidation Price
-    # Long: Entry * (1 - 1/Leverage)
-    # Short: Entry * (1 + 1/Leverage)
-    # Adding a 5% buffer for safety/fees simulation
-    if position_type == 'long':
-        liquidation_price = entry_price * (1 - (1/leverage) + 0.005) 
-    else:
-        liquidation_price = entry_price * (1 + (1/leverage) - 0.005)
-        
-    quantity = (amount * leverage) / entry_price
-    
-    position = FuturesPosition(
-        user_id=current_user.id,
-        asset_id=asset.id,
-        position_type=position_type,
-        entry_price=entry_price,
-        margin_amount=amount,
-        leverage=leverage,
-        quantity=quantity,
-        liquidation_price=liquidation_price
-    )
-    
-    # Atomic deduction with logging
-    if not ResourceService.modify_resources(current_user.id, {'money': -amount}, 'open_futures', auto_commit=False, expected_version=None):
-        flash(_('لا تملك رصيد كافي!'), 'danger')
-        return redirect(url_for('market.trade', symbol=asset.symbol))
-
-    db.session.add(position)
-    db.session.commit()
-    
-    flash(_('تم فتح الصفقة بنجاح!'), 'success')
-    return redirect(url_for('market.trade', symbol=asset.symbol))
-
-@bp.route('/futures/close/<int:position_id>', methods=['POST'])
-@login_required
-def close_futures(position_id):
-    # Status Check
-    now = datetime.now(timezone.utc)
-    if current_user.jail_until:
-        jail_until = current_user.jail_until
-        if jail_until.tzinfo is None:
-            jail_until = jail_until.replace(tzinfo=timezone.utc)
-        if jail_until > now:
-            flash(_('أنت في السجن ولا يمكنك التداول!'), 'danger')
-            return redirect(url_for('jail.index'))
-    
-    if current_user.hospital_until:
-        hospital_until = current_user.hospital_until
-        if hospital_until.tzinfo is None:
-            hospital_until = hospital_until.replace(tzinfo=timezone.utc)
-        if hospital_until > now:
-            flash(_('أنت في المستشفى ولا يمكنك التداول!'), 'danger')
-            return redirect(url_for('hospital.index'))
-
-    if current_user.gym_until:
-        gym_until = current_user.gym_until
-        if gym_until.tzinfo is None:
-            gym_until = gym_until.replace(tzinfo=timezone.utc)
-        if gym_until > now:
-            flash(_('أنت تتدرب ولا يمكنك التداول!'), 'danger')
-            return redirect(url_for('gym.index'))
-
-    position = db.session.get(FuturesPosition, position_id)
-    if not position or position.user_id != current_user.id or not position.is_open:
-        abort(404)
-        
-    asset = position.asset
-    
-    # Refresh price
-    # Handled by simulation service
-    pass
-        
-    # DEADLOCK PREVENTION & ATOMICITY
-    # Lock User First
-    db.session.execute(select(User).where(User.id == current_user.id).with_for_update()).scalar_one()
-    
-    # Lock Position (Ensure it still exists and is open)
-    # Re-fetch to ensure we have the latest state and lock it
-    position = db.session.query(FuturesPosition).filter_by(id=position_id).with_for_update().first()
-    if not position or position.user_id != current_user.id or not position.is_open:
-        db.session.rollback()
-        abort(404)
-        
-    pnl = position.calculate_pnl()
-    
-    # Return margin + pnl
-    return_amount = position.margin_amount + pnl
-    
-    # If liquidated logic (simplified check here, though should be background task)
-    if return_amount <= 0:
-        return_amount = 0
-        flash(_('تم تصفية الصفقة (ليكويديشن)! خسرت كل المبلغ.'), 'danger')
-    else:
-        # Intelligence Reward
-        if pnl > 0:
-            iq_gain = int(pnl / 1000)
-            if iq_gain > 0:
-                # Add IQ to changes, handled by ResourceService below
-                pass # Logic moved to changes dict construction
-                
-        flash(_('تم إغلاق الصفقة. الربح/الخسارة: %(val).2f$', val=pnl), 'success' if pnl >= 0 else 'warning')
-        
-    # Atomic addition with logging
-    changes = {'money': return_amount}
-    if pnl > 0:
-        iq_gain = int(pnl / 1000)
-        if iq_gain > 0:
-             changes['intelligence'] = iq_gain
-             flash(_('ربح ممتاز! اكتسبت %(iq)s نقطة ذكاء.', iq=iq_gain), 'success')
-
-    ResourceService.modify_resources(current_user.id, changes, 'close_futures', auto_commit=False, expected_version=None)
-    
-    # Mark as closed (or delete? let's delete to keep DB clean for game, or keep for history)
-    # For game simplicity, let's delete or mark closed. Let's delete to avoid clutter.
-    # Actually, better to keep history but for now delete to match spot logic style
-    db.session.delete(position)
-    db.session.commit()
-    
-    return redirect(url_for('market.trade', symbol=asset.symbol))
-
-@bp.route('/intel/buy', methods=['POST'])
-@login_required
-def purchase_intel_report():
-    try:
-        cost = int(SystemConfig.get_value('market_intel_cost', '500') or '500')
-    except Exception:
-        cost = 500
-    if current_user.money < cost:
-        flash(_('لا تملك كاش كافي لشراء المعلومة! (المطلوب %(c)s$)', c=cost), 'danger')
-        return redirect(url_for('market.index'))
-    
-    # Pick random asset
-    assets = MarketAsset.query.all()
-    if not assets:
-        flash(_('لا يوجد معلومات متاحة حالياً.'), 'warning')
-        return redirect(url_for('market.index'))
-        
-    asset = random.choice(assets)
-    
-    # Analyze (Do this BEFORE deducting money to avoid refund logic)
-    try:
-        # Simulate Trend Analysis based on recent performance
-        trend = "neutral"
-        change = asset.price_change_24h or 0
-        
-        # Add some noise to make intel not 100% predictable
-        noise = random.uniform(-1, 1)
-        adjusted_change = change + noise
-        
-        if adjusted_change > 1.5:
-            trend = "bullish"
-        elif adjusted_change < -1.5:
-            trend = "bearish"
-            
-        # Mock SMA values for the report
-        current_price = asset.current_price
-        if trend == "bullish":
-            sma_20 = current_price * 0.95 # Price above SMA
-        elif trend == "bearish":
-            sma_20 = current_price * 1.05 # Price below SMA
-        else:
-            sma_20 = current_price
-                
-        # Generate Message
-        flavor_texts = {
-            "bullish": [
-                _("مصادري في وول ستريت تؤكد: الحيتان يشترون {symbol} بجنون! السعر فوق المتوسط."),
-                _("تسريب سري: تقارير الأرباح لـ {symbol} ستكون خيالية. اشترِ قبل الانفجار!"),
-                _("المافيا الروسية تغسل أموالها في {symbol}. السعر سيرتفع حتماً."),
-            ],
-            "bearish": [
-                _("انتبه! المدير التنفيذي لـ {symbol} يبيع أسهمه سراً. الانهيار قادم."),
-                _("هناك تلاعب في {symbol} لتخفيض السعر. اهرب فوراً!"),
-                _("سمعت أن الحكومة ستحظر {symbol} قريباً. بيع كل شيء!"),
-            ],
-            "neutral": [
-                _("السوق هادئ جداً حول {symbol}. الهدوء الذي يسبق العاصفة؟"),
-                _("لا توجد حركة واضحة على {symbol}. وفر فلوسك لفرصة أخرى."),
-            ]
-        }
-        
-        msg_template = random.choice(flavor_texts.get(trend, flavor_texts['neutral']))
-        msg = msg_template.format(symbol=asset.symbol)
-        
-        # Now deduct money and commit
-        # Atomic deduction with logging
-        if not ResourceService.modify_resources(current_user.id, {'money': -cost}, 'buy_intel_report', auto_commit=False, expected_version=None):
-            flash(_('لا تملك كاش كافي لشراء المعلومة!'), 'danger')
+        if not investment or investment.quantity <= 0:
+            db.session.rollback()
+            flash(_('لا تملك أسهم لبيعها!'), 'danger')
             return redirect(url_for('market.index'))
+
+        # Calculate Value
+        sell_value = investment.quantity * asset.current_price
         
-        # Create delayed message
-        delivery_time = datetime.now(timezone.utc) + timedelta(minutes=10)
-        
-        # Use current user as sender (Note to self)
-        intel_msg = Message(
-            sender_id=current_user.id,
-            receiver_id=current_user.id,
-            subject=_('تقرير استخباراتي: {symbol}').format(symbol=asset.symbol),
-            body=msg,
-            delivery_time=delivery_time
-        )
-        db.session.add(intel_msg)
+        # 3. Add Money
+        # ResourceService.modify_resources uses the same transaction and will re-verify user lock (safe re-entrant)
+        if not ResourceService.modify_resources(current_user.id, {'money': sell_value}, 'sell_asset_spot', auto_commit=False, expected_version=None):
+            db.session.rollback()
+            flash(_('خطأ في العملية!'), 'danger')
+            return redirect(url_for('market.index'))
+            
+        # 4. Remove Investment
+        db.session.delete(investment)
         db.session.commit()
         
-        flash(_('تم استلام طلبك. سيصلك التقرير في بريدك الوارد خلال 10 دقائق.'), 'success')
+        flash(_('تم بيع الأسهم بنجاح وربح %(val)s', val=int(sell_value)), 'success')
         
     except Exception as e:
-        current_app.logger.error(f"Intel Error: {e}")
-        # No money deducted yet, so just rollback to be safe (though nothing changed)
+        current_app.logger.error(f"Sell Error: {e}")
         db.session.rollback()
-        flash(_('حدث خطأ أثناء جلب المعلومات. حاول مرة أخرى لاحقاً.'), 'danger')
-        
+        flash(_('حدث خطأ أثناء البيع!'), 'danger')
+
     return redirect(url_for('market.index'))
-
-
-@bp.route('/trade/<symbol>')
-@login_required
-def trade(symbol):
-    # Trigger update
-    update_market_prices()
-    
-    asset = MarketAsset.query.filter_by(symbol=symbol).first_or_404()
-    investment = UserInvestment.query.filter_by(user_id=current_user.id, asset_id=asset.id).first()
-    futures_positions = FuturesPosition.query.filter_by(user_id=current_user.id, asset_id=asset.id, is_open=True).all()
-    open_orders = SpotOrder.query.filter_by(user_id=current_user.id, asset_id=asset.id, status='open').order_by(SpotOrder.created_at.desc()).all()
-    
-    return render_template('market/trade.html',
-                          title=f"{asset.name} | Trade",
-                          asset=asset,
-                          investment=investment,
-                          futures_positions=futures_positions,
-                          open_orders=open_orders)
-
-@bp.route('/spot/order/<int:asset_id>', methods=['POST'])
-@login_required
-def place_order(asset_id):
-    if SystemConfig.get_value('market_enable_spot', 'true') != 'true':
-        flash(_('تم تعطيل التداول الفوري من لوحة المطور'), 'warning')
-        return redirect(url_for('market.index'))
-    asset = db.session.get(MarketAsset, asset_id)
-    if not asset:
-        abort(404)
-        
-    try:
-        order_type = request.form.get('type') # buy, sell
-        trade_type = request.form.get('trade_type') # market, limit
-        amount = float(request.form.get('amount', 0))
-        price = float(request.form.get('price', 0)) # Only for limit
-    except ValueError:
-        flash(_('بيانات غير صحيحة!'), 'danger')
-        return redirect(url_for('market.trade', symbol=asset.symbol))
-        
-    if amount <= 0:
-        flash(_('الكمية يجب أن تكون أكبر من صفر'), 'danger')
-        return redirect(url_for('market.trade', symbol=asset.symbol))
-
-    # MARKET ORDERS
-    if trade_type == 'market':
-        if order_type == 'buy':
-            # Amount is Total USDT
-            if current_user.money < amount:
-                flash(_('لا تملك كاش كافي!'), 'danger')
-                return redirect(url_for('market.trade', symbol=asset.symbol))
-            try:
-                min_buy = float(SystemConfig.get_value('market_spot_min_buy_usd', '10') or '10')
-            except Exception:
-                min_buy = 10.0
-            if amount < min_buy:
-                flash(_('أقل مبلغ شراء سبوت هو %(val)s$', val=min_buy), 'danger')
-                return redirect(url_for('market.trade', symbol=asset.symbol))
-            
-            quantity = amount / asset.current_price
-            
-            # Atomic deduction with logging
-            if not ResourceService.modify_resources(current_user.id, {'money': -amount}, 'buy_spot_market', auto_commit=False, expected_version=current_user.version):
-                flash(_('لا تملك كاش كافي!'), 'danger')
-                return redirect(url_for('market.trade', symbol=asset.symbol))
-            
-            investment = UserInvestment.query.filter_by(user_id=current_user.id, asset_id=asset.id).with_for_update().first()
-            if investment:
-                total_cost_old = investment.quantity * investment.average_buy_price
-                total_cost_new = amount
-                investment.quantity += quantity
-                investment.average_buy_price = (total_cost_old + total_cost_new) / investment.quantity
-            else:
-                investment = UserInvestment(user_id=current_user.id, asset_id=asset.id, quantity=quantity, average_buy_price=asset.current_price)
-                db.session.add(investment)
-                
-            db.session.commit()
-            flash(_('تم شراء الأسهم بنجاح!'), 'success')
-            try:
-                update_daily_task_progress(current_user, 'buy')
-            except Exception:
-                pass
-            
-        elif order_type == 'sell':
-            # Amount is Quantity (Shares)
-            # Deadlock Prevention: Lock User first (consistent with other routes)
-            db.session.execute(select(User).where(User.id == current_user.id).with_for_update()).scalar_one()
-            
-            # Lock investment
-            investment = UserInvestment.query.filter_by(user_id=current_user.id, asset_id=asset.id).with_for_update().first()
-            if not investment or investment.quantity < amount:
-                flash(_('لا تملك أسهم كافية!'), 'danger')
-                return redirect(url_for('market.trade', symbol=asset.symbol))
-                
-            sale_value = amount * asset.current_price
-            
-            # Profit logic
-            cost_basis = amount * investment.average_buy_price
-            profit = sale_value - cost_basis
-            iq_gain = 0
-            if profit > 0:
-                iq_gain = int(profit/1000)
-                
-            # Atomic update with logging
-            changes = {'money': sale_value}
-            if iq_gain > 0:
-                changes['intelligence'] = iq_gain
-            
-            # Note: We pass expected_version here to ensure User hasn't changed (though we only add money)
-            if not ResourceService.modify_resources(current_user.id, changes, 'sell_spot_market', auto_commit=False, expected_version=current_user.version):
-                 db.session.rollback()
-                 flash(_('حدث خطأ أثناء المعالجة. حاول مرة أخرى.'), 'danger')
-                 return redirect(url_for('market.trade', symbol=asset.symbol))
-            
-            investment.quantity -= amount
-            if investment.quantity < 1e-6: db.session.delete(investment)
-            
-            db.session.commit()
-            flash(_('تم بيع الأسهم بنجاح!'), 'success')
-
-    # LIMIT ORDERS
-    elif trade_type == 'limit':
-        if SystemConfig.get_value('market_enable_limit_orders', 'true') != 'true':
-            flash(_('أوامر الحد (Limit) معطلة من لوحة المطور'), 'warning')
-            return redirect(url_for('market.trade', symbol=asset.symbol))
-        if price <= 0:
-             flash(_('سعر غير صحيح!'), 'danger')
-             return redirect(url_for('market.trade', symbol=asset.symbol))
-             
-        if order_type == 'buy':
-            # Amount is Quantity (Shares) for Limit
-            total_cost = amount * price
-            
-            if current_user.money < total_cost:
-                flash(_('لا تملك كاش كافي! (المطلوب: %(cost).2f$)', cost=total_cost), 'danger')
-                return redirect(url_for('market.trade', symbol=asset.symbol))
-                
-            # Atomic deduction with logging
-            if not ResourceService.modify_resources(current_user.id, {'money': -total_cost}, 'spot_limit_buy_order', auto_commit=False, expected_version=None):
-                flash(_('لا تملك كاش كافي!'), 'danger')
-                return redirect(url_for('market.trade', symbol=asset.symbol))
-            
-            order = SpotOrder(
-                user_id=current_user.id,
-                asset_id=asset.id,
-                order_type='buy',
-                price=price,
-                quantity=amount,
-                status='open'
-            )
-            db.session.add(order)
-            db.session.commit()
-            flash(_('تم وضع أمر الشراء!'), 'success')
-            
-        elif order_type == 'sell':
-            # Amount is Quantity (Shares)
-            # Deadlock Prevention: Lock User first
-            db.session.execute(select(User).where(User.id == current_user.id).with_for_update()).scalar_one()
-
-            # Lock investment to prevent race conditions
-            investment = UserInvestment.query.filter_by(user_id=current_user.id, asset_id=asset.id).with_for_update().first()
-            if not investment or investment.quantity < amount:
-                flash(_('لا تملك أسهم كافية!'), 'danger')
-                return redirect(url_for('market.trade', symbol=asset.symbol))
-                
-            # Lock assets
-            investment.quantity -= amount
-            if investment.quantity < 1e-6: db.session.delete(investment)
-            
-            order = SpotOrder(
-                user_id=current_user.id,
-                asset_id=asset.id,
-                order_type='sell',
-                price=price,
-                quantity=amount,
-                status='open'
-            )
-            db.session.add(order)
-            db.session.commit()
-            flash(_('تم وضع أمر البيع!'), 'success')
-            
-    return redirect(url_for('market.trade', symbol=asset.symbol))
-
-@bp.route('/spot/cancel/<int:order_id>', methods=['POST'])
-@login_required
-def cancel_order(order_id):
-    # 1. Fetch Order (No Lock) to identify user
-    order = SpotOrder.query.filter_by(id=order_id).first()
-    
-    if not order or order.user_id != current_user.id or order.status != 'open':
-        if order and order.user_id == current_user.id and order.status != 'open':
-             flash(_('عذراً، تم تنفيذ الأمر أو إلغاؤه مسبقاً!'), 'warning')
-             return redirect(url_for('market.trade', symbol=order.asset.symbol))
-        abort(404)
-        
-    asset_symbol = order.asset.symbol
-        
-    # 2. Lock User FIRST (Deadlock Prevention)
-    # We must lock the user before locking the order/investment to match check_limit_orders hierarchy
-    db.session.execute(select(User).where(User.id == current_user.id).with_for_update()).scalar_one()
-    
-    # 3. Lock Order (Re-fetch with lock)
-    order = SpotOrder.query.filter_by(id=order_id).with_for_update().first()
-    if not order or order.status != 'open':
-        db.session.rollback()
-        flash(_('عذراً، تم تنفيذ الأمر أو إلغاؤه أثناء العملية!'), 'warning')
-        return redirect(url_for('market.trade', symbol=asset_symbol))
-
-    # Refund
-    if order.order_type == 'buy':
-        refund = (order.quantity - order.filled_quantity) * order.price
-        
-        # Atomic addition with logging
-        # User is already locked, so this is safe
-        if not ResourceService.modify_resources(current_user.id, {'money': refund}, 'spot_order_cancel_refund', auto_commit=False, expected_version=None):
-            db.session.rollback()
-            flash(_('حدث خطأ أثناء إلغاء الأمر.'), 'danger')
-            return redirect(url_for('market.trade', symbol=order.asset.symbol))
-
-    else:
-        # Return shares
-        asset = order.asset
-        # Lock investment to prevent race conditions (User -> Investment is safe)
-        investment = UserInvestment.query.filter_by(user_id=current_user.id, asset_id=asset.id).with_for_update().first()
-        qty_back = order.quantity - order.filled_quantity
-        if investment:
-            investment.quantity += qty_back
-        else:
-            investment = UserInvestment(
-                user_id=current_user.id,
-                asset_id=asset.id,
-                quantity=qty_back,
-                average_buy_price=order.price
-            )
-            db.session.add(investment)
-            
-    order.status = 'cancelled'
-    db.session.commit()
-    flash(_('تم إلغاء الأمر.'), 'info')
-    return redirect(url_for('market.trade', symbol=order.asset.symbol))
-
-@bp.route('/history/<symbol>')
-@login_required
-def history(symbol):
-    try:
-        # Use Simulation Service
-        hist = MarketSimulationService.get_history_data(symbol, days=180)
-        
-        # Calculate Indicators
-        # SMA 20
-        hist['SMA_20'] = hist['Close'].rolling(window=20).mean()
-        # EMA 50
-        hist['EMA_50'] = hist['Close'].ewm(span=50, adjust=False).mean()
-        
-        # Bollinger Bands (20, 2)
-        hist['BB_Middle'] = hist['Close'].rolling(window=20).mean()
-        hist['BB_Std'] = hist['Close'].rolling(window=20).std()
-        hist['BB_Upper'] = hist['BB_Middle'] + (2 * hist['BB_Std'])
-        hist['BB_Lower'] = hist['BB_Middle'] - (2 * hist['BB_Std'])
-
-        # Drop NaN values created by rolling windows (optional, or just handle in loop)
-        # We'll just slice the last month for display to keep it clean but accurate
-        display_hist = hist.tail(30) # Last 30 days for view
-
-        data = []
-        for index, row in display_hist.iterrows():
-            # lightweight-charts expects time in seconds (unix timestamp) or string YYYY-MM-DD
-            item = {
-                'time': index.strftime('%Y-%m-%d'),
-                'open': row['Open'],
-                'high': row['High'],
-                'low': row['Low'],
-                'close': row['Close'],
-                # Indicators (handle NaN if any remain)
-                'sma_20': row['SMA_20'] if not pd.isna(row['SMA_20']) else None,
-                'ema_50': row['EMA_50'] if not pd.isna(row['EMA_50']) else None,
-                'bb_upper': row['BB_Upper'] if not pd.isna(row['BB_Upper']) else None,
-                'bb_lower': row['BB_Lower'] if not pd.isna(row['BB_Lower']) else None,
-            }
-            data.append(item)
-            
-        return jsonify(data)
-    except Exception as e:
-        current_app.logger.error(f"History error: {e}")
-        return jsonify({'error': str(e)})

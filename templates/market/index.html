@@ -204,4 +204,95 @@
         </div>
     </div>
 </div>
+
+<!-- Intelligent Notification Container -->
+<div id="market-toast-container"></div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Intelligent Market Script
+        // Fetches prices every 5 seconds and updates UI with animations
+        
+        const priceCache = {}; // Store previous prices to detect changes
+        
+        function updateMarket() {
+            fetch("{{ url_for('market.get_prices') }}")
+                .then(response => response.json())
+                .then(data => {
+                    for (const [id, asset] of Object.entries(data)) {
+                        const priceEls = document.querySelectorAll(`[data-price-id="${id}"]`);
+                        const changeEls = document.querySelectorAll(`[data-change-id="${id}"]`);
+                        const cardEls = document.querySelectorAll(`[data-card-id="${id}"]`);
+                        
+                        if (priceEls.length && changeEls.length) {
+                            const currentPrice = parseFloat(asset.price);
+                            const oldPrice = priceCache[id] || currentPrice;
+                            
+                            // Format numbers
+                            priceEls.forEach(el => {
+                                el.innerHTML = currentPrice.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2}) + ' <span class="small text-muted">$</span>';
+                                el.className = `market-price-large ${asset.change >= 0 ? 'text-up' : 'text-down'}`;
+                            });
+                            changeEls.forEach(el => {
+                                el.innerText = (asset.change > 0 ? '+' : '') + asset.change.toFixed(2) + '%';
+                                el.className = `d-block font-weight-bold ${asset.change >= 0 ? 'text-up' : 'text-down'}`;
+                            });
+                            
+                            // Animations & Intelligence
+                            if (currentPrice !== oldPrice) {
+                                // Remove old animation classes to restart them
+                                cardEls.forEach(cardEl => {
+                                    cardEl.classList.remove('flash-up', 'flash-down');
+                                    void cardEl.offsetWidth;
+                                    if (currentPrice > oldPrice) {
+                                        cardEl.classList.add('flash-up');
+                                    } else {
+                                        cardEl.classList.add('flash-down');
+                                    }
+                                });
+                                
+                                // Intelligent Notification for big moves (> 3%)
+                                const percentMove = Math.abs((currentPrice - oldPrice) / oldPrice) * 100;
+                                if (percentMove > 3) {
+                                    showMarketToast(asset.symbol || id, currentPrice, currentPrice > oldPrice);
+                                }
+                            }
+                            
+                            priceCache[id] = currentPrice;
+                        }
+                    }
+                })
+                .catch(err => console.error('Market Intel Error:', err));
+        }
+        
+        function showMarketToast(symbol, price, isUp) {
+            const container = document.getElementById('market-toast-container');
+            const toast = document.createElement('div');
+            toast.className = 'market-toast';
+            toast.style.borderLeftColor = isUp ? '#28a745' : '#dc3545';
+            
+            const icon = isUp ? '<i class="fas fa-arrow-trend-up text-success mr-2"></i>' : '<i class="fas fa-arrow-trend-down text-danger mr-2"></i>';
+            const msg = isUp ? 'قفزة قوية!' : 'هبوط حاد!';
+            
+            toast.innerHTML = `
+                ${icon}
+                <div>
+                    <strong>${symbol}</strong>: ${msg}<br>
+                    <small>السعر الجديد: ${price.toLocaleString()}$</small>
+                </div>
+            `;
+            
+            container.appendChild(toast);
+            
+            // Remove after animation (5s)
+            setTimeout(() => {
+                toast.remove();
+            }, 5000);
+        }
+        
+        // Start the engine
+        setInterval(updateMarket, {{ market_update_interval_ms|default(5000) }});
+    });
+</script>
+
 {% endblock %}

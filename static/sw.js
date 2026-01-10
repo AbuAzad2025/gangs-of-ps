@@ -1,6 +1,6 @@
 const CACHE_NAME = 'gangs-palestine-v1';
 const ASSETS_TO_CACHE = [
-  '/static/img/azad_logo_white_on_dark.png',
+  '/static/images/azad_logo_white_on_dark.png',
   '/static/css/custom.css',
   '/static/manifest.json'
 ];

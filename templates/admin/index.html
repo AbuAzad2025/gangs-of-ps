@@ -140,7 +140,7 @@
                             <tr>
                                 <td>{{ user.id }}</td>
                                 <td>
-                                    <img src="{{ url_for('static', filename='avatars/' + user.avatar) }}" class="img-circle img-size-32 mr-2 avatar-sm-border">
+                                    <img src="{{ url_for('static', filename='images/avatars/' + user.avatar) }}" class="img-circle img-size-32 mr-2 avatar-sm-border" onerror="this.onerror=null; this.src='{{ url_for('static', filename='images/avatars/default.png') }}';">
                                     {{ user.username }}
                                 </td>
                                 <td><span class="badge badge-gold">{{ _(user.rank_title) }}</span></td>

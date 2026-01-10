@@ -13,7 +13,7 @@ bp = Blueprint('racing', __name__, url_prefix='/casino/racing')
 @login_required
 def index():
     # Show active lobbies
-    active_races = Race.query.filter(Race.status == 'waiting').order_by(Race.created_at.desc()).all()
+    active_races = Race.query.filter(Race.status == 'waiting').order_by(Race.created_at.desc()).limit(50).all()
     
     # User's active car
     my_car = UserVehicle.query.filter_by(user_id=current_user.id, is_active=True).first()

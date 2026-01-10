@@ -35,7 +35,7 @@
                     <td>
                         <div class="d-flex align-items-center">
                             {% if user.avatar and user.avatar != 'default.png' %}
-                            <img src="{{ url_for('static', filename='avatars/' + user.avatar) }}" class="img-circle elevation-2 mr-2" style="width: 30px; height: 30px; object-fit: cover; border: 1px solid var(--gold-primary);">
+                            <img src="{{ url_for('static', filename='images/avatars/' + user.avatar) }}" class="img-circle elevation-2 mr-2" style="width: 30px; height: 30px; object-fit: cover; border: 1px solid var(--gold-primary);" onerror="this.onerror=null; this.src='{{ url_for('static', filename='images/avatars/default.png') }}';">
                             {% else %}
                             <img src="https://ui-avatars.com/api/?name={{ user.username }}&background=random" class="img-circle elevation-2 mr-2" style="width: 30px; height: 30px;">
                             {% endif %}

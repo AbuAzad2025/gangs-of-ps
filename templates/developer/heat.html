@@ -30,7 +30,7 @@
                         {% set heat = user.heat_value() %}
                         <td>
                             <div class="d-flex align-items-center">
-                                <img src="{{ url_for('static', filename='avatars/' + (user.avatar if user.avatar else 'default.png')) }}" class="rounded-circle mr-2" width="30" height="30" onerror="this.onerror=null; this.src='{{ url_for('static', filename='avatars/default.png') }}';">
+                                <img src="{{ url_for('static', filename='images/avatars/' + (user.avatar if user.avatar else 'default.png')) }}" class="rounded-circle mr-2" width="30" height="30" onerror="this.onerror=null; this.src='{{ url_for('static', filename='images/avatars/default.png') }}';">
                                 <a href="{{ url_for('main.dev_user_edit', id=user.id) }}" class="text-light font-weight-bold">{{ user.username }}</a>
                             </div>
                         </td>

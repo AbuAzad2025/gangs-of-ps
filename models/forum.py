@@ -27,8 +27,8 @@ class ForumTopic(db.Model):
 
 class ForumPost(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    topic_id = db.Column(db.Integer, db.ForeignKey('forum_topic.id'), nullable=False)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    topic_id = db.Column(db.Integer, db.ForeignKey('forum_topic.id'), nullable=False, index=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False, index=True)
     content = db.Column(db.Text, nullable=False)
     created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
     updated_at = db.Column(db.DateTime, onupdate=lambda: datetime.now(timezone.utc))

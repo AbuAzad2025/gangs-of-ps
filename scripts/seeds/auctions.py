@@ -48,13 +48,13 @@ def seed_auctions():
                 speed=80, 
                 defense=90, 
                 risk=20,
-                image="images/vehicles/mercedes_g_class.jpg"
+                image="vehicles/mercedes_g_class.jpg"
             )
             db.session.add(vehicle)
             db.session.commit()
             print(f"Created dummy vehicle: {vehicle.name}")
         else:
-            vehicle.image = "images/vehicles/mercedes_g_class.jpg"
+            vehicle.image = "vehicles/mercedes_g_class.jpg"
             db.session.commit()
             print(f"Updated existing vehicle image: {vehicle.name}")
 

@@ -6,8 +6,8 @@ class Asset(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), nullable=False)
     type = db.Column(db.String(50), nullable=False) # house, car, business
-    owner_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True)
-    gang_id = db.Column(db.Integer, db.ForeignKey('gang.id'), nullable=True)
+    owner_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True, index=True)
+    gang_id = db.Column(db.Integer, db.ForeignKey('gang.id'), nullable=True, index=True)
     value = db.Column(db.Integer, default=0) # Buying Price
     income = db.Column(db.Integer, default=0) # Daily income or benefit
     maintenance_cost = db.Column(db.Integer, default=0) # Daily maintenance tax

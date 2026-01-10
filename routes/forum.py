@@ -11,7 +11,7 @@ bp = Blueprint('forum', __name__, url_prefix='/forum')
 @bp.route('/')
 @limiter.limit("30 per minute")
 def index():
-    categories = ForumCategory.query.order_by(ForumCategory.order).all()
+    categories = ForumCategory.query.order_by(ForumCategory.order).limit(20).all()
     return render_template('forum/index.html', categories=categories, ForumTopic=ForumTopic)
 
 @bp.route('/category/<int:id>')

@@ -9,7 +9,7 @@ class Gang(db.Model):
     
     # Hierarchy
     leader_id = db.Column(db.Integer, db.ForeignKey('user.id', use_alter=True, name='fk_gang_leader_id'), nullable=False, index=True)
-    underboss_id = db.Column(db.Integer, db.ForeignKey('user.id', use_alter=True, name='fk_gang_underboss_id'), nullable=True)
+    underboss_id = db.Column(db.Integer, db.ForeignKey('user.id', use_alter=True, name='fk_gang_underboss_id'), nullable=True, index=True)
     
     # Stats
     level = db.Column(db.Integer, default=1)
@@ -49,8 +49,8 @@ class GangInvite(db.Model):
 
 class GangLog(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    gang_id = db.Column(db.Integer, db.ForeignKey('gang.id'), nullable=False)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True) # Who performed the action
+    gang_id = db.Column(db.Integer, db.ForeignKey('gang.id'), nullable=False, index=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True, index=True) # Who performed the action
     action = db.Column(db.String(255), nullable=False)
     timestamp = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
 
@@ -59,8 +59,8 @@ class GangLog(db.Model):
 
 class GangWar(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    gang1_id = db.Column(db.Integer, db.ForeignKey('gang.id'), nullable=False)
-    gang2_id = db.Column(db.Integer, db.ForeignKey('gang.id'), nullable=False)
+    gang1_id = db.Column(db.Integer, db.ForeignKey('gang.id'), nullable=False, index=True)
+    gang2_id = db.Column(db.Integer, db.ForeignKey('gang.id'), nullable=False, index=True)
     
     score_gang1 = db.Column(db.Integer, default=0)
     score_gang2 = db.Column(db.Integer, default=0)
@@ -70,7 +70,7 @@ class GangWar(db.Model):
     
     status = db.Column(db.String(20), default='active') # active, ended
     war_type = db.Column(db.String(50), default='street') # street, cyber, economic
-    winner_id = db.Column(db.Integer, db.ForeignKey('gang.id'), nullable=True)
+    winner_id = db.Column(db.Integer, db.ForeignKey('gang.id'), nullable=True, index=True)
 
     gang1 = db.relationship('Gang', foreign_keys=[gang1_id], backref='wars_started')
     gang2 = db.relationship('Gang', foreign_keys=[gang2_id], backref='wars_received')
@@ -78,7 +78,7 @@ class GangWar(db.Model):
 
 class Message(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    sender_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    sender_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False, index=True)
     receiver_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     subject = db.Column(db.String(100), nullable=False)
     body = db.Column(db.Text, nullable=False)
@@ -97,8 +97,8 @@ class Message(db.Model):
 
 class GangAlliance(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    gang1_id = db.Column(db.Integer, db.ForeignKey('gang.id'), nullable=False)
-    gang2_id = db.Column(db.Integer, db.ForeignKey('gang.id'), nullable=False)
+    gang1_id = db.Column(db.Integer, db.ForeignKey('gang.id'), nullable=False, index=True)
+    gang2_id = db.Column(db.Integer, db.ForeignKey('gang.id'), nullable=False, index=True)
     status = db.Column(db.String(20), default='pending') # pending, active
     created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
     
@@ -107,8 +107,8 @@ class GangAlliance(db.Model):
 
 class GangItem(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    gang_id = db.Column(db.Integer, db.ForeignKey('gang.id'), nullable=False)
-    item_id = db.Column(db.Integer, db.ForeignKey('item.id'), nullable=False)
+    gang_id = db.Column(db.Integer, db.ForeignKey('gang.id'), nullable=False, index=True)
+    item_id = db.Column(db.Integer, db.ForeignKey('item.id'), nullable=False, index=True)
     quantity = db.Column(db.Integer, default=0)
     
     gang = db.relationship('Gang', backref='inventory')
@@ -116,7 +116,7 @@ class GangItem(db.Model):
 
 class Notification(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False, index=True)
     title = db.Column(db.String(100), nullable=True)
     message = db.Column(db.Text, nullable=True)
     link = db.Column(db.String(255))
@@ -128,7 +128,7 @@ class Notification(db.Model):
 class PublicChat(db.Model):
     __tablename__ = 'public_chat'
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False, index=True)
     message = db.Column(db.String(500), nullable=False)
     created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
     

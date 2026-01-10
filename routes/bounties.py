@@ -14,7 +14,7 @@ bp = Blueprint('bounties', __name__, url_prefix='/bounties')
 def index():
     # Group bounties by target
     # This query might need adjustment depending on exact needs, but getting all bounties is a start
-    bounties = Bounty.query.order_by(Bounty.amount.desc()).all()
+    bounties = Bounty.query.order_by(Bounty.amount.desc()).limit(50).all()
     return render_template('bounties.html', bounties=bounties)
 
 @bp.route('/place', methods=['POST'])

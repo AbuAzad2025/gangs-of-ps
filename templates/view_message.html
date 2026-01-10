@@ -21,7 +21,7 @@
                     <div class="d-flex justify-content-between align-items-start">
                         <div class="d-flex align-items-center">
                             <div class="mr-3">
-                                <img src="{{ url_for('static', filename='avatars/' + (message.sender.avatar if message.sender.avatar else 'default.png')) }}" class="sender-avatar" alt="Avatar">
+                                <img src="{{ url_for('static', filename='images/avatars/' + (message.sender.avatar if message.sender.avatar else 'default.png')) }}" class="sender-avatar" alt="Avatar" onerror="this.onerror=null; this.src='{{ url_for('static', filename='images/avatars/default.png') }}';">
                             </div>
                             <div>
                                 <h4 class="mb-1 text-gold">{{ message.subject }}</h4>

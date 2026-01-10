@@ -5,7 +5,7 @@ class HostessKnowledge(db.Model):
     __tablename__ = 'hostess_knowledge'
     
     id = db.Column(db.Integer, primary_key=True)
-    hostess_id = db.Column(db.Integer, db.ForeignKey('hostesses.id'), nullable=True) # Link to specific hostess, null means general knowledge
+    hostess_id = db.Column(db.Integer, db.ForeignKey('hostesses.id'), nullable=True, index=True) # Link to specific hostess, null means general knowledge
     question = db.Column(db.Text, nullable=False)
     answer = db.Column(db.Text, nullable=False)
     category = db.Column(db.String(64), index=True) # e.g., company, gameplay, technical, general

@@ -20,7 +20,7 @@ def index():
         initialize_locations()
         db.session.commit()
 
-    locations = Location.query.filter(Location.id != current_user.location_id).all()
+    locations = Location.query.filter(Location.id != current_user.location_id).limit(50).all()
     current_location = db.session.get(Location, current_user.location_id) if current_user.location_id else None
     
     # Calculate remaining cooldown
@@ -203,8 +203,11 @@ def fly(location_id):
                 # Bribe logic
                 bribe = int(travel_cost * 0.5)
                 if user.money >= (travel_cost + bribe):
-                    ResourceService.modify_resources(user.id, {'money': -bribe}, 'travel_bribe', auto_commit=False, expected_version=None)
-                    msg_extra = _(" 🛑 حاجز طيار! الجندي طلب هويتك وتصريح، دفعت %(bribe)s رشوة لتمشي.", bribe=bribe)
+                    if ResourceService.modify_resources(user.id, {'money': -bribe}, 'travel_bribe', auto_commit=False, expected_version=None):
+                        msg_extra = _(" 🛑 حاجز طيار! الجندي طلب هويتك وتصريح، دفعت %(bribe)s رشوة لتمشي.", bribe=bribe)
+                    else:
+                        flash(_('حدث خطأ أثناء دفع الرشوة!'), 'danger')
+                        return redirect(url_for('travel.index'))
                 else:
                     # Jail
                     jail_time = 15

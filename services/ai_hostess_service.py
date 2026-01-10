@@ -658,7 +658,7 @@ class AIHostessService:
             # Get best match - prioritizing ones that match more keywords could be better,
             # but for now just get the first match from the database.
             # To improve, we could fetch all and score them.
-            results = query.filter(or_(*conditions)).all()
+            results = query.filter(or_(*conditions)).limit(50).all()
             
             if not results:
                 return None

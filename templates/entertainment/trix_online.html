@@ -242,7 +242,7 @@
                 nameEl.textContent = p.username;
             }
             const container = document.querySelector(`#avatar-${p.seat_index}`);
-            const avatarPath = (p.avatar && p.avatar !== 'default.png') ? `/static/uploads/avatars/${p.avatar}` : '/static/adminlte/img/user2-160x160.jpg';
+            const avatarPath = (p.avatar && p.avatar !== 'default.png') ? `{{ url_for('static', filename='images/avatars/') }}${p.avatar}` : '{{ url_for('static', filename='images/avatars/default.png') }}';
             let img = container.querySelector('img');
             if (!img) {
                 img = document.createElement('img');
@@ -258,7 +258,7 @@
             if (img.getAttribute('alt') !== p.username) {
                 img.alt = p.username;
             }
-            img.onerror = function() { this.src = '/static/adminlte/img/user2-160x160.jpg'; };
+            img.onerror = function() { this.src = '{{ url_for('static', filename='images/avatars/default.png') }}'; };
         });
     }
     

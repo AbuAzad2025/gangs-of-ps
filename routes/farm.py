@@ -449,6 +449,9 @@ def upgrade_facility(facility_key):
 @login_required
 @limiter.limit("10 per minute")
 def use_facility_perk(facility_key):
+    # Lock User to prevent race conditions on inventory
+    db.session.query(User).filter_by(id=current_user.id).with_for_update().first()
+    
     # Lock UserFacility row
     uf = db.session.query(UserFacility).filter_by(user_id=current_user.id, facility_key=facility_key).with_for_update().first()
 

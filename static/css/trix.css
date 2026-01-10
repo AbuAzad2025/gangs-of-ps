@@ -1,23 +1,25 @@
-/* Trix Game CSS - Professional Design */
+/* Trix Game CSS - Professional Design - Optimized */
 .trix-table {
     background: radial-gradient(circle at center, #35654d 0%, #1e3c2f 70%, #152a21 100%);
     border: 20px solid #5d4037;
     border-radius: 40px;
-    height: 650px; /* Slightly taller for better spacing */
+    height: 650px;
     position: relative;
     box-shadow: inset 0 0 100px rgba(0,0,0,0.9), 0 20px 60px rgba(0,0,0,0.6);
     overflow: hidden;
+    will-change: transform; /* Performance optimization */
 }
 
-/* Felt Texture Effect */
+/* Felt Texture Effect - Optimized */
 .trix-table::before {
     content: "";
     position: absolute;
-    top: 0; left: 0; right: 0; bottom: 0;
+    inset: 0;
     background-image: url("data:image/svg+xml,%3Csvg width='200' height='200' viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.05'/%3E%3C/svg%3E");
     opacity: 0.4;
     pointer-events: none;
     z-index: 1;
+    will-change: opacity;
 }
 
 .player-area {
@@ -38,7 +40,7 @@
     padding: 15px;
 }
 
-/* Refined Positions */
+/* Player Positions - Consolidated */
 .player-bottom { bottom: 30px; left: 50%; transform: translateX(-50%); width: 70%; height: 140px; }
 .player-top { top: 30px; left: 50%; transform: translateX(-50%); }
 .player-left { left: 30px; top: 50%; transform: translateY(-50%) rotate(90deg); }
@@ -52,6 +54,7 @@
     perspective: 1000px; /* For 3D feel */
 }
 
+/* Card Styles - Optimized */
 .trix-card {
     width: 80px;
     height: 115px;
@@ -70,10 +73,11 @@
     padding: 8px;
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     font-weight: 700;
-    z-index: 100; /* Base z-index */
+    z-index: 100;
+    will-change: transform, box-shadow;
 }
 
-/* Action Panels (Bidding/Doubling/Contract) */
+/* Action Panels - Optimized */
 .action-panel {
     position: absolute;
     top: 50%;
@@ -87,6 +91,7 @@
     text-align: center;
     min-width: 300px;
     box-shadow: 0 0 30px rgba(0,0,0,0.8);
+    will-change: transform, opacity;
 }
 
 .trix-card-back {
@@ -122,16 +127,29 @@
 }
 
 
+/* Card States - Consolidated */
 .trix-card:hover {
     transform: translateY(-25px) scale(1.1);
-    z-index: 200 !important; /* Always on top on hover */
+    z-index: 200 !important;
     box-shadow: 0 15px 30px rgba(0,0,0,0.4);
 }
-.trix-card.selected { transform: translateY(-30px); border: 2px solid gold; }
-.trix-card.disabled { filter: brightness(0.5); cursor: not-allowed; }
-.trix-card.flippable { outline: 2px dashed #ffc107; }
-.trix-card.flipped { transform: rotateY(180deg) translateY(-10px) !important; }
-.trix-card.playable { box-shadow: 0 0 12px rgba(0, 255, 127, 0.6); }
+.trix-card.selected { 
+    transform: translateY(-30px); 
+    border: 2px solid gold; 
+}
+.trix-card.disabled { 
+    filter: brightness(0.5); 
+    cursor: not-allowed; 
+}
+.trix-card.flippable { 
+    outline: 2px dashed #ffc107; 
+}
+.trix-card.flipped { 
+    transform: rotateY(180deg) translateY(-10px) !important; 
+}
+.trix-card.playable { 
+    box-shadow: 0 0 12px rgba(0, 255, 127, 0.6); 
+}
 
 /* Suits */
 .suit-hearts, .suit-diamonds { color: #d32f2f; }
@@ -141,7 +159,7 @@
 .card-suit-center { align-self: center; font-size: 32px; }
 .card-val-bottom { align-self: flex-end; transform: rotate(180deg); font-size: 16px; line-height: 1; }
 
-/* Center Trick Area - Enlarged for clarity */
+/* Center Trick Area - Optimized */
 .trick-area {
     position: absolute;
     top: 50%;
@@ -151,60 +169,69 @@
     height: 320px;
     border-radius: 50%;
     z-index: 100;
-    /* Optional: faint guide circles */
     background: radial-gradient(circle, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0) 70%);
     border: 1px dashed rgba(255,255,255,0.1);
+    will-change: transform;
 }
 
-/* Slot markers to indicate ownership */
+/* Slot markers to indicate ownership - Optimized */
 .trick-area::before {
     content: "P-Top";
     position: absolute;
-    top: 10px; left: 50%; transform: translateX(-50%);
-    font-size: 10px; color: rgba(255,255,255,0.3);
+    top: 10px; 
+    left: 50%; 
+    transform: translateX(-50%);
+    font-size: 10px; 
+    color: rgba(255,255,255,0.3);
 }
 .trick-area::after {
     content: "P-Bottom";
     position: absolute;
-    bottom: 10px; left: 50%; transform: translateX(-50%);
-    font-size: 10px; color: rgba(255,255,255,0.3);
+    bottom: 10px; 
+    left: 50%; 
+    transform: translateX(-50%);
+    font-size: 10px; 
+    color: rgba(255,255,255,0.3);
 }
 
-/* Slow Card Animations - Adjusted for larger table */
+/* Card Animation Keyframes - Consolidated */
 @keyframes slideInBottom { from { transform: translate(-50%, 350px); opacity: 0; } to { transform: translate(-50%, 0); opacity: 1; } }
 @keyframes slideInTop    { from { transform: translate(-50%, -350px); opacity: 0; } to { transform: translate(-50%, 0); opacity: 1; } }
 @keyframes slideInLeft   { from { transform: translateY(-50%) translateX(-350px) rotate(90deg); opacity: 0; } to { transform: translateY(-50%) rotate(90deg); opacity: 1; } }
 @keyframes slideInRight  { from { transform: translateY(-50%) translateX(350px) rotate(-90deg); opacity: 0; } to { transform: translateY(-50%) rotate(-90deg); opacity: 1; } }
 
-.played-card {
-    position: absolute;
-    z-index: 110;
-    box-shadow: 0 5px 15px rgba(0,0,0,0.5); /* Stronger shadow for depth */
-}
-
-/* Distinct Positions - Spaced out */
-.played-bottom { bottom: 30px; left: 50%; transform: translateX(-50%); }
-.played-top    { top: 30px; left: 50%; transform: translateX(-50%); }
-.played-left   { left: 30px; top: 50%; transform: translateY(-50%) rotate(90deg); }
-.played-right  { right: 30px; top: 50%; transform: translateY(-50%) rotate(-90deg); }
-
+/* Card Animation Classes - Consolidated */
 .animate-bottom { animation: slideInBottom 1.0s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
 .animate-top    { animation: slideInTop 1.0s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
 .animate-left   { animation: slideInLeft 1.0s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
 .animate-right  { animation: slideInRight 1.0s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
 
-/* Doubled Cards on Table */
+/* Played Cards - Optimized */
+.played-card {
+    position: absolute;
+    z-index: 110;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.5);
+    will-change: transform, opacity;
+}
+
+/* Card Position Classes - Consolidated */
+.played-bottom { bottom: 30px; left: 50%; transform: translateX(-50%); }
+.played-top    { top: 30px; left: 50%; transform: translateX(-50%); }
+.played-left   { left: 30px; top: 50%; transform: translateY(-50%) rotate(90deg); }
+.played-right  { right: 30px; top: 50%; transform: translateY(-50%) rotate(-90deg); }
+
+/* Doubled Cards - Optimized */
 .doubled-cards-container {
     position: absolute;
-    top: 0; left: 0; right: 0; bottom: 0;
-    pointer-events: none; /* Let clicks pass through */
+    inset: 0;
+    pointer-events: none;
     z-index: 50;
 }
 
 .doubled-card-display {
     position: absolute;
     background: #fff;
-    border: 2px solid #dc3545; /* Red border for danger/double */
+    border: 2px solid #dc3545;
     border-radius: 5px;
     padding: 5px;
     width: 40px;
@@ -216,30 +243,82 @@
     box-shadow: 0 4px 8px rgba(0,0,0,0.5);
     font-weight: bold;
     font-size: 14px;
+    will-change: transform;
 }
 
-/* When inside a group, use relative positioning */
 .doubled-group .doubled-card-display {
     position: relative;
 }
 
 .doubled-card-display .suit { font-size: 20px; }
 
-/* Positioning doubled cards near players */
-.doubled-pos-bottom { bottom: 180px; left: 65%; } /* Near me */
-.doubled-pos-top { top: 120px; right: 65%; } /* Partner/Opponent Top */
+/* Positioning doubled cards */
+.doubled-pos-bottom { bottom: 180px; left: 65%; }
+.doubled-pos-top { top: 120px; right: 65%; }
 .doubled-pos-left { top: 40%; left: 100px; }
 .doubled-pos-right { top: 40%; right: 100px; }
 
-.lead-glow { box-shadow: 0 0 20px rgba(255,215,0,0.6); animation: glowPulse 1.2s ease-in-out infinite alternate; }
-@keyframes glowPulse { from { box-shadow: 0 0 10px rgba(255,215,0,0.4); } to { box-shadow: 0 0 30px rgba(255,215,0,0.9); } }
-.player-avatar { width: 56px; height: 56px; border-radius: 50%; overflow: hidden; border: 2px solid rgba(255,255,255,0.6); box-shadow: 0 6px 18px rgba(0,0,0,0.5); background: linear-gradient(135deg, rgba(255,255,255,0.1), rgba(255,255,255,0)); display: flex; align-items: center; justify-content: center; }
-.player-name { background: linear-gradient(135deg, rgba(0,0,0,0.85), rgba(0,0,0,0.6)); color: #fff; padding: 4px 10px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.4); font-weight: 600; letter-spacing: 0.3px; }
-.trix-card { background: linear-gradient(135deg, #ffffff 0%, #f7f7f7 40%, #ededed 100%); border: 1px solid rgba(0,0,0,0.08); box-shadow: -2px 6px 12px rgba(0,0,0,0.25); }
-.trix-card:hover { box-shadow: 0 18px 36px rgba(0,0,0,0.45); transform: translateY(-25px) scale(1.08); }
-.game-info { backdrop-filter: blur(6px); border: 1px solid rgba(255,255,255,0.15); box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
-.contract-selector { backdrop-filter: blur(8px); box-shadow: 0 16px 40px rgba(0,0,0,0.7); }
-.winner-overlay { backdrop-filter: blur(2px); }
+/* Player Elements - Optimized */
+.lead-glow { 
+    box-shadow: 0 0 20px rgba(255,215,0,0.6); 
+    animation: glowPulse 1.2s ease-in-out infinite alternate; 
+}
+
+@keyframes glowPulse { 
+    from { box-shadow: 0 0 10px rgba(255,215,0,0.4); } 
+    to { box-shadow: 0 0 30px rgba(255,215,0,0.9); } 
+}
+
+.player-avatar { 
+    width: 56px; 
+    height: 56px; 
+    border-radius: 50%; 
+    overflow: hidden; 
+    border: 2px solid rgba(255,255,255,0.6); 
+    box-shadow: 0 6px 18px rgba(0,0,0,0.5); 
+    background: linear-gradient(135deg, rgba(255,255,255,0.1), rgba(255,255,255,0)); 
+    display: flex; 
+    align-items: center; 
+    justify-content: center; 
+}
+
+.player-name { 
+    background: linear-gradient(135deg, rgba(0,0,0,0.85), rgba(0,0,0,0.6)); 
+    color: #fff; 
+    padding: 4px 10px; 
+    border-radius: 12px; 
+    box-shadow: 0 4px 10px rgba(0,0,0,0.4); 
+    font-weight: 600; 
+    letter-spacing: 0.3px; 
+}
+
+/* Card Enhancements */
+.trix-card { 
+    background: linear-gradient(135deg, #ffffff 0%, #f7f7f7 40%, #ededed 100%); 
+    border: 1px solid rgba(0,0,0,0.08); 
+    box-shadow: -2px 6px 12px rgba(0,0,0,0.25); 
+}
+
+.trix-card:hover { 
+    box-shadow: 0 18px 36px rgba(0,0,0,0.45); 
+    transform: translateY(-25px) scale(1.08); 
+}
+
+/* UI Elements */
+.game-info { 
+    backdrop-filter: blur(6px); 
+    border: 1px solid rgba(255,255,255,0.15); 
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5); 
+}
+
+.contract-selector { 
+    backdrop-filter: blur(8px); 
+    box-shadow: 0 16px 40px rgba(0,0,0,0.7); 
+}
+
+.winner-overlay { 
+    backdrop-filter: blur(2px); 
+}
 
 /* Score Table Improvements */
 .score-table {
@@ -273,25 +352,39 @@
     box-shadow: 0 2px 5px rgba(0,0,0,0.5);
 }
 
-/* Counter-rotate labels for side players so text is horizontal */
+/* Counter-rotate labels for side players - Optimized */
 .played-left .trick-player-label {
     transform: translateX(-50%) rotate(-90deg);
     bottom: auto;
     top: 50%;
-    left: -40px; /* Position to the left of the card */
+    left: -40px;
 }
 
 .played-right .trick-player-label {
     transform: translateX(-50%) rotate(90deg);
     bottom: auto;
     top: 50%;
-    right: -40px; /* Position to the right of the card */
+    right: -40px;
     left: auto;
 }
 
 .played-top .trick-player-label {
     bottom: auto;
-    top: -30px; /* Above the card for top player */
+    top: -30px;
+}
+
+/* Performance optimizations */
+.trix-card, .played-card, .trick-player-label {
+    will-change: transform;
+}
+
+/* Respect user preference for reduced motion */
+@media (prefers-reduced-motion: reduce) {
+    .trix-card, .played-card, .trick-player-label,
+    .animate-bottom, .animate-top, .animate-left, .animate-right {
+        animation-duration: 0.01ms !important;
+        transition-duration: 0.01ms !important;
+    }
 }
 
 /* Dashboard */

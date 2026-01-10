@@ -34,7 +34,8 @@
                         {% for hostess in hostesses %}
                         <tr>
                             <td>
-                                <img src="{{ url_for('static', filename='images/' + hostess.image) }}" 
+                                {% set image_path = hostess.image if hostess.image and ('/' in hostess.image) else 'hostesses/' + (hostess.image or 'default_hostess.jpg') %}
+                                <img src="{{ url_for('static', filename='images/' + image_path) }}" 
                                      class="rounded-circle" width="50" height="50" 
                                      style="object-fit: cover;"
                                      onerror="this.onerror=null; this.src='{{ url_for('static', filename='images/hostesses/default_hostess.jpg') }}'">

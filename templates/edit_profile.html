@@ -37,9 +37,10 @@
                         <div class="col-6 col-sm-4 col-md-3 col-lg-2 mb-4">
                             <label class="d-block avatar-option {% if current_user.avatar == avatar %}selected{% endif %}">
                                 <input type="radio" name="avatar" value="{{ avatar }}" class="d-none" onchange="this.form.submit()">
-                                <img src="{{ url_for('static', filename='avatars/' + avatar) }}" 
+                                <img src="{{ url_for('static', filename='images/avatars/' + avatar) }}" 
                                      class="img-fluid avatar-img" 
-                                     alt="Avatar">
+                                     alt="Avatar"
+                                     onerror="this.onerror=null; this.src='{{ url_for('static', filename='images/avatars/default.png') }}';">
                             </label>
                         </div>
                         {% endfor %}

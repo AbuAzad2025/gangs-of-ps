@@ -79,7 +79,7 @@
                                         <a href="{{ url_for('main.profile', user_id=bounty.target.id) }}" class="d-flex align-items-center text-white text-decoration-none">
                                             <div class="position-relative mr-2">
                                                 {% if bounty.target.avatar and bounty.target.avatar != 'default.png' %}
-                                                    <img src="{{ url_for('static', filename='avatars/' + bounty.target.avatar) }}" class="img-circle img-sm border-gold" alt="User Image">
+                                                    <img src="{{ url_for('static', filename='images/avatars/' + bounty.target.avatar) }}" class="img-circle img-sm border-gold" alt="User Image" onerror="this.onerror=null; this.src='{{ url_for('static', filename='images/avatars/default.png') }}';">
                                                 {% else %}
                                                     <img src="https://ui-avatars.com/api/?name={{ bounty.target.username }}&background=random" class="img-circle img-sm border-gold" alt="User Image">
                                                 {% endif %}

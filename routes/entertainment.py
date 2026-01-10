@@ -25,7 +25,8 @@ def index():
     if SystemConfig.get_value('entertainment_enabled', 'true') != 'true':
         flash(_('قسم الترفيه معطل حالياً'), 'warning')
         return redirect(url_for('main.hara'))
-    rooms = GameRoom.query.filter(GameRoom.status != 'finished').order_by(GameRoom.created_at.desc()).all()
+    # Optimization: Limit rooms to prevent memory overload
+    rooms = GameRoom.query.filter(GameRoom.status != 'finished').order_by(GameRoom.created_at.desc()).limit(50).all()
     return render_template('entertainment/index.html', rooms=rooms)
 
 @bp.route('/create_room', methods=['POST'])
@@ -37,10 +38,25 @@ def create_room():
     trix_style = request.form.get('trix_style', 'kingdoms')
     trix_team_mode = request.form.get('trix_team_mode', 'individual')
     
+    # Enhanced input validation
+    if not game_type or game_type not in ['chess', 'trix', 'tarneeb']:
+        flash(_('نوع اللعبة غير صالح'), 'danger')
+        return redirect(url_for('entertainment.index'))
+    
+    if not name or len(name.strip()) < 3 or len(name.strip()) > 50:
+        flash(_('اسم الغرفة يجب أن يكون بين 3 و 50 حرفاً'), 'danger')
+        return redirect(url_for('entertainment.index'))
+    
+    if mode not in ['solo', 'multiplayer']:
+        flash(_('وضع اللعب غير صالح'), 'danger')
+        return redirect(url_for('entertainment.index'))
+    
     # Betting params
     currency_type = request.form.get('currency_type', 'money')
     try:
         stake_amount = int(request.form.get('stake_amount', 0))
+        if stake_amount < 0 or stake_amount > 1000000000:  # Max limit
+            raise ValueError("Invalid stake amount")
     except ValueError:
         stake_amount = 0
         
@@ -178,6 +194,35 @@ def create_room():
     # Auto join creator
     player = GamePlayer(room_id=room.id, user_id=current_user.id, seat_index=0, is_ready=True)
     db.session.add(player)
+    
+    # Log room creation
+    log = UserLog(
+        user_id=current_user.id,
+        action='ROOM_CREATE',
+        details=json.dumps({
+            'room_id': room.id,
+            'room_name': room.name,
+            'game_type': room.game_type,
+            'mode': mode,
+            'stake_amount': room.stake_amount,
+            'currency_type': room.currency_type,
+            'trix_style': trix_style if game_type == 'trix' else None,
+            'trix_team_mode': trix_team_mode if game_type == 'trix' else None
+        }),
+        result='success',
+        before_state={
+            'money': current_user.money + (room.stake_amount if currency_type == 'money' else 0),
+            'diamonds': current_user.diamonds + (room.stake_amount if currency_type == 'diamonds' else 0)
+        },
+        after_state={
+            'money': current_user.money,
+            'diamonds': current_user.diamonds
+        },
+        ip_address=request.remote_addr,
+        user_agent=str(request.user_agent)
+    )
+    db.session.add(log)
+    
     db.session.commit()
     
     return redirect(url_for('entertainment.room', room_id=room.id))
@@ -359,7 +404,12 @@ def _chess_order_moves(board: chess.Board):
     moves.sort(key=move_score, reverse=True)
     return moves
 
-def _chess_minimax(board: chess.Board, depth: int, alpha: int, beta: int, maximizing: bool):
+def _chess_minimax(board: chess.Board, depth: int, alpha: int, beta: int, maximizing: bool, nodes: dict):
+    # Safety limit
+    nodes['count'] += 1
+    if nodes['count'] > 5000: # Max 5000 nodes check per move to prevent hangs
+        return _chess_evaluate(board), None
+        
     if depth == 0 or board.is_game_over():
         return _chess_evaluate(board), None
     best_move = None
@@ -367,7 +417,7 @@ def _chess_minimax(board: chess.Board, depth: int, alpha: int, beta: int, maximi
         max_eval = -math.inf
         for move in _chess_order_moves(board):
             board.push(move)
-            eval_score, _ = _chess_minimax(board, depth-1, alpha, beta, False)
+            eval_score, _ = _chess_minimax(board, depth-1, alpha, beta, False, nodes)
             board.pop()
             if eval_score > max_eval:
                 max_eval = eval_score
@@ -380,7 +430,7 @@ def _chess_minimax(board: chess.Board, depth: int, alpha: int, beta: int, maximi
         min_eval = math.inf
         for move in _chess_order_moves(board):
             board.push(move)
-            eval_score, _ = _chess_minimax(board, depth-1, alpha, beta, True)
+            eval_score, _ = _chess_minimax(board, depth-1, alpha, beta, True, nodes)
             board.pop()
             if eval_score < min_eval:
                 min_eval = eval_score
@@ -401,7 +451,8 @@ def _chess_best_move(board: chess.Board, max_depth: int = 2):
     elif total_material < 1800:  # late middlegame
         adaptive = max(max_depth, 3)
     maximizing = (board.turn == chess.WHITE)
-    _, move = _chess_minimax(board, adaptive, -math.inf, math.inf, maximizing)
+    nodes = {'count': 0}
+    _, move = _chess_minimax(board, adaptive, -math.inf, math.inf, maximizing, nodes)
     if move is None:
         legal = list(board.legal_moves)
         return legal[0] if legal else None
@@ -432,31 +483,53 @@ def get_room_state(room_id):
                 if player:
                     is_white = (player.seat_index == 0)
                 bot_turn = (board.turn == chess.BLACK and is_white) or (board.turn == chess.WHITE and not is_white)
+                
                 if bot_turn and not board.is_game_over():
-                    bot_move = _chess_best_move(board, max_depth=3)
-                    if bot_move:
-                        board.push(bot_move)
-                        state['fen'] = board.fen()
-                        state['turn'] = 'w' if board.turn == chess.WHITE else 'b'
-                        hist = state.get('history', [])
-                        hist.append(bot_move.uci())
-                        state['history'] = hist
-                        room.game_state = state
-                        flag_modified(room, 'game_state')
-                        db.session.commit()
-                        data['game_state'] = state
-                        if socketio:
-                            payload = room.to_dict()
-                            payload['game_state'] = state
-                            socketio.emit('room_update', payload, room=f'room-{room.id}')
+                    # Lock room to safely execute bot move
+                    try:
+                        locked_room = db.session.query(GameRoom).filter_by(id=room.id).with_for_update().first()
+                        if locked_room:
+                            # Re-verify state after lock
+                            state = locked_room.game_state
+                            current_fen = state.get('fen', chess.STARTING_FEN)
+                            if current_fen == 'start': current_fen = chess.STARTING_FEN
+                            board = chess.Board(current_fen)
+                            
+                            # Double check it is still bot turn
+                            bot_turn_still = (board.turn == chess.BLACK and is_white) or (board.turn == chess.WHITE and not is_white)
+                            
+                            if bot_turn_still and not board.is_game_over():
+                                bot_move = _chess_best_move(board, max_depth=3)
+                                if bot_move:
+                                    board.push(bot_move)
+                                    state['fen'] = board.fen()
+                                    state['turn'] = 'w' if board.turn == chess.WHITE else 'b'
+                                    hist = state.get('history', [])
+                                    hist.append(bot_move.uci())
+                                    state['history'] = hist
+                                    locked_room.game_state = state
+                                    flag_modified(locked_room, 'game_state')
+                                    db.session.commit()
+                                    
+                                    # Update response data
+                                    data['game_state'] = state
+                                    if socketio:
+                                        payload = locked_room.to_dict()
+                                        payload['game_state'] = state
+                                        socketio.emit('room_update', payload, room=f'room-{room.id}')
+                    except Exception as e:
+                        current_app.logger.error(f"Error in chess bot move: {e}")
+                        # Don't fail the request, just skip the move
+                        pass
         if room.game_type in ['trix', 'tarneeb'] and room.game_state:
             state = room.game_state
             try:
                 current_app.logger.info(f"[STATE] Room {room.id} {room.game_type} phase={state.get('phase')} turn={state.get('turn_seat')} bidder={state.get('current_bid',{}).get('bidder')} passes={state.get('passes_in_row')}")
             except Exception:
                 pass
-            
-            # Expose bot seats as virtual players for UI
+
+            player = GamePlayer.query.filter_by(room_id=room.id, user_id=current_user.id).first()
+
             if state.get('is_solo') or len(state.get('bot_seats', [])) > 0:
                 existing = {p['seat_index'] for p in data['players']}
                 for seat in state.get('bot_seats', [1, 2, 3]):
@@ -468,8 +541,7 @@ def get_room_state(room_id):
                             'seat_index': seat,
                             'is_ready': True
                         })
-                
-                # Quick safety fallback: if bidding stalled after a human pass, nudge bots to start
+
                 if room.game_type == 'tarneeb' and state.get('phase') == 'bidding':
                     if not state.get('current_bid', {}).get('bidder'):
                         turn = state.get('turn_seat', 0)
@@ -487,96 +559,75 @@ def get_room_state(room_id):
                                 state['turn_seat'] = (turn + 1) % 4
                             except Exception:
                                 pass
-                
-                # Advance bot logic when needed (limited steps per poll)
-                steps = 0
-                while steps < 8:
-                    steps += 1
-                    # Trix: bot chooses contract if king is a bot
-                    if room.game_type == 'trix' and state.get('phase') == 'choose_contract':
-                        king = state.get('kingdom_player', 0)
-                        if king != 0:
-                            import random
-                            available = state.get('available_contracts', [])
-                            if not available:
-                                break
-                            contract = random.choice(available)
-                            res = TrixGameLogic.start_contract(state, contract)
-                            if res.get('valid'):
-                                state = res['state']
-                                continue
-                            else:
-                                break
-                        else:
-                            break
-                    # Trix: bot plays if it's a bot turn
-                    elif room.game_type == 'trix' and state.get('phase') == 'playing':
-                        turn = state.get('turn_seat', 0)
-                        if turn != 0:
-                            bot_move = TrixGameLogic.get_bot_move(state, turn)
-                            if bot_move and bot_move.get('type') == 'play':
-                                res = TrixGameLogic.play_card(state, turn, bot_move['card'])
+
+                if player and player.seat_index == 0:
+                    steps = 0
+                    while steps < 8:
+                        steps += 1
+
+                        if room.game_type == 'trix':
+                            if state.get('phase') == 'choose_contract':
+                                king = state.get('kingdom_player', 0)
+                                if king == 0:
+                                    break
+                                import random
+                                available = state.get('available_contracts', [])
+                                if not available:
+                                    break
+                                contract = random.choice(available)
+                                res = TrixGameLogic.start_contract(state, contract)
                                 if res.get('valid'):
                                     state = res['state']
                                     continue
-                                else:
-                                    break
-                            else:
                                 break
-                        else:
+
+                            if state.get('phase') == 'playing':
+                                turn = state.get('turn_seat', 0)
+                                if turn == 0:
+                                    break
+                                bot_move = TrixGameLogic.get_bot_move(state, turn)
+                                if bot_move and bot_move.get('type') == 'play':
+                                    res = TrixGameLogic.play_card(state, turn, bot_move['card'])
+                                    if res.get('valid'):
+                                        state = res['state']
+                                        continue
+                                break
+
                             break
-                    # Tarneeb: bidding, doubling, and playing
-                    elif room.game_type == 'tarneeb':
-                        if state.get('phase') == 'bidding':
+
+                        if room.game_type == 'tarneeb':
+                            phase = state.get('phase')
                             turn = state.get('turn_seat', 0)
-                            print(f"[DEBUG] Tarneeb Bidding: Turn={turn}, Phase={state.get('phase')}")
-                            if turn != 0:
-                                action = TarneebGameLogic.get_bot_action(state, turn)
-                                print(f"[DEBUG] Bot Action for {turn}: {action}")
-                                if action['type'] in ['bid', 'pass']:
-                                    res = TarneebGameLogic.make_bid(state, turn, action['bid'])
-                                    if res.get('valid'):
-                                        state = res['state']
-                                        print(f"[DEBUG] Bid Result Valid. New Turn={state.get('turn_seat')}, Bidder={state.get('current_bid', {}).get('bidder')}")
-                                        continue
-                                    else:
-                                        print(f"[DEBUG] Bid Result Invalid: {res}")
-                                        break
-                                else:
-                                    break
-                            else:
+                            if turn == 0:
                                 break
-                        elif state.get('phase') == 'doubling':
-                            turn = state.get('turn_seat', 0)
-                            if turn != 0:
-                                action = TarneebGameLogic.get_bot_action(state, turn)
-                                if action['type'] == 'doubling':
-                                    res = TarneebGameLogic.handle_doubling(state, turn, action['doubling'])
+                            action = TarneebGameLogic.get_bot_action(state, turn)
+
+                            if phase == 'bidding':
+                                if action.get('type') in ['bid', 'pass']:
+                                    res = TarneebGameLogic.make_bid(state, turn, action.get('bid'))
                                     if res.get('valid'):
                                         state = res['state']
                                         continue
-                                    else:
-                                        break
-                                else:
-                                    break
-                            else:
                                 break
-                        elif state.get('phase') == 'playing':
-                            turn = state.get('turn_seat', 0)
-                            if turn != 0:
-                                action = TarneebGameLogic.get_bot_action(state, turn)
-                                if action['type'] == 'play':
-                                    res = TarneebGameLogic.play_card(state, turn, action['card'])
+
+                            if phase == 'doubling':
+                                if action.get('type') == 'doubling':
+                                    res = TarneebGameLogic.handle_doubling(state, turn, action.get('doubling'))
                                     if res.get('valid'):
                                         state = res['state']
                                         continue
-                                    else:
-                                        break
-                                else:
-                                    break
-                            else:
                                 break
-                    else:
+
+                            if phase == 'playing':
+                                if action.get('type') == 'play':
+                                    res = TarneebGameLogic.play_card(state, turn, action.get('card'))
+                                    if res.get('valid'):
+                                        state = res['state']
+                                        continue
+                                break
+
+                            break
+
                         break
                 
                 room.game_state = state
@@ -783,6 +834,26 @@ def delete_room(room_id):
                     u.diamonds += room.stake_amount
     
     db.session.delete(room)
+    
+    # Log room deletion
+    log = UserLog(
+        user_id=current_user.id,
+        action='ROOM_DELETE',
+        details=json.dumps({
+            'room_id': room.id,
+            'room_name': room.name,
+            'game_type': room.game_type,
+            'stake_amount': room.stake_amount,
+            'currency_type': room.currency_type,
+            'status': room.status,
+            'refunded_players': len(players)
+        }),
+        result='success',
+        ip_address=request.remote_addr,
+        user_agent=str(request.user_agent)
+    )
+    db.session.add(log)
+    
     db.session.commit()
     if socketio:
         try:
@@ -865,6 +936,27 @@ def leave_game(room_id):
             room.pot_amount -= room.stake_amount
             
         db.session.delete(player)
+        
+        # Log room leave
+        log = UserLog(
+            user_id=current_user.id,
+            action='ROOM_LEAVE',
+            details=json.dumps({
+                'room_id': room.id,
+                'room_name': room.name,
+                'game_type': room.game_type,
+                'stake_amount': room.stake_amount,
+                'currency_type': room.currency_type,
+                'status': room.status,
+                'refunded': room.stake_amount > 0,
+                'seat_index': player.seat_index if player else None
+            }),
+            result='success',
+            ip_address=request.remote_addr,
+            user_agent=str(request.user_agent)
+        )
+        db.session.add(log)
+        
         db.session.commit()
         
         if socketio:
@@ -1202,7 +1294,12 @@ def make_move(room_id):
         
         if current_state.get('is_solo') or len(current_state.get('bot_seats', [])) > 0:
             try:
+                loop_safety = 0
                 while True:
+                    loop_safety += 1
+                    if loop_safety > 100:
+                        current_app.logger.warning(f"Trix bot loop limit reached for room {room.id}")
+                        break
                     if current_state['phase'] == 'choose_contract':
                         king_seat = current_state['kingdom_player']
                         if king_seat != 0:

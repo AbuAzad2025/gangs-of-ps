@@ -11,14 +11,14 @@ class Crime(db.Model):
     money_reward_min = db.Column(db.Integer, default=10)
     money_reward_max = db.Column(db.Integer, default=100)
     exp_reward = db.Column(db.Integer, default=10)
-    min_level = db.Column(db.Integer, default=1)
-    cooldown = db.Column(db.Integer, default=60) # Seconds
+    min_level = db.Column(db.Integer, default=1, index=True)
+    cooldown = db.Column(db.Integer, default=60, index=True) # Seconds
     image = db.Column(db.String(100), default='default_crime.jpg')
-    is_active = db.Column(db.Boolean, default=True)
+    is_active = db.Column(db.Boolean, default=True, index=True)
     
     # Reward configuration
     reward_type = db.Column(db.String(20), default='money')  # money, vehicle, item
-    reward_item_id = db.Column(db.Integer, db.ForeignKey('item.id'), nullable=True)
+    reward_item_id = db.Column(db.Integer, db.ForeignKey('item.id'), nullable=True, index=True)
     reward_item = db.relationship('Item', foreign_keys=[reward_item_id])
     
     # Stat Requirements
@@ -35,14 +35,14 @@ class OrganizedCrime(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), unique=True, nullable=False)
     description = db.Column(db.String(255))
-    min_level = db.Column(db.Integer, default=10)
+    min_level = db.Column(db.Integer, default=10, index=True)
     min_members = db.Column(db.Integer, default=2)
     max_members = db.Column(db.Integer, default=4)
     duration_minutes = db.Column(db.Integer, default=60)
     planning_time_seconds = db.Column(db.Integer, default=10) # Planning/Gathering phase duration
     cooldown_hours = db.Column(db.Integer, default=24)
     energy_cost = db.Column(db.Integer, default=50)
-    is_active = db.Column(db.Boolean, default=True)
+    is_active = db.Column(db.Boolean, default=True, index=True)
     
     # Rewards (Total pool to be split)
     money_reward_min = db.Column(db.Integer, default=1000)
@@ -54,22 +54,26 @@ class OrganizedCrime(db.Model):
     
     image = db.Column(db.String(100), default='default_heist.jpg')
     roles_config = db.Column(JSON, default=list)
-    min_gang_level = db.Column(db.Integer, default=1)
+    min_gang_level = db.Column(db.Integer, default=1, index=True)
     
     def __repr__(self):
         return f'<OrganizedCrime {self.name}>'
 
 class CrimeLobby(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    crime_id = db.Column(db.Integer, db.ForeignKey('organized_crime.id'), nullable=False)
+    crime_id = db.Column(db.Integer, db.ForeignKey('organized_crime.id'), nullable=False, index=True)
     leader_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False, index=True)
     status = db.Column(db.String(20), default='open', index=True) # open, full, in_progress, completed, failed
-    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
+    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), index=True)
     started_at = db.Column(db.DateTime, nullable=True)
     
     crime = db.relationship('OrganizedCrime')
     leader = db.relationship('User', foreign_keys=[leader_id])
     participants = db.relationship('LobbyParticipant', backref='lobby', lazy=True, cascade='all, delete-orphan')
+
+    __table_args__ = (
+        db.Index('idx_crime_lobby_status_created', 'status', 'created_at'),
+    )
 
 class LobbyParticipant(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -90,7 +94,7 @@ class HeistHistory(db.Model):
     money_earned = db.Column(db.Integer, default=0)
     exp_earned = db.Column(db.Integer, default=0)
     log_details = db.Column(db.Text) # The story of what happened
-    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
+    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), index=True)
 
     def __repr__(self):
         return f'<HeistHistory {self.crime_name} - {self.created_at}>'
@@ -110,8 +114,8 @@ class DailyTask(db.Model):
 
 class UserDailyTask(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
-    task_id = db.Column(db.Integer, db.ForeignKey('daily_task.id'), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False, index=True)
+    task_id = db.Column(db.Integer, db.ForeignKey('daily_task.id'), nullable=False, index=True)
     progress = db.Column(db.Integer, default=0)
     is_completed = db.Column(db.Boolean, default=False)
     date = db.Column(db.Date, default=lambda: datetime.now(timezone.utc).date())
@@ -149,7 +153,7 @@ class UserDailyTask(db.Model):
 
 class UserProgress(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False, index=True)
     rank_points = db.Column(db.Integer, default=0)
     
     user = db.relationship('User', backref=db.backref('progress', uselist=False))
@@ -165,9 +169,9 @@ class ResurrectionRequest(db.Model):
 
 class UserCrimeCooldown(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
-    crime_id = db.Column(db.Integer, db.ForeignKey('crime.id'), nullable=False)
-    cooldown_until = db.Column(db.DateTime, nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False, index=True)
+    crime_id = db.Column(db.Integer, db.ForeignKey('crime.id'), nullable=False, index=True)
+    cooldown_until = db.Column(db.DateTime, nullable=False, index=True)
     
     # Daily limit tracking
     daily_count = db.Column(db.Integer, default=0)
@@ -176,14 +180,22 @@ class UserCrimeCooldown(db.Model):
     user = db.relationship('User', backref=db.backref('crime_cooldowns', lazy=True, cascade='all, delete-orphan'))
     crime = db.relationship('Crime')
 
+    __table_args__ = (
+        db.Index('idx_user_crime_cooldown_user_crime', 'user_id', 'crime_id'),
+    )
+
 class UserOrganizedCrimeCooldown(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
-    crime_id = db.Column(db.Integer, db.ForeignKey('organized_crime.id'), nullable=False)
-    cooldown_until = db.Column(db.DateTime, nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False, index=True)
+    crime_id = db.Column(db.Integer, db.ForeignKey('organized_crime.id'), nullable=False, index=True)
+    cooldown_until = db.Column(db.DateTime, nullable=False, index=True)
     
     user = db.relationship('User', backref=db.backref('organized_crime_cooldowns', lazy=True, cascade='all, delete-orphan'))
     crime = db.relationship('OrganizedCrime')
+
+    __table_args__ = (
+        db.Index('idx_user_org_crime_cooldown_user_crime', 'user_id', 'crime_id', unique=True),
+    )
 
 class InvestigationLog(db.Model):
     id = db.Column(db.Integer, primary_key=True)

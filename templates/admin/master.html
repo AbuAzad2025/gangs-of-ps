@@ -1,4 +1,5 @@
 {% extends 'admin/base.html' %}
+{% import 'admin/layout.html' as layout with context %}
 
 {% block head %}
     {{ super() }}
@@ -9,9 +10,10 @@
     <link href="https://fonts.googleapis.com/css?family=Reem+Kufi:400,700&display=swap" rel="stylesheet">
     
     <!-- Custom Style -->
-    <link rel="shortcut icon" href="{{ url_for('static', filename='img/azad_logo_white_on_dark.png') }}">
+    <link rel="shortcut icon" href="{{ url_for('static', filename='images/azad_logo_white_on_dark.png') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/palestine_luxury.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/rtl.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/admin_panel.css') }}">
     
     <style>
         /* 
@@ -616,47 +618,7 @@
     {% block head_css %}{% endblock %}
 {% endblock %}
 
-{% block main_menu %}
-<ul class="nav navbar-nav mr-auto">
-  <!-- Return to Site Link -->
-  <li class="nav-item ml-3">
-    <a class="btn btn-luxury-gold btn-sm mt-1" href="{{ url_for('main.hara') }}" style="color: #000 !important; font-weight: bold;">
-        <i class="fas fa-home mr-1"></i> {{ _('العودة للحارة') }}
-    </a>
-  </li>
-  
-  {% for item in admin_view.admin.menu() %}
-    {% if item.is_category() %}
-      {% set children = item.get_children() %}
-      {% if children %}
-          <li class="nav-item dropdown">
-            <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown{{ loop.index }}" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-              {{ item.name }}
-            </a>
-            <div class="dropdown-menu" aria-labelledby="navbarDropdown{{ loop.index }}">
-              {% for child in children %}
-                 {% if child.is_category() %}
-                     <h6 class="dropdown-header">{{ child.name }}</h6>
-                     {% for grandchild in child.get_children() %}
-                         <a class="dropdown-item" href="{{ grandchild.get_url() }}">{{ grandchild.name }}</a>
-                     {% endfor %}
-                 {% else %}
-                     <a class="dropdown-item" href="{{ child.get_url() }}">{{ child.name }}</a>
-                 {% endif %}
-              {% endfor %}
-            </div>
-          </li>
-      {% endif %}
-    {% else %}
-       {% if item.is_accessible() %}
-           <li class="nav-item">
-             <a class="nav-link" href="{{ item.get_url() }}">{{ item.name }}</a>
-           </li>
-       {% endif %}
-    {% endif %}
-  {% endfor %}
-</ul>
-{% endblock %}
+{% block main_menu %}{% endblock %}
 
 {% block tail %}
     {{ super() }}
@@ -715,69 +677,118 @@
             // Run immediately in case we are at the bottom of body
             cleanDataDumps();
         })();
-
-        // Enhanced Dropdown Handler for RTL & Bootstrap 4
-        document.addEventListener('DOMContentLoaded', function() {
-            // 1. Disable Bootstrap's interference by removing data-toggle from navbar items
-            var navToggles = document.querySelectorAll('.navbar-nav .dropdown-toggle');
-            navToggles.forEach(function(t) {
-                t.removeAttribute('data-toggle'); // Stop Bootstrap from managing these
-            });
-
-            // Helper to close all dropdowns
-            function closeAll() {
-                document.querySelectorAll('.dropdown-menu.show').forEach(function(m) {
-                    m.classList.remove('show');
-                    m.style.display = 'none';
-                });
-                document.querySelectorAll('.dropdown.show, .nav-item.show').forEach(function(p) {
-                    p.classList.remove('show');
-                });
-                document.querySelectorAll('.dropdown-toggle[aria-expanded="true"]').forEach(function(t) {
-                    t.setAttribute('aria-expanded', 'false');
-                });
-            }
-
-            // 2. Click Handler
-            navToggles.forEach(function(toggle) {
-                toggle.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    e.stopPropagation();
-
-                    var parent = this.closest('.nav-item') || this.parentElement;
-                    var menu = parent.querySelector('.dropdown-menu');
-                    
-                    // Check state before closing all
-                    var wasOpen = false;
-                    if (menu) {
-                        wasOpen = menu.classList.contains('show') || menu.style.display === 'block';
-                    }
-
-                    closeAll(); // Close everything else
-
-                    // Toggle current
-                    if (!wasOpen && menu) {
-                        menu.classList.add('show');
-                        menu.style.display = 'block';
-                        parent.classList.add('show');
-                        this.setAttribute('aria-expanded', 'true');
-                    }
-                });
-            });
-
-            // 3. Close on outside click
-            document.addEventListener('click', function(e) {
-                // If click is outside the navbar, close all
-                if (!e.target.closest('.navbar-nav')) {
-                    closeAll();
-                }
-            });
-        });
     </script>
 {% endblock %}
 
 {% block page_body %}
-    <div class="container-fluid fade-in-up" style="background-color: #121212; min-height: 100vh;">
-        {{ super() }}
+    {% macro category_icon(cat_name) -%}
+        {% if cat_name == 'الإدارة' %}fas fa-shield-alt
+        {% elif cat_name == 'اللاعبين' %}fas fa-users
+        {% elif cat_name == 'عالم اللعبة' %}fas fa-globe
+        {% elif cat_name == 'الاقتصاد' %}fas fa-chart-line
+        {% elif cat_name == 'المراقبة' %}fas fa-eye
+        {% elif cat_name == 'المجتمع' %}fas fa-comments
+        {% else %}fas fa-layer-group
+        {% endif %}
+    {%- endmacro %}
+
+    <div class="admin-shell">
+        <div class="admin-topbar">
+            <a class="admin-brand" href="{{ admin_view.admin.url }}">
+                <img src="{{ url_for('static', filename='images/azad_logo_white_on_dark.png') }}" alt="Azad">
+                <span>{{ _('لوحة الإدارة') }}</span>
+            </a>
+            <div class="admin-topbar-actions">
+                <a class="btn btn-admin-top" href="{{ url_for('main.hara') }}">
+                    <i class="fas fa-home ml-1"></i> {{ _('العودة للحارة') }}
+                </a>
+                <a class="btn btn-admin-top" href="{{ url_for('main.dev_dashboard') }}">
+                    <i class="fas fa-code ml-1"></i> {{ _('لوحة المطور') }}
+                </a>
+            </div>
+        </div>
+
+        <div class="admin-main">
+            <aside class="admin-sidebar">
+                <div class="admin-sidebar-inner">
+                    <div class="admin-search">
+                        <input id="adminMenuSearch" type="text" placeholder="{{ _('بحث داخل الإدارة...') }}">
+                    </div>
+
+                    {% for item in admin_view.admin.menu() %}
+                        {% if item.is_category() %}
+                            {% set children = item.get_children() %}
+                            {% if children %}
+                                {% set cat = item.name|string %}
+                                {% set cat_id = 'admin-cat-' ~ loop.index %}
+                                <div class="admin-menu-section">
+                                    <button class="admin-menu-toggle" type="button" data-toggle="collapse" data-target="#{{ cat_id }}" aria-expanded="true">
+                                        <span class="admin-menu-left">
+                                            <i class="{{ category_icon(cat) }}"></i>
+                                            <span>{{ item.name }}</span>
+                                        </span>
+                                        <i class="fas fa-angle-down"></i>
+                                    </button>
+                                    <div class="collapse show" id="{{ cat_id }}">
+                                        <ul class="admin-menu-list">
+                                            {% for child in children %}
+                                                {% if child.is_accessible() %}
+                                                    <li>
+                                                        <a class="admin-menu-link {% if child.is_active(admin_view) %}active{% endif %}" href="{{ child.get_url() }}" data-admin-search="{{ child.name|string }} {{ cat }}">
+                                                            <span class="admin-menu-left">
+                                                                <i class="fas fa-circle text-gold-secondary" style="font-size: 8px;"></i>
+                                                                <span>{{ child.name }}</span>
+                                                            </span>
+                                                            <i class="fas fa-chevron-left text-muted" style="font-size: 12px;"></i>
+                                                        </a>
+                                                    </li>
+                                                {% endif %}
+                                            {% endfor %}
+                                        </ul>
+                                    </div>
+                                </div>
+                            {% endif %}
+                        {% else %}
+                            {% if item.is_accessible() %}
+                                <div class="admin-menu-section">
+                                    <a class="admin-menu-link {% if item.is_active(admin_view) %}active{% endif %}" href="{{ item.get_url() }}" data-admin-search="{{ item.name|string }}">
+                                        <span class="admin-menu-left">
+                                            <i class="fas fa-link"></i>
+                                            <span>{{ item.name }}</span>
+                                        </span>
+                                        <i class="fas fa-chevron-left text-muted" style="font-size: 12px;"></i>
+                                    </a>
+                                </div>
+                            {% endif %}
+                        {% endif %}
+                    {% endfor %}
+                </div>
+            </aside>
+
+            <main class="admin-content">
+                <div class="container-fluid py-3">
+                    {{ layout.messages() }}
+                    {% block body %}{% endblock %}
+                </div>
+            </main>
+        </div>
     </div>
+
+    <script>
+        (function() {
+            var input = document.getElementById('adminMenuSearch');
+            if (!input) return;
+            function norm(s) {
+                return (s || '').toString().toLowerCase().trim();
+            }
+            input.addEventListener('input', function() {
+                var q = norm(input.value);
+                var links = document.querySelectorAll('.admin-menu-link');
+                links.forEach(function(a) {
+                    var hay = norm(a.getAttribute('data-admin-search') || a.textContent);
+                    a.style.display = (!q || hay.indexOf(q) !== -1) ? '' : 'none';
+                });
+            });
+        })();
+    </script>
 {% endblock %}

@@ -1,6 +1,6 @@
 from flask_wtf import FlaskForm
 from wtforms import StringField, PasswordField, SubmitField, BooleanField
-from wtforms.validators import DataRequired, Length, EqualTo, ValidationError
+from wtforms.validators import DataRequired, Length, EqualTo, ValidationError, Optional
 from flask_babel import lazy_gettext as _l
 from models import User
 
@@ -8,7 +8,7 @@ from models import User
 class LoginForm(FlaskForm):
     username = StringField(_l('اسم المستخدم'), validators=[DataRequired()])
     password = PasswordField(_l('كلمة المرور'), validators=[DataRequired()])
-    captcha = StringField(_l('رمز التحقق'))
+    captcha = StringField(_l('رمز التحقق'), validators=[Optional()])
     remember_me = BooleanField(_l('تذكرني'))
     submit = SubmitField(_l('تسجيل الدخول'))
 

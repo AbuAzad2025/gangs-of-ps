@@ -1,0 +1,214 @@
+:root {
+  --admin-bg: #0b0e11;
+  --admin-panel: rgba(16, 18, 22, 0.92);
+  --admin-border: rgba(212, 175, 55, 0.16);
+  --admin-text: rgba(255, 255, 255, 0.82);
+  --admin-muted: rgba(255, 255, 255, 0.55);
+}
+
+.admin-shell {
+  min-height: 100vh;
+  background: var(--admin-bg);
+  display: flex;
+  flex-direction: column;
+}
+
+.admin-topbar {
+  position: sticky;
+  top: 0;
+  z-index: 1030;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px;
+  background: linear-gradient(180deg, rgba(15, 18, 22, 0.98) 0%, rgba(11, 14, 17, 0.94) 100%);
+  border-bottom: 1px solid var(--admin-border);
+  backdrop-filter: blur(8px);
+}
+
+.admin-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--admin-text);
+  font-weight: 900;
+  letter-spacing: 0.2px;
+  text-decoration: none !important;
+}
+
+.admin-brand img {
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  border: 1px solid rgba(212, 175, 55, 0.28);
+}
+
+.admin-topbar-actions {
+  margin-inline-start: auto;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.admin-shell .btn-admin-top {
+  border-radius: 999px;
+  padding: 6px 12px;
+  border: 1px solid rgba(212, 175, 55, 0.24);
+  background: rgba(212, 175, 55, 0.08);
+  color: var(--admin-text);
+  font-weight: 800;
+}
+.admin-shell .btn-admin-top:hover {
+  border-color: rgba(212, 175, 55, 0.42);
+  background: rgba(212, 175, 55, 0.14);
+  color: #fff;
+}
+
+.admin-main {
+  flex: 1;
+  display: flex;
+  min-height: 0;
+}
+
+.admin-sidebar {
+  width: 290px;
+  flex: 0 0 290px;
+  background: var(--admin-panel);
+  border-right: 1px solid var(--admin-border);
+  overflow: auto;
+}
+[dir="rtl"] .admin-sidebar {
+  border-right: 0;
+  border-left: 1px solid var(--admin-border);
+}
+
+.admin-sidebar-inner {
+  padding: 12px;
+}
+
+.admin-search {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  padding-bottom: 10px;
+  background: var(--admin-panel);
+}
+
+.admin-search input {
+  width: 100%;
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.10);
+  background: rgba(0, 0, 0, 0.28);
+  color: #fff;
+  padding: 10px 12px;
+  outline: none;
+}
+.admin-search input::placeholder {
+  color: rgba(255, 255, 255, 0.45);
+}
+.admin-search input:focus {
+  border-color: rgba(212, 175, 55, 0.36);
+  box-shadow: 0 0 0 0.15rem rgba(212, 175, 55, 0.15);
+}
+
+.admin-menu-section {
+  margin-top: 10px;
+}
+
+.admin-menu-toggle {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 14px;
+  border: 1px solid rgba(212, 175, 55, 0.14);
+  background: rgba(0, 0, 0, 0.16);
+  color: #fff;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.admin-menu-toggle .admin-menu-left {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.admin-menu-toggle .admin-menu-left span {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.admin-menu-list {
+  margin: 8px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.admin-menu-link {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 14px;
+  text-decoration: none !important;
+  color: var(--admin-text);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: rgba(0, 0, 0, 0.12);
+  transition: transform 140ms ease, border-color 140ms ease, background 140ms ease;
+}
+.admin-menu-link:hover {
+  border-color: rgba(212, 175, 55, 0.25);
+  background: rgba(212, 175, 55, 0.08);
+  transform: translateY(-1px);
+  color: #fff;
+}
+.admin-menu-link.active {
+  border-color: rgba(212, 175, 55, 0.45);
+  background: rgba(212, 175, 55, 0.14);
+  color: #fff;
+}
+
+.admin-menu-link .admin-menu-left {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.admin-menu-link .admin-menu-left span {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.admin-content {
+  flex: 1;
+  min-width: 0;
+  overflow: auto;
+  background: rgba(0, 0, 0, 0.05);
+}
+
+.admin-content .container-fluid {
+  max-width: 1400px;
+}
+
+@media (max-width: 992px) {
+  .admin-main {
+    flex-direction: column;
+  }
+  .admin-sidebar {
+    width: 100%;
+    flex: 0 0 auto;
+    border-right: 0;
+    border-left: 0;
+    border-bottom: 1px solid var(--admin-border);
+  }
+}
+

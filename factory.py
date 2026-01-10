@@ -4,8 +4,9 @@
 from flask import Flask, request, has_request_context, flash, redirect, url_for, g
 from flask_login import current_user
 from flask_babel import gettext as _
+import os
 from config import Config
-from extensions import db, migrate, login, admin, babel, csrf, limiter, talisman, mail, seo_manager, socketio
+from extensions import db, migrate, login, admin, babel, csrf, limiter, talisman, mail, seo_manager, socketio, cache
 
 def create_app(config_class=Config):
     app = Flask(__name__)
@@ -91,6 +92,7 @@ def create_app(config_class=Config):
     limiter.init_app(app)
     mail.init_app(app)
     seo_manager.init_app(app)
+    cache.init_app(app)
     if socketio:
         socketio.init_app(app, cors_allowed_origins="*")
     
@@ -143,12 +145,15 @@ def create_app(config_class=Config):
     }
     
     # Initialize Talisman with CSP and other security headers
+    is_production = os.environ.get('FLASK_ENV') == 'production'
+    force_https = os.environ.get('FORCE_HTTPS', str(is_production)).lower() == 'true'
+    
     talisman.init_app(
         app, 
         content_security_policy=csp,
-        force_https=False, # Set to True in production with SSL
+        force_https=force_https,
         strict_transport_security=True,
-        session_cookie_secure=False, # Set to True in production with SSL
+        session_cookie_secure=app.config['SESSION_COOKIE_SECURE'],
         session_cookie_http_only=True
     )
     

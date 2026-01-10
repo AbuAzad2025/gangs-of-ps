@@ -39,11 +39,11 @@
                     <form action="{{ url_for('economy.buy_property', asset_id=asset.id) }}" method="POST">
                         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
                         {% if user.money >= asset.value %}
-                            <button type="submit" class="btn btn-buy-property btn-block shine-effect">
+                            <button type="submit" class="btn btn-gold btn-block shine-effect">
                                 <i class="fas fa-shopping-cart mr-2"></i> {{ _('شراء شخصي') }}
                             </button>
                         {% else %}
-                            <button type="button" class="btn btn-dark btn-block disabled btn-disabled-property">
+                            <button type="button" class="btn btn-dark btn-block disabled opacity-50" style="cursor: not-allowed;">
                                 <i class="fas fa-lock mr-2"></i> {{ _('لا تملك المال الكافي') }}
                             </button>
                         {% endif %}
@@ -53,11 +53,11 @@
                     <form action="{{ url_for('economy.buy_gang_property', asset_id=asset.id) }}" method="POST">
                         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
                         {% if user.gang.money >= asset.value %}
-                            <button type="submit" class="btn btn-buy-gang btn-block shine-effect">
+                            <button type="submit" class="btn btn-outline-gold btn-block shine-effect mt-2">
                                 <i class="fas fa-users mr-2"></i> {{ _('شراء للعصابة') }}
                             </button>
                         {% else %}
-                            <button type="button" class="btn btn-dark btn-block mt-2 disabled btn-disabled-property">
+                            <button type="button" class="btn btn-dark btn-block mt-2 disabled opacity-50" style="cursor: not-allowed;">
                                 <i class="fas fa-users-slash mr-2"></i> {{ _('خزينة العصابة لا تكفي') }}
                             </button>
                         {% endif %}

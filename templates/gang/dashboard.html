@@ -9,7 +9,11 @@
             <div class="card-body box-profile">
                 <div class="text-center">
                     {% if gang.image %}
-                    <img class="profile-user-img img-fluid img-circle" src="{{ gang.image }}" alt="Gang logo">
+                        {% if gang.image.startswith('http://') or gang.image.startswith('https://') %}
+                        <img class="profile-user-img img-fluid img-circle" src="{{ gang.image }}" alt="Gang logo" onerror="this.onerror=null; this.src='https://ui-avatars.com/api/?name={{ gang.name }}&background=random';">
+                        {% else %}
+                        <img class="profile-user-img img-fluid img-circle" src="{{ url_for('static', filename='images/' + gang.image) }}" alt="Gang logo" onerror="this.onerror=null; this.src='https://ui-avatars.com/api/?name={{ gang.name }}&background=random';">
+                        {% endif %}
                     {% else %}
                     <div class="text-center mb-3">
                         <i class="fas fa-users fa-3x text-gold"></i>

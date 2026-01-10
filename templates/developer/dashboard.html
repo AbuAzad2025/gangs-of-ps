@@ -96,6 +96,9 @@
                 </div>
                 <div class="card-body bg-dark">
                     <div class="d-flex flex-wrap justify-content-center gap-3">
+                        <a href="{{ url_for('main.dev_alerts') }}" class="btn btn-outline-danger m-2">
+                            <i class="fas fa-bell mr-2"></i> {{ _('تنبيهات النظام') }}
+                        </a>
                         <a href="{{ url_for('main.dev_users') }}" class="btn btn-outline-info m-2">
                             <i class="fas fa-users mr-2"></i> {{ _('إدارة اللاعبين') }}
                         </a>

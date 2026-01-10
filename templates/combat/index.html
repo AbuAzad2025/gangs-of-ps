@@ -48,7 +48,11 @@
                             <tr>
                                 <td>
                                     <div class="d-flex align-items-center">
-                                        <img alt="Avatar" class="avatar-combat rounded-circle" src="https://ui-avatars.com/api/?name={{ target.username }}&background=random">
+                                        {% if target.avatar and target.avatar != 'default.png' %}
+                                            <img src="{{ url_for('static', filename='images/avatars/' + target.avatar) }}" class="avatar-combat rounded-circle" alt="{{ target.username }}" onerror="this.src='https://ui-avatars.com/api/?name={{ target.username }}&background=random'">
+                                        {% else %}
+                                            <img alt="Avatar" class="avatar-combat rounded-circle" src="https://ui-avatars.com/api/?name={{ target.username }}&background=random">
+                                        {% endif %}
                                         <span class="font-weight-bold">{{ target.username }}</span>
                                     </div>
                                 </td>

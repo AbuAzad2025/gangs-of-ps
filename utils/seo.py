@@ -42,7 +42,7 @@ class SEOManager:
 
     @property
     def image(self):
-        default_image = url_for('static', filename='img/azad_logo_white_on_dark.png', _external=True)
+        default_image = url_for('static', filename='images/azad_logo_white_on_dark.png', _external=True)
         return g.get('seo_image', default_image)
 
     @image.setter

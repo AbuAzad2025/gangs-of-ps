@@ -202,7 +202,7 @@
             const lower = String(video).toLowerCase();
             if (lower.endsWith('.gif')) {
                 avatarImg.style.display = 'block';
-                avatarImg.src = "/static/videos/hostesses/" + video;
+                avatarImg.src = "{{ url_for('static', filename='videos/hostesses/') }}" + video;
                 document.getElementById('callOverlay').style.display = 'flex';
                 isCallActive = true;
                 setTimeout(() => {
@@ -218,7 +218,7 @@
             
             const vid = document.createElement('video');
             vid.id = 'callBgVideo';
-            vid.src = "/static/videos/hostesses/" + video;
+            vid.src = "{{ url_for('static', filename='videos/hostesses/') }}" + video;
             vid.autoplay = true;
             vid.loop = true;
             vid.muted = true;
@@ -228,7 +228,7 @@
             overlay.insertBefore(vid, overlay.firstChild);
         } else {
             // Use Avatar
-            avatarImg.src = "/static/images/hostesses/" + (image || "default_hostess.jpg");
+            avatarImg.src = "{{ url_for('static', filename='images/hostesses/') }}" + (image || "default_hostess.jpg");
             avatarImg.style.display = 'block';
         }
         

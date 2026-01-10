@@ -2,70 +2,25 @@
 
 {% block title %}{{ announcement.title }}{% endblock %}
 
-{% block extra_css %}
-<style>
-    .news-detail-container {
-        background-color: var(--dark-card);
-        border: 1px solid rgba(255,255,255,0.05);
-        border-radius: 15px;
-        overflow: hidden;
-        margin-top: 30px;
-        box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-    }
-    
-    .news-detail-header {
-        background: radial-gradient(circle at center, rgba(60, 60, 70, 0.8) 0%, rgba(20, 20, 25, 0.95) 100%);
-        border-bottom: 2px solid var(--gold-primary);
-        padding: 40px;
-        text-align: center;
-    }
-    
-    .news-detail-title {
-        color: var(--gold-primary);
-        font-size: 2rem;
-        font-weight: bold;
-        margin-bottom: 15px;
-        text-shadow: 0 2px 5px rgba(0,0,0,0.5);
-    }
-    
-    .news-detail-date {
-        color: #888;
-        font-size: 0.9rem;
-    }
-    
-    .news-detail-body {
-        padding: 40px;
-        color: #ddd;
-        font-size: 1.1rem;
-        line-height: 1.8;
-    }
-    
-    .back-btn {
-        margin-top: 30px;
-        margin-bottom: 30px;
-    }
-</style>
-{% endblock %}
-
 {% block content %}
 <div class="container fade-in">
     <div class="row">
         <div class="col-lg-10 offset-lg-1">
-            <div class="text-right back-btn">
-                <a href="{{ url_for('news.index') }}" class="btn btn-outline-secondary">
-                    <i class="fas fa-arrow-right"></i> {{ _('عودة للأخبار') }}
+            <div class="text-right my-4">
+                <a href="{{ url_for('news.index') }}" class="btn btn-outline-light">
+                    <i class="fas fa-arrow-right ml-1"></i> {{ _('عودة للأخبار') }}
                 </a>
             </div>
             
-            <div class="news-detail-container">
-                <div class="news-detail-header">
-                    <h1 class="news-detail-title">{{ announcement.title }}</h1>
-                    <span class="news-detail-date">
-                        <i class="far fa-clock"></i> {{ announcement.created_at.strftime('%Y-%m-%d %H:%M') }}
+            <div class="card card-luxury">
+                <div class="card-header border-bottom border-gold text-center p-4" style="background: rgba(0,0,0,0.2);">
+                    <h1 class="h2 text-gold font-weight-bold mb-2">{{ announcement.title }}</h1>
+                    <span class="text-muted small">
+                        <i class="far fa-clock mr-1"></i> {{ announcement.created_at.strftime('%Y-%m-%d %H:%M') }}
                     </span>
                 </div>
                 
-                <div class="news-detail-body">
+                <div class="card-body p-4 text-light" style="font-size: 1.1rem; line-height: 1.8;">
                     {{ announcement.content | safe }}
                 </div>
             </div>

@@ -2,123 +2,41 @@
 
 {% block title %}{{ _('آخر الأخبار') }}{% endblock %}
 
-{% block extra_css %}
-<style>
-    .news-header {
-        background: radial-gradient(circle at center, rgba(60, 60, 70, 0.8) 0%, rgba(20, 20, 25, 0.95) 100%);
-        border-bottom: 2px solid var(--gold-primary);
-        padding: 30px;
-        border-radius: 15px;
-        margin-bottom: 25px;
-        text-align: center;
-        box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-    }
-    
-    .news-icon {
-        font-size: 3rem;
-        background: -webkit-linear-gradient(45deg, #d4af37, #f0e68c);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        margin-bottom: 10px;
-    }
-    
-    .news-card {
-        background-color: var(--dark-card);
-        border: 1px solid rgba(255,255,255,0.05);
-        border-radius: 10px;
-        overflow: hidden;
-        margin-bottom: 20px;
-        transition: all 0.3s ease;
-        position: relative;
-    }
-    
-    .news-card:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 10px 20px rgba(0,0,0,0.4);
-        border-color: rgba(212, 175, 55, 0.3);
-    }
-    
-    .news-card-body {
-        padding: 20px;
-    }
-    
-    .news-date {
-        color: #888;
-        font-size: 0.85rem;
-        margin-bottom: 10px;
-        display: block;
-    }
-    
-    .news-title {
-        color: var(--gold-primary);
-        font-size: 1.4rem;
-        margin-bottom: 15px;
-        font-weight: bold;
-        text-decoration: none;
-        display: block;
-    }
-    
-    .news-excerpt {
-        color: #ccc;
-        line-height: 1.6;
-        margin-bottom: 15px;
-    }
-    
-    .read-more-btn {
-        background: transparent;
-        border: 1px solid var(--gold-primary);
-        color: var(--gold-primary);
-        padding: 5px 15px;
-        border-radius: 20px;
-        font-size: 0.9rem;
-        transition: all 0.3s;
-        text-decoration: none;
-        display: inline-block;
-    }
-    
-    .read-more-btn:hover {
-        background: var(--gold-primary);
-        color: #000;
-        text-decoration: none;
-    }
-</style>
-{% endblock %}
-
 {% block content %}
 <div class="container fade-in">
-    <div class="news-header">
-        <div class="news-icon">
+    <div class="card card-luxury mb-4 text-center p-4">
+        <div class="display-4 text-gold mb-3">
             <i class="fas fa-newspaper"></i>
         </div>
         <h2 class="text-white font-weight-bold">{{ _('مركز الأخبار') }}</h2>
-        <p class="text-white-50 mb-0">{{ _('تابع آخر التحديثات والأحداث في المدينة') }}</p>
+        <p class="text-muted mb-0">{{ _('تابع آخر التحديثات والأحداث في المدينة') }}</p>
     </div>
 
     <div class="row">
         <div class="col-md-8 offset-md-2">
             {% if announcements %}
                 {% for news in announcements %}
-                <div class="news-card">
-                    <div class="news-card-body">
-                        <span class="news-date">
-                            <i class="far fa-clock"></i> {{ news.created_at.strftime('%Y-%m-%d %H:%M') }}
+                <div class="card card-luxury mb-4">
+                    <div class="card-body">
+                        <span class="text-muted small mb-2 d-block">
+                            <i class="far fa-clock mr-1"></i> {{ news.created_at.strftime('%Y-%m-%d') }}
                         </span>
-                        <a href="{{ url_for('news.detail', id=news.id) }}" class="news-title">
+                        <a href="{{ url_for('news.detail', id=news.id) }}" class="h4 text-gold font-weight-bold d-block mb-3 text-decoration-none">
                             {{ news.title }}
                         </a>
-                        <div class="news-excerpt">
-                            {{ news.content[:200] }}{% if news.content|length > 200 %}...{% endif %}
-                        </div>
-                        <a href="{{ url_for('news.detail', id=news.id) }}" class="read-more-btn">
-                            {{ _('اقرأ المزيد') }} <i class="fas fa-arrow-left"></i>
+                        <p class="card-text text-light opacity-75">
+                            {{ news.content[:200] }}...
+                        </p>
+                        <a href="{{ url_for('news.detail', id=news.id) }}" class="btn btn-gold-gradient btn-sm">
+                            {{ _('اقرأ المزيد') }} <i class="fas fa-arrow-left mr-1"></i>
                         </a>
                     </div>
                 </div>
                 {% endfor %}
             {% else %}
                 <div class="text-center py-5">
-                    <i class="fas fa-info-circle fa-3x text-muted mb-3"></i>
-                    <h4 class="text-muted">{{ _('لا توجد أخبار حالياً') }}</h4>
+                    <i class="fas fa-inbox fa-4x text-muted mb-3"></i>
+                    <h3 class="text-white">{{ _('لا توجد أخبار حالياً') }}</h3>
                 </div>
             {% endif %}
         </div>

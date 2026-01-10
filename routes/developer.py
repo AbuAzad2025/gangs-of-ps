@@ -26,6 +26,7 @@ from models.factory import FactoryJob
 from models.market import MarketAsset, UserInvestment, FuturesPosition, Auction, AuctionBid
 from models.forum import ForumCategory, ForumTopic
 from models.achievement import Achievement, UserAchievement
+from services.market_simulation import MarketSimulationService
 from forms.developer import (
     GangForm, HostessKnowledgeForm, OrganizedCrimeForm, HostessForm,
     VehicleForm, ItemForm, CrimeForm, AssetForm, TaskForm, AnnouncementForm,
@@ -266,11 +267,27 @@ def dev_distribute_resources():
     if request.method == 'POST':
         target_type = request.form.get('target_type') # 'all', 'online', 'user_id'
         resource_type = request.form.get('resource_type') # 'money', 'diamonds', 'bullets'
-        amount = int(request.form.get('amount', 0))
-        reason = request.form.get('reason', 'admin_distribution')
         
-        if amount <= 0:
-            flash(_('الكمية يجب أن تكون أكبر من صفر'), 'danger')
+        # Enhanced input validation
+        if target_type not in ['all', 'user_id']:
+            flash(_('نوع الهدف غير صالح'), 'danger')
+            return redirect(url_for('main.dev_distribute_resources'))
+            
+        if resource_type not in ['money', 'diamonds', 'bullets']:
+            flash(_('نوع المورد غير صالح'), 'danger')
+            return redirect(url_for('main.dev_distribute_resources'))
+        
+        try:
+            amount = int(request.form.get('amount', 0))
+            if amount <= 0 or amount > 1000000000:  # Max limit
+                raise ValueError("Invalid amount")
+        except ValueError:
+            flash(_('الكمية يجب أن تكون رقمًا صالحًا بين 1 و 1,000,000,000'), 'danger')
+            return redirect(url_for('main.dev_distribute_resources'))
+            
+        reason = request.form.get('reason', 'admin_distribution')
+        if len(reason) > 200:
+            flash(_('سبب التوزيع طويل جدًا (الحد الأقصى 200 حرف)'), 'danger')
             return redirect(url_for('main.dev_distribute_resources'))
 
         target_users = []
@@ -304,17 +321,42 @@ def dev_user_edit(id):
     
     if request.method == 'POST':
         try:
-            # Calculate changes for resources
+            # Enhanced input validation for user edit
             new_money = int(request.form.get('money', 0))
+            if new_money < 0 or new_money > 1000000000000:  # Max 1 trillion
+                raise ValueError("Invalid money amount")
+                
             new_bank = int(request.form.get('bank_balance', 0))
+            if new_bank < 0 or new_bank > 1000000000000:
+                raise ValueError("Invalid bank amount")
+                
             new_diamonds = int(request.form.get('diamonds', 0))
+            if new_diamonds < 0 or new_diamonds > 1000000:
+                raise ValueError("Invalid diamonds amount")
+                
             new_bullets = int(request.form.get('bullets', 0))
+            if new_bullets < 0 or new_bullets > 1000000:
+                raise ValueError("Invalid bullets amount")
+                
             new_exp = int(request.form.get('exp', 0))
+            if new_exp < 0 or new_exp > 1000000000:
+                raise ValueError("Invalid exp amount")
             
             new_strength = int(request.form.get('strength', 10))
+            if new_strength < 1 or new_strength > 99999:
+                raise ValueError("Invalid strength value")
+                
             new_defense = int(request.form.get('defense', 10))
+            if new_defense < 1 or new_defense > 99999:
+                raise ValueError("Invalid defense value")
+                
             new_agility = int(request.form.get('agility', 10))
+            if new_agility < 1 or new_agility > 99999:
+                raise ValueError("Invalid agility value")
+                
             new_intelligence = int(request.form.get('intelligence', 10))
+            if new_intelligence < 1 or new_intelligence > 99999:
+                raise ValueError("Invalid intelligence value")
             
             changes = {
                 'money': new_money - (user.money or 0),
@@ -536,8 +578,8 @@ def dev_clear_all_players_protection():
 @bp.route('/developer/heat')
 @developer_required
 def dev_heat():
-    # Get users with heat > 0, ordered by heat desc
-    users = User.query.filter(User.heat_points > 0).order_by(User.heat_points.desc()).all()
+    # Get users with heat > 0, ordered by heat desc with limit
+    users = User.query.filter(User.heat_points > 0).order_by(User.heat_points.desc()).limit(1000).all()
     return render_template('developer/heat.html', users=users, title=_('إدارة مستوى المطاردة'))
 
 @bp.route('/developer/heat/clear_all', methods=['POST'])
@@ -614,9 +656,9 @@ def dev_user_achievements_revoke(user_id, user_achievement_id):
 @bp.route('/developer/achievements')
 @developer_required
 def dev_achievements():
-    achievements = Achievement.query.order_by(Achievement.points.asc()).all()
+    achievements = Achievement.query.order_by(Achievement.points.asc()).limit(500).all()
     unlock_counts = {}
-    results = db.session.query(UserAchievement.achievement_id, func.count(UserAchievement.user_id)).group_by(UserAchievement.achievement_id).all()
+    results = db.session.query(UserAchievement.achievement_id, func.count(UserAchievement.user_id)).group_by(UserAchievement.achievement_id).limit(500).all()
     for aid, count in results:
         unlock_counts[aid] = count
         
@@ -657,7 +699,7 @@ def dev_achievement_delete(id):
 @bp.route('/developer/unverified')
 @developer_required
 def unverified_users():
-    users = User.query.filter_by(is_verified=False).order_by(User.created_at.desc()).all()
+    users = User.query.filter_by(is_verified=False).order_by(User.created_at.desc()).limit(100).all()
     return render_template('developer/unverified_users.html', users=users, title=_('مستخدمين بانتظار التفعيل'))
 
 @bp.route('/developer/user/verify/<int:user_id>/<action>', methods=['POST'])
@@ -744,7 +786,7 @@ def handle_resurrection_request(req_id, action):
 @bp.route('/developer/hostesses')
 @developer_required
 def dev_hostesses():
-    hostesses = Hostess.query.all()
+    hostesses = Hostess.query.limit(100).all()  # Limit to prevent memory issues
     return render_template('developer/hostesses.html', hostesses=hostesses, title=_('إدارة المضيفات'))
 
 @bp.route('/developer/hostess/edit/<int:id>', methods=['GET', 'POST'])
@@ -1023,7 +1065,7 @@ def dev_scenario_apply(scenario_id, hostess_id):
 @bp.route('/developer/settings')
 @developer_required
 def dev_settings():
-    settings = SystemConfig.query.order_by(SystemConfig.key.asc()).all()
+    settings = SystemConfig.query.order_by(SystemConfig.key.asc()).limit(200).all()
     return render_template('developer/settings.html', settings=settings, title=_('إعدادات النظام'))
 
 @bp.route('/developer/settings/edit/<int:id>', methods=['GET', 'POST'])
@@ -1169,7 +1211,7 @@ def dev_item_delete(id):
 @bp.route('/developer/vehicles')
 @developer_required
 def dev_vehicles():
-    vehicles = Vehicle.query.order_by(Vehicle.price.asc()).all()
+    vehicles = Vehicle.query.order_by(Vehicle.price.asc()).limit(500).all()
     return render_template('developer/vehicles.html', vehicles=vehicles, title=_('إدارة المركبات'))
 
 @bp.route('/developer/vehicle/edit/<int:id>', methods=['GET', 'POST'])
@@ -1222,7 +1264,7 @@ def dev_vehicle_delete(id):
 @bp.route('/developer/assets')
 @developer_required
 def dev_assets():
-    assets = Asset.query.order_by(Asset.value.asc()).all()
+    assets = Asset.query.order_by(Asset.value.asc()).limit(500).all()
     return render_template('developer/assets.html', assets=assets, title=_('إدارة العقارات'))
 
 @bp.route('/developer/asset/edit/<int:id>', methods=['GET', 'POST'])
@@ -1263,7 +1305,7 @@ def dev_asset_delete(id):
 @bp.route('/developer/locations')
 @developer_required
 def dev_locations():
-    locations = Location.query.order_by(Location.cost.asc()).all()
+    locations = Location.query.order_by(Location.cost.asc()).limit(200).all()
     return render_template('developer/locations.html', locations=locations, title=_('إدارة المواقع'))
 
 @bp.route('/developer/location/edit/<int:id>', methods=['GET', 'POST'])
@@ -1304,7 +1346,7 @@ def dev_location_delete(id):
 @bp.route('/developer/crimes')
 @developer_required
 def dev_crimes():
-    crimes = Crime.query.order_by(Crime.min_level.asc()).all()
+    crimes = Crime.query.order_by(Crime.min_level.asc()).limit(500).all()
     return render_template('developer/crimes.html', crimes=crimes, title=_('إدارة الجرائم'))
 
 @bp.route('/developer/crime/edit/<int:id>', methods=['GET', 'POST'])
@@ -1954,7 +1996,7 @@ def dev_organized_crime_edit(id=None):
 @bp.route('/developer/lobbies')
 @developer_required
 def dev_active_lobbies():
-    lobbies = CrimeLobby.query.order_by(CrimeLobby.created_at.desc()).all()
+    lobbies = CrimeLobby.query.order_by(CrimeLobby.created_at.desc()).limit(100).all()
     return render_template('developer/active_lobbies.html', lobbies=lobbies, title=_('المجموعات النشطة'))
 
 # --- Factories ---
@@ -2029,8 +2071,64 @@ def dev_factory_job_delete(id):
 @bp.route('/developer/market')
 @developer_required
 def dev_market():
-    assets = MarketAsset.query.all()
-    return render_template('developer/market.html', assets=assets, title=_('سوق الأسهم'))
+    cfg = MarketSimulationService.get_asset_config()
+    cfg_symbols = list(cfg.keys())
+
+    if cfg_symbols:
+        assets = MarketAsset.query.filter(MarketAsset.symbol.in_(cfg_symbols)).all()
+        unknown_assets = MarketAsset.query.filter(~MarketAsset.symbol.in_(cfg_symbols)).all()
+    else:
+        assets = MarketAsset.query.all()
+        unknown_assets = []
+
+    by_symbol = {a.symbol: a for a in assets}
+    rows = []
+    for symbol in sorted(cfg_symbols):
+        meta = cfg.get(symbol) or {}
+        asset = by_symbol.get(symbol)
+        rows.append(SimpleNamespace(
+            id=getattr(asset, 'id', None),
+            symbol=symbol,
+            name=meta.get('name') or (asset.name if asset else symbol),
+            asset_type=meta.get('type') or (asset.asset_type if asset else 'stock'),
+            enabled=bool(meta.get('enabled', True)),
+            base_price=float(meta.get('base_price') or 0),
+            volatility=float(meta.get('volatility') or 0) * 100.0,
+            current_price=float(getattr(asset, 'current_price', 0) or 0),
+            price_change_24h=float(getattr(asset, 'price_change_24h', 0) or 0),
+        ))
+
+    settings = SimpleNamespace(
+        market_volatility_multiplier=SystemConfig.get_value('market_volatility_multiplier', '1.0'),
+        market_intel_cost=SystemConfig.get_value('market_intel_cost', '500'),
+        market_update_interval_seconds=SystemConfig.get_value('market_update_interval_seconds', '60'),
+    )
+
+    return render_template('developer/market.html', assets=rows, unknown_assets=unknown_assets, settings=settings, title=_('سوق الأسهم'))
+
+@bp.route('/developer/market/settings', methods=['POST'])
+@developer_required
+def dev_market_settings():
+    market_volatility_multiplier = (request.form.get('market_volatility_multiplier') or '').strip()
+    market_intel_cost = (request.form.get('market_intel_cost') or '').strip()
+    market_update_interval_seconds = (request.form.get('market_update_interval_seconds') or '').strip()
+
+    if market_volatility_multiplier:
+        SystemConfig.set_value('market_volatility_multiplier', market_volatility_multiplier)
+    if market_intel_cost:
+        SystemConfig.set_value('market_intel_cost', market_intel_cost)
+    if market_update_interval_seconds:
+        SystemConfig.set_value('market_update_interval_seconds', market_update_interval_seconds)
+
+    flash(_('تم حفظ إعدادات البورصة.'), 'success')
+    return redirect(url_for('main.dev_market'))
+
+@bp.route('/developer/market/sync', methods=['POST'])
+@developer_required
+def dev_market_sync():
+    MarketSimulationService.initialize_assets()
+    flash(_('تمت مزامنة الأصول.'), 'success')
+    return redirect(url_for('main.dev_market'))
 
 @bp.route('/developer/market/update_price', methods=['POST'])
 @developer_required
@@ -2067,19 +2165,73 @@ def dev_market_edit(id=None):
         title = _('إضافة أصل جديد')
     
     form = MarketAssetForm(obj=asset)
+    cfg = MarketSimulationService.get_asset_config()
+
+    if request.method == 'GET':
+        sym = (asset.symbol or '').strip().upper()
+        meta = cfg.get(sym) if sym else None
+        if meta:
+            form.symbol.data = sym
+            form.name.data = meta.get('name') or asset.name
+            form.type.data = meta.get('type') or asset.asset_type
+            form.base_price.data = int(float(meta.get('base_price') or 0) or 0)
+            form.volatility.data = int(round(float(meta.get('volatility') or 0) * 100))
+            form.is_active.data = bool(meta.get('enabled', True))
+
     if form.validate_on_submit():
-        form.populate_obj(asset)
-        
-        # Ensure change is calculated if new price differs (optional, mostly for display)
-        # Here we just save the config.
-        
+        raw_cfg = SystemConfig.get_value('market_assets_json')
+        try:
+            user_cfg = json.loads(raw_cfg) if raw_cfg else {}
+        except Exception:
+            user_cfg = {}
+        if not isinstance(user_cfg, dict):
+            user_cfg = {}
+
+        old_symbol = (asset.symbol or '').strip().upper()
+        symbol = (form.symbol.data or '').strip().upper()
+        if not symbol:
+            flash(_('رمز الأصل مطلوب.'), 'danger')
+            return render_template('developer/edit_market_asset.html', form=form, title=title)
+
+        name = (form.name.data or '').strip()
+        atype = (form.type.data or 'stock').strip().lower()
+        base_price = float(form.base_price.data or 1)
+        vol = float(form.volatility.data or 1) / 100.0
+        enabled = bool(form.is_active.data)
+
+        user_cfg[symbol] = {
+            'name': name or symbol,
+            'type': atype,
+            'base_price': base_price,
+            'volatility': vol,
+            'enabled': enabled,
+        }
+        if old_symbol and old_symbol != symbol:
+            if old_symbol in user_cfg:
+                user_cfg.pop(old_symbol, None)
+
+        SystemConfig.set_value('market_assets_json', json.dumps(user_cfg, ensure_ascii=False))
+
+        existing = MarketAsset.query.filter_by(symbol=symbol).first()
+        if id and old_symbol != symbol and existing and existing.id != id:
+            flash(_('رمز الأصل مستخدم مسبقاً.'), 'danger')
+            return render_template('developer/edit_market_asset.html', form=form, title=title)
+
+        asset.symbol = symbol
+        asset.name = name or symbol
+        asset.asset_type = atype
+        if not asset.current_price or asset.current_price <= 0:
+            asset.current_price = base_price
+        asset.last_updated = datetime.now(timezone.utc)
+
         if not id:
             db.session.add(asset)
-            
+
         db.session.commit()
+        MarketSimulationService.initialize_assets()
         flash(_('تم حفظ الأصل المالي'), 'success')
         return redirect(url_for('main.dev_market'))
-        
+
     return render_template('developer/edit_market_asset.html', form=form, title=title)
 
 @bp.route('/developer/market/delete/<int:id>', methods=['POST'])
@@ -2087,9 +2239,28 @@ def dev_market_edit(id=None):
 def dev_market_delete(id):
     asset = db.session.get(MarketAsset, id)
     if asset:
-        db.session.delete(asset)
+        raw_cfg = SystemConfig.get_value('market_assets_json')
+        try:
+            user_cfg = json.loads(raw_cfg) if raw_cfg else {}
+        except Exception:
+            user_cfg = {}
+        if not isinstance(user_cfg, dict):
+            user_cfg = {}
+
+        symbol = (asset.symbol or '').strip().upper()
+        meta = user_cfg.get(symbol, {})
+        if not isinstance(meta, dict):
+            meta = {}
+        meta['enabled'] = False
+        meta.setdefault('name', asset.name or symbol)
+        meta.setdefault('type', asset.asset_type or 'stock')
+        meta.setdefault('base_price', float(asset.current_price or 1))
+        meta.setdefault('volatility', 0.02)
+        user_cfg[symbol] = meta
+        SystemConfig.set_value('market_assets_json', json.dumps(user_cfg, ensure_ascii=False))
+
         db.session.commit()
-        flash(_('تم حذف الأصل المالي'), 'success')
+        flash(_('تم تعطيل الأصل المالي'), 'success')
     return redirect(url_for('main.dev_market'))
 
 # --- Auctions Management ---
@@ -2258,6 +2429,76 @@ def dev_create_auction():
     flash(_('تم إنشاء المزاد بنجاح'), 'success')
     return redirect(url_for('main.dev_auctions'))
 
+@bp.route('/developer/alerts')
+@developer_required
+def dev_alerts():
+    """System alerts and notifications dashboard"""
+    alerts = []
+    
+    # Check for suspicious activities
+    recent_logs = UserLog.query.filter(
+        UserLog.timestamp >= datetime.now(timezone.utc) - timedelta(hours=1)
+    ).order_by(UserLog.timestamp.desc()).limit(50).all()
+    
+    for log in recent_logs:
+        if log.action in ['COMBAT_WIN', 'COMBAT_LOSE'] and log.result == 'success':
+            details = json.loads(log.details) if log.details else {}
+            if details.get('money_stolen', 0) > 1000000:  # Large amounts
+                alerts.append({
+                    'type': 'warning',
+                    'title': 'هجوم كبير',
+                    'message': f"المستخدم {log.user.username} قام بهجوم كبير بقيمة ${details.get('money_stolen', 0):,}",
+                    'timestamp': log.timestamp
+                })
+        
+        if log.action == 'AUCTION_BID' and log.result == 'success':
+            details = json.loads(log.details) if log.details else {}
+            if details.get('bid_amount', 0) > 10000000:  # Large bids
+                alerts.append({
+                    'type': 'info',
+                    'title': 'مزايدة كبيرة',
+                    'message': f"مزايدة كبيرة بقيمة ${details.get('bid_amount', 0):,} على مزاد",
+                    'timestamp': log.timestamp
+                })
+    
+    # Check system health
+    total_users = User.query.count()
+    active_users = db.session.query(func.count(func.distinct(UserLog.user_id))).filter(
+        UserLog.timestamp >= datetime.now(timezone.utc) - timedelta(days=1)
+    ).scalar() or 0
+    
+    if total_users > 0 and (active_users / total_users) < 0.1:  # Less than 10% active
+        alerts.append({
+            'type': 'danger',
+            'title': 'انخفاض النشاط',
+            'message': f'نسبة المستخدمين النشطين منخفضة: {active_users}/{total_users} ({active_users/total_users*100:.1f}%)',
+            'timestamp': datetime.now(timezone.utc)
+        })
+    
+    # Check for system issues
+    recent_errors = GameLog.query.filter(
+        GameLog.action == 'ERROR',
+        GameLog.timestamp >= datetime.now(timezone.utc) - timedelta(hours=1)
+    ).count()
+    
+    if recent_errors > 10:
+        alerts.append({
+            'type': 'danger',
+            'title': 'أخطاء متكررة',
+            'message': f'تم تسجيل {recent_errors} خطأ في الساعة الأخيرة',
+            'timestamp': datetime.now(timezone.utc)
+        })
+    
+    return render_template('developer/alerts.html', alerts=alerts, title=_('تنبيهات النظام'))
+
+@bp.route('/developer/alerts/dismiss/<int:alert_id>', methods=['POST'])
+@developer_required
+def dismiss_alert(alert_id):
+    """Dismiss a system alert"""
+    # In a real implementation, you would store dismissed alerts in the database
+    flash(_('تم تجاهل التنبيه'), 'success')
+    return redirect(url_for('main.dev_alerts'))
+
 @bp.route('/developer/economy/sinks')
 @developer_required
 def dev_economy_sinks():
@@ -2278,6 +2519,6 @@ def dev_economy_sinks():
     total_sunk = db.session.query(func.sum(MoneySinkLog.amount)).scalar() or 0
     
     # Get distinct sink types for filter
-    sink_types = [r[0] for r in db.session.query(MoneySinkLog.sink_type).distinct().all()]
+    sink_types = [r[0] for r in db.session.query(MoneySinkLog.sink_type).distinct().limit(50).all()]
     
     return render_template('developer/economy_sinks.html', logs=pagination.items, pagination=pagination, total_sunk=total_sunk, sink_types=sink_types, title=_('سجلات تصريف الأموال'))

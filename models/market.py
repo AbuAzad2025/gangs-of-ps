@@ -5,7 +5,7 @@ class MarketAsset(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     symbol = db.Column(db.String(10), unique=True, nullable=False) # e.g., AAPL, BTC-USD
     name = db.Column(db.String(100), nullable=False)
-    asset_type = db.Column(db.String(20), default='stock') # stock, crypto
+    asset_type = db.Column(db.String(20), default='stock', index=True) # stock, crypto
     current_price = db.Column(db.Float, default=0.0)
     price_change_24h = db.Column(db.Float, default=0.0) # Percentage change
     high_24h = db.Column(db.Float, default=0.0)
@@ -27,13 +27,17 @@ class MarketAsset(db.Model):
 class UserInvestment(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
-    asset_id = db.Column(db.Integer, db.ForeignKey('market_asset.id'), nullable=False)
+    asset_id = db.Column(db.Integer, db.ForeignKey('market_asset.id'), nullable=False, index=True)
     quantity = db.Column(db.Float, default=0.0)
     average_buy_price = db.Column(db.Float, default=0.0)
     
     # Relationships
     asset = db.relationship('MarketAsset', backref='investments')
     user = db.relationship('User', backref='investments')
+    
+    __table_args__ = (
+        db.Index('idx_user_investment_user_asset', 'user_id', 'asset_id', unique=True),
+    )
     
     def current_value(self):
         return self.quantity * self.asset.current_price
@@ -46,22 +50,27 @@ class UserInvestment(db.Model):
 class FuturesPosition(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
-    asset_id = db.Column(db.Integer, db.ForeignKey('market_asset.id'), nullable=False)
+    asset_id = db.Column(db.Integer, db.ForeignKey('market_asset.id'), nullable=False, index=True)
     
-    position_type = db.Column(db.String(10), nullable=False) # 'long' or 'short'
+    position_type = db.Column(db.String(10), nullable=False, index=True) # 'long' or 'short'
     entry_price = db.Column(db.Float, nullable=False)
     margin_amount = db.Column(db.Float, nullable=False) # Cash locked
     leverage = db.Column(db.Integer, default=1)
     quantity = db.Column(db.Float, nullable=False) # Total size (Margin * Leverage / Entry)
     
-    liquidation_price = db.Column(db.Float, nullable=False)
-    is_open = db.Column(db.Boolean, default=True)
-    opened_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
-    closed_at = db.Column(db.DateTime, nullable=True)
+    liquidation_price = db.Column(db.Float, nullable=False, index=True)
+    is_open = db.Column(db.Boolean, default=True, index=True)
+    opened_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), index=True)
+    closed_at = db.Column(db.DateTime, nullable=True, index=True)
     
     # Relationships
     asset = db.relationship('MarketAsset', backref='futures_positions')
     user = db.relationship('User', backref='futures_positions')
+    
+    __table_args__ = (
+        db.Index('idx_futures_position_user_open', 'user_id', 'is_open'),
+        db.Index('idx_futures_liq_check', 'asset_id', 'is_open', 'position_type', 'liquidation_price'),
+    )
     
     def calculate_pnl(self):
         current_price = self.asset.current_price
@@ -90,7 +99,7 @@ class SpotOrder(db.Model):
     filled_quantity = db.Column(db.Float, default=0.0)
     
     status = db.Column(db.String(20), default='open') # open, filled, cancelled, partial
-    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
+    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), index=True)
     
     # Relationships
     asset = db.relationship('MarketAsset', backref='spot_orders')
@@ -99,6 +108,7 @@ class SpotOrder(db.Model):
     __table_args__ = (
         db.Index('idx_spot_order_asset_status', 'asset_id', 'status'),
         db.Index('idx_spot_order_user_status', 'user_id', 'status'),
+        db.Index('idx_spot_order_exec_buy', 'asset_id', 'status', 'order_type', 'price'),
     )
 
     def progress_percent(self):
@@ -110,17 +120,17 @@ class Auction(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     item_type = db.Column(db.String(20), nullable=False) # 'item', 'title', 'vehicle', 'special'
     item_id = db.Column(db.String(50), nullable=True) # ID or Key of the item
-    seller_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True) # Null = System Auction
+    seller_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True, index=True) # Null = System Auction
     
     start_price = db.Column(db.BigInteger, nullable=False)
     current_price = db.Column(db.BigInteger, nullable=False)
     min_bid_increment = db.Column(db.BigInteger, default=1000)
     
     start_time = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
-    end_time = db.Column(db.DateTime, nullable=False)
-    status = db.Column(db.String(20), default='active') # active, completed, cancelled
+    end_time = db.Column(db.DateTime, nullable=False, index=True)
+    status = db.Column(db.String(20), default='active', index=True) # active, completed, cancelled
     
-    winner_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True)
+    winner_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True, index=True)
     
     # Relationships
     seller = db.relationship('User', foreign_keys=[seller_id], backref='auctions_sold')
@@ -142,7 +152,7 @@ class AuctionBid(db.Model):
     auction_id = db.Column(db.Integer, db.ForeignKey('auction.id'), nullable=False, index=True)
     bidder_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False, index=True)
     amount = db.Column(db.BigInteger, nullable=False)
-    timestamp = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
+    timestamp = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), index=True)
     is_refunded = db.Column(db.Boolean, default=False)
     
     bidder = db.relationship('User', backref='auction_bids')

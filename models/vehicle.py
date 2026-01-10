@@ -18,8 +18,8 @@ class Vehicle(db.Model):
 
 class UserVehicle(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
-    vehicle_id = db.Column(db.Integer, db.ForeignKey('vehicle.id'), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False, index=True)
+    vehicle_id = db.Column(db.Integer, db.ForeignKey('vehicle.id'), nullable=False, index=True)
     is_active = db.Column(db.Boolean, default=False)
     condition = db.Column(db.Integer, default=100) # 0-100%
     # Upgrades

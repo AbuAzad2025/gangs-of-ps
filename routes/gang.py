@@ -22,7 +22,7 @@ bp = Blueprint('gang', __name__, url_prefix='/gang')
 @bp.route('/')
 @login_required
 def index():
-    gangs = Gang.query.order_by(Gang.level.desc(), Gang.exp.desc()).all()
+    gangs = Gang.query.order_by(Gang.level.desc(), Gang.exp.desc()).limit(100).all()
     return render_template('gang/index.html', title=_('العصابات'), gangs=gangs)
 
 @bp.route('/invites')
@@ -430,6 +430,79 @@ def dashboard():
     user_items = UserItem.query.filter_by(user_id=current_user.id).filter(UserItem.quantity > 0).all()
     
     return render_template('gang/dashboard.html', title=gang.name, gang=gang, members=members, assets=assets, logs=logs, is_leader=is_leader, is_underboss=is_underboss, active_wars=active_wars, upgrades_data=upgrades_data, current_upgrades=current_upgrades, gang_items=gang_items, user_items=user_items)
+
+@bp.route('/buy_upgrade/<upgrade_id>', methods=['POST'])
+@login_required
+@limiter.limit("30 per minute")
+def buy_upgrade(upgrade_id):
+    level = request.args.get('level', type=int) or request.form.get('level', type=int)
+    if not level or level < 1:
+        flash(_('مستوى غير صحيح.'), 'danger')
+        return redirect(url_for('gang.dashboard'))
+
+    if not current_user.gang_id:
+        flash(_('لست عضواً في أي عصابة!'), 'danger')
+        return redirect(url_for('gang.index'))
+
+    gang = db.session.query(Gang).filter_by(id=current_user.gang_id).with_for_update().first()
+    if not gang:
+        flash(_('العصابة غير موجودة.'), 'danger')
+        return redirect(url_for('gang.index'))
+
+    is_admin = current_user.role.value >= UserRole.ADMIN.value
+    if current_user.id != gang.leader_id and not is_admin:
+        flash(_('فقط الزعيم يمكنه تطوير العصابة!'), 'danger')
+        return redirect(url_for('gang.dashboard'))
+
+    from utils.essentials import load_json_seed
+    import json
+
+    upgrades_data = load_json_seed('gang_upgrades.json') or []
+    upgrade_def = next((u for u in upgrades_data if u.get('id') == upgrade_id), None)
+    if not upgrade_def:
+        flash(_('التطوير غير موجود.'), 'danger')
+        return redirect(url_for('gang.dashboard'))
+
+    level_def = next((l for l in (upgrade_def.get('levels') or []) if int(l.get('level') or 0) == int(level)), None)
+    if not level_def:
+        flash(_('المستوى المطلوب غير موجود.'), 'danger')
+        return redirect(url_for('gang.dashboard'))
+
+    current_upgrades = {}
+    if getattr(gang, 'upgrades', None):
+        try:
+            current_upgrades = json.loads(gang.upgrades)
+        except Exception:
+            current_upgrades = {}
+
+    current_level = int(current_upgrades.get(upgrade_id, 0) or 0)
+    if level != current_level + 1:
+        flash(_('لا يمكنك شراء هذا المستوى حالياً.'), 'warning')
+        return redirect(url_for('gang.dashboard'))
+
+    cost = int(level_def.get('cost') or 0)
+    if is_admin:
+        cost = 0
+
+    if cost > 0 and int(getattr(gang, 'money', 0) or 0) < cost:
+        flash(_('لا يوجد مال كافٍ في خزينة العصابة!'), 'danger')
+        return redirect(url_for('gang.dashboard'))
+
+    if cost > 0:
+        rows = Gang.query.filter(Gang.id == gang.id, Gang.money >= cost).update({
+            Gang.money: Gang.money - cost
+        }, synchronize_session=False)
+        if rows == 0:
+            flash(_('لا يوجد مال كافٍ في خزينة العصابة!'), 'danger')
+            return redirect(url_for('gang.dashboard'))
+
+    current_upgrades[upgrade_id] = level
+    gang.upgrades = json.dumps(current_upgrades, ensure_ascii=False)
+    db.session.add(GangLog(gang_id=gang.id, user_id=current_user.id, action=f"Upgraded {upgrade_id} to {level}"))
+    db.session.commit()
+
+    flash(_('تم شراء التطوير بنجاح.'), 'success')
+    return redirect(url_for('gang.dashboard'))
 
 @bp.route('/broadcast_invite_all', methods=['POST'])
 @login_required

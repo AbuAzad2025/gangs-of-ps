@@ -582,6 +582,39 @@ def attack(target_id):
         )
         db.session.add(combat_log)
 
+        # Create detailed User Log for combat win
+        log = UserLog(
+            user_id=current_user.id,
+            action='COMBAT_WIN',
+            details=json.dumps({
+                'target_id': target.id,
+                'target_username': target.username,
+                'money_stolen': money_stolen,
+                'exp_gain': exp_gain,
+                'is_war': is_war,
+                'is_anonymous': is_anonymous,
+                'is_berserk': is_berserk,
+                'is_critical': is_crit,
+                'is_dodge': is_dodge,
+                'bullets_looted': bullets_looted if 'bullets_looted' in locals() else 0,
+                'bounty_claimed': total_bounty if 'total_bounty' in locals() else 0
+            }),
+            result='success',
+            before_state={
+                'money': current_user.money - money_stolen,
+                'exp': current_user.exp - exp_gain,
+                'health': target.health + actual_damage if 'actual_damage' in locals() else target.health
+            },
+            after_state={
+                'money': current_user.money,
+                'exp': current_user.exp,
+                'health': target.health
+            },
+            ip_address=request.remote_addr,
+            user_agent=request.user_agent.string
+        )
+        db.session.add(log)
+
         # Update Daily Task Progress
         update_daily_task_progress(current_user, 'combat')
 
@@ -644,8 +677,23 @@ def attack(target_id):
         log = UserLog(
             user_id=current_user.id,
             action='COMBAT_LOSE',
-            details=f"Lost against {target.username}. Lost {money_lost}",
+            details=json.dumps({
+                'target_id': target.id,
+                'target_username': target.username,
+                'money_lost': money_lost,
+                'health_damage': loser_actual_damage,
+                'is_anonymous': is_anonymous,
+                'hospitalized': 'hospital_until' in loser_set_fields
+            }),
             result='fail',
+            before_state={
+                'money': current_user.money + money_lost,
+                'health': current_user.health + loser_actual_damage
+            },
+            after_state={
+                'money': current_user.money,
+                'health': current_user.health - loser_actual_damage
+            },
             ip_address=request.remote_addr,
             user_agent=request.user_agent.string
         )

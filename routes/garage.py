@@ -3,7 +3,7 @@ from flask_babel import _
 from flask_login import login_required, current_user
 from extensions import db, limiter
 import random
-from models import Vehicle, UserVehicle, User
+from models import Vehicle, UserVehicle, User, RaceParticipant, Race
 from models.system import SystemConfig
 from sqlalchemy import select
 from . import bp
@@ -14,7 +14,7 @@ from routes.utils import update_daily_task_progress
 @bp.route('/garage')
 @login_required
 def garage():
-    user_vehicles = UserVehicle.query.filter_by(user_id=current_user.id).all()
+    user_vehicles = UserVehicle.query.filter_by(user_id=current_user.id).limit(50).all()
     now = datetime.now(timezone.utc)
     
     # Check for finished repairs
@@ -86,7 +86,7 @@ def buy_car(vehicle_id):
     new_car = UserVehicle(user_id=current_user.id, vehicle_id=vehicle.id, is_active=True)
     
     # Deactivate other cars
-    existing_cars = UserVehicle.query.filter_by(user_id=current_user.id).all()
+    existing_cars = UserVehicle.query.filter_by(user_id=current_user.id).limit(50).all()
     for car in existing_cars:
         car.is_active = False
     
@@ -208,6 +208,14 @@ def sell_car(user_vehicle_id):
         abort(404)
     if car.user_id != current_user.id:
         return redirect(url_for('main.garage'))
+
+    active_race_ref = db.session.query(RaceParticipant.id).join(Race, Race.id == RaceParticipant.race_id).filter(
+        RaceParticipant.user_vehicle_id == car.id,
+        Race.status.in_(['waiting', 'in_progress'])
+    ).first()
+    if active_race_ref:
+        flash(_('لا يمكنك بيع هذه السيارة لأنها مشاركة في سباق.'), 'danger')
+        return redirect(url_for('main.garage'))
         
     if car.condition < 100:
         flash(_('لا يمكنك بيع سيارة متضررة! قم بإصلاحها أولاً.'), 'danger')
@@ -225,7 +233,8 @@ def sell_car(user_vehicle_id):
     # If active, deactivate
     if car.is_active:
         car.is_active = False
-        
+
+    RaceParticipant.query.filter_by(user_vehicle_id=car.id).delete(synchronize_session=False)
     db.session.delete(car)
     db.session.commit()
     
@@ -256,6 +265,7 @@ def activate_car(user_vehicle_id):
             
             # Deactivate if it was active (it wasn't yet, but just in case)
             # Delete user vehicle
+            RaceParticipant.query.filter_by(user_vehicle_id=car.id).delete(synchronize_session=False)
             db.session.delete(car)
             db.session.commit()
             

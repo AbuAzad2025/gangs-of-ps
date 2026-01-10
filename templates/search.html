@@ -76,7 +76,16 @@
                                 <div class="row align-items-center">
                                     <div class="col-auto">
                                         <div class="avatar-wrapper">
-                                            <img src="{{ gang.image if gang.image else 'https://ui-avatars.com/api/?name=' + gang.name + '&background=random' }}" class="img-circle img-size-50 border-gold" alt="Gang Image">
+                                            {% if gang.image %}
+                                                {% if gang.image.startswith('http://') or gang.image.startswith('https://') %}
+                                                    {% set gang_img = gang.image %}
+                                                {% else %}
+                                                    {% set gang_img = url_for('static', filename='images/' + gang.image) %}
+                                                {% endif %}
+                                            {% else %}
+                                                {% set gang_img = 'https://ui-avatars.com/api/?name=' + gang.name + '&background=random' %}
+                                            {% endif %}
+                                            <img src="{{ gang_img }}" class="img-circle img-size-50 border-gold" alt="Gang Image" onerror="this.onerror=null; this.src='https://ui-avatars.com/api/?name={{ gang.name }}&background=random';">
                                         </div>
                                     </div>
                                     <div class="col">

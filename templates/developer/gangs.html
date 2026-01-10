@@ -33,7 +33,11 @@
                         <td><span class="text-muted">{{ g.id }}</span></td>
                         <td>
                             {% if g.image %}
-                            <img src="{{ url_for('static', filename='images/gangs/' + g.image) }}" class="img-circle img-sm mr-2" style="width: 30px; height: 30px;">
+                                {% if g.image.startswith('http://') or g.image.startswith('https://') %}
+                                <img src="{{ g.image }}" class="img-circle img-sm mr-2" style="width: 30px; height: 30px;" onerror="this.onerror=null; this.src='https://ui-avatars.com/api/?name={{ g.name }}&background=random';">
+                                {% else %}
+                                <img src="{{ url_for('static', filename='images/' + g.image) }}" class="img-circle img-sm mr-2" style="width: 30px; height: 30px;" onerror="this.onerror=null; this.src='https://ui-avatars.com/api/?name={{ g.name }}&background=random';">
+                                {% endif %}
                             {% endif %}
                             <span class="font-weight-bold text-gold">{{ g.name }}</span>
                         </td>

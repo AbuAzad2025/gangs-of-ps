@@ -14,8 +14,8 @@ def search():
     if request.method == 'POST':
         query = request.form.get('query')
         if query:
-            user_results = User.query.filter(User.username.ilike(f'%{query}%')).all()
-            gang_results = Gang.query.filter(Gang.name.ilike(f'%{query}%')).all()
+            user_results = User.query.filter(User.username.ilike(f'%{query}%')).limit(50).all()
+            gang_results = Gang.query.filter(Gang.name.ilike(f'%{query}%')).limit(50).all()
             
             if not user_results and not gang_results:
                 flash(_('لم يتم العثور على أي نتائج'), 'warning')

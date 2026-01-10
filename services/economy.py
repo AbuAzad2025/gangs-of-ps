@@ -52,16 +52,20 @@ def apply_daily_sinks():
     config = get_bank_fee_config()
     
     # Iterate all users with bank balance > threshold
-    # For large scale, this should be batched. For now, we process direct query.
-    users = User.query.filter(User.bank_balance >= config["tier1_threshold"]).all()
+    # Optimization: Fetch IDs first to avoid loading all User objects into memory
+    user_ids = [r[0] for r in db.session.query(User.id).filter(User.bank_balance >= config["tier1_threshold"]).all()]
     
     total_fees = 0
     count = 0
     
-    for user in users:
-        fee, reason = calculate_bank_fee(user.bank_balance, config)
-        if fee > 0:
-            try:
+    for uid in user_ids:
+        try:
+            user = db.session.get(User, uid)
+            if not user:
+                continue
+                
+            fee, reason = calculate_bank_fee(user.bank_balance, config)
+            if fee > 0:
                 # Use ResourceService for atomic update and locking
                 if ResourceService.modify_resources(user.id, {'bank_balance': -fee}, 'bank_fee', auto_commit=False, expected_version=None):
                     log = MoneySinkLog(
@@ -75,10 +79,10 @@ def apply_daily_sinks():
                     
                     total_fees += fee
                     count += 1
-            except Exception as e:
-                current_app.logger.error(f"Error applying fee for user {user.id}: {e}")
-                db.session.rollback()
-                continue
+        except Exception as e:
+            current_app.logger.error(f"Error applying fee for user {uid}: {e}")
+            db.session.rollback()
+            continue
     
     # Removed bulk commit as we commit per user now
     current_app.logger.info(f"Applied Bank Fees: {total_fees} from {count} users.")
@@ -95,16 +99,22 @@ def apply_daily_sinks():
             "bunker": 5000
         }
         
-        facilities = UserFacility.query.filter(UserFacility.level > 0).all()
+        # Optimization: Fetch IDs first
+        facility_ids = [r[0] for r in db.session.query(UserFacility.id).filter(UserFacility.level > 0).all()]
+        
         maint_total = 0
         maint_count = 0
         
-        for fac in facilities:
-            base = base_costs.get(fac.facility_key, 500)
-            cost = int(base * fac.level * maint_multiplier)
-            
-            if cost > 0:
-                try:
+        for fid in facility_ids:
+            try:
+                fac = db.session.get(UserFacility, fid)
+                if not fac:
+                    continue
+
+                base = base_costs.get(fac.facility_key, 500)
+                cost = int(base * fac.level * maint_multiplier)
+                
+                if cost > 0:
                     user = db.session.get(User, fac.user_id)
                     if user and user.money >= cost:
                          if ResourceService.modify_resources(user.id, {'money': -cost}, f"maintenance_{fac.facility_key}", auto_commit=False, expected_version=None):
@@ -120,12 +130,6 @@ def apply_daily_sinks():
                              maint_count += 1
                     elif user:
                         # User cannot pay maintenance!
-                        # Logic: Disable facility or downgrade?
-                        # For now: Just log warning or maybe downgrade level if repeated (future)
-                        # We will just take what they have or 0, and maybe mark facility inactive?
-                        # Let's just skip taking money if 0, but maybe track debt?
-                        # Simple: If cant pay, facility level drops by 1? (Harsh but effective sink)
-                        # Let's be gentle first: Just take what is available up to cost
                         paid = min(user.money, cost)
                         if paid > 0:
                             if ResourceService.modify_resources(user.id, {'money': -paid}, f"maintenance_partial_{fac.facility_key}", auto_commit=False, expected_version=None):
@@ -139,9 +143,9 @@ def apply_daily_sinks():
                                 db.session.commit()
                                 maint_total += paid
                                 maint_count += 1
-                except Exception as e:
-                    current_app.logger.error(f"Error processing maintenance for facility {fac.id}: {e}")
-                    db.session.rollback()
+            except Exception as e:
+                current_app.logger.error(f"Error processing maintenance for facility {fid}: {e}")
+                db.session.rollback()
         
         # Removed bulk commit
         current_app.logger.info(f"Applied Maintenance: {maint_total} from {maint_count} facilities.")

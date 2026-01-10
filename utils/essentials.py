@@ -1,18 +1,20 @@
 import logging
 from extensions import db
-from models import Location, Item, OrganizedCrime, Crime, Vehicle, DailyTask
+from models import (
+    Location, Item, OrganizedCrime, Crime, Vehicle, DailyTask
+)
 from models.hostess import Hostess
 from models.knowledge import HostessKnowledge
 from flask_babel import _
 import json
 import os
-import random
 from datetime import datetime, timezone
 
 BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 DATA_DIR = os.path.join(BASE_DIR, 'data')
 SEEDS_DIR = os.path.join(DATA_DIR, 'seeds')
 TRAINING_DIR = os.path.join(DATA_DIR, 'training')
+
 
 def load_json_seed(filename):
     path = os.path.join(SEEDS_DIR, filename)
@@ -21,6 +23,7 @@ def load_json_seed(filename):
         return []
     with open(path, 'r', encoding='utf-8') as f:
         return json.load(f)
+
 
 def initialize_essentials(app):
     """Ensures all essential game data exists in the database."""
@@ -34,29 +37,38 @@ def initialize_essentials(app):
         initialize_hostesses()
         initialize_hostess_knowledge()
         initialize_daily_tasks()
-        ensure_schema_updates() # Migration shim
+        ensure_schema_updates()  # Migration shim
         take_economy_snapshot()
         db.session.commit()
         logging.info("Essential game data verification completed.")
+
 
 def ensure_schema_updates():
     """Manual migration to ensure new columns exist."""
     from sqlalchemy import inspect, text
     inspector = inspect(db.engine)
-    
+
     # 1. User Referral Columns
     columns = [c['name'] for c in inspector.get_columns('user')]
     if 'referral_code' not in columns:
         logging.info("Migrating: Adding referral_code to user table...")
         with db.engine.connect() as conn:
-            conn.execute(text('ALTER TABLE "user" ADD COLUMN referral_code VARCHAR(16)'))
-            conn.execute(text('CREATE UNIQUE INDEX ix_user_referral_code ON "user" (referral_code)'))
+            conn.execute(text(
+                'ALTER TABLE "user" ADD COLUMN referral_code VARCHAR(16)'))
+            conn.execute(text(
+                'CREATE UNIQUE INDEX ix_user_referral_code ON "user" (referral_code)'))
             conn.commit()
 
     if 'referred_by_id' not in columns:
         logging.info("Migrating: Adding referred_by_id to user table...")
         with db.engine.connect() as conn:
-            conn.execute(text('ALTER TABLE "user" ADD COLUMN referred_by_id INTEGER REFERENCES "user"(id)'))
+            conn.execute(text(
+                'ALTER TABLE "user" ADD COLUMN referred_by_id INTEGER'))
+            conn.execute(text(
+                'ALTER TABLE "user" ADD CONSTRAINT fk_user_referred_by '
+                'FOREIGN KEY (referred_by_id) REFERENCES "user"(id)'))
+            conn.execute(text(
+                'CREATE INDEX ix_user_referred_by_id ON "user" (referred_by_id)'))
             conn.commit()
 
     # 2. Gang Upgrades Column
@@ -64,8 +76,10 @@ def ensure_schema_updates():
     if 'upgrades' not in gang_columns:
         logging.info("Migrating: Adding upgrades to gang table...")
         with db.engine.connect() as conn:
-            conn.execute(text('ALTER TABLE "gang" ADD COLUMN upgrades TEXT DEFAULT \'{}\''))
+            conn.execute(text(
+                'ALTER TABLE gang ADD COLUMN upgrades TEXT DEFAULT "{}"'))
             conn.commit()
+
 
 def initialize_locations():
     """Seeds initial locations from JSON."""
@@ -89,12 +103,13 @@ def initialize_locations():
             if loc.image != data['image']:
                 loc.image = data['image']
                 db.session.add(loc)
-    
+
     if count > 0:
         logging.info(f"Seeded {count} locations.")
 
+
 def initialize_items():
-    """Seeds basic items and smuggling items from JSON."""
+    """Seeds basic items, materials, and farm products from JSON."""
     items_data = []
     items_data.extend(load_json_seed('items.json'))
     items_data.extend(load_json_seed('materials.json'))
@@ -104,7 +119,7 @@ def initialize_items():
         # Check if item exists (handling both types)
         type_filter = data['type']
         item = Item.query.filter_by(name=data['name'], type=type_filter).first()
-        
+
         if not item:
             item = Item(
                 name=data['name'],
@@ -130,14 +145,16 @@ def initialize_items():
             if data.get('image') and item.image != data.get('image'):
                 item.image = data.get('image')
                 updated = True
-            
+
             if item.is_black_market is None and 'is_black_market' in data:
                 item.is_black_market = data.get('is_black_market', True)
                 updated = True
             if updated:
                 db.session.add(item)
+
     if count > 0:
         logging.info(f"Seeded {count} items.")
+
 
 def initialize_basic_crimes():
     """Seeds basic single-player crimes from JSON."""
@@ -229,7 +246,7 @@ def initialize_basic_crimes():
             if (not crime.description) and data.get('description'):
                 crime.description = data.get('description')
                 updated = True
-                
+
             seed_daily_limit = data.get('daily_limit', 0)
             if crime.daily_limit is None or seed_daily_limit != crime.daily_limit:
                 crime.daily_limit = seed_daily_limit
@@ -239,6 +256,7 @@ def initialize_basic_crimes():
                 db.session.add(crime)
     if count > 0:
         logging.info(f"Seeded {count} basic crimes.")
+
 
 def initialize_organized_crimes():
     """Seeds organized crimes (Heists) from JSON."""
@@ -291,17 +309,25 @@ def initialize_organized_crimes():
                 try:
                     if not crime.requirements or crime.requirements == "{}":
                         needs_req_upgrade = True
-                    elif '"required_item"' in json.dumps(data.get('requirements', {}), ensure_ascii=False) and ('required_item' not in (crime.requirements or '')):
+                    elif (
+                        '"required_item"' in json.dumps(
+                            data.get('requirements', {}), ensure_ascii=False
+                        ) and
+                        ('required_item' not in (crime.requirements or ''))
+                    ):
                         needs_req_upgrade = True
                 except Exception:
                     needs_req_upgrade = True
                 if needs_req_upgrade:
-                    crime.requirements = json.dumps(data.get('requirements', {}), ensure_ascii=False)
+                    crime.requirements = json.dumps(
+                        data.get('requirements', {}), ensure_ascii=False
+                    )
                     updated = True
             if updated:
                 db.session.add(crime)
     if count > 0:
         logging.info(f"Seeded {count} organized crimes.")
+
 
 def initialize_vehicles():
     """Seeds basic vehicles from JSON."""
@@ -330,6 +356,7 @@ def initialize_vehicles():
     if count > 0:
         logging.info(f"Seeded {count} vehicles.")
 
+
 def initialize_hostesses():
     """Seeds casino hostesses from Deep Training folders."""
     hostesses_dir = os.path.join(TRAINING_DIR, 'hostesses')
@@ -344,20 +371,20 @@ def initialize_hostesses():
         if os.path.isdir(hostess_path):
             profile_file = os.path.join(hostess_path, 'profile.json')
             prompt_file = os.path.join(hostess_path, 'system_prompt.txt')
-            
+
             if os.path.exists(profile_file) and os.path.exists(prompt_file):
                 try:
                     with open(profile_file, 'r', encoding='utf-8') as f:
                         data = json.load(f)
                     with open(prompt_file, 'r', encoding='utf-8') as f:
                         system_prompt = f.read()
-                    
+
                     hostess = Hostess.query.filter_by(name=data['name']).first()
                     if not hostess:
                         hostess = Hostess(name=data['name'])
                         db.session.add(hostess)
                         count += 1
-                    
+
                     # Update fields
                     hostess.role = data['role']
                     hostess.price = data['price']
@@ -377,7 +404,7 @@ def initialize_hostesses():
                     hostess.personality_config = json.dumps(data['personality_config'])
                     hostess.system_prompt = system_prompt
                     hostess.is_public = data.get('is_public', False)
-                    
+
                     # Max Stats
                     hostess.level = data.get('level', 1)
                     hostess.exp = data.get('exp', 0)
@@ -388,6 +415,7 @@ def initialize_hostesses():
 
     if count > 0:
         logging.info(f"Seeded/Updated {count} hostesses from deep training data.")
+
 
 def initialize_hostess_knowledge():
     """Seeds general game knowledge for hostesses."""
@@ -400,11 +428,11 @@ def initialize_hostess_knowledge():
         # Check if knowledge exists (by question and language)
         # We assume general knowledge (hostess_id=None)
         k = HostessKnowledge.query.filter_by(
-            question=data['question'], 
-            language=data.get('language', 'ar'),
-            hostess_id=None
-        ).first()
-        
+                question=data['question'],
+                language=data.get('language', 'ar'),
+                hostess_id=None
+            ).first()
+
         if not k:
             k = HostessKnowledge(
                 question=data['question'],
@@ -412,7 +440,7 @@ def initialize_hostess_knowledge():
                 category=data.get('category', 'general'),
                 keywords=data.get('keywords', ''),
                 language=data.get('language', 'ar'),
-                hostess_id=None # General knowledge
+                hostess_id=None  # General knowledge
             )
             db.session.add(k)
             count += 1
@@ -422,11 +450,11 @@ def initialize_hostess_knowledge():
             if k.answer != data['answer']:
                 k.answer = data['answer']
                 updated = True
-            
+
             if k.keywords != data.get('keywords', ''):
                 k.keywords = data.get('keywords', '')
                 updated = True
-                
+
             if k.category != data.get('category', 'general'):
                 k.category = data.get('category', 'general')
                 updated = True
@@ -434,7 +462,7 @@ def initialize_hostess_knowledge():
             if updated:
                 db.session.add(k)
                 count += 1
-    
+
     if count > 0:
         logging.info(f"Seeded/Updated {count} knowledge items.")
 
@@ -475,7 +503,9 @@ def initialize_daily_tasks():
             min_level=min_level,
         ).all()
 
-        task = next((t for t in candidates if t.description == description), None)
+        task = next(
+            (t for t in candidates if t.description == description), None
+        )
         if not task and candidates:
             task = candidates[0]
 
@@ -525,6 +555,7 @@ def initialize_daily_tasks():
     if deactivated > 0:
         logging.info(f"Deactivated {deactivated} duplicate daily tasks.")
 
+
 def take_economy_snapshot():
     """Takes a daily snapshot of the economy for analysis."""
     from models.user import User
@@ -532,7 +563,7 @@ def take_economy_snapshot():
     from sqlalchemy import func
 
     today = datetime.now(timezone.utc).date()
-    
+
     # Check if snapshot exists for today
     if EconomySnapshot.query.filter_by(date=today).first():
         return
@@ -541,7 +572,7 @@ def take_economy_snapshot():
     total_money = db.session.query(func.sum(User.money)).scalar() or 0
     total_bank = db.session.query(func.sum(User.bank_balance)).scalar() or 0
     user_count = User.query.count()
-    
+
     if user_count == 0:
         avg_wealth = 0
     else:
@@ -549,12 +580,20 @@ def take_economy_snapshot():
 
     # Top 1% share
     limit = max(1, int(user_count * 0.01))
-    top_users = User.query.with_entities(User.money, User.bank_balance).order_by((User.money + User.bank_balance).desc()).limit(limit).all()
+    top_users = (
+        User.query.with_entities(User.money, User.bank_balance)
+        .order_by((User.money + User.bank_balance).desc())
+        .limit(limit)
+        .all()
+    )
     
     top_wealth = sum([(u.money + u.bank_balance) for u in top_users])
     total_wealth = total_money + total_bank
-    
-    top_1_percent_share = (top_wealth / total_wealth * 100) if total_wealth > 0 else 0
+
+    if total_wealth > 0:
+        top_1_percent_share = top_wealth / total_wealth * 100
+    else:
+        top_1_percent_share = 0
 
     snapshot = EconomySnapshot(
         date=today,
@@ -562,7 +601,7 @@ def take_economy_snapshot():
         total_bank=total_bank,
         avg_wealth=avg_wealth,
         top_1_percent_share=top_1_percent_share,
-        active_users_24h=0 # Placeholder
+        active_users_24h=0  # Placeholder
     )
     db.session.add(snapshot)
     db.session.commit()

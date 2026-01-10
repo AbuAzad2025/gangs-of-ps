@@ -3,7 +3,7 @@ from datetime import datetime, timezone
 
 class PaymentTransaction(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False, index=True)
     user = db.relationship('User', backref='transactions')
     amount_usd = db.Column(db.Float, nullable=False)
     diamonds_amount = db.Column(db.Integer, nullable=False)

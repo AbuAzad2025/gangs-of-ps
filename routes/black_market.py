@@ -166,10 +166,11 @@ def process_expired_auctions():
     now = datetime.now(timezone.utc)
     
     # 1. Fetch potential expired auctions (dirty read is fine here)
+    # Limit to 50 to prevent memory overload and long processing times
     expired_ids = [a.id for a in Auction.query.filter(
         Auction.status == 'active',
         Auction.end_time <= now
-    ).all()]
+    ).limit(50).all()]
     
     if not expired_ids:
         return
@@ -567,12 +568,12 @@ def auctions():
 def place_bid(auction_id):
     """Place a bid on an auction."""
     amount = request.form.get('amount', type=int)
-    if not amount or amount <= 0:
+    if not amount or amount <= 0 or amount > 1000000000:  # Max bid limit
         flash(_("مبلغ غير صالح"), "danger")
         return redirect(url_for('black_market.auctions'))
         
     # Optimistic Locking: We don't lock the row, we check version/state on update
-    auction = Auction.query.filter_by(id=auction_id).first()
+    auction = db.session.get(Auction, auction_id)
     if not auction:
         abort(404)
     
@@ -686,6 +687,26 @@ def place_bid(auction_id):
             amount=amount
         )
         db.session.add(new_bid)
+        
+        # Log successful bid
+        log = UserLog(
+            user_id=current_user.id,
+            action='AUCTION_BID',
+            details=json.dumps({
+                'auction_id': auction.id,
+                'item_id': auction.item_id,
+                'item_name': auction.item.name if auction.item else 'Unknown',
+                'bid_amount': amount,
+                'previous_highest': current_highest,
+                'extended': extended
+            }),
+            result='success',
+            before_state={'money': current_user.money + amount},
+            after_state={'money': current_user.money},
+            ip_address=request.remote_addr,
+            user_agent=str(request.user_agent)
+        )
+        db.session.add(log)
         
         if extended:
             flash(_("تم تمديد المزاد 5 دقائق!"), "info")

@@ -53,7 +53,7 @@ class Hostess(db.Model):
     is_public = db.Column(db.Boolean, default=False) # If True (e.g. Jasmin), she is not hireable/exclusive
 
     # Relationship
-    current_player = db.relationship('User', backref=db.backref('hired_hostess', uselist=False))
+    current_player = db.relationship('User', foreign_keys=[current_player_id], backref=db.backref('hired_hostess', uselist=False))
 
     def to_dict(self):
         return {
@@ -101,7 +101,7 @@ class HostessChatMessage(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     hostess_id = db.Column(db.Integer, db.ForeignKey('hostesses.id'), nullable=False, index=True)
-    user_id = db.Column(db.Integer, nullable=True, index=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True, index=True)
     role = db.Column(db.String(16), nullable=False)
     content = db.Column(db.Text, nullable=False)
     created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
@@ -111,7 +111,7 @@ class HostessMemory(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     hostess_id = db.Column(db.Integer, db.ForeignKey('hostesses.id'), nullable=False, index=True)
-    user_id = db.Column(db.Integer, nullable=False, index=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False, index=True)
     key = db.Column(db.String(64), nullable=False, index=True)
     value = db.Column(db.Text, nullable=False)
     importance = db.Column(db.Integer, default=1)

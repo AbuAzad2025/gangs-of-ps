@@ -89,7 +89,7 @@ def organized_crimes():
     crimes = OrganizedCrime.query.filter_by(is_active=True).order_by(OrganizedCrime.min_level).all()
 
     # Fetch User Cooldowns
-    user_cooldowns = UserOrganizedCrimeCooldown.query.filter_by(user_id=current_user.id).all()
+    user_cooldowns = UserOrganizedCrimeCooldown.query.filter_by(user_id=current_user.id).limit(50).all()
     cooldowns_map = {uc.crime_id: uc.cooldown_until for uc in user_cooldowns}
 
     crime_meta = {}

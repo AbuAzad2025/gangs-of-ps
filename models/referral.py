@@ -3,8 +3,8 @@ from datetime import datetime, timezone
 
 class Referral(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    referrer_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
-    referred_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    referrer_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False, index=True)
+    referred_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False, index=True)
     status = db.Column(db.String(20), default='pending') # pending, completed (rewarded)
     created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
     

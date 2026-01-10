@@ -12,6 +12,7 @@ from sqlalchemy import or_
 bp = Blueprint('jasmin', __name__, url_prefix='/hostesses/jasmin')
 
 @bp.route('/chat', methods=['POST'])
+@limiter.limit("5 per minute")
 def chat():
     # 1. Validation
     msg = request.form.get('message')

@@ -118,7 +118,15 @@
                             <ul class="users-list clearfix">
                                 {% for gang in top_gangs %}
                                 <li>
-                                    <img src="{{ url_for('static', filename='images/gang_icon.png') }}" alt="Gang" style="width: 60px; height: 60px; border-radius: 50%;">
+                                    {% if gang.image %}
+                                        {% if gang.image.startswith('http://') or gang.image.startswith('https://') %}
+                                            <img src="{{ gang.image }}" alt="Gang" style="width: 60px; height: 60px; border-radius: 50%;" onerror="this.onerror=null; this.src='https://ui-avatars.com/api/?name={{ gang.name }}&background=random';">
+                                        {% else %}
+                                            <img src="{{ url_for('static', filename='images/' + gang.image) }}" alt="Gang" style="width: 60px; height: 60px; border-radius: 50%;" onerror="this.onerror=null; this.src='https://ui-avatars.com/api/?name={{ gang.name }}&background=random';">
+                                        {% endif %}
+                                    {% else %}
+                                        <img src="https://ui-avatars.com/api/?name={{ gang.name }}&background=random" alt="Gang" style="width: 60px; height: 60px; border-radius: 50%;">
+                                    {% endif %}
                                     <a class="users-list-name" href="#">{{ gang.name }}</a>
                                     <span class="users-list-date">{{ _('مستوى') }} {{ gang.level }}</span>
                                 </li>
@@ -141,7 +149,7 @@
                                 <li class="item">
                                     <div class="product-img">
                                         {% if player.avatar and player.avatar != 'default.png' %}
-                                            <img src="{{ url_for('static', filename='images/avatars/' + player.avatar) }}" class="img-circle img-size-50">
+                                            <img src="{{ url_for('static', filename='images/avatars/' + player.avatar) }}" class="img-circle img-size-50" onerror="this.onerror=null; this.src='{{ url_for('static', filename='images/avatars/default.png') }}';">
                                         {% else %}
                                             <img src="https://ui-avatars.com/api/?name={{ player.username }}&background=random" class="img-circle img-size-50">
                                         {% endif %}

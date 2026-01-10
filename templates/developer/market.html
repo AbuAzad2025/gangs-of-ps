@@ -7,11 +7,34 @@
             <div class="card-header border-gold d-flex justify-content-between align-items-center">
                 <h3 class="card-title text-gold"><i class="fas fa-chart-line mr-2"></i> {{ _('إدارة سوق الأسهم') }}</h3>
                 <div>
+                    <form action="{{ url_for('main.dev_market_sync') }}" method="POST" class="d-inline mr-2">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                        <button type="submit" class="btn btn-info btn-sm"><i class="fas fa-sync"></i> {{ _('مزامنة الأصول') }}</button>
+                    </form>
                     <a href="{{ url_for('main.dev_market_edit', id=0) }}" class="btn btn-primary btn-sm mr-2"><i class="fas fa-plus"></i> {{ _('إضافة أصل جديد') }}</a>
                     <a href="{{ url_for('main.dev_dashboard') }}" class="btn btn-secondary btn-sm">{{ _('عودة للوحة التحكم') }}</a>
                 </div>
             </div>
             <div class="card-body">
+                <form action="{{ url_for('main.dev_market_settings') }}" method="POST" class="mb-4">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                    <div class="form-row">
+                        <div class="col-md-4 mb-2">
+                            <label class="text-muted small mb-1">{{ _('مضاعف التذبذب') }}</label>
+                            <input type="text" name="market_volatility_multiplier" value="{{ settings.market_volatility_multiplier }}" class="form-control form-control-sm bg-dark text-white border-secondary">
+                        </div>
+                        <div class="col-md-4 mb-2">
+                            <label class="text-muted small mb-1">{{ _('تكلفة شراء المعلومة') }}</label>
+                            <input type="text" name="market_intel_cost" value="{{ settings.market_intel_cost }}" class="form-control form-control-sm bg-dark text-white border-secondary">
+                        </div>
+                        <div class="col-md-4 mb-2">
+                            <label class="text-muted small mb-1">{{ _('تحديث الأسعار (ثواني)') }}</label>
+                            <input type="text" name="market_update_interval_seconds" value="{{ settings.market_update_interval_seconds }}" class="form-control form-control-sm bg-dark text-white border-secondary">
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-gold btn-sm">{{ _('حفظ الإعدادات') }}</button>
+                </form>
+
                 <div class="table-responsive">
                     <table class="table table-dark table-hover">
                         <thead>
@@ -19,9 +42,11 @@
                                 <th>{{ _('#') }}</th>
                                 <th>{{ _('الرمز') }}</th>
                                 <th>{{ _('الاسم') }}</th>
-                                <th>{{ _('السعر الحالي') }}</th>
-                                <th>{{ _('التغير (24س)') }}</th>
-                                <th>{{ _('آخر تحديث') }}</th>
+                                <th>{{ _('النوع') }}</th>
+                                <th>{{ _('الحالة') }}</th>
+                                <th>{{ _('السعر') }}</th>
+                                <th>{{ _('Base') }}</th>
+                                <th>Vol%</th>
                                 <th>{{ _('تحديث السعر') }}</th>
                             </tr>
                         </thead>
@@ -31,14 +56,20 @@
                                 <td>{{ asset.id }}</td>
                                 <td class="font-weight-bold text-info">{{ asset.symbol }}</td>
                                 <td>{{ asset.name }}</td>
-                                <td class="text-gold">${{ "{:,.2f}".format(asset.current_price) }}</td>
-                                <td class="{{ 'text-success' if asset.price_change_24h >= 0 else 'text-danger' }}">
-                                    {{ "{:+.2f}%".format(asset.price_change_24h) }}
+                                <td><span class="badge badge-dark border border-secondary">{{ asset.asset_type|upper }}</span></td>
+                                <td>
+                                    {% if asset.enabled %}
+                                        <span class="badge badge-success">{{ _('فعال') }}</span>
+                                    {% else %}
+                                        <span class="badge badge-secondary">{{ _('معطل') }}</span>
+                                    {% endif %}
                                 </td>
-                                <td>{{ asset.last_updated.strftime('%Y-%m-%d %H:%M:%S') }}</td>
+                                <td class="text-gold">${{ "{:,.2f}".format(asset.current_price) }}</td>
+                                <td class="text-muted">${{ "{:,.2f}".format(asset.base_price) }}</td>
+                                <td class="text-muted">{{ "{:.2f}".format(asset.volatility) }}</td>
                                 <td>
                                     <div class="d-flex align-items-center">
-                                        <form action="{{ url_for('main.dev_market_update_price') }}" method="POST" class="form-inline mr-2">
+                                        <form action="{{ url_for('main.dev_market_update_price') }}" method="POST" class="form-inline mr-2 {% if not asset.id %}d-none{% endif %}">
                                             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
                                             <input type="hidden" name="asset_id" value="{{ asset.id }}"/>
                                             <div class="input-group input-group-sm" style="width: 150px;">
@@ -48,22 +79,59 @@
                                                 </div>
                                             </div>
                                         </form>
-                                        <a href="{{ url_for('main.dev_market_edit', id=asset.id) }}" class="btn btn-sm btn-info mr-1"><i class="fas fa-edit"></i></a>
+                                        <a href="{{ url_for('main.dev_market_edit', id=(asset.id or 0)) }}" class="btn btn-sm btn-info mr-1"><i class="fas fa-edit"></i></a>
                                         <form action="{{ url_for('main.dev_market_delete', id=asset.id) }}" method="POST" class="d-inline">
                                             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-                                            <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('{{ _('هل أنت متأكد من الحذف؟') }}')"><i class="fas fa-trash"></i></button>
+                                            <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('{{ _('هل أنت متأكد من التعطيل؟') }}')"><i class="fas fa-ban"></i></button>
                                         </form>
                                     </div>
                                 </td>
                             </tr>
                             {% else %}
                             <tr>
-                                <td colspan="7" class="text-center text-muted">{{ _('لا توجد أسهم متاحة') }}</td>
+                                <td colspan="9" class="text-center text-muted">{{ _('لا توجد أصول متاحة') }}</td>
                             </tr>
                             {% endfor %}
                         </tbody>
                     </table>
                 </div>
+
+                {% if unknown_assets and unknown_assets|length %}
+                <hr class="border-secondary">
+                <h5 class="text-gold mb-3">{{ _('أصول خارج إعدادات السوق') }}</h5>
+                <div class="table-responsive">
+                    <table class="table table-dark table-hover">
+                        <thead>
+                            <tr>
+                                <th>{{ _('#') }}</th>
+                                <th>{{ _('الرمز') }}</th>
+                                <th>{{ _('الاسم') }}</th>
+                                <th>{{ _('النوع') }}</th>
+                                <th>{{ _('السعر') }}</th>
+                                <th>{{ _('إدارة') }}</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for a in unknown_assets %}
+                            <tr>
+                                <td>{{ a.id }}</td>
+                                <td class="font-weight-bold text-warning">{{ a.symbol }}</td>
+                                <td>{{ a.name }}</td>
+                                <td><span class="badge badge-dark border border-secondary">{{ a.asset_type|upper }}</span></td>
+                                <td class="text-muted">${{ "{:,.2f}".format(a.current_price or 0) }}</td>
+                                <td>
+                                    <a href="{{ url_for('main.dev_market_edit', id=a.id) }}" class="btn btn-sm btn-info mr-1"><i class="fas fa-edit"></i></a>
+                                    <form action="{{ url_for('main.dev_market_delete', id=a.id) }}" method="POST" class="d-inline">
+                                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                                        <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('{{ _('هل أنت متأكد من التعطيل؟') }}')"><i class="fas fa-ban"></i></button>
+                                    </form>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% endif %}
             </div>
         </div>
     </div>

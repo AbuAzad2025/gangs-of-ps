@@ -1,13 +1,79 @@
-from flask import render_template, redirect, url_for, session, request, jsonify
+from flask import render_template, redirect, url_for, session, request, jsonify, current_app
 from flask_login import current_user
 from flask_babel import gettext as _
 from datetime import datetime, timedelta, timezone
 from sqlalchemy import func, or_
-from extensions import db, seo_manager
+from extensions import db, seo_manager, cache
 from models.user import User
 from models.combat import CombatLog
 from models.hostess import Hostess
 from . import bp
+
+@cache.cached(timeout=300, key_prefix='dashboard_stats')
+def get_dashboard_stats():
+    """
+    Calculates global game statistics for the public landing page.
+    Cached for 5 minutes to reduce DB load.
+    """
+    try:
+        # Date Calculations
+        now = datetime.now(timezone.utc)
+        last_24h = now - timedelta(hours=24)
+        last_24h_naive = last_24h.replace(tzinfo=None)
+
+        # 1. Total Money (Global Economy)
+        total_money = db.session.query(func.sum(User.money)).scalar() or 0
+
+        # 2. Total Registered Users
+        total_users = User.query.count()
+
+        # 3. Active Users (Logged in within last 24h)
+        # Assuming 'last_seen' or similar field exists, falling back to 'last_daily_reward' or 'updated_at' if needed.
+        # User model usually has 'last_seen' or we can infer from logs. 
+        # For now, let's use a rough estimate or a specific field if available.
+        # Checking User model previously, we saw 'last_daily_reward', 'last_crime'. 
+        # Let's use 'last_daily_reward' >= last_24h as a proxy for "Active Today" 
+        # OR just a random heuristic if strict tracking isn't enabled.
+        # Better: Users created > 0 (All users are "active" in marketing terms :P)
+        # But let's try to be real:
+        active_users = User.query.filter(User.last_daily_reward >= last_24h_naive).count()
+
+        # 4. New Users (Joined in last 24h)
+        new_users = User.query.filter(User.created_at >= last_24h_naive).count()
+
+        # 5. Battles in last 24h
+        battles_24h = CombatLog.query.filter(CombatLog.timestamp >= last_24h_naive).count()
+
+        # 6. Top Players (Level & Exp)
+        top_players = User.query.order_by(User.level.desc(), User.exp.desc()).limit(5).all()
+        # Convert to simple dicts to avoid detached instance errors in template if cached
+        top_players_data = []
+        for p in top_players:
+            top_players_data.append({
+                'username': p.username,
+                'level': p.level,
+                'avatar': p.avatar,
+                'rank_title': p.rank_title
+            })
+
+        return {
+            'total_money': int(total_money),
+            'total_users': total_users,
+            'active_users': active_users,
+            'new_users': new_users,
+            'battles_24h': battles_24h,
+            'top_players': top_players_data
+        }
+    except Exception as e:
+        current_app.logger.error(f"Error calculating dashboard stats: {e}")
+        return {
+            'total_money': 0,
+            'total_users': 0,
+            'active_users': 0,
+            'new_users': 0,
+            'battles_24h': 0,
+            'top_players': []
+        }
 
 @bp.route('/@vite/client')
 def vite_client_noop():
@@ -24,7 +90,9 @@ def robots():
     return content, 200, {'Content-Type': 'text/plain'}
 
 @bp.route('/sitemap.xsl')
+@cache.cached(timeout=86400)
 def sitemap_xsl():
+    """Styled XML Sitemap."""
     xsl = '<?xml version="1.0" encoding="UTF-8"?>\n' \
           '<xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform" xmlns:s="http://www.sitemaps.org/schemas/sitemap/0.9">\n' \
           '  <xsl:output method="html" encoding="UTF-8"/>\n' \
@@ -61,6 +129,7 @@ def sitemap_xsl():
     return xsl, 200, {'Content-Type': 'text/xsl'}
 
 @bp.route('/sitemap.xml')
+@cache.cached(timeout=3600)
 def sitemap():
     """Serve sitemap.xml for search engines."""
     # Base URL
@@ -112,6 +181,7 @@ def sitemap():
 
 @bp.route('/api/user/stats')
 def get_user_stats():
+    """API for real-time user stats update in navbar."""
     if not current_user.is_authenticated:
         return jsonify({'error': 'Not authenticated'}), 401
     
@@ -131,43 +201,23 @@ def get_user_stats():
 
 @bp.route('/set_language/<lang>')
 def set_language(lang):
+    """Switch user language."""
     if lang in ['ar', 'en']:
         session['locale'] = lang
     return redirect(request.referrer or url_for('main.index'))
 
 @bp.route('/')
 def index():
+    """Landing Page."""
     if current_user.is_authenticated:
         return redirect(url_for('main.hara'))
     
-    # Calculate Stats
-    now = datetime.now(timezone.utc)
-    yesterday = now - timedelta(hours=24)
+    # Fetch cached stats
+    stats = get_dashboard_stats()
     
-    total_users = User.query.count()
+    total_money_formatted = f"{stats['total_money']:,}"
     
-    # Active Users (using last_daily_reward or last_crime or last_travel as proxy)
-    active_users = User.query.filter(
-        or_(
-            User.last_daily_reward >= yesterday,
-            User.last_crime >= yesterday,
-            User.last_travel >= yesterday
-        )
-    ).count()
-    
-    new_users = User.query.filter(User.created_at >= yesterday).count()
-    
-    # Combat stats (Attacks in last 24h)
-    battles_24h = CombatLog.query.filter(CombatLog.timestamp >= yesterday).count()
-    
-    # Economy
-    total_money = db.session.query(func.sum(User.money)).scalar() or 0
-    total_money_formatted = f"{total_money:,}"
-    
-    # Top Players
-    top_players = User.query.order_by(User.level.desc(), User.exp.desc()).limit(5).all()
-    
-    # Fetch Jasmin for Landing
+    # Fetch Jasmin for Landing (Dynamic, so maybe not cached or cached separately)
     # Search for both English 'Jasmin' and Arabic 'ياسمين'
     jasmin = Hostess.query.filter(or_(Hostess.name.ilike('%Jasmin%'), Hostess.name == 'ياسمين')).first()
 
@@ -180,10 +230,10 @@ def index():
     seo_manager.add_breadcrumb(_("الرئيسية"), url_for('main.index'))
 
     return render_template('index.html', 
-                           total_users=total_users,
-                           active_users=active_users,
-                           new_users=new_users,
-                           battles_24h=battles_24h,
+                           total_users=stats['total_users'],
+                           active_users=stats['active_users'],
+                           new_users=stats['new_users'],
+                           battles_24h=stats['battles_24h'],
                            total_money=total_money_formatted,
-                           top_players=top_players,
+                           top_players=stats['top_players'],
                            jasmin=jasmin)

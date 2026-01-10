@@ -13,7 +13,7 @@ from services.resource_service import ResourceService
 @login_required
 def properties():
     # Show only unowned properties (templates) that are active
-    assets = Asset.query.filter_by(type='house', owner_id=None, gang_id=None, is_active=True).all()
+    assets = Asset.query.filter_by(type='house', owner_id=None, gang_id=None, is_active=True).limit(50).all()
     return render_template('properties.html', assets=assets, user=current_user)
 
 @bp.route('/collect_income/<int:asset_id>', methods=['POST'])
