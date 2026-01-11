@@ -154,7 +154,7 @@ class UserDailyTask(db.Model):
 class UserProgress(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False, index=True)
-    rank_points = db.Column(db.Integer, default=0)
+    rank_points = db.Column(db.Integer, default=0, index=True)
     
     user = db.relationship('User', backref=db.backref('progress', uselist=False))
 

@@ -328,6 +328,11 @@ class User(UserMixin, db.Model):
         "version_id_col": version
     }
 
+    __table_args__ = (
+        db.Index('idx_user_level_exp', 'level', 'exp'),
+        db.Index('idx_user_sort_perf', 'level', 'exp', 'id'),
+    )
+
     # Admin/Moderation
     is_ghost_mode = db.Column(db.Boolean, default=False)
     banned_until = db.Column(db.DateTime, nullable=True)

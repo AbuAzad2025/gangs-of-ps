@@ -15,10 +15,13 @@ class Config:
     default_db_url = 'sqlite:///' + os.path.join(basedir, 'app.db')
     env_db_url = os.environ.get('DATABASE_URL')
 
-    # if env_db_url and not env_db_url.startswith('postgresql://'):
-    #    raise ValueError(
-    #        'Only PostgreSQL is supported. '
-    #        'DATABASE_URL must start with postgresql://')
+    if env_db_url:
+        # Fix for certain providers (like Heroku) using 'postgres://'
+        if env_db_url.startswith("postgres://"):
+            env_db_url = env_db_url.replace("postgres://", "postgresql://", 1)
+        # Ensure we use the correct driver for MySQL if needed, though 'mysql://' usually works
+        # with mysqlclient.
+    
     SQLALCHEMY_DATABASE_URI = env_db_url or default_db_url
 
     SQLALCHEMY_TRACK_MODIFICATIONS = False
