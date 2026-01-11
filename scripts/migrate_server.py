@@ -11,10 +11,9 @@ from flask_migrate import upgrade
 def main():
     app = create_app()
     with app.app_context():
-        upgrade()
+        upgrade(revision="heads")
         db.session.commit()
 
 
 if __name__ == "__main__":
     main()
-
