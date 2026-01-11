@@ -60,7 +60,7 @@ class Config:
     BABEL_TRANSLATION_DIRECTORIES = 'translations'
 
     # Social Media Configuration
-    DISCORD_INVITE_LINK = os.environ.get('DISCORD_INVITE_LINK') or 'https://discord.com/channels/@me'
+    DISCORD_INVITE_LINK = os.environ.get('DISCORD_INVITE_LINK') or 'https://discord.gg/actHePygND'
     FACEBOOK_LINK = os.environ.get('FACEBOOK_LINK') or 'https://facebook.com/GangsOfPalestine'
     TWITTER_LINK = os.environ.get('TWITTER_LINK') or 'https://twitter.com/GangsOfPS'
     INSTAGRAM_LINK = os.environ.get('INSTAGRAM_LINK') or 'https://instagram.com/GangsOfPS'
