@@ -1,4 +1,19 @@
-from run import app as application
+import sys
+import os
+from dotenv import load_dotenv
 
-if __name__ == "__main__":
-    application.run()
+# Expand the path to include the project directory
+project_home = os.path.dirname(os.path.abspath(__file__))
+if project_home not in sys.path:
+    sys.path.append(project_home)
+
+# Load environment variables from .env file
+load_dotenv(os.path.join(project_home, '.env'))
+
+# Import the application factory
+from factory import create_app
+from config import Config
+
+# Create the application instance
+# PythonAnywhere looks for an object named 'application'
+application = create_app(Config)

@@ -601,6 +601,9 @@ def create_app(config_class=Config):
     from routes.resources import bp as resources_bp
     app.register_blueprint(resources_bp)
 
+    from routes.seo import bp as seo_bp
+    app.register_blueprint(seo_bp)
+
     # Register Hostess Blueprints
     from routes.hostesses import register_hostess_blueprints
     register_hostess_blueprints(app)
