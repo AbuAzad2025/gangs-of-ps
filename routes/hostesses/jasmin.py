@@ -14,17 +14,34 @@ bp = Blueprint('jasmin', __name__, url_prefix='/hostesses/jasmin')
 @bp.route('/chat', methods=['POST'])
 @limiter.limit("5 per minute")
 def chat():
+    try:
+        db.session.rollback()
+    except Exception:
+        pass
+
     # 1. Validation
     msg = request.form.get('message')
     if not msg:
         return jsonify({'response': _('لم اسمعك جيدا؟')})
 
     # Ensure this is actually Jasmin
-    jasmin = Hostess.query.filter(
-        (Hostess.name == 'ياسمين') | 
-        (Hostess.name.ilike('%Jasmin%')) | 
-        (Hostess.name.ilike('%Jasmine%'))
-    ).first()
+    try:
+        jasmin = Hostess.query.filter(
+            (Hostess.name == 'ياسمين') |
+            (Hostess.name.ilike('%Jasmin%')) |
+            (Hostess.name.ilike('%Jasmine%'))
+        ).first()
+    except Exception as e:
+        try:
+            db.session.rollback()
+        except Exception:
+            pass
+        current_app.logger.error(f"Jasmin lookup failed: {e}")
+        jasmin = Hostess.query.filter(
+            (Hostess.name == 'ياسمين') |
+            (Hostess.name.ilike('%Jasmin%')) |
+            (Hostess.name.ilike('%Jasmine%'))
+        ).first()
     if not jasmin:
         return jsonify({'response': _('Error: Jasmin not found in system.')})
 
