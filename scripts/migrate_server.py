@@ -5,12 +5,27 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 from factory import create_app
 from extensions import db
-from flask_migrate import upgrade
+from flask_migrate import upgrade, stamp
+from sqlalchemy import inspect, text
 
 
 def main():
     app = create_app()
     with app.app_context():
+        inspector = inspect(db.engine)
+        tables = set(inspector.get_table_names())
+        has_schema = bool(tables - {"alembic_version"})
+
+        current_version = None
+        if "alembic_version" in tables:
+            try:
+                current_version = db.session.execute(text("select version_num from alembic_version")).scalar()
+            except Exception:
+                current_version = None
+
+        if has_schema and not current_version:
+            stamp(revision="380a7cb143ee")
+
         upgrade(revision="heads")
         db.session.commit()
 
