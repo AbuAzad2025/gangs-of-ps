@@ -176,6 +176,9 @@
 <body>
 
     <div class="promo-container">
+        <button class="replay-btn" onclick="location.reload()">
+            <i class="fas fa-redo"></i> إعادة العرض
+        </button>
         <div class="bg-particles"></div>
         
         <!-- Scene 1: Hook -->
@@ -226,7 +229,7 @@
             <h1 style="font-size: 2.5rem; margin: 0;">عصابات فلسطين</h1>
             <p style="color: #ccc; font-size: 1.2rem;">اللعبة الاستراتيجية العربية الأولى</p>
             
-            <div class="cta-btn">سجل الآن مجاناً</div>
+            <a href="{{ url_for('main.register') }}" class="cta-btn">سجل الآن مجاناً</a>
             <div class="link-bio">الرابط في البايو 🔗</div>
         </div>
 
