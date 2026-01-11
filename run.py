@@ -1,12 +1,24 @@
+import os
+import sys
 
-import eventlet
-eventlet.monkey_patch()
+# Detect if we are running in a CLI environment (migrations, seeding, etc.)
+# or if we are running on PythonAnywhere (where we shouldn't use eventlet)
+is_cli = 'flask' in sys.argv[0] or 'db' in sys.argv
+is_pythonanywhere = 'PYTHONANYWHERE_DOMAIN' in os.environ
+
+# Only apply eventlet monkey patch if:
+# 1. We are NOT running a CLI command (like flask db migrate)
+# 2. We are NOT on PythonAnywhere (which uses WSGI and conflicts with eventlet)
+if not is_cli and not is_pythonanywhere:
+    try:
+        import eventlet
+        eventlet.monkey_patch()
+    except ImportError:
+        pass
 
 from factory import create_app, db
 from extensions import socketio
-import os
 from config import Config, TestConfig
-import click
 from flask.cli import with_appcontext
 
 cfg = TestConfig if os.environ.get("USE_TEST_DB") == "1" else Config
@@ -34,11 +46,10 @@ def economy_daily():
     app.logger.info("Daily economy checks completed!")
 
 if __name__ == '__main__':
-    # Create tables automatically on dev run
-    # with app.app_context():
-    #     db.create_all()
     app.logger.info("Starting Flask Server...")
-    if socketio:
+    # Run with SocketIO only locally and if not CLI
+    if socketio and not is_cli and not is_pythonanywhere:
         socketio.run(app, debug=True, port=8000)
     else:
+        # Fallback for CLI or PythonAnywhere
         app.run(debug=True, port=8000, use_reloader=True, threaded=True)
