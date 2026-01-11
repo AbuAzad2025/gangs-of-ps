@@ -9,6 +9,7 @@ from routes.trix_logic import TrixGameLogic
 from routes.tarneeb_logic import TarneebGameLogic
 from routes.entertainment_helpers import _distribute_prizes
 from models.system import SystemConfig
+from services.resource_service import ResourceService
 import json
 import time
 import chess
@@ -179,16 +180,16 @@ def create_room():
     
     # Process entry fee for creator
     if stake_amount > 0:
-        # Re-fetch user to be safe, though we have 'user' from above if in same transaction
-        # But 'user' variable scope might be tricky if I didn't assign it to current_user.
-        # Let's use the 'user' object we fetched above if possible, or fetch again.
-        # To be safe and clean:
-        user_to_charge = db.session.query(User).filter_by(id=current_user.id).with_for_update().first()
-        
         if currency_type == 'money':
-            user_to_charge.money -= stake_amount
+            if not ResourceService.modify_resources(current_user.id, {'money': -stake_amount}, 'room_create', auto_commit=False, expected_version=None):
+                db.session.rollback()
+                flash(_('لا تملك رصيد كافي لإنشاء الغرفة'), 'danger')
+                return redirect(url_for('entertainment.index'))
         else:
-            user_to_charge.diamonds -= stake_amount
+            if not ResourceService.modify_resources(current_user.id, {'diamonds': -stake_amount}, 'room_create', auto_commit=False, expected_version=None):
+                db.session.rollback()
+                flash(_('رصيدك من الألماس غير كافي! تواصل معنا عبر الواتساب لشراء الألماس.'), 'warning')
+                return redirect(url_for('entertainment.index'))
         room.pot_amount += stake_amount
     
     # Auto join creator
@@ -198,7 +199,7 @@ def create_room():
     # Log room creation
     log = UserLog(
         user_id=current_user.id,
-        action='ROOM_CREATE',
+        action='ROOM_CREATE_META',
         details=json.dumps({
             'room_id': room.id,
             'room_name': room.name,
@@ -210,14 +211,6 @@ def create_room():
             'trix_team_mode': trix_team_mode if game_type == 'trix' else None
         }),
         result='success',
-        before_state={
-            'money': current_user.money + (room.stake_amount if currency_type == 'money' else 0),
-            'diamonds': current_user.diamonds + (room.stake_amount if currency_type == 'diamonds' else 0)
-        },
-        after_state={
-            'money': current_user.money,
-            'diamonds': current_user.diamonds
-        },
         ip_address=request.remote_addr,
         user_agent=str(request.user_agent)
     )
@@ -246,26 +239,31 @@ def room(room_id):
                 if count < max_players:
                     # Check for entry fee with user lock
                     if r_lock.stake_amount > 0:
-                        u_lock = db.session.query(User).filter_by(id=current_user.id).with_for_update().first()
-                        
                         if r_lock.currency_type == 'money':
-                            if u_lock.money < r_lock.stake_amount:
-                                db.session.rollback() # Release locks
+                            if not ResourceService.modify_resources(current_user.id, {'money': -r_lock.stake_amount}, 'room_join', auto_commit=False, expected_version=None):
+                                db.session.rollback()
                                 flash(_('لا تملك رصيد كافي للانضمام'), 'danger')
                                 return redirect(url_for('entertainment.index'))
-                            u_lock.money -= r_lock.stake_amount
                         elif r_lock.currency_type == 'diamonds':
-                            if u_lock.diamonds < r_lock.stake_amount:
+                            if not ResourceService.modify_resources(current_user.id, {'diamonds': -r_lock.stake_amount}, 'room_join', auto_commit=False, expected_version=None):
                                 db.session.rollback()
                                 flash(_('رصيدك من الألماس غير كافي! تواصل معنا عبر الواتساب لشراء الألماس.'), 'warning')
                                 return redirect(url_for('entertainment.index'))
-                            u_lock.diamonds -= r_lock.stake_amount
                         
                         r_lock.pot_amount += r_lock.stake_amount
                     
                     # Add player
                     new_player = GamePlayer(room_id=r_lock.id, user_id=current_user.id, seat_index=count, is_ready=False)
                     db.session.add(new_player)
+
+                    db.session.add(UserLog(
+                        user_id=current_user.id,
+                        action='ROOM_JOIN_META',
+                        details=json.dumps({'room_id': r_lock.id, 'stake_amount': r_lock.stake_amount, 'currency_type': r_lock.currency_type}),
+                        result='success',
+                        ip_address=request.remote_addr,
+                        user_agent=str(request.user_agent)
+                    ))
                     db.session.commit()
                     
                     # Refresh original room object for rendering
@@ -829,16 +827,16 @@ def delete_room(room_id):
                 
             if u:
                 if room.currency_type == 'money':
-                    u.money += room.stake_amount
+                    ResourceService.modify_resources(p.user_id, {'money': room.stake_amount}, 'room_delete_refund', auto_commit=False, expected_version=None)
                 else:
-                    u.diamonds += room.stake_amount
+                    ResourceService.modify_resources(p.user_id, {'diamonds': room.stake_amount}, 'room_delete_refund', auto_commit=False, expected_version=None)
     
     db.session.delete(room)
     
     # Log room deletion
     log = UserLog(
         user_id=current_user.id,
-        action='ROOM_DELETE',
+        action='ROOM_DELETE_META',
         details=json.dumps({
             'room_id': room.id,
             'room_name': room.name,
@@ -930,9 +928,9 @@ def leave_game(room_id):
         # If there was a stake, we should refund if game hasn't started.
         if room.stake_amount > 0:
             if room.currency_type == 'money':
-                current_user.money += room.stake_amount
+                ResourceService.modify_resources(current_user.id, {'money': room.stake_amount}, 'room_leave_refund', auto_commit=False, expected_version=None)
             else:
-                current_user.diamonds += room.stake_amount
+                ResourceService.modify_resources(current_user.id, {'diamonds': room.stake_amount}, 'room_leave_refund', auto_commit=False, expected_version=None)
             room.pot_amount -= room.stake_amount
             
         db.session.delete(player)
@@ -940,7 +938,7 @@ def leave_game(room_id):
         # Log room leave
         log = UserLog(
             user_id=current_user.id,
-            action='ROOM_LEAVE',
+            action='ROOM_LEAVE_META',
             details=json.dumps({
                 'room_id': room.id,
                 'room_name': room.name,

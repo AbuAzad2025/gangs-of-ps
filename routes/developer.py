@@ -273,7 +273,7 @@ def dev_distribute_resources():
             flash(_('نوع الهدف غير صالح'), 'danger')
             return redirect(url_for('main.dev_distribute_resources'))
             
-        if resource_type not in ['money', 'diamonds', 'bullets']:
+        if resource_type not in ['money', 'diamonds', 'bullets', 'bank_balance']:
             flash(_('نوع المورد غير صالح'), 'danger')
             return redirect(url_for('main.dev_distribute_resources'))
         
@@ -285,17 +285,63 @@ def dev_distribute_resources():
             flash(_('الكمية يجب أن تكون رقمًا صالحًا بين 1 و 1,000,000,000'), 'danger')
             return redirect(url_for('main.dev_distribute_resources'))
             
-        reason = request.form.get('reason', 'admin_distribution')
-        if len(reason) > 200:
-            flash(_('سبب التوزيع طويل جدًا (الحد الأقصى 200 حرف)'), 'danger')
+        reason_key = (request.form.get('distribution_reason') or 'admin_distribution').strip()
+        distribution_note = (request.form.get('distribution_note') or '').strip()
+        if len(distribution_note) > 300:
+            flash(_('ملاحظة السبب طويلة جدًا (الحد الأقصى 300 حرف)'), 'danger')
             return redirect(url_for('main.dev_distribute_resources'))
+
+        allowed_reason_keys = {
+            "admin_distribution",
+            "real_money_purchase",
+            "event_reward",
+            "bug_compensation",
+            "support_compensation",
+            "content_creator_reward",
+            "partnership_promo",
+            "referral_reward",
+            "chargeback_reversal",
+            "manual_adjustment",
+            "test_distribution",
+        }
+        if reason_key not in allowed_reason_keys:
+            flash(_('سبب التوزيع غير صالح'), 'danger')
+            return redirect(url_for('main.dev_distribute_resources'))
+
+        real_money_amount = None
+        real_money_currency = (request.form.get('real_money_currency') or 'USD').strip().upper()
+        if reason_key == "real_money_purchase":
+            if target_type != "user_id":
+                flash(_('عمليات المال الحقيقي يجب أن تكون للاعب محدد (User ID).'), 'danger')
+                return redirect(url_for('main.dev_distribute_resources'))
+            try:
+                real_money_amount = float(request.form.get('real_money_amount') or 0)
+                if real_money_amount <= 0 or real_money_amount > 1000000:
+                    raise ValueError("Invalid real money amount")
+            except Exception:
+                flash(_('مبلغ المال الحقيقي غير صالح'), 'danger')
+                return redirect(url_for('main.dev_distribute_resources'))
+            if real_money_currency not in {"USD", "ILS", "EUR"}:
+                real_money_currency = "USD"
+
+        reason = f"admin_{reason_key}"
+        log_extra = {
+            "distribution_reason_key": reason_key,
+            "distribution_note": distribution_note,
+            "distribution_target_type": target_type,
+            "distribution_resource_type": resource_type,
+            "distribution_resource_amount": amount,
+        }
+        if real_money_amount is not None:
+            log_extra["real_money_amount"] = real_money_amount
+            log_extra["real_money_currency"] = real_money_currency
 
         target_users = []
         if target_type == 'all':
             target_users = User.query.all()
         elif target_type == 'user_id':
-            uid = request.form.get('user_id')
-            user = db.session.get(User, uid)
+            uid = request.form.get('user_id', type=int)
+            user = db.session.get(User, uid) if uid else None
             if user:
                 target_users = [user]
         # For 'online', we assume active in last 5 minutes (requires tracking, skipping for now or assume all)
@@ -304,14 +350,58 @@ def dev_distribute_resources():
         count = 0
         for user in target_users:
             changes = {resource_type: amount}
-            if ResourceService.modify_resources(user.id, changes, reason, check_balance=False, auto_commit=False):
+            if ResourceService.modify_resources(user.id, changes, reason, check_balance=False, auto_commit=False, log_extra=log_extra):
                 count += 1
+
+        if real_money_amount is not None and count > 0:
+            dev_log = UserLog(
+                user_id=current_user.id,
+                action="REAL_MONEY_REVENUE",
+                details=json.dumps({
+                    "amount": real_money_amount,
+                    "currency": real_money_currency,
+                    "targets_count": count,
+                    "target_type": target_type,
+                    "resource_type": resource_type,
+                    "resource_amount": amount,
+                    "reason_key": reason_key,
+                    "note": distribution_note,
+                }),
+                result="success",
+                ip_address=request.remote_addr,
+                user_agent=str(request.user_agent),
+            )
+            db.session.add(dev_log)
         
         db.session.commit()
         flash(_('تم توزيع الموارد على %(count)s لاعب بنجاح', count=count), 'success')
         return redirect(url_for('main.dev_distribute_resources'))
         
     return render_template('developer/distribute_resources.html', title=_('توزيع الموارد'))
+
+
+@bp.route('/developer/revenue/reset', methods=['POST'])
+@developer_required
+@double_verification_required
+def reset_real_money_report():
+    deleted = 0
+    try:
+        deleted += UserLog.query.filter(UserLog.action.in_(["ADMIN_REAL_MONEY_PURCHASE", "REAL_MONEY_REVENUE"])).delete(synchronize_session=False)
+    except Exception:
+        db.session.rollback()
+        deleted = 0
+
+    now = datetime.now(timezone.utc).replace(tzinfo=None).isoformat()
+    SystemConfig.set_value('real_money_report_start_at', now, description='Start time for real money report (reset baseline)')
+    try:
+        db.session.commit()
+    except Exception:
+        db.session.rollback()
+        flash(_('حدث خطأ أثناء تصفير التقرير.'), 'danger')
+        return redirect(url_for('main.profile', user_id=current_user.id) + '#revenue')
+
+    flash(_('تم تصفير تقرير المال الحقيقي من الآن.'), 'success')
+    return redirect(url_for('main.profile', user_id=current_user.id) + '#revenue')
 
 @bp.route('/developer/user/edit/<int:id>', methods=['GET', 'POST'])
 @developer_required

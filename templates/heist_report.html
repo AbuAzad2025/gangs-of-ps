@@ -4,98 +4,136 @@
 
 {% block content %}
 
-
 <div class="container-fluid fade-in">
-  <div class="report-wrap">
-    <div class="report-card">
-      <div class="report-hero">
-        <img src="{{ url_for('static', filename=(crime_image or 'crimes/bank_heist.jpg')) }}"
-             alt="{{ history.crime_name }}"
-             onerror="this.onerror=null; this.src='{{ url_for('static', filename='crimes/bank_heist.jpg') }}';">
-        <div class="overlay {{ animation or 'spark' }}">
-          {% if (animation or 'spark') == 'smoke' %}
-            <div class="smoke-bubble"></div>
-            <div class="smoke-bubble"></div>
-            <div class="smoke-bubble"></div>
+  <div class="d-flex justify-content-between align-items-center flex-wrap mb-3">
+    <div class="text-muted small">
+      {{ _('تم تجهيز تقرير العملية. إن لم تظهر النافذة، اضغط "عرض التقرير".') }}
+    </div>
+    <div class="d-flex flex-wrap" style="gap: .5rem;">
+      <button type="button" class="btn btn-sm btn-info" data-toggle="modal" data-target="#heistReportModal">
+        <i class="fas fa-eye"></i> {{ _('عرض التقرير') }}
+      </button>
+      <a href="{{ url_for('main.organized_crimes') }}" class="btn btn-sm btn-outline-light">
+        <i class="fas fa-arrow-right"></i> {{ _('عودة للقائمة') }}
+      </a>
+    </div>
+  </div>
+</div>
+
+<div class="modal fade" id="heistReportModal" tabindex="-1" role="dialog" aria-labelledby="heistReportModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-xl" role="document">
+    <div class="modal-content bg-dark text-white">
+      <div class="modal-header border-secondary">
+        <h5 class="modal-title" id="heistReportModalLabel">
+          <i class="fas fa-mask mr-2"></i> {{ _('تقرير العملية') }}
+          {% if history.success %}
+            <span class="badge badge-success ml-2">{{ _('نجاح') }}</span>
+          {% else %}
+            <span class="badge badge-danger ml-2">{{ _('فشل') }}</span>
           {% endif %}
+        </h5>
+        <button type="button" class="close text-white" data-dismiss="modal" aria-label="{{ _('إغلاق') }}">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body p-0">
+        <div class="report-wrap m-0">
+          <div class="report-card m-0">
+            <div class="report-hero">
+              <img src="{{ url_for('static', filename=(crime_image or 'crimes/bank_heist.jpg')) }}"
+                   alt="{{ history.crime_name }}"
+                   onerror="this.onerror=null; this.src='{{ url_for('static', filename='crimes/bank_heist.jpg') }}';">
+              <div class="overlay {{ animation or 'spark' }}">
+                {% if (animation or 'spark') == 'smoke' %}
+                  <div class="smoke-bubble"></div>
+                  <div class="smoke-bubble"></div>
+                  <div class="smoke-bubble"></div>
+                {% endif %}
+              </div>
+            </div>
+
+            <div class="report-body">
+              <div class="d-flex justify-content-between align-items-start flex-wrap">
+                <div>
+                  <h2 class="report-title mb-1">{{ history.crime_name }}</h2>
+                  <div class="report-sub">{{ history.created_at.strftime('%Y-%m-%d %H:%M') }} • {{ _('القائد') }}: {{ history.leader_name }}</div>
+                </div>
+              </div>
+
+              <div class="timeline">
+                {% for line in lines %}
+                  {% set cls = 'info' %}
+                  {% if '✅' in line or '💰' in line or '🍀' in line or '🏅' in line or '🔥' in line %}
+                    {% set cls = 'good' %}
+                  {% elif '❌' in line or '🚨' in line or '👮' in line or '🚑' in line %}
+                    {% set cls = 'bad' %}
+                  {% elif '⚠️' in line or '🚓' in line %}
+                    {% set cls = 'warn' %}
+                  {% endif %}
+                  <div class="timeline-line {{ cls }}">{{ line }}</div>
+                {% endfor %}
+              </div>
+
+              <div class="mt-4">
+                <h5 class="text-info mb-3">{{ _('المشاركون') }}</h5>
+                <div class="table-responsive">
+                  <table class="table table-dark table-striped">
+                    <thead>
+                      <tr>
+                        <th>{{ _('الاسم') }}</th>
+                        <th>{{ _('الدور') }}</th>
+                        <th>{{ _('المكافأة') }}</th>
+                        <th>{{ _('الخبرة') }}</th>
+                        <th>{{ _('الحالة') }}</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {% for p in history.participants_snapshot %}
+                        <tr>
+                          <td>{{ p.name }}</td>
+                          <td><span class="badge badge-secondary">{{ p.role }}</span></td>
+                          <td class="text-success">{{ p.reward }}</td>
+                          <td class="text-primary">{{ p.exp }}</td>
+                          <td>
+                            {% if p.status == 'success' %}
+                              <span class="badge badge-success">{{ _('نجا') }}</span>
+                            {% elif p.status == 'hospitalized' %}
+                              <span class="badge badge-warning text-dark">{{ _('مستشفى') }}</span>
+                            {% else %}
+                              <span class="badge badge-danger">{{ _('فشل') }}</span>
+                            {% endif %}
+                          </td>
+                        </tr>
+                      {% endfor %}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              <div class="mt-4 d-flex flex-wrap gap-10">
+                <a href="{{ url_for('main.organized_crimes') }}" class="btn btn-luxury-action">
+                  <i class="fas fa-arrow-right"></i> {{ _('عودة للقائمة') }}
+                </a>
+                <a href="{{ url_for('main.heist_history') }}" class="btn btn-outline-light">
+                  <i class="fas fa-history"></i> {{ _('سجل العمليات') }}
+                </a>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
-
-      <div class="report-body">
-        <div class="d-flex justify-content-between align-items-start flex-wrap">
-          <div>
-            <h2 class="report-title mb-1">{{ history.crime_name }}</h2>
-            <div class="report-sub">{{ history.created_at.strftime('%Y-%m-%d %H:%M') }} • {{ _('القائد') }}: {{ history.leader_name }}</div>
-          </div>
-          <div class="mt-2">
-            {% if history.success %}
-              <span class="badge badge-success px-3 py-2"><i class="fas fa-check mr-1"></i> {{ _('نجاح') }}</span>
-            {% else %}
-              <span class="badge badge-danger px-3 py-2"><i class="fas fa-times mr-1"></i> {{ _('فشل') }}</span>
-            {% endif %}
-          </div>
-        </div>
-
-        <div class="timeline">
-          {% for line in lines %}
-            {% set cls = 'info' %}
-            {% if '✅' in line or '💰' in line or '🍀' in line or '🏅' in line or '🔥' in line %}
-              {% set cls = 'good' %}
-            {% elif '❌' in line or '🚨' in line or '👮' in line or '🚑' in line %}
-              {% set cls = 'bad' %}
-            {% elif '⚠️' in line or '🚓' in line %}
-              {% set cls = 'warn' %}
-            {% endif %}
-            <div class="timeline-line {{ cls }}">{{ line }}</div>
-          {% endfor %}
-        </div>
-
-        <div class="mt-4">
-          <h5 class="text-info mb-3">{{ _('المشاركون') }}</h5>
-          <div class="table-responsive">
-            <table class="table table-dark table-striped">
-              <thead>
-                <tr>
-                  <th>{{ _('الاسم') }}</th>
-                  <th>{{ _('الدور') }}</th>
-                  <th>{{ _('المكافأة') }}</th>
-                  <th>{{ _('الخبرة') }}</th>
-                  <th>{{ _('الحالة') }}</th>
-                </tr>
-              </thead>
-              <tbody>
-                {% for p in history.participants_snapshot %}
-                  <tr>
-                    <td>{{ p.name }}</td>
-                    <td><span class="badge badge-secondary">{{ p.role }}</span></td>
-                    <td class="text-success">{{ p.reward }}</td>
-                    <td class="text-primary">{{ p.exp }}</td>
-                    <td>
-                      {% if p.status == 'success' %}
-                        <span class="badge badge-success">{{ _('نجا') }}</span>
-                      {% elif p.status == 'hospitalized' %}
-                        <span class="badge badge-warning text-dark">{{ _('مستشفى') }}</span>
-                      {% else %}
-                        <span class="badge badge-danger">{{ _('فشل') }}</span>
-                      {% endif %}
-                    </td>
-                  </tr>
-                {% endfor %}
-              </tbody>
-            </table>
-          </div>
-        </div>
-
-        <div class="mt-4 d-flex flex-wrap gap-10">
-          <a href="{{ url_for('main.organized_crimes') }}" class="btn btn-luxury-action">
-            <i class="fas fa-arrow-right"></i> {{ _('عودة للقائمة') }}
-          </a>
-          <a href="{{ url_for('main.heist_history') }}" class="btn btn-outline-light">
-            <i class="fas fa-history"></i> {{ _('سجل العمليات') }}
-          </a>
-        </div>
+      <div class="modal-footer border-secondary">
+        <button type="button" class="btn btn-outline-light" data-dismiss="modal">{{ _('إغلاق') }}</button>
       </div>
     </div>
   </div>
 </div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    if (window.jQuery && jQuery.fn && jQuery.fn.modal) {
+      jQuery('#heistReportModal').modal('show');
+    }
+  });
+</script>
 {% endblock %}

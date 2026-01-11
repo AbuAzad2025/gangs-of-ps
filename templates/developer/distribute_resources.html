@@ -39,6 +39,43 @@
                         <input type="number" name="amount" class="form-control form-control-luxury" placeholder="1000" required min="1">
                     </div>
 
+                    <div class="form-group mb-4">
+                        <label class="text-gold">{{ _('سبب التوزيع') }}</label>
+                        <select name="distribution_reason" id="distribution_reason" class="form-control form-control-luxury" onchange="toggleRealMoney()">
+                            <option value="admin_distribution">{{ _('توزيع إداري عام') }}</option>
+                            <option value="real_money_purchase">{{ _('مقابل مال حقيقي') }}</option>
+                            <option value="event_reward">{{ _('مكافأة فعالية/حدث') }}</option>
+                            <option value="bug_compensation">{{ _('تعويض بسبب خلل') }}</option>
+                            <option value="support_compensation">{{ _('تعويض دعم/إدارة') }}</option>
+                            <option value="content_creator_reward">{{ _('مكافأة صانع محتوى') }}</option>
+                            <option value="partnership_promo">{{ _('شراكة/تسويق') }}</option>
+                            <option value="referral_reward">{{ _('مكافأة إحالة') }}</option>
+                            <option value="chargeback_reversal">{{ _('عكس عملية/استرجاع') }}</option>
+                            <option value="manual_adjustment">{{ _('تصحيح يدوي') }}</option>
+                            <option value="test_distribution">{{ _('اختبار') }}</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group mb-4" id="real_money_group" style="display:none;">
+                        <label class="text-gold">{{ _('المبلغ الحقيقي') }}</label>
+                        <div class="input-group">
+                            <div class="input-group-prepend">
+                                <select name="real_money_currency" class="custom-select bg-dark text-white border-secondary">
+                                    <option value="USD">USD</option>
+                                    <option value="ILS">ILS</option>
+                                    <option value="EUR">EUR</option>
+                                </select>
+                            </div>
+                            <input type="number" step="0.01" min="0.01" name="real_money_amount" id="real_money_amount" class="form-control form-control-luxury" placeholder="مثال: 9.99">
+                        </div>
+                        <small class="text-muted d-block mt-2">{{ _('يُستخدم هذا فقط لحساب أرباح المال الحقيقي في ملف المطور.') }}</small>
+                    </div>
+
+                    <div class="form-group mb-4">
+                        <label class="text-gold">{{ _('ملاحظة (اختياري)') }}</label>
+                        <input type="text" name="distribution_note" class="form-control form-control-luxury" maxlength="300" placeholder="{{ _('مثال: شراء باقة ألماس عبر تحويل') }}">
+                    </div>
+
                     <div class="alert alert-warning">
                         <i class="fas fa-exclamation-triangle mr-2"></i> {{ _('تحذير: هذا الإجراء سيؤثر على الاقتصاد فوراً ولا يمكن التراجع عنه بسهولة.') }}
                     </div>
@@ -64,5 +101,21 @@ function toggleUserId() {
         userIdGroup.style.display = 'none';
     }
 }
+
+function toggleRealMoney() {
+    const reason = document.getElementById('distribution_reason').value;
+    const grp = document.getElementById('real_money_group');
+    const amount = document.getElementById('real_money_amount');
+    if (reason === 'real_money_purchase') {
+        grp.style.display = 'block';
+        amount.required = true;
+    } else {
+        grp.style.display = 'none';
+        amount.required = false;
+        amount.value = '';
+    }
+}
+
+toggleRealMoney();
 </script>
 {% endblock %}

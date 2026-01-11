@@ -9,10 +9,11 @@ from sqlalchemy.orm.exc import StaleDataError
 import json
 import time
 from datetime import datetime, timezone
+from utils.resource_audit import allow_resource_mutation, disallow_resource_mutation
 
 class ResourceService:
     @staticmethod
-    def modify_resources(user_id, changes, reason, check_balance=True, auto_commit=True, expected_version=None, set_fields=None):
+    def modify_resources(user_id, changes, reason, check_balance=True, auto_commit=True, expected_version=None, set_fields=None, log_extra=None):
         """
         Atomically modifies user resources and logs the transaction.
         
@@ -26,6 +27,7 @@ class ResourceService:
                                               Useful for optimistic locking when the changes depend on previous state.
             set_fields (dict, optional): Dictionary of fields to set directly (e.g., {'hospital_until': datetime...}).
         """
+        token = allow_resource_mutation()
         try:
             # 1. Fetch current state
             user = db.session.query(User).filter_by(id=user_id).populate_existing().with_for_update().first()
@@ -148,10 +150,16 @@ class ResourceService:
                         new_d[k] = str(v)
                 return new_d
 
+            details_payload = dict(changes)
+            if isinstance(log_extra, dict):
+                for k, v in log_extra.items():
+                    if k not in details_payload:
+                        details_payload[k] = v
+
             log = UserLog(
                 user_id=user_id,
                 action=reason.upper(),
-                details=json.dumps(changes),
+                details=json.dumps(_make_serializable(details_payload)),
                 result='success',
                 before_state=_make_serializable(before_state),
                 after_state=_make_serializable(after_state),
@@ -183,3 +191,8 @@ class ResourceService:
             db.session.rollback()
             current_app.logger.error(f"Transaction Error: {e}")
             return False
+        finally:
+            try:
+                disallow_resource_mutation(token)
+            except Exception:
+                pass

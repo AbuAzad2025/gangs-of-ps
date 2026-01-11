@@ -272,13 +272,14 @@
             toast.style.borderLeftColor = isUp ? '#28a745' : '#dc3545';
             
             const icon = isUp ? '<i class="fas fa-arrow-trend-up text-success mr-2"></i>' : '<i class="fas fa-arrow-trend-down text-danger mr-2"></i>';
-            const msg = isUp ? 'قفزة قوية!' : 'هبوط حاد!';
+            const msg = isUp ? {{ _('قفزة قوية!')|tojson }} : {{ _('هبوط حاد!')|tojson }};
+            const newPriceLabel = {{ _('السعر الجديد:')|tojson }};
             
             toast.innerHTML = `
                 ${icon}
                 <div>
                     <strong>${symbol}</strong>: ${msg}<br>
-                    <small>السعر الجديد: ${price.toLocaleString()}$</small>
+                    <small>${newPriceLabel} ${price.toLocaleString()}$</small>
                 </div>
             `;
             

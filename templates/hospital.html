@@ -11,6 +11,85 @@
 
     <div class="row justify-content-center">
         <div class="col-md-10">
+            {% if hospitalized and hospital_until_ts %}
+            <div class="luxury-card p-4 mb-4" style="border: 1px solid rgba(217, 83, 79, 0.35);">
+                <div class="text-center mb-3">
+                    <div class="d-inline-block p-3 rounded-circle" style="background: rgba(217, 83, 79, 0.15);">
+                        <i class="fas fa-ambulance fa-2x text-danger"></i>
+                    </div>
+                    <h3 class="mt-3 mb-1 text-white">{{ _('أنت في المستشفى!') }}</h3>
+                    <p class="text-muted mb-3">{{ _('لا يمكنك المشاركة بالعمليات حتى انتهاء العلاج أو التخريج.') }}</p>
+                    <div class="d-flex justify-content-center align-items-center p-3 rounded mx-auto" style="max-width: 520px; background: rgba(0,0,0,0.35); border: 1px solid rgba(255,255,255,0.08);">
+                        <div class="display-4 text-danger fw-bold mx-3" id="hospital-timer" data-until="{{ hospital_until_ts }}">--:--</div>
+                        <div class="text-left">
+                            <div class="text-white fw-bold">{{ _('الوقت المتبقي') }}</div>
+                            <div class="text-muted small">{{ _('حتى خروجك') }}</div>
+                        </div>
+                    </div>
+                    <div class="progress mt-3 mx-auto" style="max-width: 520px; height: 10px; background: rgba(255,255,255,0.08);">
+                        <div class="progress-bar bg-danger" role="progressbar" style="width: 0%" id="hospital-progress"></div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <div class="p-3 rounded" style="background: rgba(0,0,0,0.35); border: 1px solid rgba(255,255,255,0.08);">
+                            <h5 class="text-warning mb-2"><i class="fas fa-door-open mr-2"></i>{{ _('الخروج') }}</h5>
+                            <form action="{{ url_for('hospital.discharge') }}" method="POST" class="mb-2">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                                <button type="submit" class="btn btn-outline-light w-100">{{ _('محاولة خروج مجاني (إذا انتهى الوقت)') }}</button>
+                            </form>
+                            <form action="{{ url_for('hospital.fast_discharge') }}" method="POST" class="mb-2">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                                <button type="submit" class="btn btn-danger w-100" data-confirm="{{ _('تخريج فوري مقابل مبلغ؟') }}">
+                                    {{ _('تخريج فوري') }} ({{ discharge_cost }}$)
+                                </button>
+                            </form>
+                            {% if speedup_options %}
+                                <div class="d-flex" style="gap:.5rem;">
+                                    {% for opt in speedup_options %}
+                                    <form action="{{ url_for('hospital.speed_up') }}" method="POST" class="w-100">
+                                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                                        <input type="hidden" name="minutes" value="{{ opt.minutes }}"/>
+                                        <button type="submit" class="btn btn-outline-warning w-100">
+                                            {{ _('تسريع') }} {{ opt.minutes }} {{ _('د') }} ({{ opt.cost }}$)
+                                        </button>
+                                    </form>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <div class="col-md-6 mb-3">
+                        <div class="p-3 rounded" style="background: rgba(0,0,0,0.35); border: 1px solid rgba(255,255,255,0.08);">
+                            <h5 class="text-info mb-2"><i class="fas fa-gamepad mr-2"></i>{{ _('وقت المستشفى') }}</h5>
+                            {% if activity_wait_seconds and activity_wait_seconds > 0 %}
+                                <div class="small text-muted mb-2">{{ _('نشاط جديد بعد') }}: {{ activity_wait_seconds }} {{ _('ث') }}</div>
+                            {% endif %}
+                            <div class="d-flex flex-wrap" style="gap:.5rem;">
+                                <form action="{{ url_for('hospital.activity') }}" method="POST" class="flex-fill">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                                    <input type="hidden" name="key" value="tv"/>
+                                    <button type="submit" class="btn btn-outline-info w-100">{{ _('سهران عالتلفزيون') }}</button>
+                                </form>
+                                <form action="{{ url_for('hospital.activity') }}" method="POST" class="flex-fill">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                                    <input type="hidden" name="key" value="physio"/>
+                                    <button type="submit" class="btn btn-outline-success w-100">{{ _('علاج طبيعي') }}</button>
+                                </form>
+                                <form action="{{ url_for('hospital.activity') }}" method="POST" class="flex-fill">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                                    <input type="hidden" name="key" value="coffee"/>
+                                    <button type="submit" class="btn btn-outline-warning w-100">{{ _('قهوة المستشفى') }}</button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
             <div class="luxury-card p-4 mb-4">
                 <div class="health-display">
                     <i class="fas fa-heartbeat health-icon-large"></i>
@@ -22,8 +101,8 @@
                         </div>
                     </div>
                     {% set needed = user.max_health - user.health %}
-                    {% set cost = needed * 10 %}
-                    <p class="text-muted">{{ _('تكلفة العلاج الكامل:') }} <span class="text-warning">{{ cost }}$</span> {{ _('(10$ لكل نقطة)') }}</p>
+                    {% set cost = needed * cost_per_hp %}
+                    <p class="text-muted">{{ _('تكلفة العلاج الكامل:') }} <span class="text-warning">{{ cost }}$</span> {{ _('(') }}{{ cost_per_hp }}{{ _('$ لكل نقطة)') }}</p>
                 </div>
 
                 <div class="row g-4">
@@ -79,4 +158,39 @@
         </div>
     </div>
 </div>
+
+{% if hospitalized and hospital_until_ts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const timerElement = document.getElementById('hospital-timer');
+        const progressElement = document.getElementById('hospital-progress');
+        if (!timerElement) return;
+
+        const untilTimestamp = parseFloat(timerElement.dataset.until || "0");
+        const initialRemaining = Math.max(1, Math.ceil(untilTimestamp - (Date.now() / 1000)));
+
+        function updateTimer() {
+            const now = Date.now() / 1000;
+            const remaining = untilTimestamp - now;
+
+            if (remaining <= 0) {
+                timerElement.textContent = "0:00";
+                if (progressElement) progressElement.style.width = '100%';
+                window.location.reload();
+                return;
+            }
+
+            const minutes = Math.floor(remaining / 60);
+            const seconds = Math.floor(remaining % 60);
+            timerElement.textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+
+            const pct = Math.min(100, Math.max(0, Math.round(((initialRemaining - remaining) / initialRemaining) * 100)));
+            if (progressElement) progressElement.style.width = pct + '%';
+        }
+
+        updateTimer();
+        setInterval(updateTimer, 1000);
+    });
+</script>
+{% endif %}
 {% endblock %}

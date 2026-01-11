@@ -24,3 +24,4 @@ from .facility import UserFacility
 from .contract import FarmSupplyContract
 from .casino_game import CasinoGame
 from .entertainment import GameRoom, GamePlayer
+from . import resource_guard

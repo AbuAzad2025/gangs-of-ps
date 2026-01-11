@@ -141,6 +141,20 @@
                                 <i class="fas fa-history mr-2"></i> {{ _('النشاط الحديث') }}
                             </a>
                         </li>
+                        {% if can_view_budget %}
+                        <li class="nav-item">
+                            <a class="nav-link custom-nav-link" id="budget-tab" data-toggle="tab" href="#budget" role="tab">
+                                <i class="fas fa-wallet mr-2"></i> {{ _('الموازنة') }}
+                            </a>
+                        </li>
+                        {% endif %}
+                        {% if can_view_revenue %}
+                        <li class="nav-item">
+                            <a class="nav-link custom-nav-link" id="revenue-tab" data-toggle="tab" href="#revenue" role="tab">
+                                <i class="fas fa-coins mr-2"></i> {{ _('دخل اللعبة') }}
+                            </a>
+                        </li>
+                        {% endif %}
                         <li class="nav-item">
                             <a class="nav-link custom-nav-link" id="stats-tab" data-toggle="tab" href="#stats" role="tab">
                                 <i class="fas fa-chart-line mr-2"></i> {{ _('الإحصائيات') }}
@@ -193,6 +207,325 @@
                             {% endif %}
                         </div>
                     </div>
+
+                    {% if can_view_budget %}
+                    <div class="tab-pane fade" id="budget" role="tabpanel">
+                        <div class="p-4">
+                            <div class="d-flex justify-content-between align-items-center flex-wrap mb-3">
+                                <div>
+                                    <h4 class="text-white mb-1">{{ _('موازنة اللاعب') }}</h4>
+                                    <div class="text-muted small">
+                                        {% if budget and budget.range != 'all' and budget.start %}
+                                            {{ _('الفترة') }}: {{ budget.start.strftime('%Y-%m-%d') }} → {{ budget.end.strftime('%Y-%m-%d') }}
+                                        {% else %}
+                                            {{ _('الفترة') }}: {{ _('كل الوقت') }}
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                <div class="d-flex flex-wrap" style="gap:.5rem;">
+                                    <a class="btn btn-sm {% if budget and budget.range=='7d' %}btn-warning{% else %}btn-outline-warning{% endif %}" href="{{ url_for('main.profile', user_id=user.id, budget_range='7d') }}">{{ _('7 أيام') }}</a>
+                                    <a class="btn btn-sm {% if budget and budget.range=='30d' %}btn-warning{% else %}btn-outline-warning{% endif %}" href="{{ url_for('main.profile', user_id=user.id, budget_range='30d') }}">{{ _('30 يوم') }}</a>
+                                    <a class="btn btn-sm {% if budget and budget.range=='90d' %}btn-warning{% else %}btn-outline-warning{% endif %}" href="{{ url_for('main.profile', user_id=user.id, budget_range='90d') }}">{{ _('90 يوم') }}</a>
+                                    <a class="btn btn-sm {% if budget and budget.range=='all' %}btn-warning{% else %}btn-outline-warning{% endif %}" href="{{ url_for('main.profile', user_id=user.id, budget_range='all') }}">{{ _('الكل') }}</a>
+                                    {% if user.id == current_user.id %}
+                                        <a class="btn btn-sm btn-outline-light" href="{{ url_for('resources.my_ledger') }}">{{ _('دفتر الموارد') }}</a>
+                                    {% else %}
+                                        <a class="btn btn-sm btn-outline-light" href="{{ url_for('resources.ledger', user_id=user.id) }}">{{ _('دفتر الموارد') }}</a>
+                                    {% endif %}
+                                </div>
+                            </div>
+
+                            {% if budget %}
+                            <div class="row">
+                                <div class="col-md-3 mb-3">
+                                    <div class="p-3 rounded stats-box">
+                                        <div class="text-muted small">{{ _('صافي (كاش+بنك)') }}</div>
+                                        <div class="h4 mb-0 {% if budget.totals.currency_net >= 0 %}text-success{% else %}text-danger{% endif %}">
+                                            ${{ "{:,}".format(budget.totals.currency_net) }}
+                                        </div>
+                                        <div class="small text-muted mt-1">
+                                            {{ _('داخل') }}: ${{ "{:,}".format(budget.totals.currency_in) }} • {{ _('خارج') }}: ${{ "{:,}".format(budget.totals.currency_out) }}
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-3 mb-3">
+                                    <div class="p-3 rounded stats-box">
+                                        <div class="text-muted small">{{ _('صافي الكاش') }}</div>
+                                        <div class="h4 mb-0 {% if budget.totals.money_net >= 0 %}text-success{% else %}text-danger{% endif %}">
+                                            ${{ "{:,}".format(budget.totals.money_net) }}
+                                        </div>
+                                        <div class="small text-muted mt-1">
+                                            {{ _('داخل') }}: ${{ "{:,}".format(budget.totals.money_in) }} • {{ _('خارج') }}: ${{ "{:,}".format(budget.totals.money_out) }}
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-3 mb-3">
+                                    <div class="p-3 rounded stats-box">
+                                        <div class="text-muted small">{{ _('صافي البنك') }}</div>
+                                        <div class="h4 mb-0 {% if budget.totals.bank_net >= 0 %}text-success{% else %}text-danger{% endif %}">
+                                            ${{ "{:,}".format(budget.totals.bank_net) }}
+                                        </div>
+                                        <div class="small text-muted mt-1">
+                                            {{ _('داخل') }}: ${{ "{:,}".format(budget.totals.bank_in) }} • {{ _('خارج') }}: ${{ "{:,}".format(budget.totals.bank_out) }}
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-3 mb-3">
+                                    <div class="p-3 rounded stats-box">
+                                        <div class="text-muted small">{{ _('صافي الألماس') }}</div>
+                                        <div class="h4 mb-0 {% if budget.totals.diamonds_net >= 0 %}text-success{% else %}text-danger{% endif %}">
+                                            {{ "{:,}".format(budget.totals.diamonds_net) }}
+                                        </div>
+                                        <div class="small text-muted mt-1">
+                                            {{ _('داخل') }}: {{ "{:,}".format(budget.totals.diamonds_in) }} • {{ _('خارج') }}: {{ "{:,}".format(budget.totals.diamonds_out) }}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {% if budget.real_money and current_user.role.value >= 6 %}
+                            <div class="row">
+                                <div class="col-md-4 mb-3">
+                                    <div class="p-3 rounded stats-box">
+                                        <div class="text-muted small">{{ _('إجمالي دخل المال الحقيقي (USD)') }}</div>
+                                        <div class="h4 mb-0 text-success">
+                                            ${{ "{:,.2f}".format(budget.real_money.all_time.get('USD', 0)) }}
+                                        </div>
+                                        <div class="small text-muted mt-1">
+                                            {{ _('ضمن الفترة') }}: ${{ "{:,.2f}".format(budget.real_money.range.get('USD', 0)) }}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endif %}
+
+                            <div class="table-responsive">
+                                <table class="table table-dark table-striped table-hover mb-0">
+                                    <thead>
+                                        <tr>
+                                            <th>{{ _('النشاط') }}</th>
+                                            <th class="text-right">{{ _('العمليات') }}</th>
+                                            <th class="text-right">{{ _('داخل $ (كاش+بنك)') }}</th>
+                                            <th class="text-right">{{ _('خارج $ (كاش+بنك)') }}</th>
+                                            <th class="text-right">{{ _('الصافي $') }}</th>
+                                            <th class="text-right">{{ _('صافي ألماس') }}</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for r in budget.rows %}
+                                        <tr>
+                                            <td class="font-weight-bold">{{ r.scenario }}</td>
+                                            <td class="text-right">{{ r.count }}</td>
+                                            <td class="text-right text-success">${{ "{:,}".format(r.currency_in) }}</td>
+                                            <td class="text-right text-danger">${{ "{:,}".format(r.currency_out) }}</td>
+                                            <td class="text-right {% if r.currency_net >= 0 %}text-success{% else %}text-danger{% endif %}">
+                                                ${{ "{:,}".format(r.currency_net) }}
+                                            </td>
+                                            <td class="text-right {% if r.diamonds_net >= 0 %}text-success{% else %}text-danger{% endif %}">
+                                                {{ "{:,}".format(r.diamonds_net) }}
+                                            </td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            {% if budget.implicit_expenses %}
+                            <div class="mt-4">
+                                <h5 class="text-gold mb-2">{{ _('مصروفات غير مباشرة') }}</h5>
+                                <div class="text-muted small mb-2">{{ _('هذه المصروفات قد تكون محسوبة ضمن صافي الدخل (مثل صيانة العقار).') }}</div>
+                                <div class="table-responsive">
+                                    <table class="table table-dark table-sm table-hover mb-0">
+                                        <thead>
+                                            <tr>
+                                                <th>{{ _('النوع') }}</th>
+                                                <th class="text-right">{{ _('المبلغ') }}</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {% for x in budget.implicit_expenses %}
+                                            <tr>
+                                                <td>{{ x.type }}</td>
+                                                <td class="text-right text-danger">${{ "{:,}".format(x.amount) }}</td>
+                                            </tr>
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                            {% endif %}
+
+                            {% if budget.top_actions %}
+                            <div class="mt-4">
+                                <h5 class="text-gold mb-2">{{ _('أكثر الأسباب تكراراً') }}</h5>
+                                <div class="table-responsive">
+                                    <table class="table table-dark table-sm table-hover mb-0">
+                                        <thead>
+                                            <tr>
+                                                <th>{{ _('السبب') }}</th>
+                                                <th>{{ _('التصنيف') }}</th>
+                                                <th class="text-right">{{ _('العدد') }}</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {% for a in budget.top_actions %}
+                                            <tr>
+                                                <td class="text-monospace">{{ a.action }}</td>
+                                                <td>{{ a.scenario }}</td>
+                                                <td class="text-right">{{ a.count }}</td>
+                                            </tr>
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                            {% endif %}
+                            {% else %}
+                            <div class="text-center py-5">
+                                <i class="fas fa-receipt fa-3x text-muted mb-3 opacity-50"></i>
+                                <h5 class="text-muted">{{ _('لا توجد بيانات مالية كافية في هذه الفترة') }}</h5>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    {% if can_view_revenue %}
+                    <div class="tab-pane fade" id="revenue" role="tabpanel">
+                        <div class="p-4">
+                            <div class="d-flex justify-content-between align-items-center flex-wrap mb-3">
+                                <div>
+                                    <h4 class="text-white mb-1">{{ _('دخل اللعبة') }}</h4>
+                                    <div class="text-muted small">{{ _('عمليات مقابل مال حقيقي عبر توزيعات المطور') }}</div>
+                                </div>
+                                <form method="POST" action="{{ url_for('main.reset_real_money_report') }}" onsubmit="return confirm('{{ _('هل أنت متأكد من تصفير تقرير المال الحقيقي؟') }}')">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                    <button type="submit" class="btn btn-sm btn-outline-danger">
+                                        <i class="fas fa-eraser mr-1"></i>{{ _('تصفير التقرير') }}
+                                    </button>
+                                </form>
+                            </div>
+
+                            <form method="GET" class="mb-3">
+                                <input type="hidden" name="budget_range" value="{{ budget_range }}">
+                                <div class="row">
+                                    <div class="col-md-4 mb-2">
+                                        <label class="text-muted small mb-1">{{ _('الشهر') }}</label>
+                                        <select name="rev_month" class="form-control form-control-sm">
+                                            <option value="">{{ _('الكل') }}</option>
+                                            {% if revenue_report and revenue_report.months %}
+                                                {% for m in revenue_report.months %}
+                                                    <option value="{{ m }}" {% if revenue_month == m %}selected{% endif %}>{{ m }}</option>
+                                                {% endfor %}
+                                            {% endif %}
+                                        </select>
+                                    </div>
+                                    <div class="col-md-5 mb-2">
+                                        <label class="text-muted small mb-1">{{ _('بحث بالاسم') }}</label>
+                                        <input type="text" name="rev_q" value="{{ revenue_search or '' }}" class="form-control form-control-sm" placeholder="{{ _('اسم اللاعب') }}">
+                                    </div>
+                                    <div class="col-md-3 mb-2 d-flex align-items-end">
+                                        <button class="btn btn-sm btn-outline-light w-100" type="submit">{{ _('تصفية') }}</button>
+                                    </div>
+                                </div>
+                            </form>
+
+                            {% if revenue_report %}
+                            <div class="row">
+                                <div class="col-md-4 mb-3">
+                                    <div class="p-3 rounded stats-box">
+                                        <div class="text-muted small">{{ _('إجمالي المال الحقيقي') }}</div>
+                                        <div class="h4 mb-0 text-success">
+                                            {% if revenue_report.totals and revenue_report.totals.payments %}
+                                                {% for k,v in revenue_report.totals.payments.items() %}
+                                                    <div>{{ "{:,.2f}".format(v) }} {{ k }}</div>
+                                                {% endfor %}
+                                            {% else %}0{% endif %}
+                                        </div>
+                                        <div class="small text-muted mt-1">
+                                            {{ _('العمليات') }}: {{ revenue_report.totals.ops if revenue_report.totals else 0 }} • {{ _('اللاعبين') }}: {{ revenue_report.totals.users if revenue_report.totals else 0 }}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="table-responsive">
+                                <table class="table table-dark table-striped table-hover mb-0">
+                                    <thead>
+                                        <tr>
+                                            <th>{{ _('اللاعب') }}</th>
+                                            <th class="text-right">{{ _('المال الحقيقي') }}</th>
+                                            <th class="text-right">{{ _('المقابل (كاش/بنك/ألماس/رصاص)') }}</th>
+                                            <th class="text-right">{{ _('العمليات') }}</th>
+                                            <th class="text-right">{{ _('آخر عملية') }}</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for r in revenue_report.rows %}
+                                        <tr>
+                                            <td class="font-weight-bold">{{ r.username }}</td>
+                                            <td class="text-right text-success">
+                                                {% if r.payments %}
+                                                    {% for k,v in r.payments.items() %}
+                                                        <div>{{ "{:,.2f}".format(v) }} {{ k }}</div>
+                                                    {% endfor %}
+                                                {% else %}
+                                                    0
+                                                {% endif %}
+                                            </td>
+                                            <td class="text-right">
+                                                {% set ns = namespace(parts=[]) %}
+                                                {% if r.resources.get('money') %}{% set ns.parts = ns.parts + ['$' ~ "{:,}".format(r.resources.get('money'))] %}{% endif %}
+                                                {% if r.resources.get('bank_balance') %}{% set ns.parts = ns.parts + ['Bank $' ~ "{:,}".format(r.resources.get('bank_balance'))] %}{% endif %}
+                                                {% if r.resources.get('diamonds') %}{% set ns.parts = ns.parts + ['D ' ~ "{:,}".format(r.resources.get('diamonds'))] %}{% endif %}
+                                                {% if r.resources.get('bullets') %}{% set ns.parts = ns.parts + ['B ' ~ "{:,}".format(r.resources.get('bullets'))] %}{% endif %}
+                                                {{ ns.parts|join(' • ') if ns.parts else '—' }}
+                                            </td>
+                                            <td class="text-right">{{ r.ops }}</td>
+                                            <td class="text-right text-muted small">{{ r.last_at.strftime('%Y-%m-%d') if r.last_at else '' }}</td>
+                                        </tr>
+                                        {% endfor %}
+                                        {% if revenue_report.rows|length == 0 %}
+                                        <tr>
+                                            <td colspan="5" class="text-center text-muted py-5">{{ _('لا توجد عمليات في هذا الفلتر.') }}</td>
+                                        </tr>
+                                        {% endif %}
+                                    </tbody>
+                                    {% if revenue_report.rows|length > 0 %}
+                                    <tfoot>
+                                        <tr>
+                                            <th>{{ _('المجموع') }}</th>
+                                            <th class="text-right text-success">
+                                                {% if revenue_report.totals and revenue_report.totals.payments %}
+                                                    {% for k,v in revenue_report.totals.payments.items() %}
+                                                        <div>{{ "{:,.2f}".format(v) }} {{ k }}</div>
+                                                    {% endfor %}
+                                                {% else %}
+                                                    0
+                                                {% endif %}
+                                            </th>
+                                            <th class="text-right">
+                                                {% set t = revenue_report.totals.resources if revenue_report.totals else {} %}
+                                                {% set ns2 = namespace(parts=[]) %}
+                                                {% if t.get('money') %}{% set ns2.parts = ns2.parts + ['$' ~ "{:,}".format(t.get('money'))] %}{% endif %}
+                                                {% if t.get('bank_balance') %}{% set ns2.parts = ns2.parts + ['Bank $' ~ "{:,}".format(t.get('bank_balance'))] %}{% endif %}
+                                                {% if t.get('diamonds') %}{% set ns2.parts = ns2.parts + ['D ' ~ "{:,}".format(t.get('diamonds'))] %}{% endif %}
+                                                {% if t.get('bullets') %}{% set ns2.parts = ns2.parts + ['B ' ~ "{:,}".format(t.get('bullets'))] %}{% endif %}
+                                                {{ ns2.parts|join(' • ') if ns2.parts else '—' }}
+                                            </th>
+                                            <th class="text-right">{{ revenue_report.totals.ops if revenue_report.totals else 0 }}</th>
+                                            <th></th>
+                                        </tr>
+                                    </tfoot>
+                                    {% endif %}
+                                </table>
+                            </div>
+                            {% else %}
+                            <div class="text-muted">{{ _('لا توجد بيانات.') }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endif %}
                     
                     <!-- Stats Tab -->
                     <div class="tab-pane fade" id="stats" role="tabpanel">

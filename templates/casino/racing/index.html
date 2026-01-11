@@ -31,30 +31,30 @@
                         <div class="row text-center mb-3">
                             <div class="col-4">
                                 <small class="text-muted d-block">{{ _('المحرك') }}</small>
-                                <h5 class="text-info">{{ my_car.engine_level }}</h5>
+                                <h5 class="text-info">{{ my_car.engine_level }}<small class="text-muted">/{{ upgrade_caps.engine }}</small></h5>
                                 <form action="{{ url_for('racing.upgrade_car', part_type='engine') }}" method="POST">
                                     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-                                    <button class="btn btn-sm btn-outline-info" title="{{ _('تطوير') }} ({{ 5000 * (my_car.engine_level + 1) }}$)">
+                                    <button class="btn btn-sm btn-outline-info" title="{{ _('تطوير') }} ({{ upgrade_costs.engine }}$)" {% if my_car.engine_level >= upgrade_caps.engine %}disabled{% endif %}>
                                         <i class="fas fa-arrow-up"></i>
                                     </button>
                                 </form>
                             </div>
                             <div class="col-4">
                                 <small class="text-muted d-block">{{ _('العجلات') }}</small>
-                                <h5 class="text-info">{{ my_car.tires_level }}</h5>
+                                <h5 class="text-info">{{ my_car.tires_level }}<small class="text-muted">/{{ upgrade_caps.tires }}</small></h5>
                                 <form action="{{ url_for('racing.upgrade_car', part_type='tires') }}" method="POST">
                                     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-                                    <button class="btn btn-sm btn-outline-info" title="{{ _('تطوير') }} ({{ 3000 * (my_car.tires_level + 1) }}$)">
+                                    <button class="btn btn-sm btn-outline-info" title="{{ _('تطوير') }} ({{ upgrade_costs.tires }}$)" {% if my_car.tires_level >= upgrade_caps.tires %}disabled{% endif %}>
                                         <i class="fas fa-arrow-up"></i>
                                     </button>
                                 </form>
                             </div>
                             <div class="col-4">
                                 <small class="text-muted d-block">{{ _('الدروع') }}</small>
-                                <h5 class="text-info">{{ my_car.armor_level }}</h5>
+                                <h5 class="text-info">{{ my_car.armor_level }}<small class="text-muted">/{{ upgrade_caps.armor }}</small></h5>
                                 <form action="{{ url_for('racing.upgrade_car', part_type='armor') }}" method="POST">
                                     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-                                    <button class="btn btn-sm btn-outline-info" title="{{ _('تطوير') }} ({{ 4000 * (my_car.armor_level + 1) }}$)">
+                                    <button class="btn btn-sm btn-outline-info" title="{{ _('تطوير') }} ({{ upgrade_costs.armor }}$)" {% if my_car.armor_level >= upgrade_caps.armor %}disabled{% endif %}>
                                         <i class="fas fa-arrow-up"></i>
                                     </button>
                                 </form>
@@ -65,14 +65,25 @@
                         
                         <div class="d-flex justify-content-between align-items-center mb-2">
                             <span><i class="fas fa-id-card"></i> {{ _('مهارة السائق:') }}</span>
-                            <span class="text-success font-weight-bold">{{ current_user.driving_skill }}</span>
+                            <span class="text-success font-weight-bold">{{ current_user.driving_skill }}<small class="text-muted">/{{ max_driving_skill }}</small></span>
                         </div>
-                        <form action="{{ url_for('racing.train_driver') }}" method="POST">
-                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-                            <button class="btn btn-block btn-outline-success btn-sm">
-                                <i class="fas fa-dumbbell"></i> {{ _('تدريب السائق') }} ({{ 1000 * current_user.driving_skill }}$)
+                        {% if training_options %}
+                            <div class="btn-group btn-group-sm d-flex" role="group">
+                                {% for opt in training_options %}
+                                <form action="{{ url_for('racing.train_driver') }}" method="POST" class="flex-fill m-0">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                                    <input type="hidden" name="level" value="{{ opt.key }}"/>
+                                    <button class="btn btn-outline-success btn-sm btn-block" title="+{{ opt.gain }} / {{ opt.cost }}$">
+                                        <i class="fas fa-dumbbell"></i> {{ opt.label }} ({{ opt.cost }}$)
+                                    </button>
+                                </form>
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            <button class="btn btn-block btn-outline-secondary btn-sm" disabled>
+                                <i class="fas fa-ban"></i> {{ _('مهارة السائق وصلت للحد الأقصى') }}
                             </button>
-                        </form>
+                        {% endif %}
                         
                     {% else %}
                         <div class="alert alert-danger">
@@ -97,6 +108,44 @@
                         </div>
                         <button type="submit" class="btn btn-success btn-block" {% if not my_car %}disabled{% endif %}>
                             {{ _('إنشاء التحدي') }}
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <div class="card bg-dark text-white border-info mt-4">
+                <div class="card-header bg-info text-white">
+                    <h5 class="m-0"><i class="fas fa-robot"></i> {{ _('سباق ضد الكمبيوتر') }}</h5>
+                </div>
+                <div class="card-body">
+                    {% if ai_race_unlimited %}
+                    <div class="small text-muted mb-2">
+                        {{ _('الحدود اليومية:') }} {{ _('غير محدود') }}
+                    </div>
+                    {% elif ai_race_limits %}
+                    <div class="small text-muted mb-2">
+                        {{ _('الحدود اليومية:') }}
+                        {{ _('سهل') }} {{ ai_race_used.easy }}/{{ ai_race_limits.easy }} |
+                        {{ _('عادي') }} {{ ai_race_used.normal }}/{{ ai_race_limits.normal }} |
+                        {{ _('صعب') }} {{ ai_race_used.hard }}/{{ ai_race_limits.hard }}
+                    </div>
+                    {% endif %}
+                    <form action="{{ url_for('racing.ai_race') }}" method="POST">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                        <div class="form-group">
+                            <label>{{ _('مبلغ الرهان') }}</label>
+                            <input type="number" name="bet" class="form-control bg-secondary text-white border-0" min="100" placeholder="{{ _('100') }}" required>
+                        </div>
+                        <div class="form-group">
+                            <label>{{ _('الصعوبة') }}</label>
+                            <select name="difficulty" class="form-control bg-secondary text-white border-0">
+                                <option value="easy">{{ _('سهل') }}</option>
+                                <option value="normal" selected>{{ _('عادي') }}</option>
+                                <option value="hard">{{ _('صعب') }}</option>
+                            </select>
+                        </div>
+                        <button type="submit" class="btn btn-info btn-block" {% if not my_car %}disabled{% endif %}>
+                            {{ _('ابدأ السباق') }}
                         </button>
                     </form>
                 </div>
@@ -126,15 +175,46 @@
                                 <tr>
                                     <td>{{ race.creator.username }}</td>
                                     <td class="text-success font-weight-bold">${{ "{:,}".format(race.bet_amount) }}</td>
-                                    <td>{{ race.participants|length }}</td>
+                                    <td>
+                                        <div class="font-weight-bold">{{ race.participants|length }}</div>
+                                        {% if race.participants|length > 1 %}
+                                            <small class="text-muted">
+                                                {% for p in race.participants %}
+                                                    {{ p.user.username }}{% if not loop.last %}, {% endif %}
+                                                {% endfor %}
+                                            </small>
+                                        {% endif %}
+                                    </td>
                                     <td><span class="badge badge-warning">{{ _('بانتظار المتحدين') }}</span></td>
                                     <td>
-                                        <form action="{{ url_for('racing.join', race_id=race.id) }}" method="POST">
-                                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-                                            <button class="btn btn-sm btn-primary" {% if not my_car %}disabled{% endif %}>
-                                                {{ _('انضمام') }}
-                                            </button>
-                                        </form>
+                                        {% if race.creator_id == current_user.id %}
+                                            <div class="d-flex flex-wrap" style="gap: .35rem;">
+                                                <a class="btn btn-sm btn-outline-light" href="{{ url_for('racing.room', race_id=race.id) }}">
+                                                    {{ _('غرفة') }}
+                                                </a>
+                                                {% if race.participants|length >= 2 %}
+                                                    <form action="{{ url_for('racing.start', race_id=race.id) }}" method="POST" class="m-0">
+                                                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                                                        <button class="btn btn-sm btn-success" data-confirm="{{ _('بدء السباق الآن؟') }}">
+                                                            {{ _('بدء') }}
+                                                        </button>
+                                                    </form>
+                                                {% endif %}
+                                                <form action="{{ url_for('racing.cancel', race_id=race.id) }}" method="POST" class="m-0">
+                                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                                                    <button class="btn btn-sm btn-outline-danger" data-confirm="{{ _('إلغاء السباق وإرجاع الرهان؟') }}">
+                                                        {{ _('إلغاء') }}
+                                                    </button>
+                                                </form>
+                                            </div>
+                                        {% else %}
+                                            <form action="{{ url_for('racing.join', race_id=race.id) }}" method="POST">
+                                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                                                <button class="btn btn-sm btn-primary" {% if not my_car %}disabled{% endif %}>
+                                                    {{ _('انضمام') }}
+                                                </button>
+                                            </form>
+                                        {% endif %}
                                     </td>
                                 </tr>
                                 {% else %}
@@ -152,4 +232,124 @@
         </div>
     </div>
 </div>
+
+{% if ai_race_result %}
+<div class="modal fade" id="aiRaceResultModal" tabindex="-1" role="dialog" aria-labelledby="aiRaceResultModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content bg-dark text-white">
+            <div class="modal-header border-secondary">
+                <h5 class="modal-title" id="aiRaceResultModalLabel">
+                    <i class="fas fa-robot"></i>
+                    {{ _('نتيجة سباق الكمبيوتر') }}
+                    <span class="badge badge-{{ 'success' if ai_race_result.win else 'danger' }} ml-2">
+                        {{ _('فوز') if ai_race_result.win else _('خسارة') }}
+                    </span>
+                </h5>
+                <button type="button" class="close text-white" data-dismiss="modal" aria-label="{{ _('إغلاق') }}">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <div class="card bg-secondary border-0">
+                            <div class="card-header">
+                                <strong>{{ _('أنت') }}</strong>
+                            </div>
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between"><span>{{ _('السكور') }}</span><span class="font-weight-bold">{{ "%.1f"|format(ai_race_result.player.score) }}</span></div>
+                                <div class="d-flex justify-content-between"><span>{{ _('السرعة') }}</span><span>{{ ai_race_result.player.speed }}</span></div>
+                                <div class="d-flex justify-content-between"><span>{{ _('المحرك') }}</span><span>{{ ai_race_result.player.engine }}</span></div>
+                                <div class="d-flex justify-content-between"><span>{{ _('العجلات') }}</span><span>{{ ai_race_result.player.tires }}</span></div>
+                                <div class="d-flex justify-content-between"><span>{{ _('مهارة السائق') }}</span><span>{{ ai_race_result.player.skill }}</span></div>
+                                <div class="d-flex justify-content-between"><span>{{ _('حالة السيارة') }}</span><span>{{ ai_race_result.player.condition }}%</span></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6 mb-3">
+                        <div class="card bg-secondary border-0">
+                            <div class="card-header">
+                                <strong>{{ _('أفضل منافس') }}</strong>
+                                <span class="text-muted ml-2">{{ ai_race_result.best_ai.name }}</span>
+                            </div>
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between"><span>{{ _('السكور') }}</span><span class="font-weight-bold">{{ "%.1f"|format(ai_race_result.best_ai.score) }}</span></div>
+                                <div class="d-flex justify-content-between"><span>{{ _('السرعة') }}</span><span>{{ ai_race_result.best_ai.speed }}</span></div>
+                                <div class="d-flex justify-content-between"><span>{{ _('المحرك') }}</span><span>{{ ai_race_result.best_ai.engine }}</span></div>
+                                <div class="d-flex justify-content-between"><span>{{ _('العجلات') }}</span><span>{{ ai_race_result.best_ai.tires }}</span></div>
+                                <div class="d-flex justify-content-between"><span>{{ _('مهارة السائق') }}</span><span>{{ ai_race_result.best_ai.skill }}</span></div>
+                                <div class="d-flex justify-content-between"><span>{{ _('حالة السيارة') }}</span><span>{{ ai_race_result.best_ai.condition }}%</span></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card bg-secondary border-0 mb-3">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between">
+                            <span>{{ _('الصعوبة') }}</span>
+                            <span class="text-uppercase">{{ ai_race_result.difficulty }}</span>
+                        </div>
+                        <div class="d-flex justify-content-between">
+                            <span>{{ _('الرهان') }}</span>
+                            <span>{{ ai_race_result.bet }} {{ _('شيكل') }}</span>
+                        </div>
+                        {% if ai_race_result.win %}
+                        <div class="d-flex justify-content-between text-success font-weight-bold">
+                            <span>{{ _('الربح') }}</span>
+                            <span>{{ ai_race_result.winnings }} {{ _('شيكل') }}</span>
+                        </div>
+                        {% endif %}
+                        <div class="d-flex justify-content-between text-muted">
+                            <span>{{ _('تلف السيارة بعد السباق') }}</span>
+                            <span>-{{ ai_race_result.damage }}%</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="table-responsive">
+                    <table class="table table-dark table-hover mb-0">
+                        <thead>
+                            <tr>
+                                <th>{{ _('المنافس') }}</th>
+                                <th>{{ _('السكور') }}</th>
+                                <th>{{ _('السرعة') }}</th>
+                                <th>{{ _('المحرك') }}</th>
+                                <th>{{ _('العجلات') }}</th>
+                                <th>{{ _('المهارة') }}</th>
+                                <th>{{ _('الحالة') }}</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for opp in ai_race_result.opponents %}
+                            <tr class="{% if opp.name == ai_race_result.best_ai.name %}table-active{% endif %}">
+                                <td>{{ opp.name }}</td>
+                                <td class="font-weight-bold">{{ "%.1f"|format(opp.score) }}</td>
+                                <td>{{ opp.speed }}</td>
+                                <td>{{ opp.engine }}</td>
+                                <td>{{ opp.tires }}</td>
+                                <td>{{ opp.skill }}</td>
+                                <td>{{ opp.condition }}%</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="modal-footer border-secondary">
+                <button type="button" class="btn btn-outline-light" data-dismiss="modal">{{ _('إغلاق') }}</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        if (window.jQuery && jQuery.fn && jQuery.fn.modal) {
+            jQuery('#aiRaceResultModal').modal('show');
+        }
+    });
+</script>
+{% endif %}
 {% endblock %}

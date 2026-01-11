@@ -598,6 +598,9 @@ def create_app(config_class=Config):
     from routes.entertainment import bp as entertainment_bp
     app.register_blueprint(entertainment_bp)
 
+    from routes.resources import bp as resources_bp
+    app.register_blueprint(resources_bp)
+
     # Register Hostess Blueprints
     from routes.hostesses import register_hostess_blueprints
     register_hostess_blueprints(app)

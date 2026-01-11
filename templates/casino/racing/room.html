@@ -108,4 +108,130 @@
     </div>
 </div>
 
+{% if pvp_result %}
+<div class="modal fade" id="pvpRaceResultModal" tabindex="-1" role="dialog" aria-labelledby="pvpRaceResultModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content bg-dark text-white">
+            <div class="modal-header border-secondary">
+                <h5 class="modal-title" id="pvpRaceResultModalLabel">
+                    <i class="fas fa-flag-checkered"></i> {{ _('نتيجة السباق') }} #{{ race.id }}
+                </h5>
+                <button type="button" class="close text-white" data-dismiss="modal" aria-label="{{ _('إغلاق') }}">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="card bg-secondary border-0 mb-3">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between">
+                            <span>{{ _('مركزك') }}</span>
+                            <span class="font-weight-bold">#{{ pvp_result.rank if pvp_result.rank is defined else '' }}</span>
+                        </div>
+                        <div class="d-flex justify-content-between">
+                            <span>{{ _('نقاطك') }}</span>
+                            <span class="font-weight-bold">
+                                {{ "%.1f"|format(pvp_result.score if pvp_result.score is defined else pvp_result.calc.final_score) }}
+                            </span>
+                        </div>
+                        <div class="d-flex justify-content-between">
+                            <span>{{ _('الجائزة الكبرى') }}</span>
+                            <span class="text-success font-weight-bold">${{ "{:,}".format(race.bet_amount * participants|length) }}</span>
+                        </div>
+                        {% if pvp_result.winner_user_id is defined %}
+                        <div class="d-flex justify-content-between">
+                            <span>{{ _('الفائز') }}</span>
+                            <span class="text-warning font-weight-bold">
+                                {% for p in participants %}
+                                    {% if p.user_id == pvp_result.winner_user_id %}
+                                        {{ p.user.username }}
+                                    {% endif %}
+                                {% endfor %}
+                            </span>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <div class="card bg-secondary border-0">
+                            <div class="card-header"><strong>{{ _('تفصيل نقاطك') }}</strong></div>
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between"><span>{{ _('سرعة السيارة') }}</span><span>{{ pvp_result.vehicle.speed }}</span></div>
+                                <div class="d-flex justify-content-between"><span>{{ _('بونس المحرك') }}</span><span>+{{ pvp_result.calc.engine_bonus }}</span></div>
+                                <div class="d-flex justify-content-between"><span>{{ _('بونس العجلات') }}</span><span>+{{ pvp_result.calc.tires_bonus }}</span></div>
+                                <div class="d-flex justify-content-between"><span>{{ _('بونس المهارة') }}</span><span>+{{ pvp_result.calc.driver_bonus }}</span></div>
+                                <div class="d-flex justify-content-between"><span>{{ _('الحظ') }}</span><span>+{{ pvp_result.calc.luck_base }}{% if pvp_result.calc.luck_bonus %} (+{{ pvp_result.calc.luck_bonus }}){% endif %}</span></div>
+                                <hr class="bg-dark">
+                                <div class="d-flex justify-content-between"><span>{{ _('قبل عامل الحالة') }}</span><span>{{ "%.1f"|format(pvp_result.calc.pre_condition_score) }}</span></div>
+                                <div class="d-flex justify-content-between"><span>{{ _('عامل الحالة') }}</span><span>x{{ "%.2f"|format(pvp_result.calc.condition_factor) }}</span></div>
+                                <div class="d-flex justify-content-between font-weight-bold"><span>{{ _('النتيجة النهائية') }}</span><span>{{ "%.1f"|format(pvp_result.calc.final_score) }}</span></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6 mb-3">
+                        <div class="card bg-secondary border-0">
+                            <div class="card-header"><strong>{{ _('حالة السيارة') }}</strong></div>
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between"><span>{{ _('قبل السباق') }}</span><span>{{ pvp_result.calc.condition_before }}%</span></div>
+                                <div class="d-flex justify-content-between text-muted"><span>{{ _('تلف بعد السباق') }}</span><span>-{{ pvp_result.calc.damage }}%</span></div>
+                                <div class="d-flex justify-content-between"><span>{{ _('بعد السباق') }}</span><span>{{ pvp_result.calc.condition_after }}%</span></div>
+                                <hr class="bg-dark">
+                                <div class="small text-muted">{{ _('ملاحظة: الحظ رقم عشوائي، ومكافأة المضيفة تُضاف إن كانت فعّالة.') }}</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="table-responsive">
+                    <table class="table table-dark table-hover mb-0">
+                        <thead>
+                            <tr>
+                                <th>{{ _('اللاعب') }}</th>
+                                <th>{{ _('المركز') }}</th>
+                                <th>{{ _('النقاط') }}</th>
+                                <th>{{ _('السيارة') }}</th>
+                                <th>{{ _('المحرك') }}</th>
+                                <th>{{ _('العجلات') }}</th>
+                                <th>{{ _('المهارة') }}</th>
+                                <th>{{ _('الحالة') }}</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for p in participants|sort(attribute='rank') %}
+                            <tr class="{% if p.user_id == user.id %}table-active{% endif %}">
+                                <td>{{ p.user.username }}</td>
+                                <td>#{{ p.rank }}</td>
+                                <td>{{ p.score|int }}</td>
+                                <td>{{ p.user_vehicle.vehicle.name }}</td>
+                                <td>{{ p.user_vehicle.engine_level }}</td>
+                                <td>{{ p.user_vehicle.tires_level }}</td>
+                                <td>{{ p.user.driving_skill }}</td>
+                                <td>{{ p.user_vehicle.condition }}%</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="modal-footer border-secondary">
+                <a href="{{ url_for('racing.index') }}" class="btn btn-outline-light">{{ _('عودة للقائمة') }}</a>
+                <button type="button" class="btn btn-primary" data-dismiss="modal">{{ _('إغلاق') }}</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% if show_pvp_modal %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        if (window.jQuery && jQuery.fn && jQuery.fn.modal) {
+            jQuery('#pvpRaceResultModal').modal('show');
+        }
+    });
+</script>
+{% endif %}
+{% endif %}
+
 {% endblock %}

@@ -118,16 +118,18 @@
                             {% endif %}
 
                             {# Tuning Button #}
-                            {% if car.condition < 200 %}
+                            {% set tune_cap = tune_caps.get(car.id, 200) %}
+                            {% if car.condition < tune_cap %}
                                 {% if car.condition < 100 %}
                                     <button class="btn btn-dark btn-block disabled text-muted mb-2" title="{{ _('أصلح السيارة أولاً') }}">
                                         <i class="fas fa-cogs mr-2"></i> {{ _('بحاجة لإصلاح') }}
                                     </button>
                                 {% else %}
+                                    {% set tune_cost = tune_costs.get(car.id, 2000) %}
                                     <form action="{{ url_for('main.tune_car', user_vehicle_id=car.id) }}" method="POST" class="mb-2">
                                         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-                                        <button type="submit" class="btn btn-warning btn-block text-dark font-weight-bold" data-confirm="{{ _('تعديل المحرك سيكلفك 2000$. هل أنت موافق؟') }}">
-                                            <i class="fas fa-cogs mr-2"></i> {{ _('تعديل وتزويد (2000$)') }}
+                                        <button type="submit" class="btn btn-warning btn-block text-dark font-weight-bold" data-confirm="{{ _('تعديل المحرك سيكلفك %(cost)s$. هل أنت موافق؟', cost=tune_cost) }}">
+                                            <i class="fas fa-cogs mr-2"></i> {{ _('تعديل وتزويد') }} ({{ tune_cost }}$)
                                         </button>
                                     </form>
                                 {% endif %}
@@ -145,9 +147,10 @@
                                         <i class="fas fa-dollar-sign mr-2"></i> {{ _('بيع (معطل)') }}
                                     </button>
                                 {% else %}
-                                    <button type="submit" class="btn btn-outline-danger btn-block" data-confirm="{{ _('هل أنت متأكد من بيع السيارة بنصف سعرها الأصلي؟') }}">
-                                        <i class="fas fa-dollar-sign mr-2"></i> {{ _('بيع السيارة') }}
-                                    </button>
+                                        {% set sell_price = sell_prices.get(car.id, (car.vehicle.price * 0.5)|int) %}
+                                        <button type="submit" class="btn btn-outline-danger btn-block" data-confirm="{{ _('سعر البيع: %(price)s ₪ (يشمل جزء من التطويرات). هل أنت متأكد؟', price=sell_price) }}">
+                                            <i class="fas fa-dollar-sign mr-2"></i> {{ _('بيع السيارة') }}
+                                        </button>
                                 {% endif %}
                             </form>
                         {% endif %}

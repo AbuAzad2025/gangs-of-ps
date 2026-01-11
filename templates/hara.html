@@ -363,7 +363,7 @@
         copyText.select();
         copyText.setSelectionRange(0, 99999);
         document.execCommand("copy");
-        alert("تم نسخ الرابط: " + copyText.value);
+        alert({{ _('تم نسخ الرابط: ')|tojson }} + copyText.value);
     }
 </script>
 

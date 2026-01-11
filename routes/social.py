@@ -12,6 +12,8 @@ import os
 import re
 from werkzeug.utils import secure_filename
 import uuid
+from services.budget_service import BudgetService
+from services.revenue_service import RevenueService
 
 def contains_prohibited_content(text):
     # URLs
@@ -254,6 +256,8 @@ def profile(user_id):
     if not user:
         abort(404)
         
+    now = datetime.now(timezone.utc)
+
     # Get recent combat activity
     combat_logs = CombatLog.query.filter(
         or_(CombatLog.attacker_id == user.id, CombatLog.defender_id == user.id)
@@ -267,7 +271,34 @@ def profile(user_id):
     wins = CombatLog.query.filter_by(winner_id=user.id).count()
     win_rate = int((wins / total_fights) * 100) if total_fights > 0 else 0
     
-    return render_template('profile.html', user=user, combat_logs=combat_logs, total_fights=total_fights, win_rate=win_rate)
+    budget = None
+    budget_range = (request.args.get('budget_range') or '30d').strip()
+    can_view_budget = (current_user.id == user.id) or (current_user.role.value >= UserRole.MODERATOR.value)
+    if can_view_budget:
+        budget = BudgetService.compute_user_budget(user.id, budget_range)
+
+    revenue_report = None
+    revenue_month = (request.args.get('rev_month') or '').strip()
+    revenue_search = (request.args.get('rev_q') or '').strip()
+    can_view_revenue = (user.id == current_user.id) and (current_user.role.value >= UserRole.DEVELOPER.value)
+    if can_view_revenue:
+        revenue_report = RevenueService.real_money_report(month=revenue_month or None, search=revenue_search or None)
+
+    return render_template(
+        'profile.html',
+        user=user,
+        combat_logs=combat_logs,
+        total_fights=total_fights,
+        win_rate=win_rate,
+        now=now,
+        budget=budget,
+        budget_range=budget_range,
+        can_view_budget=can_view_budget,
+        can_view_revenue=can_view_revenue,
+        revenue_report=revenue_report,
+        revenue_month=revenue_month,
+        revenue_search=revenue_search,
+    )
 
 @bp.route('/profile/edit', methods=['GET', 'POST'])
 @login_required

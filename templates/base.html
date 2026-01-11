@@ -46,7 +46,7 @@
         {
           "@type": "VideoGame",
           "name": "Gangs of Palestine",
-          "alternateName": "عصابات فلسطين",
+          "alternateName": {{ _('عصابات فلسطين')|tojson }},
           "description": "{{ seo.description }}",
           "genre": ["RPG", "Strategy", "Simulation"],
           "playMode": "MultiPlayer",
@@ -659,6 +659,7 @@
 <!-- jQuery Removed (Moved to Head) -->
 <!-- Bootstrap 4 -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="{{ url_for('static', filename='js/bs4_compat.js') }}"></script>
 <!-- AdminLTE App -->
 <script src="{{ url_for('static', filename='adminlte/js/adminlte.min.js') }}"></script>
 <!-- SweetAlert2 -->
