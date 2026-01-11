@@ -24,8 +24,15 @@ def main():
                 current_version = None
 
         if has_schema and not current_version:
-            stamp(revision="380a7cb143ee")
-            db.session.commit()
+            with db.engine.begin() as conn:
+                conn.execute(text("create table if not exists alembic_version (version_num varchar(32) not null)"))
+                row = conn.execute(text("select version_num from alembic_version limit 1")).fetchone()
+                if not row:
+                    conn.execute(text("insert into alembic_version (version_num) values (:v)"), {"v": "380a7cb143ee"})
+                else:
+                    v = row[0]
+                    if not v:
+                        conn.execute(text("update alembic_version set version_num = :v"), {"v": "380a7cb143ee"})
 
         upgrade(revision="heads")
         db.session.commit()
