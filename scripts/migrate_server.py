@@ -25,6 +25,7 @@ def main():
 
         if has_schema and not current_version:
             stamp(revision="380a7cb143ee")
+            db.session.commit()
 
         upgrade(revision="heads")
         db.session.commit()
