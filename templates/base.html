@@ -294,6 +294,12 @@
           
           {% if current_user.is_developer or current_user.is_admin %}
           <li class="nav-header"><i class="fas fa-cogs mr-2"></i> {{ _('الإدارة') }}</li>
+          <li class="nav-item">
+              <a href="{{ url_for('main.tiktok_promo') }}" class="nav-link" target="_blank">
+                  <i class="nav-icon fab fa-tiktok text-danger"></i>
+                  <p>{{ _('أداة فيديو تيك توك') }}</p>
+              </a>
+          </li>
           {% if current_user.is_developer %}
           <li class="nav-item">
             <a href="{{ url_for('main.dev_dashboard') }}" class="nav-link">
