@@ -43,6 +43,7 @@ class Config:
     SESSION_COOKIE_SAMESITE = 'Lax'
     PERMANENT_SESSION_LIFETIME = 3600  # 1 hour
     MAX_CONTENT_LENGTH = 16 * 1024 * 1024  # 16MB max upload
+    PREFERRED_URL_SCHEME = 'https'
 
     # Mail Configuration
     MAIL_SERVER = os.environ.get('MAIL_SERVER') or 'smtp.gmail.com'
