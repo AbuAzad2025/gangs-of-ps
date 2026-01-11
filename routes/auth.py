@@ -38,6 +38,11 @@ from services.resource_service import ResourceService
 @bp.route('/login', methods=['GET', 'POST'])
 @limiter.limit("10 per minute")
 def login():
+    try:
+        db.session.rollback()
+    except Exception:
+        pass
+
     if current_user.is_authenticated:
         return redirect(url_for('main.hara'))
     
@@ -51,13 +56,25 @@ def login():
     except Exception as e:
         # Fallback if tables are empty or error
         current_app.logger.error(f"Error fetching login stats: {e}")
+        try:
+            db.session.rollback()
+        except Exception:
+            pass
         stats = None
 
     form = LoginForm()
     show_captcha = False
 
     # Fetch Greeter Hostess
-    greeter = Hostess.query.filter_by(role='greeter').first()
+    try:
+        greeter = Hostess.query.filter_by(role='greeter').first()
+    except Exception as e:
+        try:
+            db.session.rollback()
+        except Exception:
+            pass
+        current_app.logger.error(f"Error fetching greeter hostess: {e}")
+        greeter = Hostess.query.filter_by(role='greeter').first()
     if not greeter:
         greeter = Hostess.query.filter(
             (Hostess.name.ilike('%Jasmin%')) | (Hostess.name.ilike('%Jasmine%'))
