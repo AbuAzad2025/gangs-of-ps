@@ -48,7 +48,7 @@ class Hostess(db.Model):
     special_move_cooldown = db.Column(db.DateTime, nullable=True)
 
     # Exclusivity & Ranking
-    current_player_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True, unique=True)
+    current_player_id = db.Column(db.Integer, db.ForeignKey('user.id', use_alter=True, name='fk_hostess_current_player_id'), nullable=True, unique=True)
     min_rank = db.Column(db.Integer, default=1) # Minimum level required
     is_public = db.Column(db.Boolean, default=False) # If True (e.g. Jasmin), she is not hireable/exclusive
 

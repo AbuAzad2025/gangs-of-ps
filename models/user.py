@@ -315,7 +315,7 @@ class User(UserMixin, db.Model):
     is_disguised = db.Column(db.Boolean, default=False)
     disguise_until = db.Column(db.DateTime, nullable=True)
     casino_luck_until = db.Column(db.DateTime, nullable=True)
-    active_hostess_id = db.Column(db.Integer, db.ForeignKey('hostesses.id'), nullable=True, index=True)
+    active_hostess_id = db.Column(db.Integer, db.ForeignKey('hostesses.id', use_alter=True, name='fk_user_active_hostess_id'), nullable=True, index=True)
 
     # Security
     failed_login_attempts = db.Column(db.Integer, default=0)
