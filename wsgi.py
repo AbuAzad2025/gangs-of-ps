@@ -17,3 +17,4 @@ from config import Config
 # Create the application instance
 # PythonAnywhere looks for an object named 'application'
 application = create_app(Config)
+app = application  # Alias for compatibility with some WSGI configurations
