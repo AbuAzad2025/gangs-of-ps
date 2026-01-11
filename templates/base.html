@@ -239,8 +239,11 @@
   <!-- /.navbar -->
 
   {% if not hide_sidebar %}
-  <!-- Main Sidebar Container -->
   <aside class="main-sidebar sidebar-luxury elevation-4">
+    <button type="button" class="sidebar-close-btn d-lg-none" aria-label="{{ _('إغلاق القائمة') }}">
+      <i class="fas fa-times"></i>
+    </button>
+    
     <!-- Brand Logo -->
     <a href="{{ url_for('main.index') }}" class="brand-link text-center pb-3 pt-3">
       <img src="{{ url_for('static', filename='images/azad_logo_white_on_dark.png') }}" alt="Gangs of Palestine" class="brand-image-xl elevation-3 brand-image-custom">
@@ -519,9 +522,10 @@
       <!-- /.sidebar-menu -->
       {% endif %}
     </div>
-    <!-- /.sidebar -->
-  </aside>
-  {% endif %}
+          <!-- /.sidebar -->
+        </aside>
+        <div class="sidebar-overlay d-lg-none" tabindex="-1" aria-hidden="true"></div>
+        {% endif %}
 
   <!-- Content Wrapper. Contains page content -->
   <div class="content-wrapper" {% if hide_sidebar or hide_navbar %}style="{% if hide_sidebar %}margin-left:0;{% endif %}{% if hide_navbar %}margin-top:0;{% endif %}"{% endif %}>
@@ -1143,6 +1147,41 @@
 </script>
 {% endif %}
 
+<script>
+(function () {
+    const overlay = document.querySelector('.sidebar-overlay');
+    const closeBtn = document.querySelector('.sidebar-close-btn');
+    if (!overlay && !closeBtn) return;
+
+    function closeSidebar() {
+        if (!document.body.classList.contains('sidebar-open')) return;
+        const toggle = document.querySelector('[data-widget="pushmenu"]');
+        if (toggle) {
+            toggle.click();
+            return;
+        }
+        document.body.classList.remove('sidebar-open');
+    }
+
+    if (overlay) {
+        overlay.addEventListener('click', function (e) {
+            e.preventDefault();
+            closeSidebar();
+        });
+    }
+
+    if (closeBtn) {
+        closeBtn.addEventListener('click', function (e) {
+            e.preventDefault();
+            closeSidebar();
+        });
+    }
+
+    document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape') closeSidebar();
+    });
+})();
+</script>
 {% block scripts %}{% endblock %}
 </body>
 </html>

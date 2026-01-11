@@ -20,33 +20,60 @@
             justify-content: center;
             align-items: center;
             height: 100vh;
+            height: 100svh;
+            padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+            box-sizing: border-box;
         }
 
         .promo-container {
-            width: 100%;
-            max-width: 450px; /* TikTok aspect ratio approx */
-            height: 100vh;
+            width: min(100vw, 56.25vh);
+            height: min(100svh, calc(100vw * 16 / 9));
+            aspect-ratio: 9 / 16;
             position: relative;
             background: linear-gradient(180deg, #1a1a1a 0%, #000000 100%);
             overflow: hidden;
             box-shadow: 0 0 20px rgba(255, 215, 0, 0.1);
+            border: 1px solid rgba(255, 215, 0, 0.18);
+            border-radius: 18px;
+        }
+
+        .replay-btn {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            background: rgba(0, 0, 0, 0.55);
+            border: 1px solid rgba(255, 215, 0, 0.35);
+            color: #ffd700;
+            padding: 10px 12px;
+            border-radius: 999px;
+            font-family: inherit;
+            font-weight: 900;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            z-index: 10;
+            backdrop-filter: blur(6px);
+        }
+
+        .replay-btn:hover {
+            border-color: rgba(255, 215, 0, 0.65);
+            background: rgba(0, 0, 0, 0.72);
         }
 
         .scene {
             position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
+            inset: 0;
             display: flex;
             flex-direction: column;
             justify-content: center;
             align-items: center;
             opacity: 0;
             text-align: center;
-            padding: 20px;
+            padding: clamp(16px, 3.2vh, 28px);
             box-sizing: border-box;
             pointer-events: none; /* Let clicks pass through if needed */
+            gap: clamp(10px, 1.8vh, 18px);
         }
 
         /* --- Animations --- */
@@ -83,69 +110,95 @@
             100% { transform: translate(0); }
         }
 
+        @keyframes fadeInStay {
+            from { opacity: 0; transform: scale(0.96); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
         /* --- Scene 1: The Hook --- */
         .scene-1 { animation: fadeInOut 4s forwards; animation-delay: 0.5s; }
         .hook-text {
-            font-size: 3rem;
+            font-size: clamp(2.1rem, 4.8vh, 3.2rem);
             font-weight: 900;
             color: #fff;
             line-height: 1.2;
-            margin-bottom: 20px;
+            margin-bottom: clamp(10px, 2vh, 18px);
         }
         .highlight-red { color: #dc3545; text-shadow: 0 0 20px #dc3545; }
+        .hook-icon { color: #666; margin-top: clamp(8px, 2vh, 16px); }
 
         /* --- Scene 2: Gameplay Features --- */
         .scene-2 { animation: fadeInOut 4s forwards; animation-delay: 4.5s; }
+        .scene-title {
+            font-size: clamp(1.4rem, 3.2vh, 2.2rem);
+            margin: 0;
+            color: #fff;
+        }
         .feature-grid {
             display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 20px;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: clamp(10px, 2vh, 18px);
             width: 100%;
         }
         .feature-item {
             background: rgba(255, 255, 255, 0.1);
-            padding: 20px;
-            border-radius: 15px;
-            border: 1px solid #ffd700;
+            padding: clamp(12px, 2.2vh, 18px);
+            border-radius: 16px;
+            border: 1px solid rgba(255, 215, 0, 0.8);
             animation: slideUp 0.5s ease-out forwards;
         }
-        .feature-item i { font-size: 2.5rem; color: #ffd700; margin-bottom: 10px; }
-        .feature-item h3 { margin: 0; font-size: 1.2rem; }
+        .feature-item i { font-size: clamp(1.8rem, 3.6vh, 2.6rem); color: #ffd700; margin-bottom: 8px; }
+        .feature-item h3 { margin: 0; font-size: clamp(1rem, 2.2vh, 1.3rem); }
         
         /* --- Scene 3: Map/Context --- */
         .scene-3 { animation: fadeInOut 4s forwards; animation-delay: 8.5s; }
-        .map-text { font-size: 2.5rem; font-weight: bold; margin-bottom: 30px; }
+        .map-text { font-size: clamp(1.7rem, 4vh, 2.6rem); font-weight: 900; margin: 0; }
         .city-name {
-            font-size: 4rem;
+            font-size: clamp(2.2rem, 6vh, 3.8rem);
             font-weight: 900;
             display: block;
-            margin: 10px 0;
+            margin: 0;
             text-transform: uppercase;
-            animation: glitch 0.3s infinite;
+            animation: glitch 0.75s infinite;
+            line-height: 1.05;
         }
-        .palestine-flag { font-size: 5rem; margin-top: 20px; filter: drop-shadow(0 0 20px rgba(0, 255, 0, 0.5)); }
+        .palestine-flag { font-size: clamp(3.2rem, 8vh, 5rem); margin-top: clamp(6px, 1.4vh, 16px); filter: drop-shadow(0 0 20px rgba(0, 255, 0, 0.5)); }
 
         /* --- Scene 4: CTA --- */
-        .scene-4 { animation: fadeInOut 6s forwards; animation-delay: 12.5s; opacity: 1 !important; } /* Stay visible at end */
+        .scene-4 { animation: fadeInStay 0.9s forwards; animation-delay: 12.5s; }
         .logo-large {
-            font-size: 5rem;
+            font-size: clamp(3.4rem, 8vh, 5.2rem);
             color: #ffd700;
-            margin-bottom: 20px;
+            margin-bottom: 0;
             animation: floating 3s ease-in-out infinite;
+        }
+        .app-title {
+            font-size: clamp(1.8rem, 4.2vh, 2.8rem);
+            margin: 0;
+        }
+        .app-subtitle {
+            color: #ccc;
+            font-size: clamp(1rem, 2.4vh, 1.35rem);
+            margin: 0;
         }
         .cta-btn {
             background: linear-gradient(45deg, #ffd700, #ffaa00);
             color: #000;
-            padding: 15px 40px;
-            font-size: 1.5rem;
+            padding: clamp(12px, 2.2vh, 16px) clamp(18px, 4.2vh, 44px);
+            font-size: clamp(1.15rem, 2.8vh, 1.6rem);
             font-weight: bold;
             border-radius: 50px;
             border: none;
-            margin-top: 30px;
+            margin-top: clamp(10px, 2.6vh, 22px);
             box-shadow: 0 0 30px #ffd700;
             animation: pulseGold 2s infinite;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
         }
-        .link-bio { margin-top: 20px; font-size: 1.2rem; color: #aaa; }
+        .link-bio { margin-top: clamp(10px, 2.2vh, 18px); font-size: clamp(0.95rem, 2.2vh, 1.2rem); color: #aaa; }
+        .bio-domain { display: block; font-size: 0.9rem; color: #ffd700; margin-bottom: 6px; font-family: monospace; }
 
         /* Background Effects */
         .bg-particles {
@@ -171,6 +224,10 @@
         }
         @keyframes progress { to { width: 100%; } }
 
+        @media (max-width: 420px), (max-height: 740px) {
+            .feature-grid { grid-template-columns: 1fr; }
+        }
+
     </style>
 </head>
 <body>
@@ -188,12 +245,12 @@
                 حياة <span class="highlight-red">العصابات</span><br>
                 في فلسطين؟ 🇵🇸
             </div>
-            <i class="fas fa-mask fa-4x" style="color: #666; margin-top: 20px;"></i>
+            <i class="fas fa-mask fa-4x hook-icon"></i>
         </div>
 
         <!-- Scene 2: Features -->
         <div class="scene scene-2">
-            <h2 style="font-size: 2rem; margin-bottom: 30px; color: #fff;">ابنِ امبراطوريتك</h2>
+            <h2 class="scene-title">ابنِ امبراطوريتك</h2>
             <div class="feature-grid">
                 <div class="feature-item" style="animation-delay: 4.6s">
                     <i class="fas fa-users"></i>
@@ -226,12 +283,12 @@
         <!-- Scene 4: CTA -->
         <div class="scene scene-4" style="animation-fill-mode: forwards;">
             <i class="fas fa-crown logo-large"></i>
-            <h1 style="font-size: 2.5rem; margin: 0;">عصابات فلسطين</h1>
-            <p style="color: #ccc; font-size: 1.2rem;">اللعبة الاستراتيجية العربية الأولى</p>
+            <h1 class="app-title">عصابات فلسطين</h1>
+            <p class="app-subtitle">اللعبة الاستراتيجية العربية الأولى</p>
             
             <a href="{{ url_for('main.register') }}" class="cta-btn">سجل الآن مجاناً</a>
             <div class="link-bio">
-                <span style="display: block; font-size: 0.9rem; color: #ffd700; margin-bottom: 5px; font-family: monospace;">gangsofpalestine-azad.pythonanywhere.com</span>
+                <span class="bio-domain">gangsofpalestine-azad.pythonanywhere.com</span>
                 الرابط في البايو 🔗
             </div>
         </div>

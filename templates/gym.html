@@ -3,125 +3,219 @@
 {% block content %}
 
 <div class="container fade-in">
-    <div class="text-center luxury-header">
+    <div class="text-center luxury-header luxury-header-gold">
         <h1 class="display-4 text-gradient-gold font-kufi">
             <i class="fas fa-dumbbell mr-3"></i>{{ _('النادي الرياضي') }}
         </h1>
-        <p class="lead text-muted">{{ _('طور مهاراتك القتالية والجسدية') }}</p>
+        <p class="lead text-muted">{{ _('طور مهاراتك القتالية والجسدية بخطط تدريب متعددة') }}</p>
+        <div class="d-flex flex-wrap justify-content-center gym-balance-row">
+            <span class="badge gym-badge gym-badge-money"><i class="fas fa-coins mr-2"></i>${{ "{:,.0f}".format(user.money) }}</span>
+            <span class="badge gym-badge gym-badge-gems"><i class="fas fa-gem mr-2"></i>{{ user.diamonds }}</span>
+            <span class="badge gym-badge gym-badge-energy"><i class="fas fa-bolt mr-2"></i>{{ user.energy }} / {{ user.max_energy }}</span>
+        </div>
     </div>
 
-    {% if remaining_seconds > 0 %}
+    {% if active and remaining_seconds > 0 %}
     <div class="row mb-4">
         <div class="col-12">
-            <div class="luxury-card p-4 text-center training-card">
-                <h3 class="text-gradient-gold mb-3"><i class="fas fa-dumbbell fa-spin mr-2"></i>{{ _('تمرين جاري...') }}</h3>
-                <div id="countdown" class="display-4 font-weight-bold text-white font-mono"></div>
-                <p class="text-muted mt-2">{{ _('عليك الانتظار حتى انتهاء التمرين الحالي لتتمكن من التدريب مجدداً') }}</p>
-                
-                <form action="{{ url_for('gym.cancel_training') }}" method="POST" class="mt-3">
-                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-                    <button type="submit" class="btn btn-outline-danger">
-                        <i class="fas fa-sign-out-alt mr-2"></i> {{ _('إنهاء التمرين والخروج') }}
-                    </button>
-                    <p class="small text-muted mt-1">{{ _('تحذير: الخروج يسمح لك بالقيام بمهام أخرى لكن لا يمكنك استعادة الطاقة المصروفة.') }}</p>
-                </form>
+            <div class="luxury-card p-4 gym-active-card">
+                <div class="text-center mb-3">
+                    <div class="d-inline-flex align-items-center justify-content-center p-3 rounded-circle gym-icon-ring">
+                        <i class="fas fa-dumbbell fa-2x text-warning"></i>
+                    </div>
+                    <h3 class="mt-3 mb-1 text-white">{{ _('تمرين جاري...') }}</h3>
+                    {% if active_data and active_data.stat %}
+                        {% set active_stat_label = _('القوة') if active_data.stat == 'strength' else (_('الدفاع') if active_data.stat == 'defense' else (_('الرشاقة') if active_data.stat == 'agility' else (_('الذكاء') if active_data.stat == 'intelligence' else active_data.stat))) %}
+                        {% set active_plan_label = _('تدريب عادي') if active_data.plan == 'basic' else (_('تدريب متقدم') if active_data.plan == 'advanced' else (_('تدريب نخبة') if active_data.plan == 'elite' else active_data.plan)) %}
+                        <div class="text-muted">
+                            <i class="{{ 'fas fa-brain' if active_data.stat == 'intelligence' else ('fas fa-running' if active_data.stat == 'agility' else ('fas fa-shield-alt' if active_data.stat == 'defense' else 'fas fa-fist-raised')) }} mr-2"></i>
+                            {{ _('التركيز:') }} <span class="text-warning font-weight-bold">{{ active_stat_label }}</span>
+                            {% if active_data.plan %}<span class="gym-pill gym-pill-plan ml-2">{{ active_plan_label }}</span>{% endif %}
+                        </div>
+                        <div class="small text-muted mt-2">
+                            {{ _('المكافأة المتوقعة:') }}
+                            <span class="text-warning">+{{ active_data.stat_gain or 0 }}</span>
+                            <span class="text-muted"> / </span>
+                            <span class="text-info">+{{ active_data.exp_gain or 0 }} XP</span>
+                        </div>
+                        <div class="d-flex flex-wrap justify-content-center mt-2" style="gap:.5rem;">
+                            <span class="gym-pill gym-pill-time">
+                                <i class="far fa-clock mr-2"></i>{{ ((active_data.duration or 0) // 60) }} {{ _('د') }}
+                            </span>
+                            {% if active_data.energy_cost %}
+                            <span class="gym-pill gym-pill-energy"><i class="fas fa-bolt mr-2"></i>{{ active_data.energy_cost }}E</span>
+                            {% endif %}
+                            {% if active_data.money_cost %}
+                            <span class="gym-pill gym-pill-money"><i class="fas fa-coins mr-2"></i>${{ active_data.money_cost }}</span>
+                            {% endif %}
+                            {% if active_data.diamond_cost %}
+                            <span class="gym-pill gym-pill-gems"><i class="fas fa-gem mr-2"></i>{{ active_data.diamond_cost }}</span>
+                            {% endif %}
+                        </div>
+                    {% endif %}
+                    <div class="d-flex justify-content-center align-items-center p-3 rounded mx-auto mt-3 gym-timer-wrap" style="max-width: 520px;">
+                        <div class="display-4 text-warning fw-bold mx-3" id="gym-countdown">--:--</div>
+                        <div class="text-left">
+                            <div class="text-white fw-bold">{{ _('الوقت المتبقي') }}</div>
+                            <div class="text-muted small">{{ _('حتى انتهاء التدريب') }}</div>
+                        </div>
+                    </div>
+                    <div class="progress mt-3 mx-auto" style="max-width: 520px; height: 10px; background: rgba(255,255,255,0.08);">
+                        <div class="progress-bar bg-warning" role="progressbar" style="width: 0%" id="gym-progress"></div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <div class="p-3 rounded gym-panel">
+                            <h5 class="text-warning mb-2"><i class="fas fa-forward mr-2"></i>{{ _('التسريع') }}</h5>
+                            {% if speedup_enabled and speedup_options %}
+                                <div class="d-flex flex-wrap" style="gap:.5rem;">
+                                    {% for opt in speedup_options %}
+                                    <form action="{{ url_for('gym.speed_up') }}" method="POST" class="flex-fill">
+                                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                                        <input type="hidden" name="minutes" value="{{ opt.minutes }}"/>
+                                        <button type="submit" class="btn btn-outline-warning w-100" {% if user.money < opt.cost %}disabled{% endif %}>
+                                            {{ _('تسريع') }} {{ opt.minutes }} {{ _('د') }} ({{ opt.cost }}$)
+                                        </button>
+                                    </form>
+                                    {% endfor %}
+                                </div>
+                            {% else %}
+                                <div class="text-muted small">{{ _('التسريع غير متاح حالياً.') }}</div>
+                            {% endif %}
+
+                            {% if speedup_enabled and speedup_finish_diamonds and speedup_finish_diamonds > 0 %}
+                            <form action="{{ url_for('gym.finish_now') }}" method="POST" class="mt-2">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                                <button type="submit" class="btn btn-outline-info w-100" {% if user.diamonds < speedup_finish_diamonds %}disabled{% endif %}>
+                                    {{ _('إنهاء الآن') }} ({{ speedup_finish_diamonds }} <i class="fas fa-gem"></i>)
+                                </button>
+                            </form>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <div class="col-md-6 mb-3">
+                        <div class="p-3 rounded gym-panel">
+                            <h5 class="text-danger mb-2"><i class="fas fa-sign-out-alt mr-2"></i>{{ _('الخروج') }}</h5>
+                            <form action="{{ url_for('gym.cancel_training') }}" method="POST">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                                <button type="submit" class="btn btn-outline-danger w-100" onclick="return confirm('{{ _('الخروج يمنحك مكافأة جزئية حسب الوقت. هل أنت متأكد؟') }}')">
+                                    {{ _('إنهاء التمرين') }}
+                                </button>
+                                <small class="text-muted d-block mt-2">{{ _('لن تستعيد الطاقة المصروفة عند بدء التدريب.') }}</small>
+                            </form>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
-    <script>
-        var seconds = {{ remaining_seconds }};
-        function updateTimer() {
-            var m = Math.floor(seconds / 60);
-            var s = seconds % 60;
-            // Pad with leading zeros
-            m = m < 10 ? "0" + m : m;
-            s = s < 10 ? "0" + s : s;
-            document.getElementById('countdown').innerHTML = m + ":" + s;
-            if (seconds > 0) {
-                seconds--;
-                setTimeout(updateTimer, 1000);
-            } else {
-                location.reload();
-            }
-        }
-        document.addEventListener('DOMContentLoaded', function() {
-            updateTimer();
-        });
-    </script>
     {% endif %}
 
     <div class="row">
-        <!-- القوة -->
-        <div class="col-12 col-md-6 col-lg-3 mb-4 fade-in-up delay-1">
-            <div class="luxury-card h-100 text-center p-4">
-                <div class="stat-circle">
-                    <i class="fas fa-fist-raised"></i>
-                </div>
-                <h3 class="text-gradient-gold mb-3">{{ _('القوة') }}</h3>
-                <div class="stat-value mb-2">{{ user.strength }}</div>
-                <p class="stat-label">{{ _('تزيد من ضرر هجماتك') }}</p>
-                <form action="{{ url_for('gym.train', stat='strength') }}" method="POST">
-                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-                    <button type="submit" class="train-btn" {% if remaining_seconds > 0 %}disabled{% endif %}>
-                        <i class="fas fa-plus-circle mr-2"></i>{{ _('تدريب (5E | 100$)') }}
-                    </button>
-                </form>
-            </div>
-        </div>
+        {% set stat_defs = [
+            {'key': 'strength', 'title': _('القوة'), 'desc': _('تزيد من ضرر هجماتك'), 'icon': 'fas fa-fist-raised', 'tone': 'danger'},
+            {'key': 'defense', 'title': _('الدفاع'), 'desc': _('تقلل من الضرر المتلقى'), 'icon': 'fas fa-shield-alt', 'tone': 'info'},
+            {'key': 'agility', 'title': _('الرشاقة'), 'desc': _('تزيد فرصة المراوغة والهروب'), 'icon': 'fas fa-running', 'tone': 'success'},
+            {'key': 'intelligence', 'title': _('الذكاء'), 'desc': _('يزيد نجاح التجسس والقرصنة'), 'icon': 'fas fa-brain', 'tone': 'warning'},
+        ] %}
 
-        <!-- الدفاع -->
-        <div class="col-12 col-md-6 col-lg-3 mb-4 fade-in-up delay-2">
-            <div class="luxury-card h-100 text-center p-4">
-                <div class="stat-circle">
-                    <i class="fas fa-shield-alt"></i>
+        {% for s in stat_defs %}
+        <div class="col-12 col-md-6 col-xl-3 mb-4 fade-in-up" style="animation-delay: {{ loop.index0 * 0.06 }}s;">
+            <div class="luxury-card h-100 p-4 gym-stat-card">
+                <div class="d-flex align-items-center justify-content-between mb-3">
+                    <div class="d-flex align-items-center">
+                        <div class="gym-stat-icon bg-{{ s.tone }}">
+                            <i class="{{ s.icon }}"></i>
+                        </div>
+                        <div class="ml-3">
+                            <h4 class="text-white mb-0">{{ s.title }}</h4>
+                            <div class="text-muted small">{{ s.desc }}</div>
+                        </div>
+                    </div>
+                    <div class="text-right">
+                        <div class="gym-stat-value">{{ user|attr(s.key) }}</div>
+                        <div class="text-muted small">{{ _('النقاط') }}</div>
+                    </div>
                 </div>
-                <h3 class="text-gradient-gold mb-3">{{ _('الدفاع') }}</h3>
-                <div class="stat-value mb-2">{{ user.defense }}</div>
-                <p class="stat-label">{{ _('تقلل من الضرر المتلقى') }}</p>
-                <form action="{{ url_for('gym.train', stat='defense') }}" method="POST" class="train-form">
-                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-                    <button type="submit" class="train-btn" {% if remaining_seconds > 0 %}disabled{% endif %}>
-                        <i class="fas fa-plus-circle mr-2"></i>{{ _('تدريب (5E | 100$)') }}
-                    </button>
-                </form>
-            </div>
-        </div>
 
-        <!-- الرشاقة -->
-        <div class="col-12 col-md-6 col-lg-3 mb-4 fade-in-up delay-3">
-            <div class="luxury-card h-100 text-center p-4">
-                <div class="stat-circle">
-                    <i class="fas fa-running"></i>
+                <div class="d-flex flex-column" style="gap:.5rem;">
+                    {% for opt in (training_options.get(s.key) or []) %}
+                    {% set is_disabled = active or remaining_seconds > 0 or user.energy < opt.energy_cost or user.money < opt.money_cost or (opt.diamond_cost and user.diamonds < opt.diamond_cost) %}
+                    {% set disabled_reason = _('انتظر انتهاء التدريب الحالي') if (active or remaining_seconds > 0) else (_('طاقة غير كافية') if (user.energy < opt.energy_cost) else (_('مال غير كافٍ') if (user.money < opt.money_cost) else (_('ألماس غير كافٍ') if (opt.diamond_cost and user.diamonds < opt.diamond_cost) else ''))) %}
+                    {% set plan_tone = 'secondary' if opt.key == 'basic' else ('warning' if opt.key == 'advanced' else ('info' if opt.key == 'elite' else 'light')) %}
+                    <form action="{{ url_for('gym.train', stat=s.key) }}" method="POST" class="gym-train-form m-0">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                        <input type="hidden" name="plan" value="{{ opt.key }}"/>
+                        <button type="submit" class="btn btn-outline-light w-100 gym-train-btn"
+                                {% if is_disabled %}disabled{% endif %}
+                                {% if disabled_reason %}title="{{ disabled_reason }}"{% endif %}>
+                            <span class="d-flex align-items-center justify-content-between w-100">
+                                <span>
+                                    <span class="d-flex align-items-center flex-wrap" style="gap:.4rem;">
+                                        <span class="font-weight-bold text-white">{{ opt.label }}</span>
+                                        <span class="gym-pill gym-pill-plan bg-{{ plan_tone }}">{{ opt.key|upper }}</span>
+                                        <span class="gym-pill gym-pill-time"><i class="far fa-clock mr-2"></i>{{ (opt.duration // 60) }} {{ _('د') }}</span>
+                                    </span>
+                                    <span class="text-muted d-block mt-1">+{{ opt.gain }} {{ s.title }} • +{{ opt.exp }} XP</span>
+                                </span>
+                                <span class="text-nowrap">
+                                    <span class="badge bg-dark border border-light text-light">{{ opt.energy_cost }}E</span>
+                                    <span class="badge bg-dark border border-warning text-warning">${{ opt.money_cost }}</span>
+                                    {% if opt.diamond_cost and opt.diamond_cost > 0 %}
+                                    <span class="badge bg-dark border border-info text-info">{{ opt.diamond_cost }}<i class="fas fa-gem ml-1"></i></span>
+                                    {% endif %}
+                                </span>
+                            </span>
+                        </button>
+                    </form>
+                    {% endfor %}
                 </div>
-                <h3 class="text-gradient-gold mb-3">{{ _('الرشاقة') }}</h3>
-                <div class="stat-value mb-2">{{ user.agility }}</div>
-                <p class="stat-label">{{ _('تزيد فرصة المراوغة والهروب') }}</p>
-                <form action="{{ url_for('gym.train', stat='agility') }}" method="POST">
-                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-                    <button type="submit" class="train-btn" {% if remaining_seconds > 0 %}disabled{% endif %}>
-                        <i class="fas fa-plus-circle mr-2"></i>{{ _('تدريب (5E | 100$)') }}
-                    </button>
-                </form>
             </div>
         </div>
-
-        <!-- الذكاء -->
-        <div class="col-12 col-md-6 col-lg-3 mb-4 fade-in-up delay-4">
-            <div class="luxury-card h-100 text-center p-4">
-                <div class="stat-circle stat-circle-info">
-                    <i class="fas fa-brain text-info"></i>
-                </div>
-                <h3 class="text-gradient-gold mb-3">{{ _('الذكاء') }}</h3>
-                <div class="stat-value mb-2">{{ user.intelligence }}</div>
-                <p class="stat-label">{{ _('يزيد نجاح التجسس والقرصنة') }}</p>
-                <form action="{{ url_for('gym.train', stat='intelligence') }}" method="POST">
-                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-                    <button type="submit" class="train-btn" {% if remaining_seconds > 0 %}disabled{% endif %}>
-                        <i class="fas fa-plus-circle mr-2"></i>{{ _('دراسة (10E | 100$)') }}
-                    </button>
-                </form>
-            </div>
-        </div>
+        {% endfor %}
     </div>
 </div>
+
+{% if active and remaining_seconds > 0 %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        var seconds = {{ remaining_seconds }};
+        var initial = Math.max(1, seconds);
+        var timer = document.getElementById('gym-countdown');
+        var bar = document.getElementById('gym-progress');
+
+        function tick() {
+            if (!timer) return;
+            var m = Math.floor(seconds / 60);
+            var s = seconds % 60;
+            timer.textContent = m + ":" + String(s).padStart(2, '0');
+            var pct = Math.min(100, Math.max(0, Math.round(((initial - seconds) / initial) * 100)));
+            if (bar) bar.style.width = pct + '%';
+            if (seconds <= 0) {
+                window.location.reload();
+                return;
+            }
+            seconds -= 1;
+        }
+
+        tick();
+        setInterval(tick, 1000);
+    });
+</script>
+{% endif %}
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        var forms = document.querySelectorAll('.gym-train-form');
+        forms.forEach(function(f) {
+            f.addEventListener('submit', function() {
+                var btn = f.querySelector('button[type="submit"]');
+                if (btn) btn.disabled = true;
+            });
+        });
+    });
+</script>
 {% endblock %}

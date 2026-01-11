@@ -3,12 +3,192 @@ from flask_login import login_required, current_user
 from flask_babel import _
 from extensions import db, limiter
 import random
-from models import User, SystemConfig, GameLog
+from models import User, SystemConfig, GameLog, UserLog, MoneySinkLog
 from models.hostess import Hostess
 from datetime import datetime, timezone, timedelta
 from services.resource_service import ResourceService
 
 bp = Blueprint('jail', __name__, url_prefix='/jail')
+
+def _cfg_bool(key, default=False):
+    v = SystemConfig.get_value(key, 'true' if default else 'false')
+    return str(v).strip().lower() in ('1', 'true', 'yes', 'on')
+
+def _cfg_int(key, default):
+    try:
+        return int(SystemConfig.get_value(key, str(int(default))))
+    except Exception:
+        return int(default)
+
+def _cfg_float(key, default):
+    try:
+        return float(SystemConfig.get_value(key, str(float(default))))
+    except Exception:
+        return float(default)
+
+def _now_utc():
+    return datetime.now(timezone.utc)
+
+def _now_naive_utc():
+    return _now_utc().replace(tzinfo=None)
+
+def _today_utc_date(now):
+    if getattr(now, "tzinfo", None) is None:
+        return now.date()
+    return now.astimezone(timezone.utc).date()
+
+def _to_aware(dt):
+    if dt and getattr(dt, "tzinfo", None) is None:
+        return dt.replace(tzinfo=timezone.utc)
+    return dt
+
+def _safe_deduct(user, field, amount):
+    try:
+        cur = int(getattr(user, field) or 0)
+    except Exception:
+        cur = 0
+    return -min(cur, int(abs(amount)))
+
+def _cooldown_seconds_left(last_at, cooldown_seconds, now):
+    if not last_at:
+        return 0
+    a = _to_aware(last_at)
+    if not a:
+        return 0
+    until = a + timedelta(seconds=int(max(0, cooldown_seconds)))
+    return max(0, int((until - now).total_seconds()))
+
+def _build_daily_event(user, now):
+    if not _cfg_bool('jail_enable_daily_event', True):
+        return None
+
+    jail_until = _to_aware(getattr(user, "jail_until", None))
+    if not jail_until or jail_until <= now:
+        return None
+
+    day_start = datetime(now.year, now.month, now.day, tzinfo=timezone.utc)
+    already = (
+        UserLog.query.filter(
+            UserLog.user_id == user.id,
+            UserLog.action == "JAIL_DAILY_EVENT",
+            UserLog.timestamp >= day_start,
+        )
+        .order_by(UserLog.timestamp.desc())
+        .first()
+    )
+
+    seed = f"{user.id}:{day_start.date().isoformat()}"
+    rng = random.Random(seed)
+    events = [
+        {
+            "key": "inspection",
+            "severity": "warning",
+            "title": _("تفتيش مفاجئ ومصادرة"),
+            "description": _("تفتيش داخل الأقسام ومصادرة بعض الأغراض الشخصية، مع ضغط نفسي على الأسرى."),
+            "delta_minutes": 0,
+            "changes": {"energy": -5},
+        },
+        {
+            "key": "solitary",
+            "severity": "danger",
+            "title": _("عزل انفرادي"),
+            "description": _("نقلك إلى زنزانة انفرادية لفترة قصيرة بعد توتر داخل القسم."),
+            "delta_minutes": 15,
+            "changes": {"brave": -1},
+        },
+        {
+            "key": "court_delay",
+            "severity": "danger",
+            "title": _("تأجيل محكمة عسكرية"),
+            "description": _("تم تأجيل الجلسة دون توضيح، وتأخر النظر في ملفك."),
+            "delta_minutes": 20,
+            "changes": {},
+        },
+        {
+            "key": "lawyer_volunteer",
+            "severity": "success",
+            "title": _("محامي متطوع"),
+            "description": _("زيارة قانونية سريعة وتقديم طلب مراجعة عاجل."),
+            "delta_minutes": -12,
+            "changes": {"exp": 25},
+        },
+        {
+            "key": "collective_support",
+            "severity": "info",
+            "title": _("تضامن جماعي داخل القسم"),
+            "description": _("تنظيم داخل القسم ودعم نفسي متبادل، يساعد على الصمود."),
+            "delta_minutes": -4,
+            "changes": {"exp": 15},
+        },
+        {
+            "key": "medical_negligence",
+            "severity": "warning",
+            "title": _("إهمال طبي وتأخير علاج"),
+            "description": _("تأخر في تقديم العلاج داخل العيادة، وإجراءات بطيئة."),
+            "delta_minutes": 0,
+            "changes": {"health": -int(max(1, (user.max_health or 0) * 0.02))},
+        },
+    ]
+
+    event = rng.choice(events)
+
+    applied_effects = []
+    delta_minutes = int(event.get("delta_minutes") or 0)
+    if delta_minutes != 0:
+        applied_effects.append(
+            _("تغيير الحكم: %(sign)s%(min)s دقيقة", sign=("+" if delta_minutes > 0 else ""), min=abs(delta_minutes))
+        )
+    for k, v in (event.get("changes") or {}).items():
+        try:
+            v = int(v)
+        except Exception:
+            continue
+        if v == 0:
+            continue
+        label = {
+            "energy": _("الطاقة"),
+            "health": _("الصحة"),
+            "brave": _("الشجاعة"),
+            "exp": _("الخبرة"),
+        }.get(k, k)
+        applied_effects.append(f"{label}: {v:+d}")
+
+    if not already:
+        set_fields = {}
+        if delta_minutes != 0:
+            current_jail_until = _to_aware(getattr(user, "jail_until", None))
+            if current_jail_until:
+                new_jail_until = current_jail_until + timedelta(minutes=delta_minutes)
+                set_fields["jail_until"] = new_jail_until
+
+        changes = {}
+        for k, v in (event.get("changes") or {}).items():
+            try:
+                v = int(v)
+            except Exception:
+                continue
+            if v < 0:
+                changes[k] = _safe_deduct(user, k, v)
+            elif v > 0:
+                changes[k] = v
+
+        ResourceService.modify_resources(
+            user.id,
+            changes,
+            "jail_daily_event",
+            auto_commit=True,
+            expected_version=user.version,
+            set_fields=set_fields or None,
+            log_extra={"event_key": event.get("key")},
+        )
+
+    return {
+        "title": event.get("title"),
+        "description": event.get("description"),
+        "severity": event.get("severity", "info"),
+        "effects": applied_effects,
+        "applied": (already is None),
+    }
 
 @bp.route('/')
 @login_required
@@ -19,11 +199,21 @@ def index():
     # Settings
     enable_breakout = SystemConfig.get_value('jail_enable_breakout', 'false') == 'true'
     enable_bribe = SystemConfig.get_value('jail_enable_bribe', 'false') == 'true'
-    
+    enable_document_report = _cfg_bool('jail_enable_document_report', True)
+    enable_family_visit = _cfg_bool('jail_enable_family_visit', True)
+    document_report_energy_cost = max(0, _cfg_int('jail_document_report_energy_cost', 5))
+    document_report_cooldown_hours = max(1, _cfg_int('jail_document_report_cooldown_hours', 3))
+    family_visit_cooldown_hours = max(1, _cfg_int('jail_family_visit_cooldown_hours', 12))
+    enable_self_escape = _cfg_bool('jail_enable_self_escape', True)
+    enable_gilboa_escape = _cfg_bool('jail_enable_gilboa_escape', True)
+    enable_self_bail_diamonds = _cfg_bool('jail_enable_self_bail_diamonds', True)
+
     # Calculate Bribe Cost (Dynamic: Level & Time)
     # Base formula: (Level * 100) + (Minutes Left * 50)
     # Minimum: 500
     
+    daily_event = _build_daily_event(current_user, now)
+
     remaining_minutes = 0
     jail_until = current_user.jail_until
     if jail_until and jail_until.tzinfo is None:
@@ -74,8 +264,303 @@ def index():
             db.session.commit()
             flash(_('⚖️ تم تجديد الاعتقال الإداري لمدة %(min)s دقيقة إضافية. "ملف سري"!', min=extension), 'danger')
 
-    return render_template('jail.html', title=_('السجن'), jailed_users=prisoners, now=now, user=current_user, 
-                           enable_breakout=enable_breakout, enable_bribe=enable_bribe, bribe_cost=bribe_cost, bail_cost_diamonds=bail_cost_diamonds)
+    today = _today_utc_date(now)
+    escape_limit = max(1, _cfg_int('jail_self_escape_daily_limit', 3))
+    gilboa_limit = max(1, _cfg_int('jail_gilboa_daily_limit', 2))
+    try:
+        escape_used = int(current_user.jail_escape_attempts or 0) if current_user.jail_escape_attempts_date == today else 0
+    except Exception:
+        escape_used = 0
+    try:
+        gilboa_used = int(current_user.jail_gilboa_attempts or 0) if current_user.jail_gilboa_attempts_date == today else 0
+    except Exception:
+        gilboa_used = 0
+
+    self_escape_energy_cost = max(0, _cfg_int('jail_self_escape_energy_cost', 30))
+    self_escape_money_cost = max(0, _cfg_int('jail_self_escape_money_cost', 5000))
+    gilboa_energy_cost = max(0, _cfg_int('jail_gilboa_energy_cost', 45))
+    gilboa_diamond_cost = max(0, _cfg_int('jail_gilboa_diamond_cost', 8))
+    gilboa_cooldown_hours = max(0, _cfg_int('jail_gilboa_cooldown_hours', 6))
+    self_bail_diamonds_cost = max(0, _cfg_int('jail_self_bail_cost_diamonds', 15))
+    self_bail_cooldown_hours = max(0, _cfg_int('jail_self_bail_cooldown_hours', 12))
+
+    gilboa_cd_left = _cooldown_seconds_left(getattr(current_user, 'jail_gilboa_last_at', None), gilboa_cooldown_hours * 3600, now)
+    self_bail_cd_left = 0
+    try:
+        last_self_bail = (
+            UserLog.query.filter(UserLog.user_id == current_user.id, UserLog.action == "JAIL_SELF_BAIL")
+            .order_by(UserLog.timestamp.desc())
+            .first()
+        )
+        if last_self_bail and last_self_bail.timestamp:
+            self_bail_cd_left = _cooldown_seconds_left(last_self_bail.timestamp, self_bail_cooldown_hours * 3600, now)
+    except Exception:
+        self_bail_cd_left = 0
+
+    return render_template('jail.html', title=_('السجن'), jailed_users=prisoners, now=now, user=current_user,
+                           enable_breakout=enable_breakout, enable_bribe=enable_bribe, bribe_cost=bribe_cost, bail_cost_diamonds=bail_cost_diamonds,
+                           daily_event=daily_event, enable_document_report=enable_document_report, enable_family_visit=enable_family_visit,
+                           document_report_energy_cost=document_report_energy_cost, document_report_cooldown_hours=document_report_cooldown_hours,
+                           family_visit_cooldown_hours=family_visit_cooldown_hours,
+                           enable_self_escape=enable_self_escape, enable_gilboa_escape=enable_gilboa_escape, enable_self_bail_diamonds=enable_self_bail_diamonds,
+                           escape_limit=escape_limit, escape_used=escape_used, gilboa_limit=gilboa_limit, gilboa_used=gilboa_used,
+                           self_escape_energy_cost=self_escape_energy_cost, self_escape_money_cost=self_escape_money_cost,
+                           gilboa_energy_cost=gilboa_energy_cost, gilboa_diamond_cost=gilboa_diamond_cost, gilboa_cooldown_left_seconds=gilboa_cd_left,
+                           self_bail_diamonds_cost=self_bail_diamonds_cost, self_bail_cooldown_left_seconds=self_bail_cd_left)
+
+@bp.route('/self_escape', methods=['POST'])
+@login_required
+@limiter.limit("6 per minute")
+def self_escape():
+    if not _cfg_bool('jail_enable_self_escape', True):
+        flash(_('محاولة الهروب غير مفعلة حالياً.'), 'warning')
+        return redirect(url_for('jail.index'))
+
+    now = _now_utc()
+    user = db.session.query(User).filter_by(id=current_user.id).with_for_update().first()
+    jail_until = _to_aware(getattr(user, "jail_until", None))
+    if not jail_until or jail_until <= now:
+        flash(_('أنت لست في السجن!'), 'warning')
+        return redirect(url_for('jail.index'))
+
+    today = _today_utc_date(now)
+    limit = max(1, _cfg_int('jail_self_escape_daily_limit', 3))
+    used = int(user.jail_escape_attempts or 0) if user.jail_escape_attempts_date == today else 0
+    if used >= limit:
+        flash(_('لقد استنفدت محاولات الهروب لليوم.'), 'warning')
+        return redirect(url_for('jail.index'))
+
+    energy_cost = max(0, _cfg_int('jail_self_escape_energy_cost', 30))
+    money_cost = max(0, _cfg_int('jail_self_escape_money_cost', 5000))
+    if user.energy < energy_cost:
+        flash(_('تحتاج إلى %(cost)s طاقة لمحاولة الهروب.', cost=energy_cost), 'danger')
+        return redirect(url_for('jail.index'))
+    if user.money < money_cost:
+        flash(_('تحتاج إلى %(cost)s$ لتجهيز الأدوات.', cost=money_cost), 'danger')
+        return redirect(url_for('jail.index'))
+
+    success_chance = max(0.0, min(1.0, _cfg_float('jail_self_escape_success_chance', 0.12)))
+    exp_reward = max(0, _cfg_int('jail_self_escape_exp_reward', 60))
+    penalty_min = max(0, _cfg_int('jail_self_escape_penalty_min', 15))
+    penalty_max = max(penalty_min, _cfg_int('jail_self_escape_penalty_max', 35))
+    injury_pct = max(0.0, min(0.50, _cfg_float('jail_self_escape_injury_pct', 0.05)))
+
+    is_success = random.random() < success_chance
+    now_naive = _now_naive_utc()
+
+    set_fields = {
+        "jail_escape_attempts_date": today,
+        "jail_escape_attempts": used + 1,
+        "jail_escape_last_at": now_naive,
+    }
+    changes = {"energy": -energy_cost, "money": -money_cost, "exp": exp_reward}
+
+    if is_success:
+        set_fields["jail_until"] = None
+        ok = ResourceService.modify_resources(
+            user.id,
+            changes,
+            "jail_self_escape",
+            auto_commit=False,
+            expected_version=user.version,
+            set_fields=set_fields,
+            log_extra={"success": True},
+        )
+        if not ok:
+            db.session.rollback()
+            flash(_('حدث خطأ أثناء محاولة الهروب.'), 'danger')
+            return redirect(url_for('jail.index'))
+
+        db.session.add(MoneySinkLog(user_id=user.id, sink_type="jail_escape_tools", amount=money_cost, details="Self escape tools"))
+        db.session.add(GameLog(admin_id=user.id, action='JAIL_SELF_ESCAPE_SUCCESS', details=f'Energy {energy_cost}, Money {money_cost}'))
+        db.session.commit()
+        flash(_('نجحت بخطف لحظة فوضى والهروب من السجن!'), 'success')
+        return redirect(url_for('main.index'))
+
+    penalty_minutes = random.randint(penalty_min, penalty_max) if penalty_max > 0 else 0
+    health_loss = int(max(0, (user.max_health or 0) * injury_pct))
+    if health_loss > 0:
+        changes["health"] = -health_loss
+    set_fields["jail_until"] = (_to_aware(user.jail_until) or now) + timedelta(minutes=penalty_minutes)
+
+    ok = ResourceService.modify_resources(
+        user.id,
+        changes,
+        "jail_self_escape",
+        auto_commit=False,
+        expected_version=user.version,
+        set_fields=set_fields,
+        log_extra={"success": False, "penalty_minutes": penalty_minutes},
+    )
+    if not ok:
+        db.session.rollback()
+        flash(_('حدث خطأ أثناء محاولة الهروب.'), 'danger')
+        return redirect(url_for('jail.index'))
+
+    db.session.add(MoneySinkLog(user_id=user.id, sink_type="jail_escape_tools", amount=money_cost, details="Self escape tools"))
+    db.session.add(GameLog(admin_id=user.id, action='JAIL_SELF_ESCAPE_FAIL', details=f'Penalty {penalty_minutes}m'))
+    db.session.commit()
+    flash(_('فشلت المحاولة وتم كشفك. زادت عقوبتك %(min)s دقيقة.', min=penalty_minutes), 'danger')
+    return redirect(url_for('jail.index'))
+
+@bp.route('/gilboa_escape', methods=['POST'])
+@login_required
+@limiter.limit("4 per minute")
+def gilboa_escape():
+    if not _cfg_bool('jail_enable_gilboa_escape', True):
+        flash(_('مغامرة جلبوع غير مفعلة حالياً.'), 'warning')
+        return redirect(url_for('jail.index'))
+
+    now = _now_utc()
+    user = db.session.query(User).filter_by(id=current_user.id).with_for_update().first()
+    jail_until = _to_aware(getattr(user, "jail_until", None))
+    if not jail_until or jail_until <= now:
+        flash(_('أنت لست في السجن!'), 'warning')
+        return redirect(url_for('jail.index'))
+
+    today = _today_utc_date(now)
+    limit = max(1, _cfg_int('jail_gilboa_daily_limit', 2))
+    used = int(user.jail_gilboa_attempts or 0) if user.jail_gilboa_attempts_date == today else 0
+    if used >= limit:
+        flash(_('لا يمكنك تكرار مغامرة جلبوع أكثر اليوم.'), 'warning')
+        return redirect(url_for('jail.index'))
+
+    cooldown_hours = max(0, _cfg_int('jail_gilboa_cooldown_hours', 6))
+    cd_left = _cooldown_seconds_left(getattr(user, "jail_gilboa_last_at", None), cooldown_hours * 3600, now)
+    if cd_left > 0:
+        minutes = int((cd_left + 59) // 60)
+        flash(_('لا تزال المغامرة تحت التبريد. انتظر %(m)s دقيقة.'), 'warning')
+        return redirect(url_for('jail.index'))
+
+    energy_cost = max(0, _cfg_int('jail_gilboa_energy_cost', 45))
+    diamond_cost = max(0, _cfg_int('jail_gilboa_diamond_cost', 8))
+    if user.energy < energy_cost:
+        flash(_('تحتاج إلى %(cost)s طاقة.'), 'danger')
+        return redirect(url_for('jail.index'))
+    if user.diamonds < diamond_cost:
+        flash(_('تحتاج إلى %(cost)s ماسة لهذه المغامرة.'), 'danger')
+        return redirect(url_for('jail.index'))
+
+    success_chance = max(0.0, min(1.0, _cfg_float('jail_gilboa_success_chance', 0.35)))
+    exp_reward = max(0, _cfg_int('jail_gilboa_exp_reward', 180))
+    penalty_min = max(0, _cfg_int('jail_gilboa_penalty_min', 25))
+    penalty_max = max(penalty_min, _cfg_int('jail_gilboa_penalty_max', 55))
+    injury_pct = max(0.0, min(0.75, _cfg_float('jail_gilboa_injury_pct', 0.10)))
+
+    is_success = random.random() < success_chance
+    now_naive = _now_naive_utc()
+
+    set_fields = {
+        "jail_gilboa_attempts_date": today,
+        "jail_gilboa_attempts": used + 1,
+        "jail_gilboa_last_at": now_naive,
+    }
+    changes = {"energy": -energy_cost, "diamonds": -diamond_cost, "exp": exp_reward}
+
+    if is_success:
+        set_fields["jail_until"] = None
+        ok = ResourceService.modify_resources(
+            user.id,
+            changes,
+            "jail_gilboa_escape",
+            auto_commit=False,
+            expected_version=user.version,
+            set_fields=set_fields,
+            log_extra={"success": True},
+        )
+        if not ok:
+            db.session.rollback()
+            flash(_('حدث خطأ أثناء المغامرة.'), 'danger')
+            return redirect(url_for('jail.index'))
+
+        try:
+            user.unlock_achievement('gilboa_escape', _('ملحمة جلبوع'), _('نجحت في هروب أسطوري من السجن.'), points=25)
+        except Exception:
+            pass
+
+        db.session.add(GameLog(admin_id=user.id, action='JAIL_GILBOA_SUCCESS', details=f'Energy {energy_cost}, Diamonds {diamond_cost}'))
+        db.session.commit()
+        flash(_('نجحت مغامرة جلبوع! خرجت من السجن رغم التشديد.'), 'success')
+        return redirect(url_for('main.index'))
+
+    penalty_minutes = random.randint(penalty_min, penalty_max) if penalty_max > 0 else 0
+    health_loss = int(max(0, (user.max_health or 0) * injury_pct))
+    if health_loss > 0:
+        changes["health"] = -health_loss
+    set_fields["jail_until"] = (_to_aware(user.jail_until) or now) + timedelta(minutes=penalty_minutes)
+
+    ok = ResourceService.modify_resources(
+        user.id,
+        changes,
+        "jail_gilboa_escape",
+        auto_commit=False,
+        expected_version=user.version,
+        set_fields=set_fields,
+        log_extra={"success": False, "penalty_minutes": penalty_minutes},
+    )
+    if not ok:
+        db.session.rollback()
+        flash(_('حدث خطأ أثناء المغامرة.'), 'danger')
+        return redirect(url_for('jail.index'))
+
+    db.session.add(GameLog(admin_id=user.id, action='JAIL_GILBOA_FAIL', details=f'Penalty {penalty_minutes}m'))
+    db.session.commit()
+    flash(_('فشلت مغامرة جلبوع. تم تشديد الإجراءات وزادت عقوبتك %(min)s دقيقة.'), 'danger')
+    return redirect(url_for('jail.index'))
+
+@bp.route('/self_bail', methods=['POST'])
+@login_required
+@limiter.limit("6 per minute")
+def self_bail():
+    if not _cfg_bool('jail_enable_self_bail_diamonds', True):
+        flash(_('الكفالة بالماس غير مفعلة حالياً.'), 'warning')
+        return redirect(url_for('jail.index'))
+
+    now = _now_utc()
+    user = db.session.query(User).filter_by(id=current_user.id).with_for_update().first()
+    jail_until = _to_aware(getattr(user, "jail_until", None))
+    if not jail_until or jail_until <= now:
+        flash(_('أنت لست في السجن!'), 'warning')
+        return redirect(url_for('jail.index'))
+
+    cooldown_hours = max(0, _cfg_int('jail_self_bail_cooldown_hours', 12))
+    try:
+        last = (
+            UserLog.query.filter(UserLog.user_id == user.id, UserLog.action == "JAIL_SELF_BAIL")
+            .order_by(UserLog.timestamp.desc())
+            .first()
+        )
+        cd_left = _cooldown_seconds_left(getattr(last, "timestamp", None), cooldown_hours * 3600, now) if last else 0
+    except Exception:
+        cd_left = 0
+    if cd_left > 0:
+        minutes = int((cd_left + 59) // 60)
+        flash(_('لا يمكنك تكرار الكفالة الآن. انتظر %(m)s دقيقة.'), 'warning')
+        return redirect(url_for('jail.index'))
+
+    diamond_cost = max(0, _cfg_int('jail_self_bail_cost_diamonds', 15))
+    if user.diamonds < diamond_cost:
+        flash(_('لا تملك ألماس كافٍ. تحتاج %(cost)s ماسة.'), 'danger')
+        return redirect(url_for('jail.index'))
+
+    ok = ResourceService.modify_resources(
+        user.id,
+        {'diamonds': -diamond_cost},
+        'jail_self_bail',
+        auto_commit=False,
+        expected_version=user.version,
+        set_fields={'jail_until': None},
+        log_extra={'diamonds_cost': diamond_cost},
+    )
+    if not ok:
+        db.session.rollback()
+        flash(_('فشلت العملية.'), 'danger')
+        return redirect(url_for('jail.index'))
+
+    db.session.add(GameLog(admin_id=user.id, action='JAIL_SELF_BAIL', details=f'Paid {diamond_cost} diamonds'))
+    db.session.commit()
+    flash(_('تمت الكفالة بالماس. أنت حر الآن.'), 'success')
+    return redirect(url_for('main.index'))
 
 @bp.route('/riot', methods=['POST'])
 @login_required
@@ -276,11 +761,147 @@ def lawyer_visit():
         current_jail_until = current_jail_until.replace(tzinfo=timezone.utc)
     new_jail_until = current_jail_until - timedelta(minutes=reduction_minutes)
 
-    if not ResourceService.modify_resources(current_user.id, {'money': -cost}, 'jail_lawyer_visit', auto_commit=True, expected_version=current_user.version, set_fields={'jail_until': new_jail_until}):
+    if not ResourceService.modify_resources(current_user.id, {'money': -cost}, 'jail_lawyer_visit', auto_commit=False, expected_version=current_user.version, set_fields={'jail_until': new_jail_until}):
         flash(_('لا تملك تكاليف المحامي! تحتاج إلى %(cost)d$.', cost=cost), 'danger')
         return redirect(url_for('jail.index'))
+
+    db.session.add(MoneySinkLog(user_id=current_user.id, sink_type="jail_lawyer_visit", amount=cost, details="Lawyer visit"))
+    db.session.add(GameLog(admin_id=current_user.id, action='JAIL_LAWYER_VISIT', details=f'Paid {cost}$ for lawyer, reduced {reduction_minutes}m'))
+    db.session.commit()
     
     flash(_('قام المحامي بتقديم استئناف عاجل! تم تخفيض الحكم %(min)s دقيقة.', min=reduction_minutes), 'success')
+    return redirect(url_for('jail.index'))
+
+@bp.route('/document_report', methods=['POST'])
+@login_required
+@limiter.limit("10 per minute")
+def document_report():
+    if not _cfg_bool('jail_enable_document_report', True):
+        flash(_('ميزة التوثيق غير مفعلة حالياً.'), 'warning')
+        return redirect(url_for('jail.index'))
+
+    now = datetime.now(timezone.utc)
+    jail_until = _to_aware(current_user.jail_until)
+    if not jail_until or jail_until <= now:
+        flash(_('أنت لست في السجن!'), 'warning')
+        return redirect(url_for('jail.index'))
+
+    cooldown_hours = max(1, _cfg_int('jail_document_report_cooldown_hours', 3))
+    cooldown = now - timedelta(hours=cooldown_hours)
+    last = (
+        UserLog.query.filter(
+            UserLog.user_id == current_user.id,
+            UserLog.action == "JAIL_DOCUMENT_REPORT",
+            UserLog.timestamp >= cooldown,
+        )
+        .order_by(UserLog.timestamp.desc())
+        .first()
+    )
+    if last:
+        flash(_('يمكنك استخدام التوثيق مرة كل %(h)s ساعات.', h=cooldown_hours), 'warning')
+        return redirect(url_for('jail.index'))
+
+    energy_cost = max(0, _cfg_int('jail_document_report_energy_cost', 5))
+    if current_user.energy < energy_cost:
+        flash(_('تحتاج إلى %(cost)s طاقة للتوثيق.', cost=energy_cost), 'danger')
+        return redirect(url_for('jail.index'))
+
+    success_chance = max(0.0, min(1.0, _cfg_float('jail_document_report_success_chance', 0.35)))
+    min_reduction = max(0, _cfg_int('jail_document_report_reduction_min', 3))
+    max_reduction = max(min_reduction, _cfg_int('jail_document_report_reduction_max', 8))
+    exp_reward = max(0, _cfg_int('jail_document_report_exp_reward', 40))
+
+    success = random.random() < success_chance
+    reduction_minutes = random.randint(min_reduction, max_reduction) if success else 0
+
+    set_fields = {}
+    if success:
+        current_jail_until = _to_aware(current_user.jail_until)
+        if current_jail_until:
+            set_fields["jail_until"] = current_jail_until - timedelta(minutes=reduction_minutes)
+
+    changes = {"energy": -energy_cost, "exp": exp_reward}
+    ok = ResourceService.modify_resources(
+        current_user.id,
+        changes,
+        "jail_document_report",
+        auto_commit=True,
+        expected_version=current_user.version,
+        set_fields=set_fields or None,
+        log_extra={"success": success, "reduction_minutes": reduction_minutes},
+    )
+    if not ok:
+        flash(_('حدث خطأ أثناء التوثيق. حاول مرة أخرى.'), 'danger')
+        return redirect(url_for('jail.index'))
+
+    if success:
+        flash(_('تم توثيق الانتهاكات وإيصالها للخارج. تم تخفيض حكمك %(min)s دقيقة.', min=reduction_minutes), 'success')
+    else:
+        flash(_('تم توثيق الانتهاكات، لكن لم يحدث تأثير فوري على ملفك.'), 'info')
+    return redirect(url_for('jail.index'))
+
+@bp.route('/family_visit', methods=['POST'])
+@login_required
+@limiter.limit("5 per minute")
+def family_visit():
+    if not _cfg_bool('jail_enable_family_visit', True):
+        flash(_('ميزة الزيارة غير مفعلة حالياً.'), 'warning')
+        return redirect(url_for('jail.index'))
+
+    now = datetime.now(timezone.utc)
+    jail_until = _to_aware(current_user.jail_until)
+    if not jail_until or jail_until <= now:
+        flash(_('أنت لست في السجن!'), 'warning')
+        return redirect(url_for('jail.index'))
+
+    cooldown_hours = max(1, _cfg_int('jail_family_visit_cooldown_hours', 12))
+    cooldown = now - timedelta(hours=cooldown_hours)
+    last = (
+        UserLog.query.filter(
+            UserLog.user_id == current_user.id,
+            UserLog.action == "JAIL_FAMILY_VISIT",
+            UserLog.timestamp >= cooldown,
+        )
+        .order_by(UserLog.timestamp.desc())
+        .first()
+    )
+    if last:
+        flash(_('يمكنك طلب الزيارة مرة كل %(h)s ساعات.', h=cooldown_hours), 'warning')
+        return redirect(url_for('jail.index'))
+
+    approve_chance = max(0.0, min(1.0, _cfg_float('jail_family_visit_approve_chance', 0.45)))
+    min_reduction = max(0, _cfg_int('jail_family_visit_reduction_min', 6))
+    max_reduction = max(min_reduction, _cfg_int('jail_family_visit_reduction_max', 14))
+    exp_reward = max(0, _cfg_int('jail_family_visit_exp_reward', 20))
+
+    approved = random.random() < approve_chance
+    reduction_minutes = random.randint(min_reduction, max_reduction) if approved else 0
+
+    set_fields = {}
+    changes = {}
+    if approved:
+        current_jail_until = _to_aware(current_user.jail_until)
+        if current_jail_until:
+            set_fields["jail_until"] = current_jail_until - timedelta(minutes=reduction_minutes)
+        changes["exp"] = exp_reward
+
+    ok = ResourceService.modify_resources(
+        current_user.id,
+        changes,
+        "jail_family_visit",
+        auto_commit=True,
+        expected_version=current_user.version,
+        set_fields=set_fields or None,
+        log_extra={"approved": approved, "reduction_minutes": reduction_minutes},
+    )
+    if not ok:
+        flash(_('حدث خطأ أثناء معالجة طلب الزيارة.'), 'danger')
+        return redirect(url_for('jail.index'))
+
+    if approved:
+        flash(_('تمت الزيارة. ثباتك أقوى! تم تخفيض حكمك %(min)s دقيقة.', min=reduction_minutes), 'success')
+    else:
+        flash(_('تم رفض الزيارة اليوم. حاول لاحقاً.'), 'warning')
     return redirect(url_for('jail.index'))
 
 @bp.route('/hard_labor', methods=['POST'])
@@ -377,6 +998,7 @@ def bribe():
         # Log
         log = GameLog(admin_id=current_user.id, action='JAIL_BRIBE', details=f'Paid {bribe_cost} to get out of jail')
         db.session.add(log)
+        db.session.add(MoneySinkLog(user_id=current_user.id, sink_type="jail_bribe", amount=bribe_cost, details="Bribe"))
         db.session.commit()
         
         flash(_('تم دفع الرشوة بنجاح! أنت حر الآن.%(msg)s', msg=discount_msg), 'success')

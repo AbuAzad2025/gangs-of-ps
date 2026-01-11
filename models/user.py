@@ -298,6 +298,12 @@ class User(UserMixin, db.Model):
     bank_balance = db.Column(db.BigInteger, default=0)
     jail_until = db.Column(db.DateTime, nullable=True)
     hospital_until = db.Column(db.DateTime, nullable=True)
+    jail_escape_attempts = db.Column(db.Integer, default=0)
+    jail_escape_attempts_date = db.Column(db.Date, nullable=True)
+    jail_escape_last_at = db.Column(db.DateTime, nullable=True)
+    jail_gilboa_attempts = db.Column(db.Integer, default=0)
+    jail_gilboa_attempts_date = db.Column(db.Date, nullable=True)
+    jail_gilboa_last_at = db.Column(db.DateTime, nullable=True)
 
     # Daily Limits
     daily_money_earned = db.Column(db.BigInteger, default=0)
@@ -305,6 +311,10 @@ class User(UserMixin, db.Model):
     daily_bullets_purchased = db.Column(db.Integer, default=0)
     gym_until = db.Column(db.DateTime, nullable=True)
     gym_activity = db.Column(db.String(512), nullable=True) # Stores JSON for partial rewards logic
+    gym_sessions_count = db.Column(db.Integer, default=0)
+    gym_sessions_date = db.Column(db.Date, nullable=True)
+    gym_speedups_count = db.Column(db.Integer, default=0)
+    gym_speedups_date = db.Column(db.Date, nullable=True)
     
     # Status Effects
     is_safe_house_active = db.Column(db.Boolean, default=False)

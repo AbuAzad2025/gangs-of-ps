@@ -37,6 +37,28 @@
                         </div>
                     </div>
 
+                    {% if daily_event %}
+                    <div class="alert alert-dark border border-{{ daily_event.severity }} shadow-sm">
+                        <div class="d-flex align-items-start">
+                            <div class="mr-3 mt-1">
+                                <i class="fas fa-exclamation-circle text-{{ daily_event.severity }}"></i>
+                            </div>
+                            <div class="flex-grow-1">
+                                <div class="text-{{ daily_event.severity }} font-weight-bold">{{ _('حدث اليوم داخل السجن') }}</div>
+                                <div class="h5 text-white mb-1">{{ daily_event.title }}</div>
+                                <div class="text-muted">{{ daily_event.description }}</div>
+                                {% if daily_event.effects %}
+                                <ul class="mb-0 mt-2 text-light small">
+                                    {% for e in daily_event.effects %}
+                                    <li>{{ e }}</li>
+                                    {% endfor %}
+                                </ul>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+
                     <!-- Actions Grid -->
                     <div class="row g-3">
                         <!-- Resistance Section -->
@@ -111,6 +133,91 @@
                                 </div>
                             </div>
                         </div>
+
+                        <div class="col-md-6 mb-3">
+                            <div class="card bg-dark border-warning h-100">
+                                <div class="card-header border-warning text-warning font-weight-bold">
+                                    <i class="fas fa-file-signature mr-2"></i> {{ _('التوثيق والتواصل') }}
+                                </div>
+                                <div class="card-body">
+                                    {% if enable_document_report %}
+                                    <form action="{{ url_for('jail.document_report') }}" method="POST" class="mb-3">
+                                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                        <button type="submit" class="btn btn-outline-warning btn-block" {% if user.energy < document_report_energy_cost %}disabled{% endif %}>
+                                            <i class="fas fa-pen-nib mr-2"></i> {{ _('توثيق الانتهاكات') }} <span class="badge bg-dark border border-warning text-warning ml-2">{{ document_report_energy_cost }} <i class="fas fa-bolt"></i></span>
+                                        </button>
+                                        <small class="text-muted d-block mt-1">{{ _('مرة كل %(h)s ساعات | خبرة + فرصة تخفيض الحكم', h=document_report_cooldown_hours) }}</small>
+                                    </form>
+                                    {% endif %}
+
+                                    {% if enable_family_visit %}
+                                    <form action="{{ url_for('jail.family_visit') }}" method="POST">
+                                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                        <button type="submit" class="btn btn-outline-light btn-block">
+                                            <i class="fas fa-hand-holding-heart mr-2"></i> {{ _('طلب زيارة الأهل') }}
+                                        </button>
+                                        <small class="text-muted d-block mt-1">{{ _('مرة كل %(h)s ساعات | قد تُرفض', h=family_visit_cooldown_hours) }}</small>
+                                    </form>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+
+                        {% if enable_self_escape or enable_gilboa_escape or enable_self_bail_diamonds %}
+                        <div class="col-md-6 mb-3">
+                            <div class="card bg-dark border-danger h-100">
+                                <div class="card-header border-danger text-danger font-weight-bold">
+                                    <i class="fas fa-running mr-2"></i> {{ _('الهروب') }}
+                                </div>
+                                <div class="card-body">
+                                    {% if enable_self_escape %}
+                                    <form action="{{ url_for('jail.self_escape') }}" method="POST" class="mb-3">
+                                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                        <button type="submit" class="btn btn-outline-danger btn-block font-weight-bold"
+                                                {% if user.energy < self_escape_energy_cost or user.money < self_escape_money_cost %}disabled{% endif %}
+                                                onclick="return confirm('{{ _('محاولة هروب خطرة وقد تُزيد الحكم. هل أنت متأكد؟') }}')">
+                                            <i class="fas fa-tools mr-2"></i> {{ _('محاولة هروب ذاتي') }}
+                                            <span class="badge bg-dark border border-danger text-danger ml-2">{{ self_escape_energy_cost }} <i class="fas fa-bolt"></i></span>
+                                            <span class="badge bg-dark border border-warning text-warning ml-2">${{ self_escape_money_cost }}</span>
+                                        </button>
+                                        <small class="text-muted d-block mt-1">{{ _('محاولات اليوم: %(u)s/%(l)s', u=escape_used, l=escape_limit) }}</small>
+                                    </form>
+                                    {% endif %}
+
+                                    {% if enable_gilboa_escape %}
+                                    <form action="{{ url_for('jail.gilboa_escape') }}" method="POST" class="mb-3">
+                                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                        <button type="submit" class="btn btn-danger btn-block font-weight-bold"
+                                                {% if user.energy < gilboa_energy_cost or user.diamonds < gilboa_diamond_cost or gilboa_cooldown_left_seconds > 0 %}disabled{% endif %}
+                                                onclick="return confirm('{{ _('مغامرة جلبوع مكلفة وخطرة. هل تريد المحاولة؟') }}')">
+                                            <i class="fas fa-dungeon mr-2"></i> {{ _('مغامرة سجن جلبوع') }}
+                                            <span class="badge bg-dark border border-light text-light ml-2">{{ gilboa_energy_cost }} <i class="fas fa-bolt"></i></span>
+                                            <span class="badge bg-dark border border-info text-info ml-2">{{ gilboa_diamond_cost }} <i class="fas fa-gem"></i></span>
+                                        </button>
+                                        <small class="text-muted d-block mt-1">{{ _('محاولات اليوم: %(u)s/%(l)s', u=gilboa_used, l=gilboa_limit) }}</small>
+                                        {% if gilboa_cooldown_left_seconds > 0 %}
+                                        <small class="text-muted d-block">{{ _('تبريد: %(m)s دقيقة', m=((gilboa_cooldown_left_seconds + 59) // 60)) }}</small>
+                                        {% endif %}
+                                    </form>
+                                    {% endif %}
+
+                                    {% if enable_self_bail_diamonds %}
+                                    <form action="{{ url_for('jail.self_bail') }}" method="POST">
+                                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                        <button type="submit" class="btn btn-outline-info btn-block font-weight-bold"
+                                                {% if user.diamonds < self_bail_diamonds_cost or self_bail_cooldown_left_seconds > 0 %}disabled{% endif %}>
+                                            <i class="fas fa-gavel mr-2"></i> {{ _('كفالة فورية بالماس') }}
+                                            <span class="badge bg-dark border border-info text-info ml-2">{{ self_bail_diamonds_cost }} <i class="fas fa-gem"></i></span>
+                                        </button>
+                                        {% if self_bail_cooldown_left_seconds > 0 %}
+                                        <small class="text-muted d-block mt-1">{{ _('تبريد: %(m)s دقيقة', m=((self_bail_cooldown_left_seconds + 59) // 60)) }}</small>
+                                        {% endif %}
+                                    </form>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        {% endif %}
                     </div>
                 </div>
             {% else %}

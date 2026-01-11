@@ -1034,6 +1034,18 @@ def _build_hostess_role_pack(hostess: Hostess):
                     {"role": "assistant", "content": "خليك ثابت: ركز على مهام يومية + تطوير إحصائياتك، وخلي مخزون عناصر للطوارئ قبل أي مخاطرة."}
                 ]
 
+    # 2.5 Load training examples from file if present
+    if folder_name:
+        ex_path = os.path.join(current_app.root_path, 'data', 'training', 'hostesses', folder_name, 'training_examples.json')
+        if os.path.exists(ex_path):
+            try:
+                with open(ex_path, 'r', encoding='utf-8') as f:
+                    ex_data = json.load(f)
+                if isinstance(ex_data, list):
+                    examples = ex_data
+            except Exception as e:
+                current_app.logger.error(f"Error loading training_examples for {hostess.name}: {e}")
+
     # 3. Inject Knowledge Base from File (Always check, even if prompt loaded from file)
     if folder_name:
         kb_path = os.path.join(current_app.root_path, 'data', 'training', 'hostesses', folder_name, 'knowledge_base.json')
@@ -1049,52 +1061,353 @@ def _build_hostess_role_pack(hostess: Hostess):
 
     return prompt, examples
 
-@bp.route('/developer/hostess/trainer/<int:id>', methods=['GET', 'POST'])
+def _hostess_chat_pairs(chats):
+    pairs = []
+    i = 0
+    while i < len(chats) - 1:
+        a = chats[i]
+        b = chats[i + 1]
+        if a.role == 'user' and b.role == 'assistant':
+            pairs.append(SimpleNamespace(
+                user_id=a.user_id,
+                user_msg_id=a.id,
+                assistant_msg_id=b.id,
+                user_text=a.content,
+                assistant_text=b.content,
+                created_at=getattr(b, 'created_at', None) or getattr(a, 'created_at', None),
+            ))
+            i += 2
+            continue
+        i += 1
+    return pairs
+
+def _detect_lang_simple(text):
+    t = text or ''
+    for ch in t:
+        if '\u0600' <= ch <= '\u06FF' or '\u0750' <= ch <= '\u077F' or '\u08A0' <= ch <= '\u08FF':
+            return 'ar'
+    return 'en'
+
+def _norm_for_compare(text, language=None):
+    s = (text or '').strip()
+    s = ' '.join(s.split())
+    if not s:
+        return ''
+    lang = language or _detect_lang_simple(s)
+    if lang == 'ar':
+        out = []
+        diacritics = {
+            '\u0610', '\u0611', '\u0612', '\u0613', '\u0614', '\u0615',
+            '\u064B', '\u064C', '\u064D', '\u064E', '\u064F', '\u0650', '\u0651', '\u0652', '\u0653', '\u0654', '\u0655',
+            '\u0670',
+            '\u06D6', '\u06D7', '\u06D8', '\u06D9', '\u06DA', '\u06DB', '\u06DC', '\u06DF', '\u06E0', '\u06E1', '\u06E2', '\u06E3', '\u06E4', '\u06E7', '\u06E8', '\u06EA', '\u06EB', '\u06EC', '\u06ED',
+        }
+        for ch in s:
+            if ch in diacritics:
+                continue
+            if ch == 'ـ':
+                continue
+            if ch in ('أ', 'إ', 'آ'):
+                out.append('ا')
+            elif ch == 'ة':
+                out.append('ه')
+            elif ch == 'ى':
+                out.append('ي')
+            else:
+                out.append(ch)
+        s = ''.join(out)
+    else:
+        s = s.lower()
+    keep = []
+    for ch in s:
+        if ch.isalnum() or ch.isspace():
+            keep.append(ch)
+            continue
+        if lang == 'ar' and ('\u0600' <= ch <= '\u06FF' or '\u0750' <= ch <= '\u077F' or '\u08A0' <= ch <= '\u08FF'):
+            keep.append(ch)
+    return ' '.join(''.join(keep).split())
+
+def _words_count(text):
+    s = (text or '').strip()
+    if not s:
+        return 0
+    return len([w for w in s.replace('،', ' ').replace(',', ' ').split() if w.strip()])
+
+def _is_low_quality_question(text, language):
+    q = (text or '').strip()
+    if len(q) < 6:
+        return True
+    if _words_count(q) < 2:
+        return True
+    nq = _norm_for_compare(q, language)
+    if not nq:
+        return True
+    if language == 'ar':
+        generic = {
+            'مرحبا', 'اهلا', 'هلا', 'السلام عليكم', 'سلام عليكم', 'سلام',
+            'كيفك', 'كيف حالك', 'كيف الحال', 'تمام', 'اوكي', 'شكرا', 'يسلمو',
+        }
+    else:
+        generic = {'hi', 'hello', 'hey', 'thanks', 'ok', 'okay', 'good morning', 'good evening', 'how are you'}
+    if nq in generic:
+        return True
+    return False
+
+def _is_low_quality_answer(text, language):
+    a = (text or '').strip()
+    if len(a) < 20:
+        return True
+    if _words_count(a) < 4:
+        return True
+    na = _norm_for_compare(a, language)
+    if not na:
+        return True
+    if language == 'ar':
+        generic = {
+            'ما بعرف', 'مش عارف', 'لا اعلم', 'لا اعرف', 'ما بعرفش',
+            'تمام', 'اوكي', 'حسنا', 'طيب',
+        }
+    else:
+        generic = {'i dont know', "i don't know", 'not sure', 'ok', 'okay', 'sure'}
+    if na in generic:
+        return True
+    return False
+
+def _clean_selected_pairs(pairs, mode, existing_question_keys=None, limit=30):
+    existing_question_keys = existing_question_keys or set()
+    kept = []
+    seen_q = set()
+    rejected = 0
+    for q, ans, uid in pairs:
+        q = (q or '').strip()
+        ans = (ans or '').strip()
+        lang = _detect_lang_simple(q + ' ' + ans)
+        if _is_low_quality_question(q, lang) or _is_low_quality_answer(ans, lang):
+            rejected += 1
+            continue
+        q_key = _norm_for_compare(q, lang)
+        if not q_key:
+            rejected += 1
+            continue
+        if q_key in existing_question_keys or q_key in seen_q:
+            rejected += 1
+            continue
+        if _norm_for_compare(ans, lang) == q_key:
+            rejected += 1
+            continue
+        kept.append((q, ans, uid, lang, q_key))
+        seen_q.add(q_key)
+        if len(kept) >= int(max(1, limit)):
+            break
+    return kept, rejected
+
+def _keywords_from_question(q, language):
+    raw = (q or '').replace('?', ' ').replace('!', ' ').replace('.', ' ').replace(',', ' ').replace('،', ' ')
+    words = [w.strip() for w in raw.split() if w.strip()]
+    if language == 'ar':
+        stop = {'كيف', 'شو', 'ايش', 'ليش', 'متى', 'وين', 'أين', 'ما', 'ماذا', 'هل', 'انا', 'انت', 'انتي', 'هو', 'هي', 'نحن', 'هم', 'عن', 'في', 'على', 'من', 'الى', 'إلى', 'مع', 'هذا', 'هذه', 'ذلك', 'تلك', 'بدّي', 'بدي', 'بدك', 'بده', 'بديش'}
+    else:
+        stop = {'the', 'is', 'are', 'was', 'were', 'what', 'where', 'when', 'how', 'who', 'why', 'can', 'could', 'should', 'would', 'do', 'does', 'did', 'have', 'has', 'had', 'to', 'in', 'on', 'at', 'of', 'for', 'with', 'by', 'from', 'about', 'this', 'that', 'these', 'those', 'it', 'its', 'my', 'your', 'his', 'her', 'their', 'our'}
+    out = []
+    for w in words:
+        wl = w.lower()
+        if wl in stop:
+            continue
+        if len(wl) < 2:
+            continue
+        if wl not in out:
+            out.append(wl)
+        if len(out) >= 10:
+            break
+    return ','.join(out)
+
+@bp.route('/developer/hostess/trainer/<int:id>', methods=['GET'])
 @developer_required
 def dev_hostess_trainer(id):
     hostess = db.session.get(Hostess, id)
     if not hostess:
         abort(404)
 
-    if request.method == 'POST':
-        action = request.form.get('action') or 'save'
-        if action == 'train':
-            prompt, examples = _build_hostess_role_pack(hostess)
-            hostess.system_prompt = prompt
-            hostess.training_examples = json.dumps(examples, ensure_ascii=False)
-            hostess.last_trained_at = datetime.now(timezone.utc).replace(tzinfo=None)
-            hostess.self_learning_enabled = 'self_learning_enabled' in request.form
-            hostess.memory_enabled = 'memory_enabled' in request.form
+    memories = HostessMemory.query.filter_by(hostess_id=hostess.id).order_by(HostessMemory.updated_at.desc()).limit(30).all()
+    chats = HostessChatMessage.query.filter_by(hostess_id=hostess.id).order_by(HostessChatMessage.id.desc()).limit(60).all()
+    chats.reverse()
+    pairs = _hostess_chat_pairs(chats)
+
+    return render_template(
+        'developer/hostess_trainer.html',
+        hostess=hostess,
+        memories=memories,
+        chats=chats,
+        pairs=pairs,
+        title=_('تدريب المضيفة')
+    )
+
+@bp.route('/developer/hostess/trainer/<int:id>', methods=['POST'])
+@developer_required
+@double_verification_required
+def dev_hostess_trainer_post(id):
+    hostess = db.session.get(Hostess, id)
+    if not hostess:
+        abort(404)
+
+    action = request.form.get('action') or 'save'
+
+    if action == 'train':
+        prompt, examples = _build_hostess_role_pack(hostess)
+        hostess.system_prompt = prompt
+        hostess.training_examples = json.dumps(examples, ensure_ascii=False)
+        hostess.last_trained_at = datetime.now(timezone.utc).replace(tzinfo=None)
+        hostess.self_learning_enabled = 'self_learning_enabled' in request.form
+        hostess.memory_enabled = 'memory_enabled' in request.form
+        db.session.commit()
+        flash(_('تم تدريب المضيفة وحفظ الحزمة بنجاح'), 'success')
+        return redirect(url_for('main.dev_hostess_trainer', id=id))
+
+    if action == 'clear_memory':
+        HostessMemory.query.filter_by(hostess_id=hostess.id).delete()
+        db.session.commit()
+        flash(_('تم مسح ذاكرة المضيفة'), 'success')
+        return redirect(url_for('main.dev_hostess_trainer', id=id))
+
+    if action == 'delete_memory':
+        mid = request.form.get('memory_id', type=int)
+        mem = db.session.get(HostessMemory, mid) if mid else None
+        if mem and mem.hostess_id == hostess.id:
+            db.session.delete(mem)
             db.session.commit()
-            flash(_('تم تدريب المضيفة وحفظ الحزمة بنجاح'), 'success')
-            return redirect(url_for('main.dev_hostess_trainer', id=id))
-        elif action == 'clear_memory':
-            HostessMemory.query.filter_by(hostess_id=hostess.id).delete()
-            db.session.commit()
-            flash(_('تم مسح ذاكرة المضيفة'), 'success')
-            return redirect(url_for('main.dev_hostess_trainer', id=id))
-        elif action == 'delete_memory':
-            mid = request.form.get('memory_id', type=int)
-            mem = db.session.get(HostessMemory, mid) if mid else None
-            if mem and mem.hostess_id == hostess.id:
-                db.session.delete(mem)
-                db.session.commit()
-                flash(_('تم حذف عنصر الذاكرة'), 'success')
-            return redirect(url_for('main.dev_hostess_trainer', id=id))
-        else:
-            hostess.system_prompt = request.form.get('system_prompt') or hostess.system_prompt
-            hostess.knowledge_base = request.form.get('knowledge_base') or hostess.knowledge_base
-            hostess.training_examples = request.form.get('training_examples') or hostess.training_examples
-            hostess.self_learning_enabled = 'self_learning_enabled' in request.form
-            hostess.memory_enabled = 'memory_enabled' in request.form
-            db.session.commit()
-            flash(_('تم حفظ إعدادات التدريب'), 'success')
+            flash(_('تم حذف عنصر الذاكرة'), 'success')
+        return redirect(url_for('main.dev_hostess_trainer', id=id))
+
+    if action in ('learn_examples', 'learn_knowledge'):
+        picked = request.form.getlist('pair')
+        if not picked:
+            flash(_('لم يتم اختيار أي محادثة.'), 'warning')
             return redirect(url_for('main.dev_hostess_trainer', id=id))
 
-    memories = HostessMemory.query.filter_by(hostess_id=hostess.id).order_by(HostessMemory.updated_at.desc()).limit(30).all()
-    chats = HostessChatMessage.query.filter_by(hostess_id=hostess.id).order_by(HostessChatMessage.id.desc()).limit(30).all()
-    chats.reverse()
-    return render_template('developer/hostess_trainer.html', hostess=hostess, memories=memories, chats=chats, title=_('تدريب المضيفة'))
+        ids = set()
+        for token in picked:
+            try:
+                u_id, a_id = token.split(':', 1)
+                ids.add(int(u_id))
+                ids.add(int(a_id))
+            except Exception:
+                continue
+
+        msgs = HostessChatMessage.query.filter(
+            HostessChatMessage.hostess_id == hostess.id,
+            HostessChatMessage.id.in_(list(ids))
+        ).all()
+        by_id = {m.id: m for m in msgs}
+
+        pairs = []
+        for token in picked:
+            try:
+                u_id, a_id = token.split(':', 1)
+                u_id = int(u_id)
+                a_id = int(a_id)
+            except Exception:
+                continue
+            u = by_id.get(u_id)
+            a = by_id.get(a_id)
+            if not u or not a:
+                continue
+            if u.role != 'user' or a.role != 'assistant':
+                continue
+            pairs.append((u.content or '', a.content or '', u.user_id))
+
+        if not pairs:
+            flash(_('لم يتم العثور على أزواج صالحة.'), 'warning')
+            return redirect(url_for('main.dev_hostess_trainer', id=id))
+
+        if action == 'learn_examples':
+            try:
+                existing = json.loads(hostess.training_examples) if hostess.training_examples else []
+            except Exception:
+                existing = []
+            if not isinstance(existing, list):
+                existing = []
+
+            existing_q_keys = set()
+            for m in existing:
+                if not isinstance(m, dict):
+                    continue
+                if m.get('role') != 'user':
+                    continue
+                existing_q_keys.add(_norm_for_compare(m.get('content') or '', _detect_lang_simple(m.get('content') or '')))
+
+            cleaned, rejected = _clean_selected_pairs(pairs, mode='examples', existing_question_keys=existing_q_keys, limit=20)
+            added = 0
+            for q, ans, _uid, _lang, _q_key in cleaned:
+                existing.append({'role': 'user', 'content': q})
+                existing.append({'role': 'assistant', 'content': ans})
+                added += 1
+
+            hostess.training_examples = json.dumps(existing, ensure_ascii=False)
+            hostess.last_trained_at = datetime.now(timezone.utc).replace(tzinfo=None)
+            db.session.commit()
+            flash(_('تمت إضافة %(n)s مثال تدريب بعد التنظيف. تم تجاهل %(m)s.', n=added, m=rejected), 'success')
+            return redirect(url_for('main.dev_hostess_trainer', id=id))
+
+        existing_q_keys = set()
+        for row in HostessKnowledge.query.filter(HostessKnowledge.hostess_id == hostess.id).order_by(HostessKnowledge.id.desc()).limit(1200).all():
+            existing_q_keys.add(_norm_for_compare(row.question or '', _detect_lang_simple(row.question or '')))
+
+        cleaned, rejected = _clean_selected_pairs(pairs, mode='knowledge', existing_question_keys=existing_q_keys, limit=30)
+        added = 0
+        for q, ans, _uid, lang, _q_key in cleaned:
+            keywords = _keywords_from_question(q, lang)
+            db.session.add(HostessKnowledge(hostess_id=hostess.id, question=q, answer=ans, category='trainer', keywords=keywords, language=lang))
+            added += 1
+
+        db.session.commit()
+        flash(_('تمت إضافة %(n)s عنصر معرفة بعد التنظيف. تم تجاهل %(m)s.', n=added, m=rejected), 'success')
+        return redirect(url_for('main.dev_hostess_trainer', id=id))
+
+    hostess.system_prompt = request.form.get('system_prompt') or hostess.system_prompt
+    hostess.knowledge_base = request.form.get('knowledge_base') or hostess.knowledge_base
+    raw_examples = request.form.get('training_examples')
+    if raw_examples:
+        try:
+            ex = json.loads(raw_examples)
+        except Exception:
+            ex = None
+        if isinstance(ex, list):
+            cleaned_msgs = []
+            seen_q = set()
+            i = 0
+            while i < len(ex) - 1:
+                u = ex[i]
+                a = ex[i + 1]
+                if not (isinstance(u, dict) and isinstance(a, dict)):
+                    i += 1
+                    continue
+                if u.get('role') != 'user' or a.get('role') != 'assistant':
+                    i += 1
+                    continue
+                q = (u.get('content') or '').strip()
+                ans = (a.get('content') or '').strip()
+                lang = _detect_lang_simple(q + ' ' + ans)
+                if _is_low_quality_question(q, lang) or _is_low_quality_answer(ans, lang):
+                    i += 2
+                    continue
+                q_key = _norm_for_compare(q, lang)
+                if not q_key or q_key in seen_q:
+                    i += 2
+                    continue
+                cleaned_msgs.append({'role': 'user', 'content': q})
+                cleaned_msgs.append({'role': 'assistant', 'content': ans})
+                seen_q.add(q_key)
+                i += 2
+            hostess.training_examples = json.dumps(cleaned_msgs, ensure_ascii=False)
+        else:
+            hostess.training_examples = raw_examples
+    elif hostess.training_examples:
+        hostess.training_examples = hostess.training_examples
+    hostess.self_learning_enabled = 'self_learning_enabled' in request.form
+    hostess.memory_enabled = 'memory_enabled' in request.form
+    db.session.commit()
+    flash(_('تم حفظ إعدادات التدريب'), 'success')
+    return redirect(url_for('main.dev_hostess_trainer', id=id))
 
 @bp.route('/developer/scenarios')
 @developer_required
@@ -1682,44 +1995,56 @@ def edit_forum_category(id):
 def delete_forum_category(id):
     return dev_forum_category_delete(id=id)
 
-@bp.route('/developer/config', methods=['GET', 'POST'])
+@bp.route('/developer/config', methods=['GET'])
 @developer_required
 def dev_config():
-    if request.method == 'POST':
-        for key, value in request.form.items():
-            if key == 'csrf_token': continue
-            
-            # If multiple values exist (e.g. hidden false + checkbox true), request.form.getlist handles it.
-            # But standard iteration yields the first one or we need to be careful.
-            # request.form is a MultiDict. Iterating items() yields the first value for each key.
-            # For checkboxes with hidden fallback:
-            # <input type="hidden" name="foo" value="false">
-            # <input type="checkbox" name="foo" value="true">
-            # If checked: form sends foo=false, foo=true. items() might give 'false' (first one).
-            # We want 'true' if present.
-            
-            vals = request.form.getlist(key)
-            final_val = value
-            if len(vals) > 1:
-                # If 'true' is in values, assume true (for our specific boolean logic)
-                if 'true' in vals:
-                    final_val = 'true'
-                else:
-                    final_val = vals[-1] # Take last one usually
-            
-            config = SystemConfig.query.filter_by(key=key).first()
-            if config:
-                config.value = final_val
-            else:
-                # Auto-create if not exists (optional, but safer to stick to existing)
-                pass
-        
-        db.session.commit()
-        flash(_('تم حفظ الإعدادات'), 'success')
-        return redirect(url_for('main.dev_config'))
+    q = (request.args.get('q') or '').strip()
+    query = SystemConfig.query
+    if q:
+        query = query.filter(or_(
+            SystemConfig.key.ilike(f'%{q}%'),
+            SystemConfig.description.ilike(f'%{q}%')
+        ))
+    configs = query.order_by(SystemConfig.key.asc()).all()
+    return render_template('developer/config.html', configs=configs, q=q, title=_('إعدادات النظام'))
 
-    configs = SystemConfig.query.order_by(SystemConfig.key.asc()).all()
-    return render_template('developer/config.html', configs=configs, title=_('إعدادات النظام'))
+
+@bp.route('/developer/config/save', methods=['POST'])
+@developer_required
+@double_verification_required
+def dev_config_save():
+    changed = 0
+    for key in request.form.keys():
+        if key == 'csrf_token':
+            continue
+        vals = request.form.getlist(key)
+        if not vals:
+            continue
+        final_val = vals[-1]
+        if len(vals) > 1 and 'true' in vals:
+            final_val = 'true'
+
+        config = SystemConfig.query.filter_by(key=key).first()
+        if not config:
+            continue
+
+        old_val = config.value
+        if str(old_val) == str(final_val):
+            continue
+
+        config.value = str(final_val)
+        db.session.add(ConfigLog(
+            admin_id=current_user.id,
+            key=key,
+            old_value=str(old_val) if old_val is not None else None,
+            new_value=str(final_val) if final_val is not None else None,
+            reason="Bulk Edit"
+        ))
+        changed += 1
+
+    db.session.commit()
+    flash(_('تم حفظ %(n)s تعديل في الإعدادات.', n=changed), 'success')
+    return redirect(url_for('main.dev_config'))
 
 
 # --- Gangs ---
@@ -1887,6 +2212,7 @@ def dev_bounty_delete(id):
 
 @bp.route('/developer/config/add', methods=['POST'])
 @developer_required
+@double_verification_required
 def dev_config_add():
     key = (request.form.get('key') or '').strip()
     value = (request.form.get('value') or '').strip()
@@ -1895,9 +2221,25 @@ def dev_config_add():
         return redirect(url_for('main.dev_config'))
     existing = SystemConfig.query.filter_by(key=key).first()
     if existing:
+        old_val = existing.value
         existing.value = value
+        if str(old_val) != str(value):
+            db.session.add(ConfigLog(
+                admin_id=current_user.id,
+                key=key,
+                old_value=str(old_val) if old_val is not None else None,
+                new_value=str(value) if value is not None else None,
+                reason="Manual Edit"
+            ))
     else:
         db.session.add(SystemConfig(key=key, value=value))
+        db.session.add(ConfigLog(
+            admin_id=current_user.id,
+            key=key,
+            old_value=None,
+            new_value=str(value) if value is not None else None,
+            reason="New Config"
+        ))
     db.session.commit()
     flash(_('تم حفظ الإعداد'), 'success')
     return redirect(url_for('main.dev_config'))
@@ -1919,10 +2261,22 @@ def dev_config_reset_market_defaults():
     }
     for key, value in defaults.items():
         config = SystemConfig.query.filter_by(key=key).first()
+        old_val = None
         if not config:
             config = SystemConfig(key=key)
             db.session.add(config)
-        config.value = value
+        else:
+            old_val = config.value
+
+        if old_val != value:
+            config.value = value
+            db.session.add(ConfigLog(
+                admin_id=current_user.id,
+                key=key,
+                old_value=str(old_val) if old_val else None,
+                new_value=str(value),
+                reason="Reset Market Defaults"
+            ))
     db.session.commit()
     flash(_('تمت إعادة إعدادات السوق الافتراضية.'), 'success')
     return redirect(url_for('main.dev_config'))
@@ -1961,6 +2315,127 @@ def dev_config_reset_gameplay_defaults():
 
     db.session.commit()
     flash(_('تمت إعادة إعدادات اللعب الافتراضية.'), 'success')
+    return redirect(url_for('main.dev_config'))
+
+@bp.route('/developer/config/reset_jail_defaults', methods=['POST'])
+@developer_required
+@double_verification_required
+def dev_config_reset_jail_defaults():
+    defaults = {
+        'jail_enable_daily_event': 'true',
+        'jail_enable_document_report': 'true',
+        'jail_document_report_energy_cost': '5',
+        'jail_document_report_cooldown_hours': '3',
+        'jail_document_report_success_chance': '0.35',
+        'jail_document_report_reduction_min': '3',
+        'jail_document_report_reduction_max': '8',
+        'jail_document_report_exp_reward': '40',
+        'jail_enable_family_visit': 'true',
+        'jail_family_visit_cooldown_hours': '12',
+        'jail_family_visit_approve_chance': '0.45',
+        'jail_family_visit_reduction_min': '6',
+        'jail_family_visit_reduction_max': '14',
+        'jail_family_visit_exp_reward': '20',
+        'jail_enable_self_escape': 'true',
+        'jail_self_escape_daily_limit': '3',
+        'jail_self_escape_energy_cost': '30',
+        'jail_self_escape_money_cost': '5000',
+        'jail_self_escape_success_chance': '0.12',
+        'jail_self_escape_penalty_min': '15',
+        'jail_self_escape_penalty_max': '35',
+        'jail_self_escape_injury_pct': '0.05',
+        'jail_self_escape_exp_reward': '60',
+        'jail_enable_gilboa_escape': 'true',
+        'jail_gilboa_daily_limit': '2',
+        'jail_gilboa_cooldown_hours': '6',
+        'jail_gilboa_energy_cost': '45',
+        'jail_gilboa_diamond_cost': '8',
+        'jail_gilboa_success_chance': '0.35',
+        'jail_gilboa_penalty_min': '25',
+        'jail_gilboa_penalty_max': '55',
+        'jail_gilboa_injury_pct': '0.10',
+        'jail_gilboa_exp_reward': '180',
+        'jail_enable_self_bail_diamonds': 'true',
+        'jail_self_bail_cost_diamonds': '15',
+        'jail_self_bail_cooldown_hours': '12',
+    }
+    for key, value in defaults.items():
+        config = SystemConfig.query.filter_by(key=key).first()
+        old_val = None
+        if not config:
+            config = SystemConfig(key=key)
+            db.session.add(config)
+        else:
+            old_val = config.value
+
+        if old_val != value:
+            config.value = value
+            db.session.add(ConfigLog(
+                admin_id=current_user.id,
+                key=key,
+                old_value=str(old_val) if old_val else None,
+                new_value=str(value),
+                reason="Reset Jail Defaults"
+            ))
+    db.session.commit()
+    flash(_('تمت إعادة إعدادات السجن الافتراضية.'), 'success')
+    return redirect(url_for('main.dev_config'))
+
+@bp.route('/developer/config/reset_gym_defaults', methods=['POST'])
+@developer_required
+@double_verification_required
+def dev_config_reset_gym_defaults():
+    defaults = {
+        'gym_energy_cost_default': '5',
+        'gym_energy_cost_intelligence': '10',
+        'gym_money_base_cost': '100',
+        'gym_money_per_level': '10',
+        'gym_money_per_stat': '2',
+        'gym_money_round_step': '50',
+        'gym_gain_basic': '1',
+        'gym_exp_basic': '2',
+        'gym_duration_basic_seconds': '1800',
+        'gym_money_factor_basic': '1.0',
+        'gym_diamonds_basic': '0',
+        'gym_gain_advanced': '2',
+        'gym_exp_advanced': '6',
+        'gym_duration_advanced_seconds': '2700',
+        'gym_money_factor_advanced': '2.5',
+        'gym_diamonds_advanced': '0',
+        'gym_gain_elite': '3',
+        'gym_exp_elite': '14',
+        'gym_duration_elite_seconds': '3600',
+        'gym_money_factor_elite': '4.5',
+        'gym_diamonds_elite': '2',
+        'gym_daily_sessions_limit': '100',
+        'gym_injury_chance_percent': '2',
+        'gym_injury_hospital_seconds': '120',
+        'gym_enable_speedup': 'true',
+        'gym_speedup_daily_limit': '50',
+        'gym_speedup_per_min_money': '120',
+        'gym_speedup_finish_diamonds': '5',
+        'gym_speedup_options_minutes': '15,60',
+    }
+    for key, value in defaults.items():
+        config = SystemConfig.query.filter_by(key=key).first()
+        old_val = None
+        if not config:
+            config = SystemConfig(key=key)
+            db.session.add(config)
+        else:
+            old_val = config.value
+
+        if old_val != value:
+            config.value = value
+            db.session.add(ConfigLog(
+                admin_id=current_user.id,
+                key=key,
+                old_value=str(old_val) if old_val else None,
+                new_value=str(value),
+                reason="Reset Gym Defaults"
+            ))
+    db.session.commit()
+    flash(_('تمت إعادة إعدادات الجيم الافتراضية.'), 'success')
     return redirect(url_for('main.dev_config'))
 
 
@@ -2022,6 +2497,36 @@ def dev_user_logs():
         actions=actions,
         current_filters=current_filters,
         title=_('سجلات المستخدمين'),
+    )
+
+
+@bp.route('/developer/config_logs')
+@developer_required
+def dev_config_logs():
+    page = request.args.get('page', 1, type=int)
+    key = request.args.get('key', '').strip()
+    admin_username = request.args.get('admin_username', '').strip()
+    reason = request.args.get('reason', '').strip()
+
+    query = ConfigLog.query.order_by(ConfigLog.timestamp.desc())
+    if key:
+        query = query.filter(ConfigLog.key.ilike(f'%{key}%'))
+    if reason:
+        query = query.filter(ConfigLog.reason == reason)
+    if admin_username:
+        query = query.join(User, ConfigLog.admin_id == User.id).filter(User.username.ilike(f'%{admin_username}%'))
+
+    pagination = query.paginate(page=page, per_page=50, error_out=False)
+    reasons = [r[0] for r in db.session.query(ConfigLog.reason).distinct().order_by(ConfigLog.reason.asc()).all() if r and r[0]]
+    current_filters = SimpleNamespace(key=key, admin_username=admin_username, reason=reason)
+
+    return render_template(
+        'developer/config_logs.html',
+        logs=pagination.items,
+        pagination=pagination,
+        reasons=reasons,
+        current_filters=current_filters,
+        title=_('سجل تغييرات الإعدادات'),
     )
 
 
@@ -2198,17 +2703,38 @@ def dev_market():
 
 @bp.route('/developer/market/settings', methods=['POST'])
 @developer_required
+@double_verification_required
 def dev_market_settings():
     market_volatility_multiplier = (request.form.get('market_volatility_multiplier') or '').strip()
     market_intel_cost = (request.form.get('market_intel_cost') or '').strip()
     market_update_interval_seconds = (request.form.get('market_update_interval_seconds') or '').strip()
 
+    def set_logged(key, new_val):
+        cfg = SystemConfig.query.filter_by(key=key).first()
+        old_val = cfg.value if cfg else None
+        if not cfg:
+            cfg = SystemConfig(key=key)
+            db.session.add(cfg)
+        if str(old_val) == str(new_val):
+            return False
+        cfg.value = str(new_val)
+        db.session.add(ConfigLog(
+            admin_id=current_user.id,
+            key=key,
+            old_value=str(old_val) if old_val is not None else None,
+            new_value=str(new_val) if new_val is not None else None,
+            reason="Market Settings"
+        ))
+        return True
+
     if market_volatility_multiplier:
-        SystemConfig.set_value('market_volatility_multiplier', market_volatility_multiplier)
+        set_logged('market_volatility_multiplier', market_volatility_multiplier)
     if market_intel_cost:
-        SystemConfig.set_value('market_intel_cost', market_intel_cost)
+        set_logged('market_intel_cost', market_intel_cost)
     if market_update_interval_seconds:
-        SystemConfig.set_value('market_update_interval_seconds', market_update_interval_seconds)
+        set_logged('market_update_interval_seconds', market_update_interval_seconds)
+
+    db.session.commit()
 
     flash(_('تم حفظ إعدادات البورصة.'), 'success')
     return redirect(url_for('main.dev_market'))

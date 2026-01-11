@@ -113,6 +113,44 @@
         </div>
       </div>
 
+      <div class="card bg-dark text-light border-gold mb-3">
+        <div class="card-header d-flex justify-content-between align-items-center">
+          <div class="fw-bold">{{ _('تعلم ذاتي من المحادثات') }}</div>
+          <a href="{{ url_for('main.dev_knowledge') }}" class="btn btn-sm btn-outline-light">{{ _('قاعدة المعرفة') }}</a>
+        </div>
+        <div class="card-body">
+          {% if pairs %}
+          <form method="post" class="m-0">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <div class="text-muted small mb-2">{{ _('اختر محادثات لتحويلها إلى أمثلة تدريب أو عناصر معرفة. يتم تنظيف التكرار والردود القصيرة والأسئلة العامة تلقائياً.') }}</div>
+            <div style="max-height: 260px; overflow:auto;">
+              {% for p in pairs %}
+                <label class="d-block p-2 mb-2 rounded border border-secondary" style="background: rgba(0,0,0,0.22); cursor:pointer;">
+                  <div class="d-flex align-items-center justify-content-between">
+                    <div class="small text-info">{{ _('سؤال') }} <span class="text-muted">#{{ p.user_id or 'guest' }}</span></div>
+                    <input type="checkbox" name="pair" value="{{ p.user_msg_id }}:{{ p.assistant_msg_id }}">
+                  </div>
+                  <div class="small text-light mt-1">{{ p.user_text }}</div>
+                  <div class="small text-warning mt-2">{{ _('الرد') }}</div>
+                  <div class="small text-light">{{ p.assistant_text }}</div>
+                </label>
+              {% endfor %}
+            </div>
+            <div class="d-flex" style="gap:10px;">
+              <button class="btn btn-sm btn-warning flex-fill" name="action" value="learn_examples" onclick="return confirm('{{ _('إضافة المحادثات المختارة إلى أمثلة التدريب؟') }}')">
+                <i class="fas fa-plus-circle"></i> {{ _('إضافة لأمثلة التدريب') }}
+              </button>
+              <button class="btn btn-sm btn-outline-info flex-fill" name="action" value="learn_knowledge" onclick="return confirm('{{ _('إضافة المحادثات المختارة إلى قاعدة المعرفة؟') }}')">
+                <i class="fas fa-book"></i> {{ _('إضافة لقاعدة المعرفة') }}
+              </button>
+            </div>
+          </form>
+          {% else %}
+            <div class="text-muted">{{ _('لا توجد أزواج محادثة جاهزة حالياً.') }}</div>
+          {% endif %}
+        </div>
+      </div>
+
       <div class="card bg-dark text-light border-gold">
         <div class="card-header fw-bold">{{ _('آخر المحادثات') }}</div>
         <div class="card-body" style="max-height: 340px; overflow:auto;">
@@ -134,4 +172,3 @@
   </div>
 </div>
 {% endblock %}
-

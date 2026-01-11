@@ -3,21 +3,11 @@
 {% block title %}{{ _('دعوة الأصدقاء') }}{% endblock %}
 
 {% block content %}
-<div class="content-wrapper">
-    <!-- Content Header -->
-    <div class="content-header">
-        <div class="container-fluid">
-            <div class="row mb-2">
-                <div class="col-sm-6">
-                    <h1 class="m-0 gold-text title-font">{{ _('دعوة الأصدقاء') }}</h1>
-                </div>
-            </div>
-        </div>
+<div class="row mb-2">
+    <div class="col-12">
+        <h1 class="m-0 gold-text title-font">{{ _('دعوة الأصدقاء') }}</h1>
     </div>
-
-    <!-- Main Content -->
-    <section class="content">
-        <div class="container-fluid">
+</div>
             
             <!-- Rewards Info -->
             <div class="row">
@@ -59,17 +49,17 @@
                             <hr>
                             <p>{{ _('شارك الرابط مباشرة:') }}</p>
                             
-                            <div class="d-flex justify-content-center gap-2">
-                                <a href="https://wa.me/?text={{ _('🔥 جربت أقوى لعبة عصابات عربية؟ انضم لعصابات فلسطين وسيطر على القدس! سجل مجاناً واحصل على جوائز: ') }} {{ link }}" target="_blank" class="btn btn-success mx-1">
+                            <div class="d-flex flex-wrap justify-content-center gap-2">
+                                <a href="https://wa.me/?text={{ _('🔥 جربت أقوى لعبة عصابات عربية؟ انضم لعصابات فلسطين وسيطر على القدس! سجل مجاناً واحصل على جوائز: ') }} {{ link }}" target="_blank" class="btn btn-success">
                                     <i class="fab fa-whatsapp"></i> WhatsApp
                                 </a>
-                                <a href="https://www.facebook.com/sharer/sharer.php?u={{ link }}" target="_blank" class="btn btn-primary mx-1">
+                                <a href="https://www.facebook.com/sharer/sharer.php?u={{ link }}" target="_blank" class="btn btn-primary">
                                     <i class="fab fa-facebook-f"></i> Facebook
                                 </a>
-                                <a href="https://twitter.com/intent/tweet?text={{ _('🔥 أقوى لعبة استراتيجية عربية! انضم لعصابات فلسطين، ابنِ امبراطوريتك وتحدى الاحتلال! 🇵🇸💎 #عصابات_فلسطين') }}&url={{ link }}" target="_blank" class="btn btn-info mx-1">
+                                <a href="https://twitter.com/intent/tweet?text={{ _('🔥 أقوى لعبة استراتيجية عربية! انضم لعصابات فلسطين، ابنِ امبراطوريتك وتحدى الاحتلال! 🇵🇸💎 #عصابات_فلسطين') }}&url={{ link }}" target="_blank" class="btn btn-info">
                                     <i class="fab fa-twitter"></i> Twitter
                                 </a>
-                                <a href="https://t.me/share/url?url={{ link }}&text={{ _('💎 جوائز حصرية بانتظارك! انضم لعصابات فلسطين، اللعبة الاستراتيجية الأولى. سيطر على المدينة الآن!') }}" target="_blank" class="btn btn-info mx-1" style="background-color: #0088cc; border-color: #0088cc;">
+                                <a href="https://t.me/share/url?url={{ link }}&text={{ _('💎 جوائز حصرية بانتظارك! انضم لعصابات فلسطين، اللعبة الاستراتيجية الأولى. سيطر على المدينة الآن!') }}" target="_blank" class="btn btn-info" style="background-color: #0088cc; border-color: #0088cc;">
                                     <i class="fab fa-telegram-plane"></i> Telegram
                                 </a>
                             </div>
@@ -152,10 +142,6 @@
                     </div>
                 </div>
             </div>
-
-        </div>
-    </section>
-</div>
 
 <script>
 function copyLink() {

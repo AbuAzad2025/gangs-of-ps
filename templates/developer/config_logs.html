@@ -1,0 +1,80 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="luxury-card fade-in-up">
+    <div class="card-header">
+        <div class="d-flex align-items-center justify-content-between flex-wrap">
+            <h3 class="card-title text-gradient-gold m-0"><i class="fas fa-sliders-h mr-2"></i> {{ _('سجل تغييرات الإعدادات') }}</h3>
+            <a href="{{ url_for('main.dev_dashboard') }}" class="btn btn-sm btn-outline-light">{{ _('لوحة المطور') }}</a>
+        </div>
+    </div>
+    
+    <div class="card-body bg-dark border-bottom border-secondary">
+        <form method="GET" action="{{ url_for('main.dev_config_logs') }}" class="row align-items-end">
+            <div class="col-md-4 mb-2">
+                <label class="text-muted">{{ _('المفتاح') }}</label>
+                <input type="text" name="key" class="form-control form-control-sm bg-secondary text-light border-dark" value="{{ current_filters.key or '' }}" placeholder="{{ _('مثال: gym_') }}">
+            </div>
+            <div class="col-md-3 mb-2">
+                <label class="text-muted">{{ _('اسم المسؤول') }}</label>
+                <input type="text" name="admin_username" class="form-control form-control-sm bg-secondary text-light border-dark" value="{{ current_filters.admin_username or '' }}" placeholder="{{ _('اسم المستخدم') }}">
+            </div>
+            <div class="col-md-3 mb-2">
+                <label class="text-muted">{{ _('السبب') }}</label>
+                <select name="reason" class="form-control form-control-sm bg-secondary text-light border-dark">
+                    <option value="">{{ _('الكل') }}</option>
+                    {% for r in reasons %}
+                    <option value="{{ r }}" {% if current_filters.reason == r %}selected{% endif %}>{{ r }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-2 mb-2">
+                <button type="submit" class="btn btn-sm btn-gold w-100 font-weight-bold">
+                    <i class="fas fa-filter"></i> {{ _('تصفية') }}
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <div class="card-body table-responsive p-0">
+        <table class="table luxury-table luxury-table-striped text-nowrap">
+            <thead>
+                <tr>
+                    <th>{{ _('ID') }}</th>
+                    <th>{{ _('المسؤول') }}</th>
+                    <th>{{ _('المفتاح') }}</th>
+                    <th>{{ _('القيمة القديمة') }}</th>
+                    <th>{{ _('القيمة الجديدة') }}</th>
+                    <th>{{ _('السبب') }}</th>
+                    <th>{{ _('الوقت') }}</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for log in logs %}
+                <tr style="animation: fadeInUp 0.5s ease backwards; animation-delay: {{ loop.index0 * 0.04 }}s;">
+                    <td><span class="text-muted">{{ log.id }}</span></td>
+                    <td><strong class="text-gold">{{ log.admin.username if log.admin else _('System') }}</strong></td>
+                    <td><span class="badge bg-dark border border-info text-info">{{ log.key }}</span></td>
+                    <td><small class="text-muted">{{ log.old_value }}</small></td>
+                    <td><small class="text-light">{{ log.new_value }}</small></td>
+                    <td><span class="badge bg-dark border border-warning text-warning">{{ log.reason or '' }}</span></td>
+                    <td class="text-muted">{{ log.timestamp.strftime('%Y-%m-%d %H:%M:%S') }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    <div class="card-footer clearfix bg-transparent border-top border-secondary">
+        <ul class="pagination pagination-sm m-0 float-right">
+            {% if pagination.has_prev %}
+            <li class="page-item"><a class="page-link bg-dark border-secondary text-gold" href="{{ url_for('main.dev_config_logs', page=pagination.prev_num, key=current_filters.key, admin_username=current_filters.admin_username, reason=current_filters.reason) }}">&laquo;</a></li>
+            {% endif %}
+            <li class="page-item disabled"><a class="page-link bg-dark border-secondary text-muted" href="#">{{ pagination.page }} / {{ pagination.pages }}</a></li>
+            {% if pagination.has_next %}
+            <li class="page-item"><a class="page-link bg-dark border-secondary text-gold" href="{{ url_for('main.dev_config_logs', page=pagination.next_num, key=current_filters.key, admin_username=current_filters.admin_username, reason=current_filters.reason) }}">&raquo;</a></li>
+            {% endif %}
+        </ul>
+    </div>
+</div>
+{% endblock %}
+

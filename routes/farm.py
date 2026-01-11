@@ -6,7 +6,7 @@ import random
 import json
 
 from extensions import db, limiter
-from sqlalchemy import select
+from sqlalchemy import select, or_
 from models import Item, UserItem, FarmJob, SystemConfig, UserFacility, User
 from models.location import Location
 from models.contract import FarmSupplyContract
@@ -228,7 +228,7 @@ def _facility_effects(meta, level):
 
 
 def _add_user_item(user_id, item, qty):
-    ui = UserItem.query.filter_by(user_id=user_id, item_id=item.id).first()
+    ui = db.session.query(UserItem).filter_by(user_id=user_id, item_id=item.id).with_for_update().first()
     if ui:
         ui.quantity += qty
     else:
@@ -245,14 +245,50 @@ def index():
     lvl = _effective_level(current_user)
     tier = _tier_for_level(lvl)
 
-    running = FarmJob.query.filter_by(user_id=current_user.id, status='running').order_by(FarmJob.ends_at.desc()).first()
+    max_parallel = 1
+    try:
+        max_parallel = int(cfg.get("max_parallel_jobs") or 1)
+    except Exception:
+        max_parallel = 1
+
+    running_jobs = FarmJob.query.filter_by(user_id=current_user.id, status='running').order_by(FarmJob.ends_at.asc()).limit(10).all()
+    now = _now_utc()
+
+    boost_cfg = (cfg.get("boost") or {}).get(tier) or {}
+    cost_per_min = int(boost_cfg.get("cost_per_minute") or 1)
+    min_cost = int(boost_cfg.get("min_cost") or 1)
+
+    running = []
+    for job in running_jobs:
+        ends = job.ends_at
+        if ends and ends.tzinfo is None:
+            ends = ends.replace(tzinfo=timezone.utc)
+        remaining_seconds = int((ends - now).total_seconds()) if ends else 0
+        if remaining_seconds < 0:
+            remaining_seconds = 0
+        remaining_minutes = 0
+        boost_cost = 0
+        if remaining_seconds > 0:
+            remaining_minutes = max(1, (remaining_seconds + 59) // 60)
+            boost_cost = max(min_cost, int(remaining_minutes * cost_per_min))
+
+        running.append({
+            "job": job,
+            "remaining_seconds": remaining_seconds,
+            "boost_cost": boost_cost,
+        })
 
     catalog = []
     tiers_cfg = cfg.get("tiers") or {}
     requirements_cfg = cfg.get("requirements") or {}
 
+    products_meta = cfg.get("products") or {}
+    item_names = [m.get("item_name") for m in products_meta.values() if isinstance(m, dict) and m.get("item_name")]
+    items = Item.query.filter(Item.name.in_(item_names)).all() if item_names else []
+    by_name = {i.name: i for i in items}
+
     for farm_type, meta in (cfg.get("products") or {}).items():
-        item = Item.query.filter_by(name=meta.get("item_name")).first()
+        item = by_name.get(meta.get("item_name"))
         if not item:
             continue
 
@@ -301,12 +337,16 @@ def index():
         # This suggests a database sync issue.
         flash(_("تحذير: لم يتم العثور على المنتجات في قاعدة البيانات. يرجى مراجعة الإدارة."), "warning")
 
+    user_facilities = UserFacility.query.filter_by(user_id=current_user.id).all()
+    uf_by_key = {u.facility_key: u for u in user_facilities if u and u.facility_key}
+
     facilities = []
     contract_source = None
     contract_source_level = 0
     for key, meta in sorted((fcfg.get("facilities") or {}).items(), key=lambda x: x[0]):
         name = meta.get("name") or key
-        current_level = _get_user_facility_level(current_user.id, key)
+        uf = uf_by_key.get(key)
+        current_level = int(uf.level) if uf and uf.level is not None else 0
         stages = list(meta.get("stages") or [])
         max_level = len(stages)
 
@@ -318,6 +358,18 @@ def index():
             next_cost = int(next_stage.get("diamonds") or 0)
             req_tier = next_stage.get("min_tier") or "t1"
             can_upgrade = _tier_rank(tier) >= _tier_rank(req_tier)
+
+        perk_remaining_seconds = 0
+        perk = meta.get("daily_perk") or {}
+        unlock_level = int(perk.get("unlock_level") or 0)
+        cooldown_hours = int(perk.get("cooldown_hours") or 24)
+        if perk and current_level >= unlock_level:
+            last = getattr(uf, "last_perk_at", None) if uf else None
+            if last and last.tzinfo is None:
+                last = last.replace(tzinfo=timezone.utc)
+            if last:
+                until = last + timedelta(hours=cooldown_hours)
+                perk_remaining_seconds = max(0, int((until - now).total_seconds()))
 
         time_mul, rare_chance = _facility_effects(meta, current_level)
         facilities.append({
@@ -331,6 +383,7 @@ def index():
             "time_mul": time_mul,
             "rare_chance": rare_chance,
             "daily_perk": meta.get("daily_perk"),
+            "perk_remaining_seconds": perk_remaining_seconds,
             "contract": meta.get("contract"),
         })
 
@@ -379,14 +432,16 @@ def index():
         "farm.html",
         user=current_user,
         tier=tier,
+        max_parallel=max_parallel,
         running=running,
+        running_count=len(running_jobs),
         catalog=catalog,
         facilities=facilities,
         locations=locations,
         active_contract=active_contract,
         active_contract_location=active_contract_location,
         contract_offer=contract_offer,
-        now=_now_utc()
+        now=now
     )
 
 
@@ -427,7 +482,7 @@ def upgrade_facility(facility_key):
         return redirect(url_for('farm.index'))
 
     # Atomic deduction via ResourceService
-    if not ResourceService.modify_resources(current_user.id, {'diamonds': -cost}, 'farm_facility_upgrade', auto_commit=False, expected_version=None):
+    if not ResourceService.modify_resources(current_user.id, {'diamonds': -cost}, 'farm_facility_upgrade', auto_commit=False, expected_version=None, log_extra={'facility_key': facility_key, 'cost': cost}):
         flash(_('ليس لديك ما يكفي من الماس!'), 'danger')
         return redirect(url_for('farm.index'))
 
@@ -567,7 +622,8 @@ def buy_contract():
         changes={'diamonds': -cost},
         reason='farm_buy_contract',
         auto_commit=False,
-        expected_version=current_user.version
+        expected_version=current_user.version,
+        log_extra={'location_id': location_id, 'cost': cost, 'bonus_percent': bonus, 'duration_minutes': duration_minutes}
     )
 
     if not success:
@@ -607,6 +663,8 @@ def buy_contract():
 def start():
     cfg = _get_farm_config()
     fcfg = _get_facilities_config()
+
+    db.session.query(User).filter_by(id=current_user.id).with_for_update().first()
 
     max_parallel = 1
     try:
@@ -665,7 +723,14 @@ def start():
         return redirect(url_for('farm.index'))
 
     # Atomic deduction via ResourceService
-    if not ResourceService.modify_resources(current_user.id, {'diamonds': -diamonds_cost}, 'farm_start_job', auto_commit=False, expected_version=None):
+    if not ResourceService.modify_resources(
+        current_user.id,
+        {'diamonds': -diamonds_cost},
+        'farm_start_job',
+        auto_commit=False,
+        expected_version=None,
+        log_extra={'farm_type': farm_type, 'cost': diamonds_cost}
+    ):
         flash(_('ليس لديك ما يكفي من الماس!'), 'danger')
         return redirect(url_for('farm.index'))
 
@@ -710,7 +775,8 @@ def start():
 @login_required
 @limiter.limit("20 per minute")
 def claim(job_id):
-    job = FarmJob.query.filter_by(id=job_id, user_id=current_user.id).first()
+    db.session.query(User).filter_by(id=current_user.id).with_for_update().first()
+    job = FarmJob.query.filter_by(id=job_id, user_id=current_user.id).with_for_update().first()
     if not job or job.status != 'running':
         flash(_('هذه العملية غير موجودة.'), 'danger')
         return redirect(url_for('farm.index'))
@@ -768,7 +834,7 @@ def boost(job_id):
         return redirect(url_for('farm.index'))
 
     # Atomic deduction via ResourceService
-    if not ResourceService.modify_resources(current_user.id, {'diamonds': -diamonds_cost}, 'farm_boost_job', auto_commit=False, expected_version=None):
+    if not ResourceService.modify_resources(current_user.id, {'diamonds': -diamonds_cost}, 'farm_boost_job', auto_commit=False, expected_version=None, log_extra={'job_id': job.id, 'cost': diamonds_cost}):
         flash(_('ليس لديك ما يكفي من الماس!'), 'danger')
         return redirect(url_for('farm.index'))
 

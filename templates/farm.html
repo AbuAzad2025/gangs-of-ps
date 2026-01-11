@@ -7,96 +7,135 @@
       <div class="luxury-card p-4 mb-4">
         <div class="d-flex justify-content-between align-items-center mb-3">
           <h2 class="m-0"><i class="fas fa-seedling text-success mr-2"></i>{{ _('المزارع') }}</h2>
-          <div class="text-muted">{{ _('رتبتك الزراعية:') }} <span class="text-success">{{ tier }}</span></div>
+          <div class="d-flex flex-wrap align-items-center farm-badges">
+            <span class="badge farm-pill farm-pill-tier"><i class="fas fa-layer-group mr-2"></i>{{ _('رتبتك الزراعية:') }} {{ tier }}</span>
+            <span class="badge farm-pill farm-pill-gems"><i class="fas fa-gem mr-2"></i>{{ user.diamonds }}</span>
+            <span class="badge farm-pill farm-pill-money"><i class="fas fa-coins mr-2"></i>${{ "{:,.0f}".format(user.money) }}</span>
+          </div>
         </div>
 
         {% if running %}
-          <div class="alert alert-info">
-            <div class="d-flex justify-content-between align-items-center">
-              <div>
-                <strong>{{ _('عملية جارية:') }}</strong>
-                {{ _(running.output_item.name) if running.output_item else _('إنتاج') }}
-                — {{ _('الكمية:') }} {{ running.output_amount }}
-              </div>
-              <div class="text-muted">{{ _('ينتهي:') }} {{ running.ends_at }}</div>
+          <div class="farm-running-wrap mb-3">
+            <div class="d-flex align-items-center justify-content-between mb-2 flex-wrap" style="gap:.75rem;">
+              <div class="text-gold font-weight-bold"><i class="fas fa-hourglass-half mr-2"></i>{{ _('عمليات جارية') }}</div>
+              <div class="text-muted small">{{ _('حد التشغيل المتوازي:') }} {{ running_count }} / {{ max_parallel }}</div>
+            </div>
+            <div class="row">
+              {% for r in running %}
+                {% set j = r.job %}
+                <div class="col-md-6 mb-3">
+                  <div class="luxury-card p-3 h-100 farm-job-card" data-remaining="{{ r.remaining_seconds }}">
+                    <div class="d-flex align-items-center mb-2">
+                      <div class="mr-3 farm-item-icon-wrapper">
+                        {% if j.output_item and j.output_item.image %}
+                          <img src="{{ url_for('static', filename=j.output_item.image) }}" class="farm-item-img">
+                        {% else %}
+                          <div class="farm-locked-overlay"><i class="fas fa-seedling text-success"></i></div>
+                        {% endif %}
+                      </div>
+                      <div class="flex-grow-1">
+                        <div class="h5 m-0 text-white">{{ _(j.output_item.name) if j.output_item else _('إنتاج') }}</div>
+                        <div class="text-muted small">{{ _('الكمية:') }} {{ j.output_amount }}</div>
+                      </div>
+                      <div class="text-right">
+                        <div class="farm-timer" data-role="timer">--:--</div>
+                        <div class="text-muted small">{{ _('متبقي') }}</div>
+                      </div>
+                    </div>
+                    <div class="progress mb-3" style="height: 10px; background: rgba(255,255,255,0.08);">
+                      <div class="progress-bar bg-success" role="progressbar" style="width: 0%" data-role="bar"></div>
+                    </div>
+                    <div class="d-flex" style="gap:.5rem;">
+                      <form method="POST" action="{{ url_for('farm.claim', job_id=j.id) }}" class="flex-fill m-0">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                        <button class="btn btn-success w-100" {% if r.remaining_seconds > 0 %}disabled{% endif %}>
+                          <i class="fas fa-box-open mr-2"></i>{{ _('استلام') }}
+                        </button>
+                      </form>
+                      <form method="POST" action="{{ url_for('farm.boost', job_id=j.id) }}" class="flex-fill m-0">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                        <button class="btn btn-outline-warning w-100" {% if r.remaining_seconds <= 0 or user.diamonds < r.boost_cost %}disabled{% endif %}>
+                          <i class="fas fa-bolt mr-2"></i>{{ _('إنهاء الآن') }}{% if r.boost_cost > 0 %} ({{ r.boost_cost }}💎){% endif %}
+                        </button>
+                      </form>
+                    </div>
+                  </div>
+                </div>
+              {% endfor %}
             </div>
           </div>
+        {% endif %}
 
-          <form method="POST" action="{{ url_for('farm.boost', job_id=running.id) }}" class="mb-2">
-            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-            <button class="btn btn-outline-warning btn-block">
-              <i class="fas fa-bolt mr-2"></i>{{ _('إنهاء فوري بالماس') }}
-            </button>
-          </form>
-
-          <form method="POST" action="{{ url_for('farm.claim', job_id=running.id) }}">
-            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-            <button class="btn btn-success btn-block" {% if not running.is_ready %}disabled{% endif %}>
-              <i class="fas fa-box-open mr-2"></i>{{ _('استلام الإنتاج') }}
-            </button>
-          </form>
-        {% else %}
-          <div class="row">
-            {% for row in catalog %}
-              <div class="col-md-6 mb-3">
-                <div class="luxury-card p-3 h-100 farm-item-card">
-                  <div class="d-flex align-items-center mb-2">
-                    <div class="mr-3 farm-item-icon-wrapper">
-                      {% if row.unlocked %}
-                        <img src="{{ url_for('static', filename=row.item.image) }}" class="farm-item-img">
-                      {% else %}
-                        <div class="farm-locked-overlay">
-                          <i class="fas fa-lock text-warning"></i>
-                        </div>
-                      {% endif %}
-                    </div>
-                    <div>
-                      {% if row.unlocked %}
-                        <div class="h5 m-0">{{ _(row.item.name) }}</div>
-                        <div class="text-muted small">{{ _(row.item.description) }}</div>
-                      {% else %}
-                        <div class="h5 m-0">{{ _('محتوى مقفول') }}</div>
-                        <div class="text-muted small">{{ _('طور نفسك لفتحها') }}</div>
-                      {% endif %}
-                    </div>
-                  </div>
-
-                  <div class="text-muted small mb-3">
+        <div class="row">
+          {% for row in catalog %}
+            <div class="col-md-6 mb-3">
+              <div class="luxury-card p-3 h-100 farm-item-card">
+                <div class="d-flex align-items-center mb-2">
+                  <div class="mr-3 farm-item-icon-wrapper">
                     {% if row.unlocked %}
-                      {{ _('التشغيل:') }} {{ row.pricing.diamonds }} 💎
+                      <img src="{{ url_for('static', filename=row.item.image) }}" class="farm-item-img">
                     {% else %}
-                      {% if row.min_tier %}{{ _('يتطلب:') }} {{ row.min_tier }}{% endif %}
-                      {% if row.locked_reason %} — {{ _(row.locked_reason) }}{% endif %}
-                      {% if row.hint_text %}
-                        <div class="text-info small mt-2">
-                          {% if row.hint_url %}
-                            <a href="{{ row.hint_url }}" class="text-info">{{ row.hint_text }}</a>
-                          {% else %}
-                            {{ row.hint_text }}
-                          {% endif %}
-                        </div>
-                      {% endif %}
+                      <div class="farm-locked-overlay">
+                        <i class="fas fa-lock text-warning"></i>
+                      </div>
                     {% endif %}
                   </div>
-
+                  <div class="flex-grow-1">
+                    {% if row.unlocked %}
+                      <div class="h5 m-0 text-white">{{ _(row.item.name) }}</div>
+                      <div class="text-muted small">{{ _(row.item.description) }}</div>
+                    {% else %}
+                      <div class="h5 m-0 text-white">{{ _('محتوى مقفول') }}</div>
+                      <div class="text-muted small">{{ _('طور نفسك لفتحها') }}</div>
+                    {% endif %}
+                  </div>
                   {% if row.unlocked %}
-                    <form method="POST" action="{{ url_for('farm.start') }}">
-                      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-                      <input type="hidden" name="farm_type" value="{{ row.farm_type }}"/>
-                      <button class="btn btn-success btn-block" {% if user.diamonds < row.pricing.diamonds %}disabled{% endif %}>
-                        <i class="fas fa-play mr-2"></i>{{ _('ابدأ تشغيل') }}
-                      </button>
-                    </form>
-                  {% else %}
-                    <button class="btn btn-secondary btn-block" disabled>
-                      <i class="fas fa-lock mr-2"></i>{{ _('مقفول') }}
-                    </button>
+                    <span class="badge farm-pill farm-pill-gems">{{ row.pricing.diamonds }}💎</span>
                   {% endif %}
                 </div>
+
+                <div class="text-muted small mb-3">
+                  {% if row.unlocked %}
+                    {{ _('المدة المتوقعة:') }}
+                    {{ row.pricing.minutes[0] }}–{{ row.pricing.minutes[1] }} {{ _('د') }}
+                    — {{ _('الإنتاج:') }}
+                    {{ row.pricing.out[0] }}–{{ row.pricing.out[1] }}
+                  {% else %}
+                    {% if row.min_tier %}{{ _('يتطلب:') }} {{ row.min_tier }}{% endif %}
+                    {% if row.locked_reason %} — {{ _(row.locked_reason) }}{% endif %}
+                    {% if row.hint_text %}
+                      <div class="text-info small mt-2">
+                        {% if row.hint_url %}
+                          <a href="{{ row.hint_url }}" class="text-info">{{ row.hint_text }}</a>
+                        {% else %}
+                          {{ row.hint_text }}
+                        {% endif %}
+                      </div>
+                    {% endif %}
+                  {% endif %}
+                </div>
+
+                {% if row.unlocked %}
+                  <form method="POST" action="{{ url_for('farm.start') }}">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                    <input type="hidden" name="farm_type" value="{{ row.farm_type }}"/>
+                    <button class="btn btn-outline-success btn-block"
+                            {% if running_count >= max_parallel or user.diamonds < row.pricing.diamonds %}disabled{% endif %}>
+                      <i class="fas fa-play mr-2"></i>{{ _('ابدأ تشغيل') }}
+                    </button>
+                  </form>
+                  {% if running_count >= max_parallel %}
+                    <div class="text-muted small mt-2">{{ _('لا يمكنك بدء عملية جديدة الآن.') }}</div>
+                  {% endif %}
+                {% else %}
+                  <button class="btn btn-secondary btn-block" disabled>
+                    <i class="fas fa-lock mr-2"></i>{{ _('مقفول') }}
+                  </button>
+                {% endif %}
               </div>
-            {% endfor %}
-          </div>
-        {% endif %}
+            </div>
+          {% endfor %}
+        </div>
       </div>
 
       <div class="luxury-card p-4 mb-4">
@@ -120,9 +159,12 @@
                 {% if f.daily_perk and f.level >= (f.daily_perk.unlock_level or 0) %}
                   <form method="POST" action="{{ url_for('farm.use_facility_perk', facility_key=f.key) }}" class="mt-2">
                     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-                    <button class="btn btn-outline-success btn-block">
+                    <button class="btn btn-outline-success btn-block" {% if f.perk_remaining_seconds and f.perk_remaining_seconds > 0 %}disabled{% endif %}>
                       <i class="fas fa-gift mr-2"></i>{{ _('ميزة اليوم (مرة كل 24 ساعة)') }}
                     </button>
+                    {% if f.perk_remaining_seconds and f.perk_remaining_seconds > 0 %}
+                      <div class="text-muted small mt-1">{{ _('متبقي:') }} <span class="farm-perk-timer" data-remaining="{{ f.perk_remaining_seconds }}">--:--</span></div>
+                    {% endif %}
                   </form>
                 {% endif %}
 
@@ -200,4 +242,46 @@
     </div>
   </div>
 </div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    function fmt(sec) {
+      sec = Math.max(0, sec|0);
+      var m = Math.floor(sec / 60);
+      var s = sec % 60;
+      return m + ":" + String(s).padStart(2, '0');
+    }
+
+    document.querySelectorAll('.farm-job-card').forEach(function(card) {
+      var remaining = parseInt(card.getAttribute('data-remaining') || '0', 10);
+      if (isNaN(remaining)) remaining = 0;
+      var initial = Math.max(1, remaining);
+      var timer = card.querySelector('[data-role="timer"]');
+      var bar = card.querySelector('[data-role="bar"]');
+
+      function tick() {
+        if (timer) timer.textContent = fmt(remaining);
+        var pct = initial <= 0 ? 100 : Math.min(100, Math.max(0, Math.round(((initial - remaining) / initial) * 100)));
+        if (bar) bar.style.width = pct + '%';
+        if (remaining <= 0) return;
+        remaining -= 1;
+        window.setTimeout(tick, 1000);
+      }
+
+      tick();
+    });
+
+    document.querySelectorAll('.farm-perk-timer').forEach(function(el) {
+      var remaining = parseInt(el.getAttribute('data-remaining') || '0', 10);
+      if (isNaN(remaining)) remaining = 0;
+      function tick() {
+        el.textContent = fmt(remaining);
+        if (remaining <= 0) return;
+        remaining -= 1;
+        window.setTimeout(tick, 1000);
+      }
+      tick();
+    });
+  });
+</script>
 {% endblock %}
