@@ -75,6 +75,11 @@ def get_dashboard_stats():
             'top_players': []
         }
 
+@bp.route('/tiktok-promo')
+def tiktok_promo():
+    """Renders a special animated page for recording TikTok promos."""
+    return render_template('promo_tiktok.html')
+
 @bp.route('/@vite/client')
 def vite_client_noop():
     return "", 204

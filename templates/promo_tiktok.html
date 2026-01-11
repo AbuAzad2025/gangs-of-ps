@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gangs of Palestine - TikTok Promo</title>
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap" rel="stylesheet">
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #000;
+            color: #fff;
+            font-family: 'Cairo', sans-serif;
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        .promo-container {
+            width: 100%;
+            max-width: 450px; /* TikTok aspect ratio approx */
+            height: 100vh;
+            position: relative;
+            background: linear-gradient(180deg, #1a1a1a 0%, #000000 100%);
+            overflow: hidden;
+            box-shadow: 0 0 20px rgba(255, 215, 0, 0.1);
+        }
+
+        .scene {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            opacity: 0;
+            text-align: center;
+            padding: 20px;
+            box-sizing: border-box;
+            pointer-events: none; /* Let clicks pass through if needed */
+        }
+
+        /* --- Animations --- */
+        @keyframes fadeInOut {
+            0% { opacity: 0; transform: scale(0.9); }
+            10% { opacity: 1; transform: scale(1); }
+            90% { opacity: 1; transform: scale(1); }
+            100% { opacity: 0; transform: scale(1.1); }
+        }
+
+        @keyframes slideUp {
+            from { transform: translateY(50px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        @keyframes pulseGold {
+            0% { text-shadow: 0 0 10px #ffd700; }
+            50% { text-shadow: 0 0 30px #ffd700, 0 0 10px #fff; }
+            100% { text-shadow: 0 0 10px #ffd700; }
+        }
+
+        @keyframes floating {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-15px); }
+            100% { transform: translateY(0px); }
+        }
+
+        @keyframes glitch {
+            0% { transform: translate(0); }
+            20% { transform: translate(-2px, 2px); }
+            40% { transform: translate(-2px, -2px); }
+            60% { transform: translate(2px, 2px); }
+            80% { transform: translate(2px, -2px); }
+            100% { transform: translate(0); }
+        }
+
+        /* --- Scene 1: The Hook --- */
+        .scene-1 { animation: fadeInOut 4s forwards; animation-delay: 0.5s; }
+        .hook-text {
+            font-size: 3rem;
+            font-weight: 900;
+            color: #fff;
+            line-height: 1.2;
+            margin-bottom: 20px;
+        }
+        .highlight-red { color: #dc3545; text-shadow: 0 0 20px #dc3545; }
+
+        /* --- Scene 2: Gameplay Features --- */
+        .scene-2 { animation: fadeInOut 4s forwards; animation-delay: 4.5s; }
+        .feature-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            width: 100%;
+        }
+        .feature-item {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 20px;
+            border-radius: 15px;
+            border: 1px solid #ffd700;
+            animation: slideUp 0.5s ease-out forwards;
+        }
+        .feature-item i { font-size: 2.5rem; color: #ffd700; margin-bottom: 10px; }
+        .feature-item h3 { margin: 0; font-size: 1.2rem; }
+        
+        /* --- Scene 3: Map/Context --- */
+        .scene-3 { animation: fadeInOut 4s forwards; animation-delay: 8.5s; }
+        .map-text { font-size: 2.5rem; font-weight: bold; margin-bottom: 30px; }
+        .city-name {
+            font-size: 4rem;
+            font-weight: 900;
+            display: block;
+            margin: 10px 0;
+            text-transform: uppercase;
+            animation: glitch 0.3s infinite;
+        }
+        .palestine-flag { font-size: 5rem; margin-top: 20px; filter: drop-shadow(0 0 20px rgba(0, 255, 0, 0.5)); }
+
+        /* --- Scene 4: CTA --- */
+        .scene-4 { animation: fadeInOut 6s forwards; animation-delay: 12.5s; opacity: 1 !important; } /* Stay visible at end */
+        .logo-large {
+            font-size: 5rem;
+            color: #ffd700;
+            margin-bottom: 20px;
+            animation: floating 3s ease-in-out infinite;
+        }
+        .cta-btn {
+            background: linear-gradient(45deg, #ffd700, #ffaa00);
+            color: #000;
+            padding: 15px 40px;
+            font-size: 1.5rem;
+            font-weight: bold;
+            border-radius: 50px;
+            border: none;
+            margin-top: 30px;
+            box-shadow: 0 0 30px #ffd700;
+            animation: pulseGold 2s infinite;
+        }
+        .link-bio { margin-top: 20px; font-size: 1.2rem; color: #aaa; }
+
+        /* Background Effects */
+        .bg-particles {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            background-image: radial-gradient(circle, rgba(255,215,0,0.1) 1px, transparent 1px);
+            background-size: 20px 20px;
+            opacity: 0.5;
+        }
+        
+        .progress-bar {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            height: 5px;
+            background: #ffd700;
+            width: 0%;
+            animation: progress 18s linear forwards;
+        }
+        @keyframes progress { to { width: 100%; } }
+
+    </style>
+</head>
+<body>
+
+    <div class="promo-container">
+        <div class="bg-particles"></div>
+        
+        <!-- Scene 1: Hook -->
+        <div class="scene scene-1">
+            <div class="hook-text">
+                جربت تعيش<br>
+                حياة <span class="highlight-red">العصابات</span><br>
+                في فلسطين؟ 🇵🇸
+            </div>
+            <i class="fas fa-mask fa-4x" style="color: #666; margin-top: 20px;"></i>
+        </div>
+
+        <!-- Scene 2: Features -->
+        <div class="scene scene-2">
+            <h2 style="font-size: 2rem; margin-bottom: 30px; color: #fff;">ابنِ امبراطوريتك</h2>
+            <div class="feature-grid">
+                <div class="feature-item" style="animation-delay: 4.6s">
+                    <i class="fas fa-users"></i>
+                    <h3>كوّن عصابة</h3>
+                </div>
+                <div class="feature-item" style="animation-delay: 4.8s">
+                    <i class="fas fa-sack-dollar"></i>
+                    <h3>اجمع الثروة</h3>
+                </div>
+                <div class="feature-item" style="animation-delay: 5.0s">
+                    <i class="fas fa-skull"></i>
+                    <h3>حروب شوارع</h3>
+                </div>
+                <div class="feature-item" style="animation-delay: 5.2s">
+                    <i class="fas fa-car"></i>
+                    <h3>سرقة سيارات</h3>
+                </div>
+            </div>
+        </div>
+
+        <!-- Scene 3: Cities -->
+        <div class="scene scene-3">
+            <div class="map-text">سيطر على المدن</div>
+            <span class="city-name" style="color: #00ff00;">القدس</span>
+            <span class="city-name" style="color: #ffffff;">غزة</span>
+            <span class="city-name" style="color: #ff0000;">نابلس</span>
+            <div class="palestine-flag">🇵🇸</div>
+        </div>
+
+        <!-- Scene 4: CTA -->
+        <div class="scene scene-4" style="animation-fill-mode: forwards;">
+            <i class="fas fa-crown logo-large"></i>
+            <h1 style="font-size: 2.5rem; margin: 0;">عصابات فلسطين</h1>
+            <p style="color: #ccc; font-size: 1.2rem;">اللعبة الاستراتيجية العربية الأولى</p>
+            
+            <div class="cta-btn">سجل الآن مجاناً</div>
+            <div class="link-bio">الرابط في البايو 🔗</div>
+        </div>
+
+        <div class="progress-bar"></div>
+    </div>
+
+    <script>
+        // Simple auto-reload for looping recording if needed
+        // setTimeout(() => { window.location.reload(); }, 20000);
+    </script>
+</body>
+</html>
