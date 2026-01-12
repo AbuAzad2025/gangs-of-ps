@@ -85,7 +85,7 @@
     <title>{% block title %}{{ seo.title }}{% endblock %}</title>
     <link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}" type="image/x-icon">
     <!-- Custom CSS for Mobile App Feel -->
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/custom.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/custom.css') }}?v=3.3">
     <link rel="manifest" href="{{ url_for('static', filename='manifest.json') }}">
     <meta name="theme-color" content="#1a1a1a">
 
@@ -128,6 +128,9 @@
       </li>
       <li class="nav-item d-none d-sm-inline-block">
         <a href="{{ url_for('main.index') }}" class="nav-link">{{ _('الرئيسية') }}</a>
+      </li>
+      <li class="nav-item d-none d-sm-inline-block">
+        <a href="#" class="nav-link js-youtube-toggle" id="youtube-toggle-btn"><i class="fab fa-youtube text-danger mr-1"></i> {{ _('يوتيوب') }}</a>
       </li>
       <li class="nav-item d-none d-sm-inline-block">
         <a href="#" class="nav-link" onclick="shareGame()"><i class="fas fa-share-alt mr-1"></i> {{ _('شارك اللعبة') }}</a>
@@ -180,6 +183,11 @@
         <a class="nav-link" href="#" role="button">
           <i class="fas fa-gem text-info"></i> <span id="user-diamonds" class="d-none d-sm-inline">{{ current_user.diamonds }}</span>
           <span class="d-inline d-sm-none small">{{ current_user.diamonds }}</span>
+        </a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link js-youtube-toggle" href="#" role="button" title="{{ _('يوتيوب') }}">
+          <i class="fab fa-youtube text-danger"></i>
         </a>
       </li>
       <li class="nav-item nav-stat-item d-none d-md-block">
@@ -1221,6 +1229,6 @@
     </div>
 </div>
 
-<script src="{{ url_for('static', filename='js/youtube_widget.js') }}?v=3.2"></script>
+<script src="{{ url_for('static', filename='js/youtube_widget.js') }}?v=3.3"></script>
 </body>
 </html>

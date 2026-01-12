@@ -122,10 +122,18 @@ def create_app(config_class=Config):
             'data:',
             'ui-avatars.com',
             'flagcdn.com',
-            'cdnjs.cloudflare.com'
+            'cdnjs.cloudflare.com',
+            '*.youtube.com',
+            '*.ytimg.com'
         ],
         'media-src': [
-            '\'self\''
+            '\'self\'',
+            '*.youtube.com'
+        ],
+        'frame-src': [
+            '\'self\'',
+            '*.youtube.com',
+            '*.youtube-nocookie.com'
         ],
         'font-src': [
             '\'self\'',

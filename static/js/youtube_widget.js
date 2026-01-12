@@ -158,11 +158,11 @@ document.addEventListener('DOMContentLoaded', function() {
                     }
                 } catch (e) {
                     // Invalid URL, treat as search
-                    src = `https://www.youtube.com/embed?listType=search&list=${encodeURIComponent(query)}`;
+                    src = `https://www.youtube.com/embed?listType=search&list=${encodeURIComponent(query)}&autoplay=1`;
                 }
             } else {
                 // Search query
-                src = `https://www.youtube.com/embed?listType=search&list=${encodeURIComponent(query)}`;
+                src = `https://www.youtube.com/embed?listType=search&list=${encodeURIComponent(query)}&autoplay=1`;
             }
             
             if (src) {
