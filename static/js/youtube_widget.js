@@ -79,9 +79,11 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
-    // Toggle Visibility via Navbar Button
-    if(toggleBtn) {
-        toggleBtn.addEventListener('click', (e) => {
+    // Toggle Visibility via Buttons (Class based)
+    const toggleBtns = document.querySelectorAll('.js-youtube-toggle, #youtube-toggle-btn');
+    
+    toggleBtns.forEach(btn => {
+        btn.addEventListener('click', (e) => {
             e.preventDefault();
             if (widget.style.display === 'none' || !widget.style.display) {
                 widget.style.display = 'flex';
@@ -101,7 +103,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 saveState();
             }
         });
-    }
+    });
 
     // Close
     if (closeBtn) {
