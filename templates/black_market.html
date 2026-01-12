@@ -438,7 +438,11 @@
                         </div>
                         
                         <div class="item-icon-wrapper mb-2 icon-size-60">
-                            <i class="fas fa-dolly fa-2x text-warning"></i>
+                            {% if deal.item.image %}
+                                <img src="{{ url_for('static', filename='images/' + deal.item.image) }}" class="img-fluid img-max-60" alt="{{ deal.item.name }}" onerror="this.onerror=null; this.src='{{ url_for('static', filename='images/items/default.jpg') }}';">
+                            {% else %}
+                                <i class="fas fa-dolly fa-2x text-warning"></i>
+                            {% endif %}
                         </div>
                         
                         <h5 class="text-white font-weight-bold mb-1">{{ _(deal.item.name) }}</h5>
