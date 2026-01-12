@@ -113,6 +113,7 @@ class SEOManager:
         
         items = []
         for i, crumb in enumerate(breadcrumbs):
+            # Fix for Google Search Console: Use simple ID reference
             items.append({
                 "@type": "ListItem",
                 "position": i + 1,
