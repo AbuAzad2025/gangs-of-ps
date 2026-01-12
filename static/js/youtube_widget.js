@@ -22,6 +22,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 const y = Math.min(Math.max(0, savedState.y), window.innerHeight - 50);
                 widget.style.left = x + 'px';
                 widget.style.top = y + 'px';
+                widget.style.right = 'auto'; // Ensure free movement (override RTL CSS)
                 
                 if (savedState.currentSrc && savedState.currentSrc !== 'about:blank') {
                     iframe.src = savedState.currentSrc;
@@ -53,6 +54,7 @@ document.addEventListener('DOMContentLoaded', function() {
         offsetY = e.clientY - rect.top;
         widget.style.opacity = '0.9';
         widget.style.transition = 'none';
+        widget.style.right = 'auto'; // Enable free movement in RTL
     });
 
     document.addEventListener('mousemove', (e) => {
@@ -154,15 +156,15 @@ document.addEventListener('DOMContentLoaded', function() {
                         videoId = url.searchParams.get('v');
                     }
                     if (videoId) {
-                        src = `https://www.youtube.com/embed/${videoId}?autoplay=1`;
+                        src = `https://www.youtube.com/embed/${videoId}?autoplay=1&origin=${window.location.origin}`;
                     }
                 } catch (e) {
                     // Invalid URL, treat as search
-                    src = `https://www.youtube.com/embed?listType=search&list=${encodeURIComponent(query)}&autoplay=1`;
+                    src = `https://www.youtube.com/embed?listType=search&list=${encodeURIComponent(query)}&autoplay=1&origin=${window.location.origin}`;
                 }
             } else {
                 // Search query
-                src = `https://www.youtube.com/embed?listType=search&list=${encodeURIComponent(query)}&autoplay=1`;
+                src = `https://www.youtube.com/embed?listType=search&list=${encodeURIComponent(query)}&autoplay=1&origin=${window.location.origin}`;
             }
             
             if (src) {
