@@ -156,15 +156,15 @@ document.addEventListener('DOMContentLoaded', function() {
                         videoId = url.searchParams.get('v');
                     }
                     if (videoId) {
-                        src = `https://www.youtube.com/embed/${videoId}?autoplay=1&origin=${window.location.origin}`;
+                        src = `https://www.youtube.com/embed/${videoId}?autoplay=1&origin=${window.location.origin}&enablejsapi=1&rel=0`;
                     }
                 } catch (e) {
                     // Invalid URL, treat as search
-                    src = `https://www.youtube.com/embed?listType=search&list=${encodeURIComponent(query)}&autoplay=1&origin=${window.location.origin}`;
+                    src = `https://www.youtube.com/embed?listType=search&list=${encodeURIComponent(query)}&autoplay=1&origin=${window.location.origin}&enablejsapi=1&rel=0`;
                 }
             } else {
                 // Search query
-                src = `https://www.youtube.com/embed?listType=search&list=${encodeURIComponent(query)}&autoplay=1&origin=${window.location.origin}`;
+                src = `https://www.youtube.com/embed?listType=search&list=${encodeURIComponent(query)}&autoplay=1&origin=${window.location.origin}&enablejsapi=1&rel=0`;
             }
             
             if (src) {
