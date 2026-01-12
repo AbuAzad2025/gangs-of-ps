@@ -515,3 +515,77 @@ input, textarea {
 #pwa-install-btn {
     bottom: 120px !important; /* Move up above chat and ticker */
 }
+
+/* YouTube Widget Enhanced */
+.youtube-results {
+    flex: 1;
+    overflow-y: auto;
+    padding: 10px;
+    background: #1a1a1a;
+}
+
+.youtube-result-item {
+    display: flex;
+    gap: 10px;
+    padding: 10px;
+    border-bottom: 1px solid #333;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.youtube-result-item:hover {
+    background: #2a2a2a;
+}
+
+.youtube-result-thumb {
+    width: 120px;
+    height: 68px;
+    object-fit: cover;
+    border-radius: 4px;
+    flex-shrink: 0;
+}
+
+.youtube-result-info {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.youtube-result-title {
+    font-size: 0.9rem;
+    color: #fff;
+    margin-bottom: 4px;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.youtube-result-channel {
+    font-size: 0.75rem;
+    color: #aaa;
+}
+
+.youtube-player-view {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+}
+
+.youtube-back-bar {
+    padding: 5px 10px;
+    background: #222;
+    border-bottom: 1px solid #333;
+    text-align: right; /* RTL friendly */
+}
+
+/* Scrollbar for results */
+.youtube-results::-webkit-scrollbar {
+    width: 6px;
+}
+
+.youtube-results::-webkit-scrollbar-thumb {
+    background: #444;
+    border-radius: 3px;
+}

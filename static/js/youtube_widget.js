@@ -10,6 +10,9 @@ document.addEventListener('DOMContentLoaded', function() {
     const searchBtn = document.getElementById('youtube-search-btn');
     const iframe = document.getElementById('youtube-iframe');
     const body = document.getElementById('youtube-body');
+    const resultsView = document.getElementById('youtube-results');
+    const playerView = document.getElementById('youtube-player-view');
+    const backBtn = document.getElementById('youtube-back-btn');
 
     // Restore state
     try {
@@ -26,6 +29,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 
                 if (savedState.currentSrc && savedState.currentSrc !== 'about:blank') {
                     iframe.src = savedState.currentSrc;
+                    showPlayer();
+                } else {
+                    showResults();
                 }
                 
                 if (savedState.minimized) {
@@ -99,6 +105,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         widget.style.left = '20px';
                     }
                 }
+                showResults();
                 saveState();
             } else {
                 widget.style.display = 'none';
@@ -125,7 +132,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 // Restore
                 body.style.display = 'flex';
                 widget.classList.remove('minimized');
-                widget.style.height = '360px'; 
+                widget.style.height = '400px'; 
                 widget.style.resize = 'both';
                 minimizeBtn.innerHTML = '<i class="fas fa-minus"></i>';
             } else {
@@ -140,37 +147,107 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // Search
+    // View Switching
+    function showResults() {
+        if (resultsView) resultsView.style.display = 'block';
+        if (playerView) playerView.style.display = 'none';
+    }
+
+    function showPlayer() {
+        if (resultsView) resultsView.style.display = 'none';
+        if (playerView) playerView.style.display = 'flex';
+    }
+
+    if (backBtn) {
+        backBtn.addEventListener('click', () => {
+            showResults();
+            iframe.src = ''; // Stop video when going back
+            saveState();
+        });
+    }
+
+    // Search Logic
     function performSearch() {
         const query = searchInput.value.trim();
-        if (query) {
-            let src = '';
-            // Check if it's a URL
-            if (query.includes('youtube.com') || query.includes('youtu.be')) {
-                try {
-                    const url = new URL(query);
-                    let videoId = '';
-                    if (url.hostname === 'youtu.be') {
-                        videoId = url.pathname.slice(1);
-                    } else {
-                        videoId = url.searchParams.get('v');
-                    }
-                    if (videoId) {
-                        src = `https://www.youtube.com/embed/${videoId}?autoplay=1&origin=${window.location.origin}&enablejsapi=1&rel=0`;
-                    }
-                } catch (e) {
-                    // Invalid URL, treat as search
-                    src = `https://www.youtube.com/embed?listType=search&list=${encodeURIComponent(query)}&autoplay=1&origin=${window.location.origin}&enablejsapi=1&rel=0`;
+        if (!query) return;
+
+        // Check if direct URL
+        if (query.includes('youtube.com') || query.includes('youtu.be')) {
+            playDirectUrl(query);
+            return;
+        }
+
+        // Show loading state
+        resultsView.innerHTML = '<div class="text-center p-3 text-muted"><i class="fas fa-spinner fa-spin fa-2x"></i><br>جاري البحث...</div>';
+        showResults();
+
+        // Call API
+        fetch(`/api/youtube/search?q=${encodeURIComponent(query)}`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    resultsView.innerHTML = `<div class="text-center p-3 text-danger">${data.error}</div>`;
+                    return;
                 }
+
+                if (!data.results || data.results.length === 0) {
+                    resultsView.innerHTML = '<div class="text-center p-3 text-muted">لا توجد نتائج</div>';
+                    return;
+                }
+
+                renderResults(data.results);
+            })
+            .catch(err => {
+                console.error('Search error:', err);
+                resultsView.innerHTML = '<div class="text-center p-3 text-danger">حدث خطأ في البحث</div>';
+            });
+    }
+
+    function renderResults(videos) {
+        resultsView.innerHTML = '';
+        videos.forEach(video => {
+            const el = document.createElement('div');
+            el.className = 'youtube-result-item';
+            el.innerHTML = `
+                <img src="${video.thumbnail}" class="youtube-result-thumb" alt="${video.title}">
+                <div class="youtube-result-info">
+                    <div class="youtube-result-title" title="${video.title}">${video.title}</div>
+                    <div class="youtube-result-channel">${video.channel} • ${video.duration || ''}</div>
+                </div>
+            `;
+            el.addEventListener('click', () => playVideo(video.id));
+            resultsView.appendChild(el);
+        });
+    }
+
+    function playVideo(videoId) {
+        const src = `https://www.youtube.com/embed/${videoId}?autoplay=1&origin=${window.location.origin}&enablejsapi=1&rel=0`;
+        iframe.src = src;
+        showPlayer();
+        saveState();
+    }
+
+    function playDirectUrl(urlStr) {
+        try {
+            let videoId = '';
+            const url = new URL(urlStr);
+            if (url.hostname === 'youtu.be') {
+                videoId = url.pathname.slice(1);
             } else {
-                // Search query
-                src = `https://www.youtube.com/embed?listType=search&list=${encodeURIComponent(query)}&autoplay=1&origin=${window.location.origin}&enablejsapi=1&rel=0`;
+                videoId = url.searchParams.get('v');
             }
-            
-            if (src) {
-                iframe.src = src;
-                saveState();
+            if (videoId) {
+                playVideo(videoId);
+            } else {
+                // Fallback to search if ID extraction fails
+                searchInput.value = urlStr; // Ensure query is set
+                // performSearch(); // Avoid infinite loop potential, just show error
+                resultsView.innerHTML = '<div class="text-center p-3 text-danger">رابط غير صالح</div>';
+                showResults();
             }
+        } catch (e) {
+             resultsView.innerHTML = '<div class="text-center p-3 text-danger">رابط غير صالح</div>';
+             showResults();
         }
     }
 

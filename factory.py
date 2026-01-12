@@ -632,6 +632,9 @@ def create_app(config_class=Config):
     from routes.seo import bp as seo_bp
     app.register_blueprint(seo_bp)
 
+    from routes.youtube import bp as youtube_bp
+    app.register_blueprint(youtube_bp)
+
     # Register Hostess Blueprints
     from routes.hostesses import register_hostess_blueprints
     register_hostess_blueprints(app)

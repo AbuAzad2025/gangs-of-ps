@@ -1223,12 +1223,24 @@
             <input type="text" id="youtube-search-input" placeholder="{{ _('بحث أو رابط فيديو...') }}">
             <button id="youtube-search-btn"><i class="fas fa-search"></i></button>
         </div>
-        <div class="youtube-iframe-container">
-            <iframe id="youtube-iframe" src="" allowfullscreen allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="origin"></iframe>
+        
+        <!-- Search Results View -->
+        <div id="youtube-results" class="youtube-results" style="display: none;">
+            <div class="text-center p-3 text-muted"><i class="fas fa-search fa-2x mb-2"></i><br>{{ _('ابحث عن فيديو للمشاهدة') }}</div>
+        </div>
+
+        <!-- Player View -->
+        <div id="youtube-player-view" class="youtube-player-view" style="display: none;">
+            <div class="youtube-back-bar">
+                <button id="youtube-back-btn" class="btn btn-sm btn-dark"><i class="fas fa-arrow-right"></i> {{ _('العودة للنتائج') }}</button>
+            </div>
+            <div class="youtube-iframe-container">
+                <iframe id="youtube-iframe" src="" allowfullscreen allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="origin"></iframe>
+            </div>
         </div>
     </div>
 </div>
 
-<script src="{{ url_for('static', filename='js/youtube_widget.js') }}?v=3.5"></script>
+<script src="{{ url_for('static', filename='js/youtube_widget.js') }}?v=4.0"></script>
 </body>
 </html>
