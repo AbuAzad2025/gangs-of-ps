@@ -199,205 +199,188 @@ input, textarea {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  color: #0b0e11;
-  flex: 0 0 40px;
+  font-size: 1.2rem;
+  background: var(--market-card-bg);
+  margin-left: 10px; /* RTL aware if needed */
 }
 
-.market-asset-icon i {
-  font-size: 1.05rem;
+/* Chat Widget Styles */
+.public-chat-widget {
+    position: fixed;
+    bottom: 0;
+    right: 20px; /* Default LTR, adjusted for RTL via dir check below */
+    width: 300px;
+    background: #1e1e1e;
+    border: 1px solid #d4af37;
+    border-bottom: none;
+    border-radius: 8px 8px 0 0;
+    z-index: 10000; /* High z-index to sit on top */
+    box-shadow: 0 -5px 15px rgba(0,0,0,0.5);
+    transition: all 0.3s ease;
 }
 
-.market-asset-icon-crypto { background: #f0b90b; }
-.market-asset-icon-stock { background: #0ecb81; }
-.market-asset-icon-commodity { background: #f6465d; }
-.market-asset-icon-index { background: #1d4ed8; color: #fff; }
-
-.market-asset-card {
-  border-radius: 14px;
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  background: radial-gradient(120% 140% at 0% 0%, rgba(212, 175, 55, 0.06) 0%, rgba(0, 0, 0, 0) 45%), linear-gradient(180deg, rgba(22, 25, 30, 0.96) 0%, rgba(12, 14, 17, 0.96) 100%);
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.55);
-  transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
+.public-chat-widget.collapsed {
+    height: 45px; /* Adjust height to match header */
+    overflow: hidden;
 }
 
-.market-asset-card:hover {
-  transform: translateY(-2px);
-  border-color: rgba(212, 175, 55, 0.22);
-  box-shadow: 0 14px 40px rgba(0, 0, 0, 0.65);
+.public-chat-widget .chat-header {
+    padding: 10px 15px;
+    background: #d4af37;
+    color: #000;
+    cursor: pointer;
+    font-weight: bold;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    height: 45px;
 }
 
-.market-asset-symbol {
-  font-weight: 800;
-  letter-spacing: 0.4px;
-  color: #fff;
-  line-height: 1.1;
+.public-chat-widget .chat-body {
+    height: 300px;
+    display: flex;
+    flex-direction: column;
+    background: rgba(30, 30, 30, 0.95);
 }
 
-.market-asset-name {
-  color: rgba(255, 255, 255, 0.58);
-  font-size: 0.82rem;
-  margin-top: 2px;
-  max-width: 160px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+.public-chat-widget.collapsed .chat-body {
+    display: none;
 }
 
-.market-asset-change {
-  font-size: 1.05rem;
-  line-height: 1.1;
+.public-chat-widget .chat-messages {
+    flex: 1;
+    overflow-y: auto;
+    padding: 10px;
 }
 
-.market-asset-badge {
-  border-radius: 999px;
-  padding: 0.28rem 0.55rem;
-  letter-spacing: 0.6px;
+.public-chat-widget .chat-input-area {
+    padding: 10px;
+    border-top: 1px solid #444;
+    display: flex;
+    gap: 5px;
 }
 
-.market-asset-price {
-  font-size: 1.45rem;
+.chat-message {
+    margin-bottom: 10px;
+    padding: 5px;
+    border-bottom: 1px solid #333;
+}
+.chat-message .sender {
+    font-weight: bold;
+    color: #d4af37;
+    font-size: 0.9em;
+    margin-bottom: 2px;
+}
+.chat-message .content {
+    color: #fff;
+    word-break: break-word;
+}
+.chat-message .time {
+    font-size: 0.7em;
+    color: #888;
+    text-align: right; /* RTL aware */
 }
 
-.market-asset-volume {
-  font-family: 'Roboto Mono', monospace;
-  font-size: 0.95rem;
+/* RTL Support for Chat Widget */
+[dir="rtl"] .public-chat-widget {
+    right: auto;
+    left: 20px;
+}
+[dir="rtl"] .chat-message .time {
+    text-align: left;
 }
 
-.market-trade-btn {
-  border-radius: 10px !important;
-  padding: 0.7rem 0.9rem;
-  letter-spacing: 0.2px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
-  border: 1px solid rgba(212, 175, 55, 0.22);
-  background: linear-gradient(135deg, rgba(212, 175, 55, 0.95) 0%, rgba(255, 221, 128, 0.95) 100%);
-  color: #0b0e11;
-  transition: transform 0.12s ease, filter 0.12s ease;
+/* News Ticker Styles */
+.news-ticker-container {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 40px;
+    background: #000;
+    border-top: 1px solid var(--gold-primary);
+    z-index: 9998; /* Below chat widget */
+    display: flex;
+    align-items: center;
+    color: #fff;
+    box-shadow: 0 -2px 10px rgba(0,0,0,0.5);
 }
 
-.market-trade-btn:hover {
-  filter: brightness(1.02) saturate(1.05);
+.news-ticker-label {
+    background: var(--gold-primary);
+    color: #000;
+    height: 100%;
+    padding: 0 15px;
+    display: flex;
+    align-items: center;
+    font-weight: bold;
+    z-index: 2;
+    font-family: 'Cairo', sans-serif;
+    white-space: nowrap;
 }
 
-.market-trade-btn:active {
-  transform: scale(0.98);
+.news-ticker-content {
+    flex: 1;
+    overflow: hidden;
+    height: 100%;
+    position: relative;
+    background: rgba(0,0,0,0.8);
 }
 
-.market-trade-btn:focus {
-  box-shadow: 0 0 0 0.2rem rgba(212, 175, 55, 0.25) !important;
+.news-ticker-move {
+    display: flex;
+    align-items: center;
+    height: 100%;
+    white-space: nowrap;
+    position: absolute;
+    animation: ticker-move 30s linear infinite;
 }
 
-.market-nav-btn {
-  border-radius: 10px !important;
-  padding: 0.65rem 0.9rem;
-  font-weight: 800;
-  letter-spacing: 0.2px;
+.news-ticker-item {
+    display: inline-flex;
+    align-items: center;
+    padding: 0 30px;
+    color: #fff;
+    font-family: 'Cairo', sans-serif;
+    font-size: 0.9rem;
 }
 
-.market-nav-btn:focus {
-  box-shadow: 0 0 0 0.2rem rgba(212, 175, 55, 0.18) !important;
+.news-ticker-item i {
+    margin: 0 8px; /* Space between icon and text */
 }
 
-.modal-content.border-gold {
-  border-radius: 14px;
-  border: 1px solid rgba(212, 175, 55, 0.25) !important;
-  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.75);
+@keyframes ticker-move {
+    0% { transform: translateX(100vw); }
+    100% { transform: translateX(-100%); }
 }
 
-.modal-header .modal-title {
-  letter-spacing: 0.2px;
+/* RTL Support for News Ticker */
+[dir="rtl"] .news-ticker-move {
+    animation: ticker-move-rtl 30s linear infinite;
+    flex-direction: row-reverse; /* Ensure items flow correctly if needed */
 }
 
-.modal .form-control {
-  border-radius: 10px;
+@keyframes ticker-move-rtl {
+    0% { transform: translateX(-100vw); }
+    100% { transform: translateX(100%); }
 }
 
-.modal .btn.btn-luxury-gold {
-  border-radius: 10px;
+/* Adjust Chat Widget to not overlap News Ticker */
+.public-chat-widget {
+    bottom: 40px !important; /* Height of news ticker */
+    border-radius: 8px 8px 0 0;
 }
 
-.table-avatar {
-  width: 42px;
-  height: 42px;
-  border-radius: 50%;
-  object-fit: cover;
-  flex: 0 0 42px;
+/* Chat Widget Input Area Fix */
+.public-chat-widget .chat-input-area {
+    align-items: center;
 }
 
-.user-cell {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  min-width: 0;
+.public-chat-widget .chat-input-area input {
+    height: 38px; /* Match button height */
 }
 
-.user-name-link {
-  display: inline-block;
-  max-width: 240px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.table-leaderboard td,
-.table-leaderboard th {
-  vertical-align: middle;
-}
-
-@media (max-width: 576px) {
-  .market-asset-icon {
-    width: 36px;
-    height: 36px;
-    flex-basis: 36px;
-  }
-  .market-asset-icon i {
-    font-size: 0.95rem;
-  }
-  .market-asset-name {
-    max-width: 120px;
-  }
-  .market-asset-price {
-    font-size: 1.25rem;
-  }
-  .user-name-link {
-    max-width: 160px;
-  }
-  .table-avatar {
-    width: 36px;
-    height: 36px;
-    flex-basis: 36px;
-  }
-}
-
-.car-image-container {
-  height: 180px;
-  width: 100%;
-  overflow: hidden;
-  border-top-left-radius: 12px;
-  border-top-right-radius: 12px;
-  background: rgba(0, 0, 0, 0.25);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.car-image {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  display: block;
-}
-
-.car-card {
-  overflow: hidden;
-}
-
-.modal {
-  z-index: 2000;
-}
-
-.modal-backdrop {
-  z-index: 1990;
+/* Adjust PWA Install Button */
+#pwa-install-btn {
+    bottom: 120px !important; /* Move up above chat and ticker */
 }

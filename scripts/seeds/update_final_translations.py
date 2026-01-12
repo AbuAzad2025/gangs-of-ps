@@ -1062,7 +1062,7 @@ TRANSLATIONS = {
     "تواصل لامتلاك المنصة": "",
     "تواصل معنا": "Contact Us",
     "تواصل وتأكيد عبر واتساب": "",
-    "تواصل وتأكيد عبر واتساب (+972562150193)": "Contact and Confirm via WhatsApp (+972562150193)",
+    "تواصل وتأكيد عبر واتساب (+00970598953362)": "Contact and Confirm via WhatsApp (+00970598953362)",
     "توزع المكافآت والخبرة وفق المساهمة والنجاح الجماعي": "",
     "توزع المكافآت والخبرة وفق المساهمة والنجاح الجماعي.": "Rewards and experience are distributed based on contribution and collective success.",
     "توزيع": "",

@@ -543,7 +543,8 @@ def create_app(config_class=Config):
         # Add generic tips if empty
         if not ticker_items:
              ticker_items.append({'type': 'tip', 'text': _("💡 نصيحة: قم بزيارة الجيم لزيادة قوتك!")})
-             ticker_items.append({'type': 'tip', 'text': _("💡 نصيحة: انضم لعصابة لتحصل على حماية إضافية.")})
+             ticker_items.append({'type': 'announcement', 'text': "📢 اللاعبين الكرام: لا تترددوا في طلب مزايا وتحديثات للعبة، نحن بخدمتكم. | Dear players: Do not hesitate to request game features and updates, we are at your service."})
+             ticker_items.append({'type': 'announcement', 'text': "👨‍💻 للتواصل والاقتراحات: يرجى التواصل مع المطور أزاد. | For suggestions and contact: Please reach out to Developer Azad."})
 
         return dict(
             global_announcement=latest_announcement,

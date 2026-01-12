@@ -618,8 +618,8 @@
                 <ul class="list-unstyled text-muted">
                     <li class="mb-3 d-flex align-items-center"><i class="fas fa-building text-gold mr-3 fa-lg"></i> <div>{{ _('شركة أزاد للأنظمة الذكية') }}</div></li>
                     <li class="mb-3 d-flex align-items-center"><i class="fas fa-user-tie text-gold mr-3 fa-lg"></i> <div>{{ _('إدارة: م. أحمد غنام') }}</div></li>
-                    <li class="mb-3 d-flex align-items-center"><i class="fas fa-phone text-gold mr-3 fa-lg"></i> <div dir="ltr">0562150193</div></li>
-                    <li class="mb-3 d-flex align-items-center"><i class="fab fa-whatsapp text-success mr-3 fa-lg"></i> <div dir="ltr">00972562150193</div></li>
+                    <li class="mb-3 d-flex align-items-center"><i class="fas fa-phone text-gold mr-3 fa-lg"></i> <div dir="ltr">00970598953362</div></li>
+                    <li class="mb-3 d-flex align-items-center"><i class="fab fa-whatsapp text-success mr-3 fa-lg"></i> <div dir="ltr">00970598953362</div></li>
                 </ul>
             </div>
         </div>
@@ -629,7 +629,7 @@
         <div class="container">
             <div class="row align-items-center">
                 <div class="col-12 mb-2 mb-md-0">
-                    <strong>Copyright &copy; 2025 <a href="#" class="text-gold">{{ _('شركة أزاد للأنظمة الذكية') }}</a>.</strong>
+                    <strong>Copyright &copy; 2026 <a href="#" class="text-gold">{{ _('شركة أزاد للأنظمة الذكية') }}</a>.</strong>
                     {{ _('جميع الحقوق محفوظة.') }}
                     <div class="mt-1 small text-muted">{{ _('إدارة: م. أحمد غنام') }}</div>
                 </div>
@@ -1024,8 +1024,17 @@
     }
 
     function loadPublicChatMessages() {
-        fetch('/api/public-chat/messages')
-            .then(response => response.json())
+        fetch('/api/public-chat/messages', {
+            headers: {
+                'X-CSRFToken': '{{ csrf_token() }}'
+            }
+        })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok (' + response.status + ')');
+                }
+                return response.json();
+            })
             .then(data => {
                 const container = document.getElementById('public-chat-messages');
                 container.innerHTML = '';
@@ -1065,7 +1074,11 @@
                 // Auto scroll to bottom
                 container.scrollTop = container.scrollHeight;
             })
-            .catch(err => console.error('Chat load error:', err));
+            .catch(err => {
+                console.error('Chat load error:', err);
+                const container = document.getElementById('public-chat-messages');
+                container.innerHTML = `<div class="text-center text-danger mt-3">{{ _("حدث خطأ في تحميل الرسائل") }}<br><small>${err.message}</small><br><button class="btn btn-sm btn-outline-danger mt-2" onclick="loadPublicChatMessages()">{{ _("إعادة المحاولة") }}</button></div>`;
+            });
     }
 
     function toggleBanUser(userId, isBanned) {

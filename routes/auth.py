@@ -336,7 +336,7 @@ def unconfirmed():
     if current_user.is_authenticated and current_user.is_verified:
         return redirect(url_for('main.hara'))
     
-    whatsapp_number = SystemConfig.get_value('support_whatsapp_number', '970591234567')
+    whatsapp_number = SystemConfig.get_value('support_whatsapp_number', '970598953362')
     return render_template('unconfirmed.html', whatsapp_number=whatsapp_number)
 
 @bp.route('/resend_confirmation')

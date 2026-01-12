@@ -443,7 +443,7 @@ def hara():
         "next_diamonds": next_diamonds,
     }
 
-    return render_template('hara.html', user=current_user, announcements=announcements, daily_reward_meta=daily_reward_meta)
+    return render_template('hara.html', user=current_user, announcements=announcements, daily_reward_meta=daily_reward_meta, page_container_class='')
 
 @bp.route('/empire')
 @login_required
