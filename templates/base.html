@@ -1195,5 +1195,26 @@
 })();
 </script>
 {% block scripts %}{% endblock %}
+<!-- YouTube Widget -->
+<div id="youtube-widget" class="youtube-widget">
+    <div class="youtube-header" id="youtube-header">
+        <div class="youtube-title"><i class="fab fa-youtube text-danger mr-2"></i> {{ _('يوتيوب') }}</div>
+        <div class="youtube-controls">
+            <i class="fas fa-minus" id="youtube-minimize-btn" title="{{ _('تصغير') }}"></i>
+            <i class="fas fa-times" id="youtube-close-btn" title="{{ _('إغلاق') }}"></i>
+        </div>
+    </div>
+    <div class="youtube-body" id="youtube-body">
+        <div class="youtube-search">
+            <input type="text" id="youtube-search-input" placeholder="{{ _('بحث أو رابط فيديو...') }}">
+            <button id="youtube-search-btn"><i class="fas fa-search"></i></button>
+        </div>
+        <div class="youtube-iframe-container">
+            <iframe id="youtube-iframe" src="" allowfullscreen allow="autoplay; encrypted-media"></iframe>
+        </div>
+    </div>
+</div>
+
+<script src="{{ url_for('static', filename='js/youtube_widget.js') }}"></script>
 </body>
 </html>

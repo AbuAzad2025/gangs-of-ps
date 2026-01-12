@@ -1,4 +1,135 @@
-/* Mobile App Experience Enhancements - Consolidated Variables */
+/* YouTube Widget */
+.youtube-widget {
+    position: fixed;
+    top: 100px;
+    left: 20px;
+    width: 360px;
+    height: 360px;
+    background: #1e1e1e;
+    border: 1px solid var(--gold-primary);
+    border-radius: 8px;
+    z-index: 10001; /* Above chat widget */
+    box-shadow: 0 5px 20px rgba(0,0,0,0.7);
+    display: none; /* Hidden by default */
+    flex-direction: column;
+    overflow: hidden;
+    resize: both; /* Allow resizing */
+    min-width: 300px;
+    min-height: 40px;
+}
+
+[dir="rtl"] .youtube-widget {
+    left: auto;
+    right: 20px;
+}
+
+.youtube-widget.minimized {
+    resize: none;
+    height: auto !important;
+}
+
+.youtube-header {
+    padding: 8px 12px;
+    background: linear-gradient(45deg, #000, #333);
+    color: var(--gold-primary);
+    cursor: move;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid #333;
+    user-select: none;
+}
+
+.youtube-title {
+    font-weight: bold;
+    font-size: 0.9rem;
+    display: flex;
+    align-items: center;
+}
+
+.youtube-controls i {
+    cursor: pointer;
+    margin-left: 10px;
+    color: #888;
+    transition: color 0.2s;
+    font-size: 0.9rem;
+}
+
+[dir="rtl"] .youtube-controls i {
+    margin-left: 0;
+    margin-right: 10px;
+}
+
+.youtube-controls i:hover {
+    color: #fff;
+}
+
+.youtube-body {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    background: #000;
+}
+
+.youtube-search {
+    display: flex;
+    padding: 8px;
+    background: #1e1e1e;
+    border-bottom: 1px solid #333;
+}
+
+.youtube-search input {
+    flex: 1;
+    background: #333;
+    border: 1px solid #444;
+    color: #fff;
+    padding: 6px 10px;
+    border-radius: 4px;
+    font-size: 0.85rem;
+    outline: none;
+}
+
+.youtube-search input:focus {
+    border-color: var(--gold-primary);
+}
+
+.youtube-search button {
+    background: var(--gold-primary);
+    border: none;
+    color: #000;
+    padding: 4px 12px;
+    border-radius: 4px;
+    margin-left: 5px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: background 0.2s;
+}
+
+.youtube-search button:hover {
+    background: #fff;
+}
+
+[dir="rtl"] .youtube-search button {
+    margin-left: 0;
+    margin-right: 5px;
+}
+
+.youtube-iframe-container {
+    flex: 1;
+    position: relative;
+    background: #000;
+    overflow: hidden;
+}
+
+.youtube-iframe-container iframe {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    border: 0;
+}
+
 :root {
   --market-up: #0ecb81;
   --market-down: #f6465d;
