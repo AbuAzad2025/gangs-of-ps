@@ -26,20 +26,26 @@
                     <a href="#crimes" class="list-group-item list-group-item-action">
                         <i class="fas fa-mask text-danger ml-2"></i> {{ _('نظام الجرائم') }}
                     </a>
-                    <a href="#organized-crimes" class="list-group-item list-group-item-action">
-                        <i class="fas fa-users text-warning ml-2"></i> {{ _('الجرائم المنظمة') }}
-                    </a>
-                    <a href="#ranks" class="list-group-item list-group-item-action">
-                        <i class="fas fa-crown text-warning ml-2"></i> {{ _('الرتب') }}
-                    </a>
-                    <a href="#stats" class="list-group-item list-group-item-action">
-                        <i class="fas fa-chart-bar text-success ml-2"></i> {{ _('الإحصائيات والطاقة') }}
-                    </a>
                     <a href="#gangs" class="list-group-item list-group-item-action">
                         <i class="fas fa-users text-warning ml-2"></i> {{ _('العصابات') }}
                     </a>
+                    <a href="#economy" class="list-group-item list-group-item-action">
+                        <i class="fas fa-coins text-gold ml-2"></i> {{ _('الاقتصاد والمصانع') }}
+                    </a>
+                    <a href="#blackmarket" class="list-group-item list-group-item-action">
+                        <i class="fas fa-store-slash text-secondary ml-2"></i> {{ _('السوق السوداء') }}
+                    </a>
+                    <a href="#city" class="list-group-item list-group-item-action">
+                        <i class="fas fa-city text-primary ml-2"></i> {{ _('المدينة والخدمات') }}
+                    </a>
+                     <a href="#entertainment" class="list-group-item list-group-item-action">
+                        <i class="fas fa-dice text-danger ml-2"></i> {{ _('الترفيه والمخاطرة') }}
+                    </a>
+                    <a href="#stats" class="list-group-item list-group-item-action">
+                        <i class="fas fa-chart-bar text-success ml-2"></i> {{ _('الإحصائيات') }}
+                    </a>
                     <a href="#faq" class="list-group-item list-group-item-action">
-                        <i class="fas fa-question-circle text-primary ml-2"></i> {{ _('أسئلة شائعة') }}
+                        <i class="fas fa-question-circle text-light ml-2"></i> {{ _('أسئلة شائعة') }}
                     </a>
                 </div>
             </div>
@@ -64,167 +70,175 @@
             <!-- Crimes -->
             <div id="crimes" class="luxury-card p-4 mb-4 fade-in-up anim-delay-5">
                 <h3 class="text-gold border-bottom border-secondary pb-2 mb-3">
-                    <i class="fas fa-mask text-danger ml-2"></i> {{ _('كيف تعمل الجرائم؟') }}
+                    <i class="fas fa-mask text-danger ml-2"></i> {{ _('نظام الجرائم') }}
                 </h3>
-                <p class="text-light">{{ _('الجرائم هي المصدر الرئيسي للمال والخبرة. تعتمد نسبة نجاح الجريمة على عدة عوامل:') }}</p>
-                <ul class="text-muted">
-                    <li class="mb-2"><strong class="text-info">{{ _('المستوى (Level):') }}</strong> {{ _('كلما زاد مستواك مقارنة بمستوى الجريمة، زادت فرصتك في النجاح.') }}</li>
-                    <li class="mb-2"><strong class="text-info">{{ _('المعادلة:') }}</strong> {{ _('نسبة النجاح تبدأ من 50%% وتزيد بنسبة 5%% لكل مستوى أعلى من المطلوب للجريمة، بحد أقصى 95%%.') }}</li>
-                    <li class="mb-2"><strong class="text-info">{{ _('الحظ:') }}</strong> {{ _('دائماً هناك عنصر الحظ العشوائي، حتى المحترفين قد يفشلون أحياناً!') }}</li>
+                <p class="text-light">{{ _('الجرائم هي المصدر الرئيسي للمال والخبرة في بداياتك. تنقسم إلى:') }}</p>
+                
+                <h5 class="text-warning mt-3"><i class="fas fa-running mr-1"></i> {{ _('الجرائم الفردية') }}</h5>
+                <p class="text-muted small">{{ _('مهام يومية تستهلك "الطاقة". نجاحك يعتمد على مستواك. الفشل قد يؤدي للسجن أو المستشفى.') }}</p>
+
+                <h5 class="text-danger mt-3"><i class="fas fa-users mr-1"></i> {{ _('الجرائم المنظمة') }}</h5>
+                <p class="text-muted small">{{ _('عمليات كبرى تتطلب فريقاً من 4 لاعبين (سائق، خبير متفجرات، مسلح، قائد). يجب التنسيق والتخطيط بدقة للحصول على غنائم ضخمة.') }}</p>
+                <ul class="text-muted small">
+                    <li><strong class="text-light">{{ _('التخطيط:') }}</strong> {{ _('يجب الانتظار واختيار اللحظة المناسبة للتنفيذ.') }}</li>
+                    <li><strong class="text-light">{{ _('الأدوار:') }}</strong> {{ _('كل دور يتطلب مهارات وأدوات محددة (سيارة، سلاح، إلخ).') }}</li>
                 </ul>
-                <p class="text-light mt-3">{{ _('في حال الفشل، قد تخسر الطاقة فقط، أو قد ينتهي بك المطاف في السجن!') }}</p>
-            </div>
-
-            <!-- Ranks -->
-            <div id="ranks" class="luxury-card p-4 mb-4 fade-in-up anim-delay-5">
-                <h3 class="text-gold border-bottom border-secondary pb-2 mb-3">
-                    <i class="fas fa-crown text-warning ml-2"></i> {{ _('نظام الرتب') }}
-                </h3>
-                <p class="text-light">{{ _('كلما زاد مستواك، حصلت على لقب جديد يعكس هيبتك في الحارة:') }}</p>
-                <div class="row text-center text-muted small">
-                    <div class="col-4 mb-2"><span class="text-white">1-2</span>: {{ _('متشرد') }}</div>
-                    <div class="col-4 mb-2"><span class="text-white">3-4</span>: {{ _('نشال') }}</div>
-                    <div class="col-4 mb-2"><span class="text-white">5-9</span>: {{ _('لص') }}</div>
-                    <div class="col-4 mb-2"><span class="text-white">10-14</span>: {{ _('بلطجي') }}</div>
-                    <div class="col-4 mb-2"><span class="text-white">15-19</span>: {{ _('مجرم') }}</div>
-                    <div class="col-4 mb-2"><span class="text-white">20-24</span>: {{ _('قاتل مأجور') }}</div>
-                    <div class="col-4 mb-2"><span class="text-white">25-29</span>: {{ _('جندي عصابة') }}</div>
-                    <div class="col-4 mb-2"><span class="text-white">30-39</span>: {{ _('كابتن') }}</div>
-                    <div class="col-4 mb-2"><span class="text-white">40-49</span>: {{ _('محترف') }}</div>
-                    <div class="col-4 mb-2"><span class="text-white">50-64</span>: {{ _('مستشار') }}</div>
-                    <div class="col-4 mb-2"><span class="text-white">65-79</span>: {{ _('وكيل') }}</div>
-                    <div class="col-4 mb-2"><span class="text-white">80-99</span>: {{ _('زعيم') }}</div>
-                    <div class="col-4 mb-2"><span class="text-white">100+</span>: {{ _('العراب') }}</div>
-                </div>
-            </div>
-
-            <!-- Stats & Energy -->
-            <div id="stats" class="luxury-card p-4 mb-4 fade-in-up anim-delay-10">
-                <h3 class="text-gold border-bottom border-secondary pb-2 mb-3">
-                    <i class="fas fa-bolt text-warning ml-2"></i> {{ _('الطاقة والصحة') }}
-                </h3>
-                <div class="row">
-                    <div class="col-md-6">
-                        <h5 class="text-warning">{{ _('الطاقة (Energy)') }}</h5>
-                        <p class="text-muted">{{ _('تحتاجها لتنفيذ الجرائم. يمكنك استعادة الطاقة عبر:') }}</p>
-                        <ul class="text-muted small">
-                            <li>{{ _('الانتظار: يتم استعادة جزء من طاقتك تلقائياً مع الوقت (كل بضع دقائق).') }}</li>
-                            <li>{{ _('المكافآت اليومية') }}</li>
-                            <li>{{ _('شراء مشروبات طاقة من المستشفى أو السوق السوداء.') }}</li>
-                            <li>{{ _('ترقية مستواك (تعبئة كاملة)') }}</li>
-                        </ul>
-                    </div>
-                    <div class="col-md-6">
-                        <h5 class="text-danger">{{ _('الصحة (Health)') }}</h5>
-                        <p class="text-muted">{{ _('تتناقص عند التعرض للهجوم أو الفشل في الجرائم الخطرة. إذا وصلت للصفر تدخل المستشفى.') }}</p>
-                    </div>
-                </div>
             </div>
 
             <!-- Gangs -->
-            <div id="gangs" class="luxury-card p-4 mb-4 fade-in-up anim-delay-15">
+            <div id="gangs" class="luxury-card p-4 mb-4 fade-in-up anim-delay-10">
                 <h3 class="text-gold border-bottom border-secondary pb-2 mb-3">
-                    <i class="fas fa-users text-gold ml-2"></i> {{ _('نظام العصابات والحروب') }}
+                    <i class="fas fa-users text-gold ml-2"></i> {{ _('نظام العصابات') }}
                 </h3>
-                <p class="text-light">{{ _('اللعب الجماعي هو مفتاح السيطرة. يمكنك إنشاء عصابة أو الانضمام لواحدة.') }}</p>
+                <p class="text-light">{{ _('لا أحد يحكم الشارع وحيداً. انضم لعصابة أو أنشئ واحدة للسيطرة.') }}</p>
                 
-                <h5 class="text-warning mt-4"><i class="fas fa-filter mr-1"></i> {{ _('سياسات التجنيد') }}</h5>
-                <p class="text-muted">{{ _('يمكن لزعماء العصابات تحديد شروط خاصة للانضمام:') }}</p>
-                <ul class="text-muted small">
-                    <li><strong class="text-light">{{ _('المستوى:') }}</strong> {{ _('تحديد حد أدنى للمستوى.') }}</li>
-                    <li><strong class="text-light">{{ _('الجنسية:') }}</strong> {{ _('يمكن حصر العصابة على دول معينة.') }}</li>
-                    <li><strong class="text-light">{{ _('طريقة الانضمام:') }}</strong> {{ _('مفتوح، دعوات فقط، أو مغلق.') }}</li>
-                </ul>
-
-                <h5 class="text-danger mt-4"><i class="fas fa-skull-crossbones mr-1"></i> {{ _('نظام الطرد الصارم') }}</h5>
-                <p class="text-muted">{{ _('طرد الأعضاء ليس سهلاً! يكلف خزينة العصابة مبلغاً من المال كـ "مكافأة نهاية خدمة"، وتخسر العصابة جزءاً من خبرتها. فكر جيداً قبل الضم أو الطرد!') }}</p>
-
-                <h5 class="text-warning mt-4"><i class="fas fa-handshake mr-1"></i> {{ _('التحالفات') }}</h5>
-                <p class="text-muted">{{ _('يمكن للعصابات توقيع معاهدات سلام تمنع الهجوم المتبادل بين أعضائها.') }}</p>
-
-                <h5 class="text-danger mt-4"><i class="fas fa-fighter-jet mr-1"></i> {{ _('الحروب الحديثة') }}</h5>
-                <p class="text-muted">{{ _('الحرب ليست مجرد قتال شوارع. هناك عدة أنواع:') }}</p>
-                <ul class="text-muted small">
-                    <li><strong class="text-light">{{ _('حرب الشوارع:') }}</strong> {{ _('القتال التقليدي بالأسلحة.') }}</li>
-                    <li><strong class="text-light">{{ _('الهجمات السيبرانية:') }}</strong> {{ _('موجودة كجرائم تعتمد على الذكاء وتمنح مالاً وخبرة.') }}</li>
-                    <li><strong class="text-light">{{ _('الحرب الاقتصادية:') }}</strong> {{ _('تدمير استثمارات العدو في البورصة وانهيار أسهمهم.') }}</li>
-                </ul>
-                <div class="alert alert-dark border border-danger text-danger mt-2">
-                    <i class="fas fa-exclamation-circle mr-2"></i> {{ _('تنبيه: قتل الأعضاء الكبار (زعماء أو مستوى 50+) يشعل الحرب تلقائياً!') }}
-                </div>
-            </div>
-
-            <!-- Search -->
-            <div id="search" class="luxury-card p-4 mb-4 fade-in-up anim-delay-10">
-                <h3 class="text-gold border-bottom border-secondary pb-2 mb-3">
-                    <i class="fas fa-search text-info ml-2"></i> {{ _('نظام البحث') }}
-                </h3>
-                <p class="text-light">{{ _('يمكنك الآن البحث عن أي شيء داخل اللعبة:') }}</p>
-                <ul class="text-muted">
-                    <li class="mb-2"><strong class="text-info">{{ _('بحث اللاعبين:') }}</strong> {{ _('ابحث عن أصدقائك أو أعدائك بالاسم.') }}</li>
-                    <li class="mb-2"><strong class="text-info">{{ _('بحث العصابات:') }}</strong> {{ _('ابحث عن العصابات للانضمام إليها أو استهدافها. النتائج تشمل اسم العصابة، قائدها، ومستواها.') }}</li>
-                </ul>
-            </div>
-
-            <!-- Organized Crimes -->
-            <div id="organized-crimes" class="luxury-card p-4 mb-4 animate__animated animate__fadeInUp anim-delay-4">
-                <h3 class="text-gold border-bottom border-secondary pb-2 mb-3">
-                    <i class="fas fa-users text-warning ml-2"></i> {{ _('الجرائم المنظمة العامة') }}
-                </h3>
-                <p class="text-light">{{ _('الجرائم المنظمة هي عمليات معقدة تتطلب تعاوناً وتخطيطاً دقيقاً. إليك القواعد الجديدة:') }}</p>
-                <ul class="text-muted small">
-                    <li><strong class="text-light">{{ _('وقت التخطيط (Planning Time):') }}</strong> {{ _('بعد اكتمال العدد المطلوب، تبدأ مرحلة التخطيط والمراجعة (حالياً 10 ثوانٍ) للتأكد من جاهزية الجميع قبل التنفيذ.') }}</li>
-                    <li><strong class="text-light">{{ _('فترة التهدئة (Cooldown):') }}</strong> {{ _('بعد نجاح أو فشل الجريمة، يكون هناك فترة تهدئة خاصة بتلك الجريمة فقط (منفصلة عن الجرائم الأخرى).') }}</li>
-                    <li><strong class="text-light">{{ _('الراحة الإجبارية:') }}</strong> {{ _('بعد إتمام أي جريمة منظمة بنجاح، يجب عليك الانتظار 23 ساعة و 59 دقيقة قبل المشاركة في جريمة منظمة أخرى.') }}</li>
-                    <li><strong class="text-light">{{ _('المعدات:') }}</strong> {{ _('بعض الأدوار تتطلب أدوات خاصة (مثل أجهزة مشفرة، أقنعة، سيارات سريعة) يجب شراؤها من السوق السوداء قبل الانضمام.') }}</li>
-                    <li><strong class="text-light">{{ _('التزامن:') }}</strong> {{ _('لا يمكنك الانضمام لأكثر من لوبي (غرفة انتظار) في نفس الوقت.') }}</li>
-                    <li><strong class="text-light">{{ _('الأدوار:') }}</strong> {{ _('توزيع الأدوار حاسم (قائد، سائق، مخترق...). اختر الدور الذي يناسب إحصائياتك ومعداتك.') }}</li>
-                </ul>
-                <div class="alert alert-dark border border-warning text-warning">
-                    <i class="fas fa-info-circle mr-2"></i> {{ _('نصيحة: تأكد من امتلاكك للمعدات المطلوبة قبل الانضمام، وإلا قد يتم طردك أو تفشل المهمة!') }}
+                <div class="row mt-4">
+                    <div class="col-md-6 mb-3">
+                        <div class="bg-dark p-3 rounded border border-secondary h-100">
+                            <h5 class="text-info"><i class="fas fa-shield-alt mr-2"></i> {{ _('الحماية والدعم') }}</h5>
+                            <p class="text-muted small mb-0">{{ _('العصابة توفر لك الحماية من هجمات الآخرين، وتساعدك في الهروب من السجن.') }}</p>
+                        </div>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <div class="bg-dark p-3 rounded border border-secondary h-100">
+                            <h5 class="text-danger"><i class="fas fa-fighter-jet mr-2"></i> {{ _('الحروب') }}</h5>
+                            <p class="text-muted small mb-0">{{ _('شن حروباً على عصابات أخرى للسيطرة على مناطقهم ومواردهم. الحروب تشمل قتال الشوارع، الهجمات السيبرانية، والحرب الاقتصادية.') }}</p>
+                        </div>
+                    </div>
                 </div>
             </div>
 
             <!-- Economy -->
-            <div id="economy" class="luxury-card p-4 mb-4 animate__animated animate__fadeInUp anim-delay-20">
+            <div id="economy" class="luxury-card p-4 mb-4 fade-in-up anim-delay-15">
                 <h3 class="text-gold border-bottom border-secondary pb-2 mb-3">
-                    <i class="fas fa-chart-line text-gold ml-2"></i> {{ _('بورصة غسيل الأموال') }}
+                    <i class="fas fa-coins text-gold ml-2"></i> {{ _('الاقتصاد: المصانع والمزارع') }}
                 </h3>
-                <p class="text-light">{{ _('السوق المالي هو المكان الأمثل لغسيل أموالك غير الشرعية واستثمارها في شركات عالمية حقيقية.') }}</p>
-                <ul class="text-muted small">
-                    <li><strong class="text-light">{{ _('الأسعار الحقيقية:') }}</strong> {{ _('نستخدم بيانات حية من البورصات العالمية (Bitcoin, Apple, Tesla).') }}</li>
-                    <li><strong class="text-light">{{ _('المخاطرة:') }}</strong> {{ _('السوق يرتفع وينخفض. اشترِ عند الانخفاض وبع عند الارتفاع.') }}</li>
-                    <li><strong class="text-light">{{ _('تسييل المحفظة:') }}</strong> {{ _('يمكنك بيع أسهمك في أي وقت للحصول على الكاش.') }}</li>
+                <p class="text-light">{{ _('المال الحقيقي يأتي من الإنتاج والتجارة، وليس فقط السرقة.') }}</p>
+
+                <h5 class="text-success mt-3"><i class="fas fa-industry mr-1"></i> {{ _('المصانع (Factory)') }}</h5>
+                <p class="text-muted small">{{ _('امتلك مصانع لإنتاج الأسلحة، الدروع، والمركبات. يمكنك بيع إنتاجك في السوق للاعبين الآخرين.') }}</p>
+
+                <h5 class="text-success mt-3"><i class="fas fa-seedling mr-1"></i> {{ _('المزارع (Farms)') }}</h5>
+                <p class="text-muted small">{{ _('ازرع الممنوعات والموارد الأولية اللازمة للمصانع. المزارع تتطلب رعاية وحماية من السرقة.') }}</p>
+                
+                <h5 class="text-info mt-3"><i class="fas fa-chart-line mr-1"></i> {{ _('البورصة وغسيل الأموال') }}</h5>
+                <p class="text-muted small">{{ _('استثمر أموالك "الكاش" في البورصة لغسلها وحمايتها. راقب السوق، فالأسعار تتغير باستمرار!') }}</p>
+            </div>
+
+            <!-- Black Market -->
+            <div id="blackmarket" class="luxury-card p-4 mb-4 fade-in-up anim-delay-20">
+                <h3 class="text-gold border-bottom border-secondary pb-2 mb-3">
+                    <i class="fas fa-store-slash text-secondary ml-2"></i> {{ _('السوق السوداء') }}
+                </h3>
+                <p class="text-light">{{ _('المكان الذي لا تدخله الشرطة.') }}</p>
+                <ul class="text-muted">
+                    <li class="mb-2"><strong class="text-warning">{{ _('شراء الأسلحة:') }}</strong> {{ _('احصل على أحدث الأسلحة والدروع لزيادة قوتك الهجومية والدفاعية.') }}</li>
+                    <li class="mb-2"><strong class="text-warning">{{ _('المزادات (Auctions):') }}</strong> {{ _('زايد على عناصر نادرة ومميزة يطرحها لاعبون آخرون أو النظام.') }}</li>
+                    <li class="mb-2"><strong class="text-warning">{{ _('تجارة الممنوعات:') }}</strong> {{ _('بيع وشراء المواد المحظورة لتحقيق أرباح سريعة.') }}</li>
                 </ul>
-                <p class="text-muted mt-2">
-                    {{ _('فوائد العصابة تشمل الحماية من الهجمات الفردية، المشاركة في الجرائم المنظمة (Organized Crimes) للحصول على مكافآت ضخمة، والسيطرة على الممتلكات.') }}
-                </p>
+            </div>
+
+            <!-- City & Services -->
+            <div id="city" class="luxury-card p-4 mb-4 fade-in-up anim-delay-25">
+                <h3 class="text-gold border-bottom border-secondary pb-2 mb-3">
+                    <i class="fas fa-city text-primary ml-2"></i> {{ _('المدينة والخدمات') }}
+                </h3>
+                
+                <div class="row text-center">
+                    <div class="col-6 col-md-3 mb-3">
+                        <div class="p-3 bg-dark rounded border border-secondary h-100">
+                            <i class="fas fa-dumbbell fa-2x text-secondary mb-2"></i>
+                            <h6 class="text-light">{{ _('الجيم') }}</h6>
+                            <p class="small text-muted mb-0">{{ _('درب عضلاتك لزيادة قوتك القتالية.') }}</p>
+                        </div>
+                    </div>
+                    <div class="col-6 col-md-3 mb-3">
+                        <div class="p-3 bg-dark rounded border border-secondary h-100">
+                            <i class="fas fa-hospital fa-2x text-danger mb-2"></i>
+                            <h6 class="text-light">{{ _('المستشفى') }}</h6>
+                            <p class="small text-muted mb-0">{{ _('للعلاج بعد المعارك الخاسرة.') }}</p>
+                        </div>
+                    </div>
+                    <div class="col-6 col-md-3 mb-3">
+                        <div class="p-3 bg-dark rounded border border-secondary h-100">
+                            <i class="fas fa-bars fa-2x text-light mb-2"></i>
+                            <h6 class="text-light">{{ _('السجن') }}</h6>
+                            <p class="small text-muted mb-0">{{ _('حاول الهرب أو انتظر خروجك.') }}</p>
+                        </div>
+                    </div>
+                    <div class="col-6 col-md-3 mb-3">
+                        <div class="p-3 bg-dark rounded border border-secondary h-100">
+                            <i class="fas fa-plane fa-2x text-info mb-2"></i>
+                            <h6 class="text-light">{{ _('السفر') }}</h6>
+                            <p class="small text-muted mb-0">{{ _('سافر بين المدن للتجارة والهرب.') }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Entertainment -->
+            <div id="entertainment" class="luxury-card p-4 mb-4 fade-in-up anim-delay-30">
+                <h3 class="text-gold border-bottom border-secondary pb-2 mb-3">
+                    <i class="fas fa-dice text-danger ml-2"></i> {{ _('الترفيه والمخاطرة') }}
+                </h3>
+                
+                <h5 class="text-warning mt-3"><i class="fas fa-dice mr-1"></i> {{ _('الكازينو') }}</h5>
+                <p class="text-muted small">{{ _('جرب حظك في الروليت، البلاك جاك، أو ماكينات الحظ. قد تربح الملايين أو تخسر كل شيء!') }}</p>
+
+                <h5 class="text-danger mt-3"><i class="fas fa-flag-checkered mr-1"></i> {{ _('سباقات السيارات') }}</h5>
+                <p class="text-muted small">{{ _('اشترِ سيارات رياضية من الكراج، عدّلها، وشارك في سباقات الشوارع والمطارحات.') }}</p>
+
+                <h5 class="text-pink mt-3"><i class="fas fa-glass-cheers mr-1"></i> {{ _('المضيفات') }}</h5>
+                <p class="text-muted small">{{ _('تفاعل مع المضيفات (ياسمين، ليلى، روبي، سارة) للحصول على دعم معنوي وهدايا خاصة.') }}</p>
+            </div>
+
+            <!-- Stats -->
+            <div id="stats" class="luxury-card p-4 mb-4 fade-in-up anim-delay-35">
+                <h3 class="text-gold border-bottom border-secondary pb-2 mb-3">
+                    <i class="fas fa-chart-bar text-success ml-2"></i> {{ _('الإحصائيات') }}
+                </h3>
+                <div class="row">
+                    <div class="col-md-6">
+                        <ul class="list-group list-group-flush bg-transparent">
+                            <li class="list-group-item bg-transparent text-light px-0">
+                                <strong class="text-danger">{{ _('القوة (Strength):') }}</strong> {{ _('تحدد قوة ضرباتك في المعارك.') }}
+                            </li>
+                            <li class="list-group-item bg-transparent text-light px-0">
+                                <strong class="text-info">{{ _('الدفاع (Defense):') }}</strong> {{ _('يقلل الضرر الذي تتلقاه.') }}
+                            </li>
+                        </ul>
+                    </div>
+                    <div class="col-md-6">
+                        <ul class="list-group list-group-flush bg-transparent">
+                            <li class="list-group-item bg-transparent text-light px-0">
+                                <strong class="text-warning">{{ _('السرعة (Speed):') }}</strong> {{ _('تزيد فرصتك في إصابة الخصم وتفادي ضرباته.') }}
+                            </li>
+                            <li class="list-group-item bg-transparent text-light px-0">
+                                <strong class="text-success">{{ _('الذكاء (Intellect):') }}</strong> {{ _('مهم للجرائم الإلكترونية والإدارة.') }}
+                            </li>
+                        </ul>
+                    </div>
+                </div>
             </div>
 
             <!-- FAQ -->
-            <div id="faq" class="luxury-card p-4 mb-4 fade-in-up anim-delay-20">
+            <div id="faq" class="luxury-card p-4 mb-4 fade-in-up anim-delay-40">
                 <h3 class="text-gold border-bottom border-secondary pb-2 mb-3">
-                    <i class="fas fa-question-circle text-primary ml-2"></i> {{ _('أسئلة شائعة') }}
+                    <i class="fas fa-question-circle text-light ml-2"></i> {{ _('أسئلة شائعة') }}
                 </h3>
                 
                 <div class="mb-3">
-                    <h6 class="text-light font-weight-bold">{{ _('س: هل ألعب ضد ذكاء اصطناعي؟') }}</h6>
-                    <p class="text-muted small">{{ _('ج: اللاعبون الآخرون هم أشخاص حقيقيون. أما الشرطة وحراس الأمن في الجرائم فهم نظام اللعبة.') }}</p>
+                    <h6 class="text-light font-weight-bold">{{ _('س: كيف أحصل على المال بسرعة؟') }}</h6>
+                    <p class="text-muted small">{{ _('ج: ابدأ بالجرائم البسيطة، ثم استثمر في المخدرات عبر السفر، أو جرب حظك في الكازينو بحذر.') }}</p>
                 </div>
 
                 <div class="mb-3">
-                    <h6 class="text-light font-weight-bold">{{ _('س: كيف أحمي نفسي من الهجمات؟') }}</h6>
-                    <p class="text-muted small">{{ _('ج: قم بإيداع أموالك في البنك، اشتري أسلحة ودروع قوية، وانضم لعصابة قوية.') }}</p>
-                </div>
-
-                <div class="mb-3">
-                    <h6 class="text-light font-weight-bold">{{ _('س: هل يمكنني شراء طاقة؟') }}</h6>
-                    <p class="text-muted small">{{ _('ج: نعم، يمكنك استعادة طاقتك تلقائياً مع الوقت، أو شراء مشروبات طاقة من المستشفى والسوق السوداء مقابل المال داخل اللعبة.') }}</p>
+                    <h6 class="text-light font-weight-bold">{{ _('س: هل يمكنني تغيير اسمي أو شكلي؟') }}</h6>
+                    <p class="text-muted small">{{ _('ج: يمكنك تغيير "الأفاتار" الخاص بك من إعدادات الملف الشخصي، وشراء عناصر تجميلية من السوق.') }}</p>
                 </div>
             </div>
 
         </div>
     </div>
 </div>
-
 {% endblock %}
