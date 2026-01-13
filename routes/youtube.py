@@ -1,6 +1,9 @@
 from flask import Blueprint, request, jsonify, current_app
 from flask_login import login_required, current_user
-from youtubesearchpython import VideosSearch
+try:
+    from youtubesearchpython import VideosSearch
+except ImportError:
+    VideosSearch = None
 from flask_babel import gettext as _
 import logging
 
@@ -11,6 +14,8 @@ def search():
     query = request.args.get('q', '').strip()
     if not query:
         return jsonify({'error': _('يرجى إدخال كلمة البحث')}), 400
+    if VideosSearch is None:
+        return jsonify({'error': _('خدمة البحث غير متاحة حالياً')}), 503
 
     try:
         # Search for videos (limit 10)
