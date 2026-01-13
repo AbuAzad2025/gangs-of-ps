@@ -3,6 +3,7 @@ import sys
 import subprocess
 from datetime import datetime
 from urllib.parse import urlparse
+from dotenv import load_dotenv
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
@@ -26,6 +27,8 @@ def _parse_db_url(db_url):
 
 
 def create_backup():
+    env_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".env"))
+    load_dotenv(env_path)
     os.environ["DATABASE_URL"] = _db_url()
     app = create_app()
     with app.app_context():
@@ -34,7 +37,7 @@ def create_backup():
 
         creds = _parse_db_url(os.environ["DATABASE_URL"])
         ts = datetime.now().strftime("%Y%m%d_%H%M%S")
-        filename = f"full_backup_{ts}.dump"
+        filename = f"full_backup_{ts}.sql"
         filepath = os.path.join(backup_dir, filename)
 
         env = os.environ.copy()
@@ -51,7 +54,7 @@ def create_backup():
             "-p",
             str(creds["port"]),
             "-F",
-            "c",
+            "p",
             "-f",
             filepath,
             creds["dbname"],
@@ -59,6 +62,18 @@ def create_backup():
 
         subprocess.run(cmd, env=env, check=True)
         size = os.path.getsize(filepath)
+
+        retention_days = int(os.environ.get("BACKUP_RETENTION_DAYS", "7"))
+        cutoff = datetime.now().timestamp() - retention_days * 86400
+        for f in os.listdir(backup_dir):
+            if f.endswith((".dump", ".sql")):
+                p = os.path.join(backup_dir, f)
+                try:
+                    if os.path.getmtime(p) < cutoff:
+                        os.remove(p)
+                except Exception:
+                    pass
+
         return filepath, size
 
 
