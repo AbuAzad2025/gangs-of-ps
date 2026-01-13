@@ -4,6 +4,11 @@ try:
     from youtubesearchpython import VideosSearch
 except ImportError:
     VideosSearch = None
+try:
+    import httpx
+    from packaging.version import Version
+except Exception:
+    httpx = None
 from flask_babel import gettext as _
 import logging
 
@@ -15,6 +20,9 @@ def search():
     if not query:
         return jsonify({'error': _('يرجى إدخال كلمة البحث')}), 400
     if VideosSearch is None:
+        return jsonify({'error': _('خدمة البحث غير متاحة حالياً')}), 503
+    if httpx and Version(getattr(httpx, "__version__", "0")) >= Version("0.28.0"):
+        logging.error(f"httpx version incompatible: {httpx.__version__}")
         return jsonify({'error': _('خدمة البحث غير متاحة حالياً')}), 503
 
     try:
