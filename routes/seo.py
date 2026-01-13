@@ -67,23 +67,30 @@ def sitemap():
     """Serve sitemap.xml for search engines."""
     # Base URL
     base_url = url_for('main.index', _external=True)
+    base_url_en = f"{base_url}?lang=en"
+    base_url_ar = f"{base_url}?lang=ar"
     
     # List of static pages
-    pages = [
-        {'loc': base_url, 'changefreq': 'daily', 'priority': '1.0'},
-        {'loc': url_for('main.login', _external=True), 'changefreq': 'monthly', 'priority': '0.8'},
-        {'loc': url_for('main.register', _external=True), 'changefreq': 'monthly', 'priority': '0.8'},
-        {'loc': url_for('main.guide', _external=True), 'changefreq': 'monthly', 'priority': '0.7'},
-    ]
+    pages = []
+    def add_page(loc, changefreq='monthly', priority='0.8', include_lang_variants=True):
+        pages.append({'loc': loc, 'changefreq': changefreq, 'priority': priority})
+        if include_lang_variants:
+            pages.append({'loc': f"{loc}?lang=en", 'changefreq': changefreq, 'priority': priority})
+            pages.append({'loc': f"{loc}?lang=ar", 'changefreq': changefreq, 'priority': priority})
+    
+    add_page(base_url, changefreq='daily', priority='1.0')
+    add_page(url_for('main.login', _external=True))
+    add_page(url_for('main.register', _external=True))
+    add_page(url_for('main.guide', _external=True), changefreq='monthly', priority='0.7')
     
     # Add Public Modules
     try:
-        pages.append({'loc': url_for('main.organized_crimes', _external=True), 'changefreq': 'daily', 'priority': '0.9'})
-        pages.append({'loc': url_for('gang.index', _external=True), 'changefreq': 'daily', 'priority': '0.9'})
-        pages.append({'loc': url_for('graveyard.index', _external=True), 'changefreq': 'daily', 'priority': '0.8'})
-        pages.append({'loc': url_for('news.index', _external=True), 'changefreq': 'daily', 'priority': '0.8'})
-        pages.append({'loc': url_for('forum.index', _external=True), 'changefreq': 'always', 'priority': '0.9'})
-        pages.append({'loc': url_for('social.leaderboard', _external=True), 'changefreq': 'daily', 'priority': '0.8'})
+        add_page(url_for('main.organized_crimes', _external=True), changefreq='daily', priority='0.9')
+        add_page(url_for('gang.index', _external=True), changefreq='daily', priority='0.9')
+        add_page(url_for('graveyard.index', _external=True), changefreq='daily', priority='0.8')
+        add_page(url_for('news.index', _external=True), changefreq='daily', priority='0.8')
+        add_page(url_for('forum.index', _external=True), changefreq='always', priority='0.9')
+        add_page(url_for('social.leaderboard', _external=True), changefreq='daily', priority='0.8')
     except Exception:
         pass 
 

@@ -145,10 +145,10 @@
           <i class="flag-icon flag-icon-{{ 'ps' if get_locale() == 'ar' else 'us' }}"></i>
         </a>
         <div class="dropdown-menu dropdown-menu-right p-0">
-          <a href="{{ url_for('main.set_language', lang='ar') }}" class="dropdown-item {{ 'active' if get_locale() == 'ar' }}">
+          <a href="{{ request.base_url }}?lang=ar" class="dropdown-item {{ 'active' if get_locale() == 'ar' }}">
             <i class="flag-icon flag-icon-ps mr-2"></i> {{ _('العربية') }}
           </a>
-          <a href="{{ url_for('main.set_language', lang='en') }}" class="dropdown-item {{ 'active' if get_locale() == 'en' }}">
+          <a href="{{ request.base_url }}?lang=en" class="dropdown-item {{ 'active' if get_locale() == 'en' }}">
             <i class="flag-icon flag-icon-us mr-2"></i> {{ _('English') }}
           </a>
         </div>

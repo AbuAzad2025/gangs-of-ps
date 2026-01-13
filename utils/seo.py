@@ -130,21 +130,14 @@ class SEOManager:
         return f'<script type="application/ld+json">{json.dumps(schema)}</script>'
 
     def render_canonical(self):
-        # Remove query parameters for canonical, unless pagination?
-        # For now, let's keep it simple: strict canonical to the route URL without query params
-        # or maybe we want query params for some things.
-        # Let's use request.base_url which includes path but not query string.
+        lang = request.args.get('lang')
+        if lang in current_app.config.get('LANGUAGES', ['ar', 'en']):
+            return f'<link rel="canonical" href="{request.base_url}?lang={lang}">'
         return f'<link rel="canonical" href="{request.base_url}">'
 
     def render_hreflang(self):
-        # Generate alternate links for supported languages
-        # Assuming we have a route that handles language or we use query params/session.
-        # If our URL structure doesn't change with language (session based), hreflang might be tricky.
-        # But if we want to be strict, we should probably have /ar/ and /en/ prefixes.
-        # Since the current app seems to use session for language (based on core.py set_language),
-        # strictly speaking, we don't have unique URLs for languages. 
-        # So hreflang might not be applicable or we should point to the same URL with x-default.
-        # However, for SEO, it's better to have distinct URLs. 
-        # Since we can't easily change the routing structure right now, 
-        # let's just output the current URL as x-default.
-        return f'<link rel="alternate" hreflang="x-default" href="{request.base_url}">'
+        langs = current_app.config.get('LANGUAGES', ['ar', 'en'])
+        tags = [f'<link rel="alternate" hreflang="x-default" href="{request.base_url}">']
+        for l in langs:
+            tags.append(f'<link rel="alternate" hreflang="{l}" href="{request.base_url}?lang={l}">')
+        return "".join(tags)
