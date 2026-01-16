@@ -2401,8 +2401,7 @@ def update_translations():
                         should_update = True
                 if should_update:
                     new_lines.append(
-                        f'msgstr "{
-                            escape_po_string(translation)}"\n')
+                        f'msgstr "{escape_po_string(translation)}"\n')
                     updated_count += 1
                     print(f"Updated: {clean_msgid[:30]}...")
                 else:

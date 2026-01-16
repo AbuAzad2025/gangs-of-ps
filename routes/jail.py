@@ -1341,8 +1341,7 @@ def pay_bail(prisoner_id):
         log = GameLog(
             admin_id=current_user.id,
             action='JAIL_BAIL',
-            details=f'Paid {bail_cost_diamonds} diamonds to free {
-                prisoner.username}')
+            details=f'Paid {bail_cost_diamonds} diamonds to free {prisoner.username}')
         db.session.add(log)
         db.session.commit()
 
@@ -1462,8 +1461,7 @@ def breakout(prisoner_id):
         log = GameLog(
             admin_id=current_user.id,
             action='JAIL_BREAKOUT',
-            details=f'Broke out {
-                prisoner.username}')
+            details=f'Broke out {prisoner.username}')
         db.session.add(log)
 
         flash(_('نجحت العملية! تم تهريب %(name)s وحصلت على %(xp)s خبرة.',

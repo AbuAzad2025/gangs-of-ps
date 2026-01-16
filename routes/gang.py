@@ -433,8 +433,7 @@ def kick_member(user_id):
     log = GangLog(
         gang_id=gang.id,
         user_id=current_user.id,
-        action=f"Kicked {
-            member_to_kick.username} (Paid severance)")
+        action=f"Kicked {member_to_kick.username} (Paid severance)")
     db.session.add(log)
     db.session.commit()
 
@@ -1220,8 +1219,7 @@ def upgrade():
         log = GangLog(
             gang_id=gang.id,
             user_id=current_user.id,
-            action=f"Upgraded capacity to {
-                gang.max_members}")
+            action=f"Upgraded capacity to {gang.max_members}")
         db.session.add(log)
         db.session.commit()
 
@@ -1454,8 +1452,7 @@ def accept_alliance(alliance_id):
     log = GangLog(
         gang_id=gang.id,
         user_id=current_user.id,
-        action=f"Accepted alliance with Gang ID {
-            alliance.gang1_id}")
+        action=f"Accepted alliance with Gang ID {alliance.gang1_id}")
     db.session.add(log)
 
     db.session.commit()

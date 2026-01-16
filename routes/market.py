@@ -187,8 +187,7 @@ def check_limit_orders(asset):
             db.session.commit()
         except Exception as e:
             current_app.logger.error(
-                f"Error processing buy order {
-                    order.id}: {e}")
+                f"Error processing buy order {order.id}: {e}")
             db.session.rollback()
 
     # Sell Orders: Execute if current_price >= limit_price
@@ -237,8 +236,7 @@ def check_limit_orders(asset):
             db.session.commit()
         except Exception as e:
             current_app.logger.error(
-                f"Error processing sell order {
-                    order.id}: {e}")
+                f"Error processing sell order {order.id}: {e}")
             db.session.rollback()
 
 

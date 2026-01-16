@@ -660,15 +660,9 @@ def get_room_state(room_id):
             state = room.game_state
             try:
                 current_app.logger.info(
-                    f"[STATE] Room {
-                        room.id} {
-                        room.game_type} phase={
-                        state.get('phase')} turn={
-                        state.get('turn_seat')} bidder={
-                        state.get(
-                            'current_bid',
-                            {}).get('bidder')} passes={
-                                state.get('passes_in_row')}")
+                    f"[STATE] Room {room.id} {room.game_type} phase={state.get('phase')} "
+                    f"turn={state.get('turn_seat')} bidder={state.get('current_bid', {}).get('bidder')} "
+                    f"passes={state.get('passes_in_row')}")
             except Exception:
                 pass
 
@@ -1517,16 +1511,12 @@ def make_move(room_id):
 
         elif action == 'play_card':
             current_app.logger.debug(
-                f"Trix Play Card Request seat={
-                    player.seat_index} card={
-                    data.get('card')}")
+                f"Trix Play Card Request seat={player.seat_index} card={data.get('card')}")
             try:
                 result = TrixGameLogic.play_card(
                     current_state, player.seat_index, data.get('card'))
                 current_app.logger.debug(
-                    f"Trix Play Card Result valid={
-                        result.get('valid')} msg={
-                        result.get('message')}")
+                    f"Trix Play Card Result valid={result.get('valid')} msg={result.get('message')}")
 
                 if not result.get('valid'):
                     return jsonify({'error': result.get('message')}), 400
@@ -1684,9 +1674,8 @@ def make_move(room_id):
         if current_state.get('is_solo') or len(
                 current_state.get('bot_seats', [])) > 0:
             print(
-                f"[DEBUG] Entering bot loop. Phase: {
-                    current_state.get('phase')}, Turn: {
-                    current_state.get('turn_seat')}")
+                f"[DEBUG] Entering bot loop. Phase: {current_state.get('phase')}, "
+                f"Turn: {current_state.get('turn_seat')}")
             steps = 0
             while steps < 8:
                 steps += 1
@@ -1769,8 +1758,7 @@ def chess_solo():
     # Create solo chess room
     room = GameRoom(
         game_type='chess',
-        name=f"{
-            current_user.username}'s Solo Game",
+        name=f"{current_user.username}'s Solo Game",
         status='playing')
     room.game_state = {
         'fen': chess.STARTING_FEN,
@@ -1798,8 +1786,7 @@ def trix():
     # Create solo trix room
     room = GameRoom(
         game_type='trix',
-        name=f"{
-            current_user.username}'s Solo Game",
+        name=f"{current_user.username}'s Solo Game",
         status='playing')
     room.game_state = {'is_solo': True, 'bot_seats': [1, 2, 3]}
     TrixGameLogic.init_game(room.game_state)

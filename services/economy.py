@@ -147,17 +147,14 @@ def apply_daily_sinks():
                                 user.id,
                                 {
                                     'money': -cost},
-                                f"maintenance_{
-                                    fac.facility_key}",
+                                f"maintenance_{fac.facility_key}",
                                 auto_commit=False,
                                 expected_version=None):
                             log = MoneySinkLog(
                                 user_id=user.id,
                                 sink_type="maintenance",
                                 amount=cost,
-                                details=f"{
-                                    fac.facility_key.title()} Lv{
-                                    fac.level} Maintenance")
+                                details=f"{fac.facility_key.title()} Lv{fac.level} Maintenance")
                             db.session.add(log)
                             db.session.commit()
                             maint_total += cost
@@ -167,16 +164,17 @@ def apply_daily_sinks():
                         paid = min(user.money, cost)
                         if paid > 0:
                             if ResourceService.modify_resources(
-                                user.id, {
-                                    'money': -paid}, f"maintenance_partial_{
-                                    fac.facility_key}", auto_commit=False, expected_version=None):
+                                user.id,
+                                {'money': -paid},
+                                f"maintenance_partial_{fac.facility_key}",
+                                auto_commit=False,
+                                expected_version=None,
+                            ):
                                 log = MoneySinkLog(
                                     user_id=user.id,
                                     sink_type="maintenance_partial",
                                     amount=paid,
-                                    details=f"{
-                                        fac.facility_key.title()} Lv{
-                                        fac.level} Partial")
+                                    details=f"{fac.facility_key.title()} Lv{fac.level} Partial")
                                 db.session.add(log)
                                 db.session.commit()
                                 maint_total += paid
@@ -250,8 +248,7 @@ def create_daily_snapshot():
 
     db.session.commit()
     current_app.logger.info(
-        f"Snapshot Created: Total Wealth={total_wealth}, Top 1%={
-            snapshot.top_1_percent_share:.2f}%")
+        f"Snapshot Created: Total Wealth={total_wealth}, Top 1%={snapshot.top_1_percent_share:.2f}%")
     return snapshot
 
 

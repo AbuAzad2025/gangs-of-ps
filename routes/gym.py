@@ -690,8 +690,7 @@ def train(stat):
             user_id=user.id,
             sink_type="gym_train",
             amount=cost_money,
-            details=f"{stat}:{
-                d['key']}"))
+            details=f"{stat}:{d['key']}"))
     db.session.commit()
 
     if injured:

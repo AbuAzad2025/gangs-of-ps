@@ -424,8 +424,7 @@ def attack(target_id):
                     # Atomic Transfer
                     if ResourceService.modify_resources(
                         target.id, {
-                            'bullets': -bullets_looted}, f'combat_loot_loss_{
-                            current_user.id}', auto_commit=False):
+                            'bullets': -bullets_looted}, f'combat_loot_loss_{current_user.id}', auto_commit=False):
                         # We hold the lock on current_user, so we don't need
                         # expected_version check
                         ResourceService.modify_resources(

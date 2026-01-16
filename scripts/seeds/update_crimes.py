@@ -29,9 +29,7 @@ def update_crimes():
                 crime.cooldown = data['cooldown']
                 updated_count += 1
                 app.logger.info(
-                    f"Updated {
-                        crime.name} cooldown to {
-                        crime.cooldown}")
+                    f"Updated {crime.name} cooldown to {crime.cooldown}")
 
         db.session.commit()
         app.logger.info(f"Successfully updated {updated_count} crimes.")
