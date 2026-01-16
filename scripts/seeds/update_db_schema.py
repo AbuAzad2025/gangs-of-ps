@@ -2,6 +2,7 @@
 import models
 from extensions import db
 from factory import create_app
+from sqlalchemy import inspect, text
 import os
 import sys
 
@@ -19,6 +20,14 @@ app = create_app()
 with app.app_context():
     print("Updating database schema...")
     db.create_all()
+
+    with db.engine.begin() as conn:
+        inspector = inspect(conn)
+        cols = {c["name"] for c in inspector.get_columns("user")}
+        if "gender" not in cols:
+            conn.execute(text('ALTER TABLE "user" ADD COLUMN gender VARCHAR(10) DEFAULT \'male\';'))
+        if "birthdate" not in cols:
+            conn.execute(text('ALTER TABLE "user" ADD COLUMN birthdate DATE;'))
 
     # Seed Jail Configs if missing
     from models.system import SystemConfig
