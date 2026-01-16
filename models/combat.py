@@ -41,10 +41,9 @@ class CombatLog(db.Model):
     winner = db.relationship('User', foreign_keys=[winner_id])
 
     def __repr__(self):
-        return f'<CombatLog {
-            self.attacker_id} vs {
-            self.defender_id} at {
-            self.timestamp}>'
+        return (
+            f"<CombatLog {self.attacker_id} vs {self.defender_id} at {self.timestamp}>"
+        )
 
 
 class ActiveIntel(db.Model):
