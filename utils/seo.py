@@ -164,8 +164,11 @@ class SEOManager:
             "itemListElement": items
         }
 
-        return f'<script type="application/ld+json">{
-            json.dumps(schema)}</script>'
+        return (
+            '<script type="application/ld+json">'
+            + json.dumps(schema)
+            + "</script>"
+        )
 
     def render_canonical(self):
         ignored_params = {
