@@ -631,6 +631,23 @@ def empire():
 
 @bp.route('/guide')
 def guide():
+    from extensions import seo_manager
+    seo_manager.set(
+        title=_("دليل عصابات فلسطين | شرح اللعبة والجرائم والعصابات والمدن"),
+        description=_(
+            "دليل شامل للعبة عصابات فلسطين: الجرائم والجرائم المنظمة، العصابات وحروب الشوارع، "
+            "الاقتصاد والمصانع والمزارع، السوق السوداء والمزادات، المدينة والخدمات، والدردشة."
+        ),
+        keywords=(
+            "دليل, دليل اللعبة, شرح اللعبة, عصابات فلسطين, لعبة مافيا, لعبة عصابات, فلسطين, مدن فلسطينية, "
+            "القدس, غزة, رام الله, نابلس, الخليل, جنين, "
+            "الجرائم, جرائم منظمة, العصابات, حرب عصابات, قتال, اقتصاد, مصانع, مزارع, "
+            "السوق السوداء, مزاد, بنك, بورصة, دردشة, شات, غرف دردشة, "
+            "Gangs of Palestine guide, Mafia game guide, Arab mafia game, Palestine game"
+        ),
+    )
+    seo_manager.add_breadcrumb(_("الرئيسية"), url_for('main.index'))
+    seo_manager.add_breadcrumb(_("الدليل"), url_for('main.guide'))
     return render_template('guide.html')
 
 

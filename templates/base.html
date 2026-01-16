@@ -42,9 +42,13 @@
       "@graph": [
         {
           "@type": "VideoGame",
+          "@id": {{ (request.url_root.rstrip('/') ~ '#game')|tojson }},
           "name": "Gangs of Palestine",
           "alternateName": {{ _('عصابات فلسطين')|tojson }},
           "description": {{ seo.description|tojson }},
+          "url": {{ request.url_root|tojson }},
+          "inLanguage": {{ get_locale()|tojson }},
+          "keywords": {{ seo.keywords|tojson }},
           "genre": ["RPG", "Strategy", "Simulation"],
           "playMode": "MultiPlayer",
           "author": {
@@ -67,9 +71,22 @@
         },
         {
           "@type": "Organization",
+          "@id": {{ (request.url_root.rstrip('/') ~ '#organization')|tojson }},
           "name": "Azad Company",
           "url": {{ request.url_root|tojson }},
-          "logo": {{ url_for('static', filename='adminlte/img/user2-160x160.jpg', _external=True)|tojson }}
+          "logo": {{ url_for('static', filename='adminlte/img/user2-160x160.jpg', _external=True)|tojson }},
+          "sameAs": {{ [discord_link, facebook_link, twitter_link, instagram_link]|tojson }}
+        },
+        {
+          "@type": "WebSite",
+          "@id": {{ (request.url_root.rstrip('/') ~ '#website')|tojson }},
+          "name": "Gangs of Palestine",
+          "alternateName": {{ _('عصابات فلسطين')|tojson }},
+          "url": {{ request.url_root|tojson }},
+          "description": {{ seo.description|tojson }},
+          "inLanguage": {{ get_locale()|tojson }},
+          "keywords": {{ seo.keywords|tojson }},
+          "publisher": { "@id": {{ (request.url_root.rstrip('/') ~ '#organization')|tojson }} }
         }
       ]
     }

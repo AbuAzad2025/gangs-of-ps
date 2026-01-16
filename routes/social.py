@@ -1476,7 +1476,11 @@ def chat_lobby():
     seo_manager.set(
         title=_("غرف الدردشة - تعارف ودردشة"),
         description=_("تحدث مع أصدقاء جدد، ابحث عن شريك، أو انضم لغرف الدردشة العامة."),
-        keywords="chat, dating, rooms, random chat, دردشة, تعارف, شات")
+        keywords=(
+            "chat, chat rooms, arab chat, dating chat, random chat, "
+            "دردشة, شات, غرف دردشة, دردشة عربية, دردشة تعارف, دردشة غرباء, "
+            "غرفة عامة, غرفة مبتدئين, غرفة تجارة, عصابات فلسطين"
+        ))
     vip_upgrade_cost_diamonds = 250
     try:
         vip_upgrade_cost_diamonds = int(

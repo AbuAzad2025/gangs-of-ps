@@ -16,7 +16,6 @@ def robots():
         "Disallow: /developer/",
         "Disallow: /api/",
         "Disallow: /socket.io/",
-        "Disallow: /hara",
         "Disallow: /login",
         "Disallow: /register",
         "Disallow: /logout",
@@ -137,7 +136,7 @@ def sitemap():
         langs.append("en")
     langs = langs[:6]
 
-    pages = []
+    pages_by_loc = {}
 
     def add_page(
         loc,
@@ -146,15 +145,20 @@ def sitemap():
         lastmod=None,
         include_lang_variants=True,
     ):
-        pages.append(
-            {
-                "loc": absolute_url(loc),
-                "changefreq": changefreq,
-                "priority": priority,
-                "lastmod": _lastmod_iso(lastmod),
-                "include_lang_variants": bool(include_lang_variants),
-            }
-        )
+        abs_loc = absolute_url(loc)
+        item = pages_by_loc.get(abs_loc) or {}
+        item["loc"] = abs_loc
+        item["changefreq"] = changefreq
+        item["priority"] = priority
+        item["include_lang_variants"] = bool(include_lang_variants)
+
+        new_lastmod = _lastmod_iso(lastmod)
+        if new_lastmod:
+            old_lastmod = item.get("lastmod")
+            if (not old_lastmod) or (new_lastmod > old_lastmod):
+                item["lastmod"] = new_lastmod
+
+        pages_by_loc[abs_loc] = item
 
     add_page(url_for("main.index"), changefreq="daily", priority="1.0")
     add_page(url_for("main.guide"), changefreq="monthly", priority="0.7")
@@ -239,13 +243,80 @@ def sitemap():
     except Exception:
         pass
 
+    try:
+        disallowed_prefixes = (
+            "/static/",
+            "/admin/",
+            "/developer/",
+            "/api/",
+            "/socket.io/",
+            "/confirm/",
+            "/captcha/",
+        )
+        disallowed_exact = {
+            "/robots.txt",
+            "/sitemap.xml",
+            "/sitemap.xsl",
+            "/login",
+            "/register",
+            "/logout",
+            "/unconfirmed",
+            "/resend_confirmation",
+            "/hara",
+        }
+
+        for rule in current_app.url_map.iter_rules():
+            if "GET" not in (rule.methods or set()):
+                continue
+            if rule.arguments:
+                continue
+
+            path = str(rule.rule or "")
+            if not path.startswith("/"):
+                continue
+            if path in disallowed_exact:
+                continue
+            if any(path.startswith(p) for p in disallowed_prefixes):
+                continue
+
+            changefreq = "weekly"
+            priority = "0.5"
+            if path == "/":
+                changefreq = "daily"
+                priority = "1.0"
+            elif path.rstrip("/") in {"/guide"}:
+                changefreq = "monthly"
+                priority = "0.7"
+            elif path.startswith("/forum"):
+                changefreq = "daily"
+                priority = "0.8"
+            elif path.startswith("/news"):
+                changefreq = "daily"
+                priority = "0.8"
+            elif path.startswith("/graveyard"):
+                changefreq = "daily"
+                priority = "0.7"
+            elif path.startswith("/organized_crimes"):
+                changefreq = "daily"
+                priority = "0.8"
+            elif path.startswith("/leaderboard"):
+                changefreq = "daily"
+                priority = "0.7"
+            elif path.startswith("/chat"):
+                changefreq = "daily"
+                priority = "0.6"
+
+            add_page(path, changefreq=changefreq, priority=priority)
+    except Exception:
+        pass
+
     xml_lines = [
         '<?xml version="1.0" encoding="UTF-8"?>',
         f'<?xml-stylesheet type="text/xsl" href="{url_for("seo.sitemap_xsl")}"?>',
         '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">',
     ]
 
-    for page in pages:
+    for _, page in sorted(pages_by_loc.items(), key=lambda kv: kv[0]):
         loc = page["loc"]
         xml_lines.append("  <url>")
         xml_lines.append(f"    <loc>{xml_escape(loc)}</loc>")

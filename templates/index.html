@@ -228,6 +228,66 @@
         </div>
     </div>
 
+    <div class="container mb-5">
+        <div class="row">
+            <div class="col-12">
+                <div class="card bg-dark border-gold shadow-lg">
+                    <div class="card-body">
+                        <h2 class="text-gold font-weight-bold mb-3">{{ _('لعبة مافيا عربية في مدن فلسطين') }}</h2>
+                        <p class="text-light mb-4">
+                            {{ _('عصابات فلسطين هي لعبة مافيا عربية على المتصفح تجمع بين الاستراتيجية والقتال والاقتصاد والعصابات.') }}
+                            {{ _('تقدر تتنقل بين مدن فلسطينية داخل اللعبة وتنافس لاعبين عرب في حروب العصابات.') }}
+                        </p>
+
+                        <h3 class="text-warning font-weight-bold mb-3">{{ _('مدن فلسطينية داخل اللعبة') }}</h3>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <ul class="text-light mb-0">
+                                    <li>{{ _('القدس') }} (Jerusalem)</li>
+                                    <li>{{ _('غزة') }} (Gaza)</li>
+                                    <li>{{ _('رام الله') }} (Ramallah)</li>
+                                    <li>{{ _('نابلس') }} (Nablus)</li>
+                                    <li>{{ _('الخليل') }} (Hebron)</li>
+                                </ul>
+                            </div>
+                            <div class="col-md-6">
+                                <ul class="text-light mb-0">
+                                    <li>{{ _('جنين') }} (Jenin)</li>
+                                    <li>{{ _('أريحا') }} (Jericho)</li>
+                                    <li>{{ _('بيت لحم') }} (Bethlehem)</li>
+                                    <li>{{ _('طولكرم') }} (Tulkarm)</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <hr class="border-secondary my-4">
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3 mb-md-0">
+                                <h3 class="text-warning font-weight-bold">{{ _('غرف الدردشة') }}</h3>
+                                <p class="text-light mb-2">
+                                    {{ _('ادخل غرف دردشة عربية وتعرف على لاعبين جدد، أو انضم لغرف المبتدئين والتجارة.') }}
+                                </p>
+                                <a class="btn btn-outline-gold" href="{{ url_for('main.chat_lobby') }}">
+                                    <i class="fas fa-comments mr-2"></i>{{ _('الدخول إلى الدردشة') }}
+                                </a>
+                            </div>
+                            <div class="col-md-6">
+                                <h3 class="text-warning font-weight-bold">{{ _('ابدأ بسرعة') }}</h3>
+                                <p class="text-light mb-2">
+                                    {{ _('لو بدك شرح سريع للعبة: الجرائم، العصابات، الاقتصاد، السوق السوداء، والمدينة والخدمات.') }}
+                                </p>
+                                <a class="btn btn-outline-gold" href="{{ url_for('main.guide') }}">
+                                    <i class="fas fa-book-reader mr-2"></i>{{ _('دليل اللعبة') }}
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Public Access / Explore Section -->
     <div class="container mb-5">
         <div class="row justify-content-center text-center mb-4">

@@ -161,15 +161,120 @@ def index():
         "ونافس آلاف اللاعبين العرب. تحدى الاحتلال، شارك في حروب العصابات، "
         "وتفاعل مع شخصيات ذكية. التسجيل مجاني واللعب فوري!"
     )
+    description_en = (
+        "Gangs of Palestine is an Arabic mafia strategy browser game. "
+        "Build your empire across Palestinian cities and compete with thousands of players."
+    )
     keywords = (
-        "عصابات فلسطين, لعبة مافيا, العاب استراتيجية, العاب اونلاين, "
-        "العاب متصفح, فلسطين, القدس, غزة, حرب العصابات, العاب عربية, "
-        "RPG, Mafia Game, Gangs of Palestine"
+        "عصابات, العصابات الفلسطينية, عصابات فلسطين, لعبة عصابات, لعبة مافيا, مافيا, "
+        "لعبة فلسطين, لعبة فلسطينية, فلسطين, المدن الفلسطينية, القدس, غزة, رام الله, نابلس, الخليل, جنين, "
+        "لعبة اونلاين, لعبة متصفح, العاب متصفح, العاب استراتيجية, لعبة استراتيجية, RPG, "
+        "حرب العصابات, حروب العصابات, قتال, معارك, "
+        "دردشة, شات, غرف دردشة, دردشة عربية, دردشة تعارف, "
+        "Gangs of Palestine, Palestine Mafia Game, Arab Mafia Game, Arabic Mafia Game, "
+        "Arab Strategy Game, Arabic Strategy Game, Browser Game, Online RPG, Mafia Game"
+    )
+    title = _("عصابات فلسطين | لعبة مافيا عربية ولعبة عصابات في فلسطين (Gangs of Palestine)")
+    lang = request.args.get("lang")
+    languages = current_app.config.get("LANGUAGES", ["ar", "en"])
+    language_value = (
+        lang
+        if lang in languages
+        else current_app.config.get("BABEL_DEFAULT_LOCALE", "ar")
+    )
+    faq_ar_1 = (
+        "عصابات فلسطين هي لعبة مافيا عربية استراتيجية على المتصفح (Online RPG). "
+        "تبدأ من الصفر وتبني إمبراطوريتك عبر الجرائم والاقتصاد والعصابات."
+    )
+    faq_ar_2 = (
+        "نعم، اللعب مجاني ويمكنك اللعب مباشرة من المتصفح بدون تحميل. "
+        "كما يمكنك تثبيتها كتطبيق PWA على الجوال."
+    )
+    faq_ar_3 = (
+        "نعم، يوجد غرف دردشة عربية عامة وغرف متخصصة مثل غرفة المبتدئين والتجارة "
+        "وغرف أخرى."
+    )
+    faq_ar_4 = (
+        "تشمل مدن فلسطين داخل اللعبة: القدس، غزة، رام الله، نابلس، الخليل، جنين، "
+        "أريحا، بيت لحم، طولكرم وغيرها حسب التحديثات."
+    )
+    faq_en_1 = (
+        "Yes. Gangs of Palestine is an Arabic mafia strategy browser game where you "
+        "build an empire, join gangs, and compete with other players."
     )
     seo_manager.set(
-        title=_("عصابات فلسطين - لعبة المافيا والاستراتيجية العربية الأولى"),
-        description=description,
+        title=title,
+        description=f"{description} {description_en}",
         keywords=keywords,
+        schema={
+            "@context": "https://schema.org",
+            "@graph": [
+                {
+                    "@type": "WebPage",
+                    "@id": f"{request.base_url}#webpage",
+                    "url": request.base_url,
+                    "name": str(title),
+                    "description": f"{description} {description_en}",
+                    "inLanguage": language_value,
+                    "about": {"@id": request.url_root.rstrip("/") + "#game"},
+                    "isPartOf": {"@id": request.url_root.rstrip("/") + "#website"},
+                    "primaryImageOfPage": {
+                        "@type": "ImageObject",
+                        "url": url_for(
+                            "static",
+                            filename="images/azad_logo_white_on_dark.png",
+                            _external=True,
+                        ),
+                    },
+                },
+                {
+                    "@type": "FAQPage",
+                    "@id": f"{request.base_url}#faq",
+                    "mainEntity": [
+                        {
+                            "@type": "Question",
+                            "name": "ما هي لعبة عصابات فلسطين؟",
+                            "acceptedAnswer": {
+                                "@type": "Answer",
+                                "text": faq_ar_1,
+                            },
+                        },
+                        {
+                            "@type": "Question",
+                            "name": "هل اللعبة مجانية وهل تحتاج تحميل؟",
+                            "acceptedAnswer": {
+                                "@type": "Answer",
+                                "text": faq_ar_2,
+                            },
+                        },
+                        {
+                            "@type": "Question",
+                            "name": "هل يوجد شات ودردشة عربية داخل اللعبة؟",
+                            "acceptedAnswer": {
+                                "@type": "Answer",
+                                "text": faq_ar_3,
+                            },
+                        },
+                        {
+                            "@type": "Question",
+                            "name": "ما المدن الفلسطينية الموجودة داخل اللعبة؟",
+                            "acceptedAnswer": {
+                                "@type": "Answer",
+                                "text": faq_ar_4,
+                            },
+                        },
+                        {
+                            "@type": "Question",
+                            "name": "Is Gangs of Palestine an Arabic mafia browser game?",
+                            "acceptedAnswer": {
+                                "@type": "Answer",
+                                "text": faq_en_1,
+                            },
+                        },
+                    ],
+                },
+            ],
+        },
     )
     seo_manager.add_breadcrumb(_("الرئيسية"), url_for('main.index'))
 
