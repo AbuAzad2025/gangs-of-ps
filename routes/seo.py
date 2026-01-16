@@ -16,6 +16,7 @@ def robots():
         "Disallow: /developer/",
         "Disallow: /api/",
         "Disallow: /socket.io/",
+        "Disallow: /hara",
         "Disallow: /login",
         "Disallow: /register",
         "Disallow: /logout",
@@ -89,6 +90,10 @@ def sitemap_xsl():
 @cache.cached(timeout=3600)
 def sitemap():
     """Serve sitemap.xml for search engines."""
+    from datetime import date, datetime, timezone
+    from flask import current_app
+    from xml.sax.saxutils import escape as xml_escape
+
     base_root = request.url_root.rstrip("/")
 
     def absolute_url(path_or_url: str) -> str:
@@ -98,124 +103,120 @@ def sitemap():
             path_or_url = "/" + path_or_url
         return base_root + path_or_url
 
-    # List of static pages
+    def _with_lang(loc: str, lang: str) -> str:
+        sep = "&" if "?" in loc else "?"
+        return f"{loc}{sep}lang={lang}"
+
+    def _lastmod_iso(value):
+        if not value:
+            return None
+        if isinstance(value, str):
+            return value
+        if isinstance(value, datetime):
+            if value.tzinfo is None:
+                try:
+                    value = value.replace(tzinfo=timezone.utc)
+                except Exception:
+                    pass
+            try:
+                return value.date().isoformat()
+            except Exception:
+                return None
+        if isinstance(value, date):
+            try:
+                return value.isoformat()
+            except Exception:
+                return None
+        return None
+
+    langs = list(current_app.config.get("LANGUAGES", ["ar", "en"]))
+    langs = [lang_code for lang_code in langs if lang_code]
+    if "ar" not in langs:
+        langs.insert(0, "ar")
+    if "en" not in langs:
+        langs.append("en")
+    langs = langs[:6]
+
     pages = []
 
     def add_page(
         loc,
-        changefreq='monthly',
-        priority='0.8',
+        changefreq="monthly",
+        priority="0.8",
+        lastmod=None,
         include_lang_variants=True,
     ):
         pages.append(
             {
-                'loc': absolute_url(loc),
-                'changefreq': changefreq,
-                'priority': priority,
+                "loc": absolute_url(loc),
+                "changefreq": changefreq,
+                "priority": priority,
+                "lastmod": _lastmod_iso(lastmod),
+                "include_lang_variants": bool(include_lang_variants),
             }
         )
-        if include_lang_variants:
-            pages.append(
-                {
-                    'loc': f"{absolute_url(loc)}?lang=en",
-                    'changefreq': changefreq,
-                    'priority': priority,
-                }
-            )
-            pages.append(
-                {
-                    'loc': f"{absolute_url(loc)}?lang=ar",
-                    'changefreq': changefreq,
-                    'priority': priority,
-                }
-            )
 
-    add_page(url_for('main.index'), changefreq='daily', priority='1.0')
-    for endpoint, changefreq, priority in [
-        ('main.guide', 'monthly', '0.7'),
-    ]:
-        try:
-            add_page(
-                url_for(endpoint),
-                changefreq=changefreq,
-                priority=priority,
-            )
-        except Exception:
-            pass
+    add_page(url_for("main.index"), changefreq="daily", priority="1.0")
+    add_page(url_for("main.guide"), changefreq="monthly", priority="0.7")
+    add_page(url_for("main.organized_crimes"), changefreq="daily", priority="0.9")
+    add_page(url_for("graveyard.index"), changefreq="daily", priority="0.8")
+    add_page(url_for("news.index"), changefreq="daily", priority="0.8")
+    add_page(url_for("forum.index"), changefreq="always", priority="0.9")
+    add_page(url_for("main.leaderboard"), changefreq="daily", priority="0.8")
+    add_page(url_for("main.chat_lobby"), changefreq="daily", priority="0.8")
+    add_page(url_for("main.chat_room", room_name="general"), changefreq="daily", priority="0.6")
+    add_page(url_for("main.chat_room", room_name="beginners"), changefreq="daily", priority="0.6")
+    add_page(url_for("main.chat_room", room_name="trade"), changefreq="daily", priority="0.6")
+    add_page(url_for("main.chat_room", room_name="strangers"), changefreq="daily", priority="0.5")
 
-    # Add Public Modules
-    try:
-        add_page(
-            url_for('main.organized_crimes'),
-            changefreq='daily',
-            priority='0.9',
-        )
-        add_page(
-            url_for('graveyard.index'),
-            changefreq='daily',
-            priority='0.8',
-        )
-        add_page(
-            url_for('news.index'),
-            changefreq='daily',
-            priority='0.8',
-        )
-        add_page(
-            url_for('forum.index'),
-            changefreq='always',
-            priority='0.9',
-        )
-        add_page(
-            url_for('main.leaderboard'),
-            changefreq='daily',
-            priority='0.8',
-        )
-    except Exception:
-        pass
-
-    # Dynamic Gangs (Top 10)
     try:
         from models.social import Gang
-        top_gangs = Gang.query.order_by(Gang.level.desc()).limit(10).all()
+
+        top_gangs = Gang.query.order_by(Gang.level.desc(), Gang.exp.desc()).limit(50).all()
         for gang in top_gangs:
             add_page(
-                url_for('gang.view', gang_id=gang.id),
-                changefreq='weekly',
-                priority='0.7',
+                url_for("gang.view", gang_id=gang.id),
+                changefreq="weekly",
+                priority="0.7",
+                lastmod=getattr(gang, "created_at", None),
             )
     except Exception:
         pass
 
     try:
         from models import Announcement
+
         announcements = (
             Announcement.query.filter_by(is_active=True)
             .order_by(Announcement.created_at.desc())
-            .limit(20)
+            .limit(50)
             .all()
         )
         for a in announcements:
             add_page(
-                url_for('news.detail', id=a.id),
-                changefreq='weekly',
-                priority='0.7',
+                url_for("news.detail", id=a.id),
+                changefreq="weekly",
+                priority="0.7",
+                lastmod=getattr(a, "created_at", None),
             )
     except Exception:
         pass
 
     try:
         from models import ForumCategory, ForumTopic
+
         categories = (
             ForumCategory.query.filter_by(min_rank=0)
             .order_by(ForumCategory.order.asc())
-            .limit(10)
+            .limit(30)
             .all()
         )
         for c in categories:
             add_page(
-                url_for('forum.category', id=c.id),
-                changefreq='weekly',
-                priority='0.7',
+                url_for("forum.category", id=c.id),
+                changefreq="weekly",
+                priority="0.7",
+                lastmod=getattr(c, "created_at", None),
             )
 
         topics = (
@@ -225,35 +226,55 @@ def sitemap():
             )
             .filter(ForumCategory.min_rank == 0)
             .order_by(ForumTopic.last_post_at.desc())
-            .limit(20)
+            .limit(50)
             .all()
         )
         for t in topics:
             add_page(
-                url_for('forum.topic', id=t.id),
-                changefreq='weekly',
-                priority='0.6',
+                url_for("forum.topic", id=t.id),
+                changefreq="weekly",
+                priority="0.6",
+                lastmod=getattr(t, "last_post_at", None) or getattr(t, "created_at", None),
             )
     except Exception:
         pass
 
-    # XML Construction
-    xml_sitemap = '<?xml version="1.0" encoding="UTF-8"?>\n'
-    xml_sitemap += (
-        f'<?xml-stylesheet type="text/xsl" '
-        f'href="{url_for("seo.sitemap_xsl")}"?>\n'
-    )
-    xml_sitemap += (
-        '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
-    )
+    xml_lines = [
+        '<?xml version="1.0" encoding="UTF-8"?>',
+        f'<?xml-stylesheet type="text/xsl" href="{url_for("seo.sitemap_xsl")}"?>',
+        '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">',
+    ]
 
     for page in pages:
-        xml_sitemap += '  <url>\n'
-        xml_sitemap += f'    <loc>{page["loc"]}</loc>\n'
-        xml_sitemap += f'    <changefreq>{page["changefreq"]}</changefreq>\n'
-        xml_sitemap += f'    <priority>{page["priority"]}</priority>\n'
-        xml_sitemap += '  </url>\n'
+        loc = page["loc"]
+        xml_lines.append("  <url>")
+        xml_lines.append(f"    <loc>{xml_escape(loc)}</loc>")
 
-    xml_sitemap += '</urlset>'
+        if page.get("include_lang_variants") and langs:
+            try:
+                xml_lines.append(
+                    f'    <xhtml:link rel="alternate" hreflang="x-default" '
+                    f'href="{xml_escape(loc)}" />'
+                )
+                for lang in langs:
+                    escaped_lang = xml_escape(lang)
+                    escaped_href = xml_escape(_with_lang(loc, lang))
+                    xml_lines.append(
+                        f'    <xhtml:link rel="alternate" hreflang="{escaped_lang}" '
+                        f'href="{escaped_href}" />'
+                    )
+            except Exception:
+                pass
 
-    return xml_sitemap, 200, {'Content-Type': 'application/xml'}
+        lastmod = page.get("lastmod")
+        if lastmod:
+            xml_lines.append(f"    <lastmod>{xml_escape(lastmod)}</lastmod>")
+
+        xml_lines.append(f"    <changefreq>{xml_escape(page['changefreq'])}</changefreq>")
+        xml_lines.append(f"    <priority>{xml_escape(page['priority'])}</priority>")
+        xml_lines.append("  </url>")
+
+    xml_lines.append("</urlset>")
+
+    xml_sitemap = "\n".join(xml_lines) + "\n"
+    return xml_sitemap, 200, {"Content-Type": "application/xml; charset=utf-8"}
