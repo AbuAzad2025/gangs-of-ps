@@ -1241,8 +1241,7 @@ def _build_hostess_role_pack(hostess: Hostess):
                     system_prompt_loaded = True
             except Exception as e:
                 current_app.logger.error(
-                    f"Error loading system_prompt for {
-                        hostess.name}: {e}")
+                    f"Error loading system_prompt for {hostess.name}: {e}")
 
     # 2. If not loaded, generate default based on role
     if not system_prompt_loaded:
@@ -1350,8 +1349,7 @@ def _build_hostess_role_pack(hostess: Hostess):
                     examples = ex_data
             except Exception as e:
                 current_app.logger.error(
-                    f"Error loading training_examples for {
-                        hostess.name}: {e}")
+                    f"Error loading training_examples for {hostess.name}: {e}")
 
     # 3. Inject Knowledge Base from File (Always check, even if prompt loaded
     # from file)
@@ -1372,8 +1370,7 @@ def _build_hostess_role_pack(hostess: Hostess):
                     prompt += json.dumps(kb_data, ensure_ascii=False, indent=2)
             except Exception as e:
                 current_app.logger.error(
-                    f"Error loading knowledge base for {
-                        hostess.name}: {e}")
+                    f"Error loading knowledge base for {hostess.name}: {e}")
 
     return prompt, examples
 
