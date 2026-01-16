@@ -1621,8 +1621,7 @@ def hack_player():
                     target.id,
                     {
                         'money': -stolen},
-                    f'hacked_by_{
-                        current_user.id}',
+                    f'hacked_by_{current_user.id}',
                     auto_commit=False,
                     expected_version=target.version):
                 raise Exception("Failed to deduct from target")
@@ -1636,8 +1635,7 @@ def hack_player():
             if not ResourceService.modify_resources(
                     current_user.id,
                     changes,
-                    f'hack_player_success_{
-                        target.id}',
+                    f'hack_player_success_{target.id}',
                     auto_commit=False,
                     expected_version=current_user.version):
                 raise Exception("Failed to add to hacker")
