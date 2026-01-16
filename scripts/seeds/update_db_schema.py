@@ -15,6 +15,11 @@ def main():
 
     _ = models
 
+    def _ensure_column(conn, inspector, table_name, column_name, ddl_sql):
+        cols = {c["name"] for c in inspector.get_columns(table_name)}
+        if column_name not in cols:
+            conn.execute(text(ddl_sql))
+
     app = create_app()
 
     with app.app_context():
@@ -23,11 +28,29 @@ def main():
 
         with db.engine.begin() as conn:
             inspector = inspect(conn)
-            cols = {c["name"] for c in inspector.get_columns("user")}
-            if "gender" not in cols:
-                conn.execute(text('ALTER TABLE "user" ADD COLUMN gender VARCHAR(10) DEFAULT \'male\';'))
-            if "birthdate" not in cols:
-                conn.execute(text('ALTER TABLE "user" ADD COLUMN birthdate DATE;'))
+            _ensure_column(
+                conn, inspector, "user", "gender",
+                'ALTER TABLE "user" ADD COLUMN gender VARCHAR(10) DEFAULT \'male\';',
+            )
+            _ensure_column(
+                conn, inspector, "user", "birthdate",
+                'ALTER TABLE "user" ADD COLUMN birthdate DATE;',
+            )
+            _ensure_column(
+                conn, inspector, "user", "last_seen",
+                'ALTER TABLE "user" ADD COLUMN last_seen TIMESTAMP;',
+            )
+            _ensure_column(
+                conn, inspector, "user", "chat_muted_until",
+                'ALTER TABLE "user" ADD COLUMN chat_muted_until TIMESTAMP;',
+            )
+            _ensure_column(
+                conn, inspector, "public_chat", "room",
+                "ALTER TABLE public_chat ADD COLUMN room VARCHAR(50) DEFAULT 'general';",
+            )
+
+            conn.execute(text('CREATE INDEX IF NOT EXISTS ix_user_last_seen ON "user" (last_seen);'))
+            conn.execute(text('CREATE INDEX IF NOT EXISTS ix_public_chat_room ON public_chat (room);'))
 
         configs = {
             'jail_enable_bribe': 'true',
