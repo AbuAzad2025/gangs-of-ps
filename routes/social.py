@@ -1039,10 +1039,7 @@ def public_chat_upload():
     os.makedirs(uploads_dir, exist_ok=True)
 
     safe_name = secure_filename(original_name) or f"file.{ext}"
-    filename = secure_filename(
-        f"chat_{
-            current_user.id}_{
-            uuid.uuid4().hex}.{ext}")
+    filename = secure_filename(f"chat_{current_user.id}_{uuid.uuid4().hex}.{ext}")
     save_path = os.path.join(uploads_dir, filename)
     try:
         f.save(save_path)
