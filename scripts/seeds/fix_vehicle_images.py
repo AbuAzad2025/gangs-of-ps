@@ -1,17 +1,22 @@
+from models.vehicle import Vehicle
+from extensions import db
+from factory import create_app
 import os
 import sys
 import json
 from pathlib import Path
 
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..")))
-
-from factory import create_app
-from extensions import db
-from models.vehicle import Vehicle
+sys.path.append(
+    os.path.abspath(
+        os.path.join(
+            os.path.dirname(__file__),
+            "..",
+            "..")))
 
 
 def _load_seed_vehicles():
-    seed_path = Path(__file__).resolve().parents[2] / "data" / "seeds" / "vehicles.json"
+    seed_path = Path(__file__).resolve(
+    ).parents[2] / "data" / "seeds" / "vehicles.json"
     with seed_path.open("r", encoding="utf-8") as f:
         return json.load(f)
 
@@ -71,4 +76,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-

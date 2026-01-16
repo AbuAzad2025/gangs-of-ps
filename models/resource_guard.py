@@ -45,9 +45,11 @@ def _guard_user_resources(mapper, connection, target):
             from flask_login import current_user
             from models.user import UserRole
             if not getattr(current_user, "is_authenticated", False):
-                raise RuntimeError("Direct resource mutation blocked: use ResourceService.modify_resources")
+                raise RuntimeError(
+                    "Direct resource mutation blocked: use ResourceService.modify_resources")
             if current_user.role.value < UserRole.MODERATOR.value:
-                raise RuntimeError("Direct resource mutation blocked: use ResourceService.modify_resources")
+                raise RuntimeError(
+                    "Direct resource mutation blocked: use ResourceService.modify_resources")
 
             from models.log import UserLog
             import json
@@ -61,10 +63,13 @@ def _guard_user_resources(mapper, connection, target):
                     if not hist.has_changes():
                         continue
                     old_v = hist.deleted[0] if hist.deleted else None
-                    new_v = hist.added[0] if hist.added else getattr(target, field)
+                    new_v = hist.added[0] if hist.added else getattr(
+                        target, field)
                     before_state[field] = old_v
                     after_state[field] = new_v
-                    if isinstance(old_v, (int, float)) and isinstance(new_v, (int, float)):
+                    if isinstance(
+                            old_v, (int, float)) and isinstance(
+                            new_v, (int, float)):
                         diff = int(new_v) - int(old_v)
                         if diff != 0:
                             deltas[field] = diff
@@ -72,21 +77,33 @@ def _guard_user_resources(mapper, connection, target):
                     continue
 
             if deltas:
-                db.session.add(UserLog(
-                    user_id=target.id,
-                    action="ADMIN_PANEL_EDIT",
-                    details=json.dumps(deltas),
-                    result="success",
-                    before_state=before_state,
-                    after_state=after_state,
-                    ip_address=getattr(request, "remote_addr", None),
-                    user_agent=getattr(getattr(request, "user_agent", None), "string", None),
-                ))
+                db.session.add(
+                    UserLog(
+                        user_id=target.id,
+                        action="ADMIN_PANEL_EDIT",
+                        details=json.dumps(deltas),
+                        result="success",
+                        before_state=before_state,
+                        after_state=after_state,
+                        ip_address=getattr(
+                            request,
+                            "remote_addr",
+                            None),
+                        user_agent=getattr(
+                            getattr(
+                                request,
+                                "user_agent",
+                                None),
+                            "string",
+                            None),
+                    ))
         except Exception:
-            raise RuntimeError("Direct resource mutation blocked: use ResourceService.modify_resources")
+            raise RuntimeError(
+                "Direct resource mutation blocked: use ResourceService.modify_resources")
         return
 
-    raise RuntimeError("Direct resource mutation blocked: use ResourceService.modify_resources")
+    raise RuntimeError(
+        "Direct resource mutation blocked: use ResourceService.modify_resources")
 
 
 _resource_guard_enabled = True

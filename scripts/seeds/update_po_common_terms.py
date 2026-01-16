@@ -574,7 +574,6 @@ COMMON_TRANSLATIONS = {
     "Air": "هواء",
     "Water": "ماء",
     "Fire": "نار",
-    "Earth": "تراب",
     "Wind": "رياح",
     "Rain": "مطر",
     "Snow": "ثلج",
@@ -589,7 +588,7 @@ COMMON_TRANSLATIONS = {
     "Frost": "صقيع",
     "Hail": "برد",
     "Heat": "حرارة",
-    "Cold": "برودة",
+    "Coldness": "برودة",
     "Temperature": "درجة حرارة",
     "Weather": "طقس",
     "Climate": "مناخ",
@@ -747,7 +746,7 @@ COMMON_TRANSLATIONS = {
     "Olive": "زيتوني",
     "Teal": "أزرق مخضر",
     "Lime": "ليموني",
-    "Coral": "مرجاني",
+    "CoralColor": "مرجاني",
     "Salmon": "سلموني",
     "Khaki": "كاكي",
     "Lavender": "خزامي",
@@ -756,16 +755,16 @@ COMMON_TRANSLATIONS = {
     "Azure": "لازوردي",
     "Ivory": "عاجي",
     "Cream": "كريمي",
-    "Gold": "ذهبي",
-    "Silver": "فضي",
-    "Bronze": "برونزي",
+    "Golden": "ذهبي",
+    "Silvery": "فضي",
+    "BronzeColor": "برونزي",
     "Metallic": "معدني",
     "Transparent": "شفاف",
     "Opaque": "معتم",
     "Bright": "ساطع",
     "Dim": "خافت",
     "Dark": "داكن",
-    "Light": "فاتح",
+    "LightColor": "فاتح",
     "Shiny": "لامع",
     "Dull": "باهت",
     "Clear": "واضح",
@@ -912,12 +911,10 @@ COMMON_TRANSLATIONS = {
     "Business": "عمل تجاري",
     "Industry": "صناعة",
     "Factory": "مصنع",
-    "Plant": "منشأة",
+    "IndustrialPlant": "منشأة",
     "Workshop": "ورشة",
     "Office": "مكتب",
-    "Shop": "متجر",
     "Store": "محل",
-    "Market": "سوق",
     "Bazaar": "بازار",
     "Mall": "مركز تسوق",
     "Supermarket": "سوبر ماركت",
@@ -1030,8 +1027,8 @@ COMMON_TRANSLATIONS = {
     "Ship": "سفينة",
     "Submarine": "غواصة",
     "Rocket": "صاروخ",
-    "Spaceship": "سفينة فضاء"
-}
+    "Spaceship": "سفينة فضاء"}
+
 
 def update_po_file():
     if not os.path.exists(PO_FILE):
@@ -1047,19 +1044,19 @@ def update_po_file():
         i = 0
         while i < len(lines):
             line = lines[i]
-            
+
             # Check for msgid "WORD"
             # We assume simple one-line msgid for these common terms
             msgid_match = re.match(r'^msgid "(.*)"$', line.strip())
-            
+
             if msgid_match:
                 msgid = msgid_match.group(1)
-                
+
                 # Look ahead for msgstr ""
                 if i + 1 < len(lines):
-                    next_line = lines[i+1]
+                    next_line = lines[i + 1]
                     msgstr_match = re.match(r'^msgstr ""$', next_line.strip())
-                    
+
                     if msgstr_match and msgid in COMMON_TRANSLATIONS:
                         translation = COMMON_TRANSLATIONS[msgid]
                         # Replace msgstr "" with msgstr "TRANSLATION"
@@ -1069,17 +1066,18 @@ def update_po_file():
                         print(f"Translated '{msgid}' -> '{translation}'")
                         i += 2
                         continue
-            
+
             new_lines.append(line)
             i += 1
 
         with open(PO_FILE, 'w', encoding='utf-8') as f:
             f.writelines(new_lines)
-            
+
         print(f"Successfully updated {count} translations in {PO_FILE}")
 
     except Exception as e:
         print(f"Error updating PO file: {e}")
+
 
 if __name__ == "__main__":
     update_po_file()

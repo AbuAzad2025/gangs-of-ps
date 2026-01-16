@@ -17,13 +17,39 @@ depends_on = None
 
 def upgrade():
     with op.batch_alter_table('user', schema=None) as batch_op:
-        batch_op.add_column(sa.Column('jail_escape_attempts', sa.Integer(), nullable=False, server_default=sa.text('0')))
-        batch_op.add_column(sa.Column('jail_escape_attempts_date', sa.Date(), nullable=True))
-        batch_op.add_column(sa.Column('jail_escape_last_at', sa.DateTime(), nullable=True))
+        batch_op.add_column(
+            sa.Column(
+                'jail_escape_attempts',
+                sa.Integer(),
+                nullable=False,
+                server_default=sa.text('0')))
+        batch_op.add_column(
+            sa.Column(
+                'jail_escape_attempts_date',
+                sa.Date(),
+                nullable=True))
+        batch_op.add_column(
+            sa.Column(
+                'jail_escape_last_at',
+                sa.DateTime(),
+                nullable=True))
 
-        batch_op.add_column(sa.Column('jail_gilboa_attempts', sa.Integer(), nullable=False, server_default=sa.text('0')))
-        batch_op.add_column(sa.Column('jail_gilboa_attempts_date', sa.Date(), nullable=True))
-        batch_op.add_column(sa.Column('jail_gilboa_last_at', sa.DateTime(), nullable=True))
+        batch_op.add_column(
+            sa.Column(
+                'jail_gilboa_attempts',
+                sa.Integer(),
+                nullable=False,
+                server_default=sa.text('0')))
+        batch_op.add_column(
+            sa.Column(
+                'jail_gilboa_attempts_date',
+                sa.Date(),
+                nullable=True))
+        batch_op.add_column(
+            sa.Column(
+                'jail_gilboa_last_at',
+                sa.DateTime(),
+                nullable=True))
 
 
 def downgrade():
@@ -35,4 +61,3 @@ def downgrade():
         batch_op.drop_column('jail_escape_last_at')
         batch_op.drop_column('jail_escape_attempts_date')
         batch_op.drop_column('jail_escape_attempts')
-

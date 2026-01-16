@@ -10,10 +10,28 @@ depends_on = None
 
 def upgrade():
     with op.batch_alter_table('user', schema=None) as batch_op:
-        batch_op.add_column(sa.Column('failed_login_attempts', sa.Integer(), server_default=sa.text('0'), nullable=True))
-        batch_op.add_column(sa.Column('locked_until', sa.DateTime(), nullable=True))
-        batch_op.add_column(sa.Column('is_chat_banned', sa.Boolean(), server_default=sa.false(), nullable=True))
-        batch_op.add_column(sa.Column('organized_crime_cooldown_until', sa.DateTime(), nullable=True))
+        batch_op.add_column(
+            sa.Column(
+                'failed_login_attempts',
+                sa.Integer(),
+                server_default=sa.text('0'),
+                nullable=True))
+        batch_op.add_column(
+            sa.Column(
+                'locked_until',
+                sa.DateTime(),
+                nullable=True))
+        batch_op.add_column(
+            sa.Column(
+                'is_chat_banned',
+                sa.Boolean(),
+                server_default=sa.false(),
+                nullable=True))
+        batch_op.add_column(
+            sa.Column(
+                'organized_crime_cooldown_until',
+                sa.DateTime(),
+                nullable=True))
 
 
 def downgrade():

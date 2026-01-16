@@ -1,0 +1,1130 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="chatna-shell">
+<div class="row no-gutters chatna-row">
+    <div class="col-lg-3 d-none d-lg-block chatna-pane chatna-pane--sidebar">
+        {% set chat_sidebar_mode = 'room' %}
+        {% include "social/_chat_sidebar.html" %}
+    </div>
+
+    <div class="col-12 col-md-9 col-lg-6 d-flex flex-column chatna-pane chatna-pane--conversation">
+        <div class="chatna-conversation">
+            <div class="chatna-topbar">
+                <div class="d-flex align-items-center">
+                    <a href="{{ url_for('main.chat_lobby') }}" class="chatna-back mr-2" aria-label="{{ _('العودة') }}"><i class="fas fa-arrow-right"></i></a>
+                    <div class="chatna-title text-truncate">{{ room_title }}</div>
+                </div>
+                <div class="d-flex align-items-center">
+                    <button type="button" class="btn btn-sm btn-outline-gold d-lg-none mr-2" data-toggle="modal" data-target="#chatMenuModal" aria-label="{{ _('القائمة') }}">
+                        <i class="fas fa-bars"></i>
+                    </button>
+                    <div class="chatna-online">
+                        <span class="badge badge-success" id="online-count">0</span>
+                        <span class="text-muted small ml-1">{{ _('متصل') }}</span>
+                    </div>
+                    <button type="button" class="btn btn-sm btn-outline-gold ml-2" id="ai-chat-btn" aria-label="{{ _('الدردشة الذكية') }}" {{ 'disabled' if (not current_user.is_authenticated) else '' }}>
+                        <i class="fas fa-robot"></i>
+                    </button>
+                    <button type="button" class="btn btn-sm btn-outline-gold ml-2" id="toggle-sound" aria-label="{{ _('الصوت') }}">
+                        <i class="fas fa-volume-up"></i>
+                    </button>
+                </div>
+            </div>
+
+            <div id="chat-messages" class="chatna-messages custom-scrollbar">
+                <div class="text-center text-muted mt-5"><i class="fas fa-spinner fa-spin"></i> {{ _('جاري تحميل الرسائل...') }}</div>
+            </div>
+
+            <div class="chatna-composer">
+                <div id="typing-indicator" class="small text-muted mb-2" style="min-height: 18px;"></div>
+                {% if current_room == 'vip' and not can_chat %}
+                <div class="alert alert-dark border border-warning mb-3" style="background: rgba(0,0,0,0.35);">
+                    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center">
+                        <div class="mb-3 mb-md-0">
+                            <div class="text-gold font-weight-bold">{{ _('غرفة VIP') }}</div>
+                            <div class="text-muted small">{{ _('قم بالترقية لفتح الدردشة في غرفة VIP.') }}</div>
+                        </div>
+                        <div class="d-flex flex-wrap align-items-center">
+                            <form method="POST" action="{{ url_for('main.chat_vip_upgrade') }}" class="mb-0 mr-2">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                <button type="submit" class="btn btn-gold">
+                                    <i class="fas fa-crown"></i> {{ _('ترقية VIP') }} ({{ vip_upgrade_cost_diamonds }} {{ _('ماس') }})
+                                </button>
+                            </form>
+                            <a href="{{ url_for('main.buy_diamonds', next=url_for('main.chat_room', room_name='vip')) }}" class="btn btn-outline-light">
+                                <i class="fas fa-gem"></i> {{ _('شراء الماس') }}
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card luxury-card border border-warning mb-3" style="background: rgba(0,0,0,0.25);">
+                    <div class="card-body py-3">
+                        <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center">
+                            <div class="mb-2 mb-md-0">
+                                <div class="text-gold font-weight-bold">{{ _('تبرع للمطور') }}</div>
+                                {% if donation_target_username %}
+                                <div class="text-muted small">{{ _('سيدعم التبرع حساب') }}: {{ donation_target_username }}</div>
+                                {% endif %}
+                            </div>
+                            <form method="POST" action="{{ url_for('main.chat_vip_donate') }}" class="form-inline mb-0">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                <select class="form-control form-control-luxury mr-2 mb-2 mb-md-0" name="currency">
+                                    <option value="diamonds">{{ _('ماس') }}</option>
+                                    <option value="money">{{ _('نقود') }}</option>
+                                </select>
+                                <input type="number" class="form-control form-control-luxury mr-2 mb-2 mb-md-0" name="amount" min="1" placeholder="{{ _('المبلغ') }}">
+                                <button type="submit" class="btn btn-outline-gold mb-2 mb-md-0">
+                                    <i class="fas fa-hand-holding-heart"></i> {{ _('تبرع') }}
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+                {% if not current_user.is_authenticated and current_room != 'strangers' %}
+                <div class="alert alert-dark border border-warning mb-3" style="background: rgba(0,0,0,0.35);">
+                    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center">
+                        <div class="mb-3 mb-md-0">
+                            <div class="text-gold font-weight-bold">{{ _('الدردشة للمسجلين فقط') }}</div>
+                            <div class="text-muted small">{{ _('سجل دخولك أو أنشئ حساباً لتتمكن من إرسال الرسائل.') }}</div>
+                        </div>
+                        <div class="d-flex flex-wrap align-items-center">
+                            <a class="btn btn-gold mr-2 mb-2 mb-md-0" href="{{ url_for('main.login', next=request.path) }}">
+                                <i class="fas fa-sign-in-alt"></i> {{ _('دخول') }}
+                            </a>
+                            <a class="btn btn-outline-light mb-2 mb-md-0" href="{{ url_for('main.register', next=request.path) }}">
+                                <i class="fas fa-user-plus"></i> {{ _('إنشاء حساب') }}
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+                <form id="chat-form">
+                    <div class="input-group">
+                        <div class="input-group-prepend">
+                            <button type="button" class="btn btn-outline-gold" id="emoji-btn" aria-label="{{ _('إيموجي') }}">
+                                <i class="far fa-smile"></i>
+                            </button>
+                            <button type="button" class="btn btn-outline-gold" id="attach-btn" aria-label="{{ _('إرفاق ملف') }}" {{ 'disabled' if (not current_user.is_authenticated) else '' }}>
+                                <i class="fas fa-paperclip"></i>
+                            </button>
+                            <button type="button" class="btn btn-outline-gold" id="camera-btn" aria-label="{{ _('كاميرا') }}" {{ 'disabled' if (not current_user.is_authenticated) else '' }}>
+                                <i class="fas fa-camera"></i>
+                            </button>
+                        </div>
+                        <input type="text" id="message-input" class="form-control form-control-luxury py-4" placeholder="{{ _('اكتب رسالتك هنا...') }}" autocomplete="off" maxlength="500" {{ 'disabled' if ((current_room == 'vip' and not can_chat) or ((not current_user.is_authenticated) and current_room != 'strangers')) else '' }}>
+                        <div class="input-group-append">
+                            <button type="submit" class="btn btn-gold px-4" {{ 'disabled' if ((current_room == 'vip' and not can_chat) or ((not current_user.is_authenticated) and current_room != 'strangers')) else '' }}><i class="fas fa-paper-plane"></i></button>
+                        </div>
+                    </div>
+                    <div id="emoji-panel" class="emoji-panel d-none"></div>
+                </form>
+                <input type="file" id="chat-file-input" class="d-none" accept="image/*,video/mp4,application/pdf,text/plain">
+                <input type="file" id="chat-camera-input" class="d-none" accept="image/*" capture="environment">
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3 col-lg-3 d-none d-md-block chatna-pane chatna-pane--online">
+        <div class="chatna-sidepanel">
+            <div class="chatna-sidepanel-header">
+                <div class="chatna-sidepanel-title"><i class="fas fa-users mr-2"></i> {{ _('المتواجدون') }}</div>
+            </div>
+            <div class="chatna-sidepanel-body custom-scrollbar" id="online-users-list"></div>
+        </div>
+    </div>
+</div>
+</div>
+
+<div class="modal fade" id="chatMenuModal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-scrollable modal-dialog-centered" role="document">
+        <div class="modal-content luxury-card border-gold">
+            <div class="modal-header luxury-header">
+                <h6 class="mb-0"><i class="fas fa-comments mr-2"></i> {{ _('القائمة') }}</h6>
+                <button type="button" class="close text-white" data-dismiss="modal" aria-label="{{ _('إغلاق') }}">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    {% set chat_sidebar_mode = 'room' %}
+                    {% include "social/_chat_sidebar.html" %}
+                </div>
+                <div class="card luxury-card">
+                    <div class="card-header luxury-header">
+                        <h6 class="mb-0"><i class="fas fa-users mr-2"></i> {{ _('المتواجدون') }}</h6>
+                    </div>
+                    <div class="card-body p-0 overflow-auto custom-scrollbar" style="max-height: 45vh;" id="online-users-list-modal">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="aiChatModal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content luxury-card border-gold">
+            <div class="modal-header luxury-header">
+                <h6 class="mb-0"><i class="fas fa-robot mr-2"></i> {{ _('الدردشة الذكية') }}</h6>
+                <button type="button" class="close text-white" data-dismiss="modal" aria-label="{{ _('إغلاق') }}">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body p-0">
+                <div id="ai-chat-messages" class="p-3 overflow-auto custom-scrollbar" style="max-height: 55vh; background-color: rgba(0,0,0,0.45);"></div>
+            </div>
+            <div class="modal-footer bg-dark border-top border-secondary">
+                <form id="ai-chat-form" class="w-100 mb-0">
+                    <div class="input-group">
+                        <input type="text" id="ai-chat-input" class="form-control form-control-luxury" placeholder="{{ _('اسأل أي شيء...') }}" autocomplete="off" maxlength="500" {{ 'disabled' if (not current_user.is_authenticated) else '' }}>
+                        <div class="input-group-append">
+                            <button type="submit" class="btn btn-gold" {{ 'disabled' if (not current_user.is_authenticated) else '' }}>
+                                <i class="fas fa-paper-plane"></i>
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="cameraModal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content luxury-card border-gold">
+            <div class="modal-header luxury-header">
+                <h6 class="mb-0"><i class="fas fa-camera mr-2"></i> {{ _('الكاميرا') }}</h6>
+                <button type="button" class="close text-white" data-dismiss="modal" aria-label="{{ _('إغلاق') }}">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="text-center">
+                    <video id="camera-preview" class="w-100 rounded border border-secondary" autoplay muted playsinline></video>
+                    <canvas id="camera-canvas" class="d-none"></canvas>
+                </div>
+                <div class="d-flex justify-content-between mt-3">
+                    <button type="button" class="btn btn-outline-gold" id="camera-capture-btn">
+                        <i class="fas fa-camera"></i> {{ _('التقاط') }}
+                    </button>
+                    <button type="button" class="btn btn-gold" id="camera-send-btn" disabled>
+                        <i class="fas fa-paper-plane"></i> {{ _('إرسال') }}
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .chatna-shell {
+        height: calc(100vh - 120px);
+        min-height: 560px;
+        border: 1px solid rgba(212, 175, 55, 0.22);
+        border-radius: 14px;
+        overflow: hidden;
+        background: radial-gradient(1100px 700px at 80% 0%, rgba(212, 175, 55, 0.10), transparent 55%),
+                    radial-gradient(900px 520px at 0% 100%, rgba(0, 180, 216, 0.10), transparent 52%),
+                    rgba(0, 0, 0, 0.35);
+        box-shadow: 0 18px 55px rgba(0, 0, 0, 0.55);
+    }
+
+    @media (max-width: 991.98px) {
+        .chatna-shell {
+            height: calc(100vh - 90px);
+            border-radius: 12px;
+        }
+    }
+
+    @media (max-width: 575.98px) {
+        .chatna-shell {
+            height: calc(100vh - 72px);
+            border-radius: 0;
+            border-left: 0;
+            border-right: 0;
+        }
+    }
+
+    .chatna-row {
+        height: 100%;
+        margin: 0;
+    }
+
+    .chatna-pane {
+        height: 100%;
+        padding: 0;
+    }
+
+    .chatna-pane--sidebar,
+    .chatna-pane--online {
+        background: rgba(0, 0, 0, 0.25);
+        backdrop-filter: blur(10px);
+    }
+
+    .chatna-pane--sidebar {
+        border-right: 1px solid rgba(255, 255, 255, 0.06);
+    }
+
+    [dir="rtl"] .chatna-pane--sidebar {
+        border-right: 0;
+        border-left: 1px solid rgba(255, 255, 255, 0.06);
+    }
+
+    .chatna-pane--online {
+        border-left: 1px solid rgba(255, 255, 255, 0.06);
+    }
+
+    [dir="rtl"] .chatna-pane--online {
+        border-left: 0;
+        border-right: 1px solid rgba(255, 255, 255, 0.06);
+    }
+
+    .chatna-pane--sidebar .card,
+    .chatna-pane--online .card {
+        border-radius: 0;
+        height: 100%;
+        margin: 0;
+    }
+
+    .chatna-sidepanel {
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        background: rgba(0, 0, 0, 0.18);
+    }
+
+    .chatna-sidepanel-header {
+        padding: 12px 12px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+        background: linear-gradient(90deg, rgba(0, 0, 0, 0.55), rgba(0, 0, 0, 0.15));
+    }
+
+    .chatna-sidepanel-title {
+        font-weight: 700;
+        color: rgba(255, 255, 255, 0.92);
+    }
+
+    .chatna-sidepanel-body {
+        flex: 1 1 auto;
+        overflow: auto;
+    }
+
+    .chatna-conversation {
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        background: rgba(0, 0, 0, 0.15);
+        backdrop-filter: blur(10px);
+    }
+
+    .chatna-topbar {
+        height: 56px;
+        flex: 0 0 auto;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0 14px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+        background: linear-gradient(90deg, rgba(0, 0, 0, 0.55), rgba(0, 0, 0, 0.15));
+    }
+
+    .chatna-back {
+        width: 34px;
+        height: 34px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 10px;
+        border: 1px solid rgba(255, 255, 255, 0.10);
+        color: rgba(255, 255, 255, 0.8);
+        background: rgba(0, 0, 0, 0.35);
+        text-decoration: none;
+    }
+
+    .chatna-back:hover {
+        color: #fff;
+        border-color: rgba(212, 175, 55, 0.35);
+    }
+
+    .chatna-title {
+        font-weight: 700;
+        color: rgba(255, 255, 255, 0.92);
+        max-width: 48vw;
+    }
+
+    @media (max-width: 575.98px) {
+        .chatna-title {
+            max-width: 56vw;
+        }
+    }
+
+    .chatna-messages {
+        flex: 1 1 auto;
+        overflow: auto;
+        padding: 18px 16px;
+        background: radial-gradient(900px 420px at 50% 0%, rgba(212, 175, 55, 0.08), transparent 55%),
+                    rgba(0, 0, 0, 0.25);
+    }
+
+    .chatna-composer {
+        flex: 0 0 auto;
+        padding: 12px;
+        border-top: 1px solid rgba(255, 255, 255, 0.06);
+        background: rgba(0, 0, 0, 0.45);
+        position: relative;
+    }
+
+    .msg-row {
+        display: flex;
+        align-items: flex-end;
+        gap: 10px;
+        margin-bottom: 10px;
+    }
+
+    .msg-row.mine {
+        flex-direction: row-reverse;
+    }
+
+    .msg-avatar {
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        box-shadow: 0 6px 16px rgba(0, 0, 0, 0.45);
+        margin: 0;
+        flex: 0 0 auto;
+    }
+
+    .msg-row > div {
+        max-width: min(760px, 84%);
+    }
+
+    .msg-row.mine > div {
+        text-align: right;
+    }
+
+    [dir="rtl"] .msg-row.mine > div {
+        text-align: left;
+    }
+
+    .message-content {
+        display: inline-block;
+        padding: 10px 12px;
+        border-radius: 16px;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        background: rgba(20, 22, 26, 0.82);
+        color: rgba(255, 255, 255, 0.96);
+        line-height: 1.55;
+        backdrop-filter: blur(6px);
+        box-shadow: 0 10px 26px rgba(0, 0, 0, 0.40);
+        word-break: break-word;
+    }
+
+    .msg-row.mine .message-content {
+        background: linear-gradient(135deg, rgba(212, 175, 55, 0.95), rgba(212, 175, 55, 0.72));
+        color: #0b0e11;
+        border-color: rgba(212, 175, 55, 0.35);
+    }
+
+    .message-content img,
+    .message-content video {
+        max-width: 100%;
+        border-radius: 12px;
+        border: 1px solid rgba(255, 255, 255, 0.10);
+    }
+
+    .chat-actions {
+        display: inline-flex;
+        gap: 6px;
+        margin-right: 8px;
+        opacity: 0;
+        transition: opacity 0.15s ease;
+    }
+
+    [dir="rtl"] .chat-actions {
+        margin-right: 0;
+        margin-left: 8px;
+    }
+
+    .msg-row:hover .chat-actions {
+        opacity: 1;
+    }
+
+    .chat-actions .btn {
+        padding: 0.15rem 0.35rem;
+        line-height: 1.1;
+    }
+
+    .emoji-panel {
+        position: absolute;
+        bottom: 70px;
+        left: 12px;
+        width: 280px;
+        max-width: calc(100% - 24px);
+        background: rgba(20,20,20,0.98);
+        border: 1px solid #444;
+        border-radius: 10px;
+        padding: 10px;
+        z-index: 1000;
+        box-shadow: 0 10px 25px rgba(0,0,0,0.4);
+    }
+    .emoji-grid {
+        display: grid;
+        grid-template-columns: repeat(8, 1fr);
+        gap: 6px;
+    }
+    .emoji-item {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        height: 32px;
+        width: 32px;
+        border-radius: 8px;
+        cursor: pointer;
+        user-select: none;
+        font-size: 18px;
+        background: rgba(255,255,255,0.03);
+        border: 1px solid rgba(255,255,255,0.06);
+    }
+    .emoji-item:hover {
+        background: rgba(212, 175, 55, 0.10);
+        border-color: rgba(212, 175, 55, 0.35);
+    }
+</style>
+
+<script>
+    const ROOM = "{{ current_room }}";
+    const IS_AUTH = {{ 'true' if current_user.is_authenticated else 'false' }};
+    const CURRENT_USER_ID = {{ chat_user_id if chat_user_id is defined else (current_user.id if current_user.is_authenticated else 0) }};
+    const CAN_MODERATE = {{ 'true' if (current_user.is_authenticated and current_user.is_moderator) else 'false' }};
+    const CSRF_TOKEN = "{{ csrf_token() }}";
+    let lastId = 0;
+    let unreadCount = 0;
+    let soundEnabled = true;
+    const baseTitle = document.title;
+    const AVATAR_BASE = "{{ url_for('static', filename='images/avatars/') }}";
+    const STATIC_BASE = "{{ url_for('static', filename='') }}";
+    const UPLOAD_URL = "{{ url_for('main.public_chat_upload') }}";
+    const SMART_CHAT_URL = "{{ url_for('main.smart_chat') }}";
+    const emojis = ['😀','😁','😂','🤣','😊','😍','😘','😎','🤔','😅','😉','😇','🙂','🙃','😭','😡','👍','👎','🙏','👏','🔥','💯','🎉','❤️','💔','⭐','🌙','⚡','💬','🕊️','🇵🇸'];
+    let typingStopTimer = null;
+    let isTypingActive = false;
+    let lastTypingSentAt = 0;
+    let cameraStream = null;
+    let lastCapturedBlob = null;
+    
+    document.addEventListener('DOMContentLoaded', function() {
+        soundEnabled = localStorage.getItem('chat_sound_enabled') !== '0';
+        syncSoundButton();
+
+        renderEmojiPanel();
+        loadMessages();
+        loadOnlineUsers();
+        if (IS_AUTH) loadTyping();
+        
+        setInterval(loadMessages, 3000);
+        setInterval(loadOnlineUsers, 10000);
+        if (IS_AUTH) setInterval(loadTyping, 2000);
+
+        const attachBtn = document.getElementById('attach-btn');
+        const cameraBtn = document.getElementById('camera-btn');
+        const fileInput = document.getElementById('chat-file-input');
+        const cameraInput = document.getElementById('chat-camera-input');
+        const cameraCaptureBtn = document.getElementById('camera-capture-btn');
+        const cameraSendBtn = document.getElementById('camera-send-btn');
+        const cameraPreview = document.getElementById('camera-preview');
+        const cameraCanvas = document.getElementById('camera-canvas');
+
+        if (attachBtn && fileInput) {
+            attachBtn.addEventListener('click', function() {
+                if (!IS_AUTH || ROOM === 'strangers') return;
+                fileInput.value = '';
+                fileInput.click();
+            });
+            fileInput.addEventListener('change', function() {
+                if (!IS_AUTH || ROOM === 'strangers') return;
+                if (!fileInput.files || !fileInput.files[0]) return;
+                handleUploadAndSend(fileInput.files[0]);
+            });
+        }
+
+        if (cameraBtn && cameraInput) {
+            cameraBtn.addEventListener('click', function() {
+                if (!IS_AUTH || ROOM === 'strangers') return;
+                if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+                    openCameraModal();
+                    return;
+                }
+                cameraInput.value = '';
+                cameraInput.click();
+            });
+            cameraInput.addEventListener('change', function() {
+                if (!IS_AUTH || ROOM === 'strangers') return;
+                if (!cameraInput.files || !cameraInput.files[0]) return;
+                handleUploadAndSend(cameraInput.files[0]);
+            });
+        }
+
+        const aiBtn = document.getElementById('ai-chat-btn');
+        if (aiBtn) {
+            aiBtn.addEventListener('click', function() {
+                if (!IS_AUTH) return;
+                $('#aiChatModal').modal('show');
+                setTimeout(() => {
+                    const input = document.getElementById('ai-chat-input');
+                    if (input) input.focus();
+                }, 250);
+                primeAiChat();
+            });
+        }
+
+        if (cameraCaptureBtn && cameraSendBtn && cameraPreview && cameraCanvas) {
+            cameraCaptureBtn.addEventListener('click', function() {
+                if (!cameraStream) return;
+                const w = cameraPreview.videoWidth || 0;
+                const h = cameraPreview.videoHeight || 0;
+                if (!w || !h) return;
+                cameraCanvas.width = w;
+                cameraCanvas.height = h;
+                const ctx = cameraCanvas.getContext('2d');
+                if (!ctx) return;
+                ctx.drawImage(cameraPreview, 0, 0, w, h);
+                cameraCanvas.toBlob((blob) => {
+                    lastCapturedBlob = blob || null;
+                    cameraSendBtn.disabled = !lastCapturedBlob;
+                }, 'image/jpeg', 0.9);
+            });
+
+            cameraSendBtn.addEventListener('click', async function() {
+                if (!IS_AUTH || ROOM === 'strangers') return;
+                if (!lastCapturedBlob) return;
+                const file = new File([lastCapturedBlob], `camera_${Date.now()}.jpg`, { type: 'image/jpeg' });
+                try {
+                    await handleUploadAndSend(file);
+                } finally {
+                    try { $('#cameraModal').modal('hide'); } catch (e) {}
+                }
+            });
+        }
+    });
+
+    document.addEventListener('visibilitychange', function() {
+        if (!document.hidden) {
+            unreadCount = 0;
+            document.title = baseTitle;
+        }
+    });
+
+    document.getElementById('toggle-sound').addEventListener('click', function() {
+        soundEnabled = !soundEnabled;
+        localStorage.setItem('chat_sound_enabled', soundEnabled ? '1' : '0');
+        syncSoundButton();
+    });
+
+    function syncSoundButton() {
+        const btn = document.getElementById('toggle-sound');
+        btn.classList.toggle('btn-outline-gold', soundEnabled);
+        btn.classList.toggle('btn-outline-secondary', !soundEnabled);
+        btn.innerHTML = soundEnabled ? '<i class="fas fa-volume-up"></i>' : '<i class="fas fa-volume-mute"></i>';
+    }
+    
+    document.getElementById('chat-form').addEventListener('submit', function(e) {
+        e.preventDefault();
+        if (!IS_AUTH && ROOM !== 'strangers') {
+            window.location.href = "{{ url_for('main.login', next=request.path) }}";
+            return;
+        }
+        const input = document.getElementById('message-input');
+        const content = input.value;
+        
+        if (!content.trim()) return;
+        setTyping(false);
+
+        sendChatMessage(content)
+            .then(() => {
+                input.value = '';
+                closeEmojiPanel();
+                loadMessages();
+            })
+            .catch((err) => {
+                alert(err && err.message ? err.message : '{{ _("حدث خطأ.") }}');
+            });
+    });
+
+    const messageInput = document.getElementById('message-input');
+    messageInput.addEventListener('input', function() {
+        if (!messageInput.value.trim()) {
+            setTyping(false);
+            return;
+        }
+        setTyping(true);
+        scheduleTypingStop();
+    });
+
+    messageInput.addEventListener('blur', function() {
+        setTyping(false);
+    });
+
+    function scheduleTypingStop() {
+        if (typingStopTimer) clearTimeout(typingStopTimer);
+        typingStopTimer = setTimeout(() => {
+            setTyping(false);
+        }, 1600);
+    }
+
+    function setTyping(next) {
+        if (!IS_AUTH) return;
+        const now = Date.now();
+        if (next) {
+            if (!isTypingActive) isTypingActive = true;
+            if (now - lastTypingSentAt < 1200) return;
+            lastTypingSentAt = now;
+        } else {
+            if (!isTypingActive) return;
+            isTypingActive = false;
+        }
+        fetch("{{ url_for('main.chat_typing_set') }}", {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': CSRF_TOKEN
+            },
+            body: JSON.stringify({ room: ROOM, is_typing: next })
+        }).catch(() => {});
+    }
+
+    function loadTyping() {
+        fetch(`{{ url_for('main.chat_typing_get') }}?room=${ROOM}`)
+            .then(res => res.json())
+            .then(data => {
+                const el = document.getElementById('typing-indicator');
+                const list = (data && data.typing) ? data.typing : [];
+                if (!el) return;
+                if (!Array.isArray(list) || list.length === 0) {
+                    el.textContent = '';
+                    return;
+                }
+                const names = list.slice(0, 2).map(x => x.username).filter(Boolean);
+                if (list.length === 1) {
+                    el.textContent = `${names[0]} {{ _('يكتب...') }}`;
+                    return;
+                }
+                const remaining = Math.max(0, list.length - names.length);
+                if (remaining === 0) {
+                    el.textContent = `${names.join(' و ')} {{ _('يكتبون...') }}`;
+                    return;
+                }
+                el.textContent = `${names.join(' و ')} {{ _('و') }} ${remaining} {{ _('آخرون يكتبون...') }}`;
+            })
+            .catch(() => {});
+    }
+
+    function loadMessages() {
+        fetch(`{{ url_for('main.get_public_chat_messages') }}?room=${ROOM}&since_id=${lastId}`)
+            .then(res => res.json())
+            .then(data => {
+                const container = document.getElementById('chat-messages');
+                
+                if (lastId === 0) container.innerHTML = '';
+                
+                if (data.messages.length > 0) {
+                    const previousLastId = lastId;
+                    lastId = data.last_id;
+                    let hasNewFromOthers = false;
+                    
+                    data.messages.forEach(msg => {
+                        const isMe = msg.user_id == CURRENT_USER_ID;
+                        if (!isMe && msg.id > previousLastId) {
+                            hasNewFromOthers = true;
+                        }
+                        const badges = [];
+                        if (msg.is_vip) badges.push(`<span class="badge badge-warning ml-1">VIP</span>`);
+                        if (msg.is_guest) badges.push(`<span class="badge badge-secondary ml-1">{{ _('ضيف') }}</span>`);
+                        const actions = [];
+                        if (CAN_MODERATE) {
+                            actions.push(`<button type="button" class="btn btn-xs btn-outline-danger" onclick="deleteChatMessage(${msg.id})" aria-label="{{ _('حذف') }}"><i class="fas fa-trash"></i></button>`);
+                            actions.push(`<button type="button" class="btn btn-xs btn-outline-warning" onclick="muteChatUser(${msg.user_id}, 30)" aria-label="{{ _('كتم') }}"><i class="fas fa-volume-mute"></i></button>`);
+                            actions.push(`<button type="button" class="btn btn-xs btn-outline-secondary" onclick="banChatUser(${msg.user_id})" aria-label="{{ _('حظر') }}"><i class="fas fa-ban"></i></button>`);
+                        }
+                        actions.push(`<button type="button" class="btn btn-xs btn-outline-light" onclick="reportChatMessage(${msg.id})" aria-label="{{ _('بلاغ') }}"><i class="fas fa-flag"></i></button>`);
+                        const div = document.createElement('div');
+                        div.className = `msg-row ${isMe ? 'mine' : ''}`;
+                        div.dataset.msgId = msg.id;
+                        div.innerHTML = `
+                            <img src="${AVATAR_BASE + (msg.avatar || 'default.png')}" class="msg-avatar" onclick="window.location.href='/profile/${msg.user_id}'" style="cursor:pointer" onerror="this.onerror=null; this.src='https://ui-avatars.com/api/?name=${msg.username}&background=random';">
+                            <div>
+                                <div class="small text-muted mb-1 ${isMe ? 'text-right' : ''}">
+                                    <span>${msg.username} ${badges.join('')} <span class="text-gold text-xs ml-1">${msg.created_at}</span></span>
+                                    <span class="chat-actions">${actions.join('')}</span>
+                                </div>
+                                <div class="message-content text-white">
+                                    ${renderMessageContent(msg.message)}
+                                </div>
+                            </div>
+                        `;
+                        container.appendChild(div);
+                    });
+                    
+                    container.scrollTop = container.scrollHeight;
+
+                    if (hasNewFromOthers) {
+                        onNewMessage();
+                    }
+                }
+            });
+    }
+    
+    function loadOnlineUsers() {
+        fetch(`{{ url_for('main.get_online_users') }}`)
+            .then(res => res.json())
+            .then(users => {
+                const list = document.getElementById('online-users-list');
+                const modalList = document.getElementById('online-users-list-modal');
+                document.getElementById('online-count').innerText = users.length;
+                
+                if (list) list.innerHTML = '';
+                if (modalList) modalList.innerHTML = '';
+                users.forEach(u => {
+                    const item = document.createElement('div');
+                    item.className = 'd-flex align-items-center p-2 border-bottom border-secondary';
+                    const genderText = u.gender === 'female' ? '{{ _("أنثى") }}' : '{{ _("ذكر") }}';
+                    const genderIcon = u.gender === 'female' ? '<i class="fas fa-venus text-danger"></i>' : '<i class="fas fa-mars text-primary"></i>';
+                    const ageText = u.age ? `${u.age} {{ _('سنة') }}` : '';
+                    const pmLink = (IS_AUTH && ROOM !== 'strangers')
+                        ? `<a href="{{ url_for('main.messenger') }}?chat_with=${u.id}" class="btn btn-xs btn-outline-gold ml-auto"><i class="fas fa-comment"></i></a>`
+                        : '';
+                    item.innerHTML = `
+                        <img src="${AVATAR_BASE + (u.avatar || 'default.png')}" class="rounded-circle mr-2" width="30" height="30" onerror="this.onerror=null; this.src='https://ui-avatars.com/api/?name=${u.username}&background=random';">
+                        <div class="text-truncate">
+                            <a href="/profile/${u.id}" class="text-light small">${u.username}</a>
+                            <span class="d-block text-muted x-small">${genderIcon} ${genderText} ${ageText ? '• ' + ageText : ''}</span>
+                        </div>
+                        ${pmLink}
+                    `;
+                    if (list) list.appendChild(item.cloneNode(true));
+                    if (modalList) modalList.appendChild(item);
+                });
+            });
+    }
+
+    document.getElementById('emoji-btn').addEventListener('click', function() {
+        const panel = document.getElementById('emoji-panel');
+        panel.classList.toggle('d-none');
+    });
+
+    document.addEventListener('click', function(e) {
+        const panel = document.getElementById('emoji-panel');
+        const btn = document.getElementById('emoji-btn');
+        if (panel.classList.contains('d-none')) return;
+        if (panel.contains(e.target) || btn.contains(e.target)) return;
+        closeEmojiPanel();
+    });
+
+    function closeEmojiPanel() {
+        document.getElementById('emoji-panel').classList.add('d-none');
+    }
+
+    function renderEmojiPanel() {
+        const panel = document.getElementById('emoji-panel');
+        panel.innerHTML = `<div class="emoji-grid">${emojis.map(e => `<div class="emoji-item" data-emoji="${e}">${e}</div>`).join('')}</div>`;
+        panel.querySelectorAll('.emoji-item').forEach(el => {
+            el.addEventListener('click', function() {
+                insertAtCursor(document.getElementById('message-input'), this.dataset.emoji);
+            });
+        });
+    }
+
+    function insertAtCursor(input, text) {
+        const start = input.selectionStart ?? input.value.length;
+        const end = input.selectionEnd ?? input.value.length;
+        const before = input.value.substring(0, start);
+        const after = input.value.substring(end);
+        input.value = before + text + after;
+        const pos = start + text.length;
+        input.setSelectionRange(pos, pos);
+        input.focus();
+    }
+
+    function onNewMessage() {
+        if (soundEnabled) {
+            beep();
+        }
+        if (document.hidden) {
+            unreadCount += 1;
+            document.title = `(${unreadCount}) ${baseTitle}`;
+        }
+    }
+
+    function beep() {
+        try {
+            const ctx = new (window.AudioContext || window.webkitAudioContext)();
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            osc.type = 'sine';
+            osc.frequency.value = 880;
+            gain.gain.value = 0.03;
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+            osc.start();
+            setTimeout(() => {
+                osc.stop();
+                ctx.close();
+            }, 120);
+        } catch (e) {
+        }
+    }
+
+    function escapeHtml(text) {
+        if (text === null || text === undefined) return '';
+        return text
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;")
+            .replace(/'/g, "&#039;");
+    }
+
+    async function openCameraModal() {
+        try {
+            lastCapturedBlob = null;
+            const sendBtn = document.getElementById('camera-send-btn');
+            if (sendBtn) sendBtn.disabled = true;
+            $('#cameraModal').modal('show');
+
+            const preview = document.getElementById('camera-preview');
+            if (!preview) return;
+
+            cameraStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' }, audio: false });
+            preview.srcObject = cameraStream;
+        } catch (e) {
+            try { $('#cameraModal').modal('hide'); } catch (err) {}
+            alert('{{ _("فشل الوصول للكاميرا.") }}');
+        }
+    }
+
+    function stopCameraStream() {
+        if (!cameraStream) return;
+        try {
+            const tracks = cameraStream.getTracks ? cameraStream.getTracks() : [];
+            tracks.forEach(t => {
+                try { t.stop(); } catch (e) {}
+            });
+        } catch (e) {}
+        cameraStream = null;
+        const preview = document.getElementById('camera-preview');
+        if (preview) preview.srcObject = null;
+    }
+
+    try {
+        $('#cameraModal').on('hidden.bs.modal', function() {
+            stopCameraStream();
+            lastCapturedBlob = null;
+            const sendBtn = document.getElementById('camera-send-btn');
+            if (sendBtn) sendBtn.disabled = true;
+        });
+    } catch (e) {}
+
+    function appendAiMessage(role, text, typingId) {
+        const container = document.getElementById('ai-chat-messages');
+        if (!container) return null;
+        const isUser = role === 'user';
+        const row = document.createElement('div');
+        row.className = `message ${isUser ? 'sent text-right' : 'received'} mb-2`;
+        if (typingId) row.id = typingId;
+        row.innerHTML = `
+            <div class="d-inline-block p-2 rounded ${isUser ? 'bg-gold text-dark' : 'bg-dark border border-secondary text-white'}" style="max-width: 90%;">
+                ${escapeHtml(String(text || '')).replace(/\n/g, '<br>')}
+            </div>
+        `;
+        container.appendChild(row);
+        container.scrollTop = container.scrollHeight;
+        return row;
+    }
+
+    function primeAiChat() {
+        const container = document.getElementById('ai-chat-messages');
+        if (!container) return;
+        if (container.dataset.primed === '1') return;
+        container.dataset.primed = '1';
+        appendAiMessage('assistant', '{{ _("أهلاً! أنا الدردشة الذكية. اسألني عن أي شيء داخل اللعبة.") }}');
+    }
+
+    async function sendSmartChatMessage(message) {
+        const res = await fetch(SMART_CHAT_URL, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': CSRF_TOKEN
+            },
+            body: JSON.stringify({ message })
+        });
+        let data = null;
+        try {
+            data = await res.json();
+        } catch (e) {
+            throw new Error('{{ _("حدث خطأ.") }}');
+        }
+        if (!res.ok || (data && data.error)) {
+            throw new Error((data && data.error) ? data.error : '{{ _("حدث خطأ.") }}');
+        }
+        return data;
+    }
+
+    const aiForm = document.getElementById('ai-chat-form');
+    if (aiForm) {
+        aiForm.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            if (!IS_AUTH) return;
+            const input = document.getElementById('ai-chat-input');
+            if (!input) return;
+            const msg = (input.value || '').trim();
+            if (!msg) return;
+            input.value = '';
+            appendAiMessage('user', msg);
+            const typingId = 'ai-typing-' + Date.now();
+            appendAiMessage('assistant', '{{ _("جاري الكتابة...") }}', typingId);
+            try {
+                const data = await sendSmartChatMessage(msg);
+                const typingEl = document.getElementById(typingId);
+                if (typingEl) typingEl.remove();
+                appendAiMessage('assistant', (data && data.response) ? data.response : '{{ _("حدث خطأ.") }}');
+            } catch (err) {
+                const typingEl = document.getElementById(typingId);
+                if (typingEl) typingEl.remove();
+                appendAiMessage('assistant', (err && err.message) ? err.message : '{{ _("حدث خطأ.") }}');
+            }
+        });
+    }
+
+    function renderMessageContent(text) {
+        const raw = String(text || '');
+        const match = raw.match(/^\[\[(image|video|file):([^\]\|]+)(?:\|([^\]]+))?\]\]$/);
+        if (!match) {
+            return escapeHtml(raw);
+        }
+        const kind = match[1];
+        const path = (match[2] || '').replace(/^\/+/, '');
+        const name = (match[3] || '').trim();
+        const url = STATIC_BASE + path;
+        if (kind === 'image') {
+            return `<a href="${url}" target="_blank" rel="noopener"><img src="${url}" class="img-fluid rounded border border-warning" style="max-height: 260px; object-fit: contain;" /></a>`;
+        }
+        if (kind === 'video') {
+            return `<video src="${url}" controls playsinline class="w-100 rounded border border-warning" style="max-height: 280px;"></video>`;
+        }
+        const label = name ? escapeHtml(name) : '{{ _("ملف") }}';
+        return `<a href="${url}" target="_blank" rel="noopener" class="text-gold" style="text-decoration: underline;"><i class="fas fa-file mr-1"></i> ${label}</a>`;
+    }
+
+    async function sendChatMessage(message) {
+        const res = await fetch("{{ url_for('main.send_public_chat_message') }}", {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': CSRF_TOKEN
+            },
+            body: JSON.stringify({ message, room: ROOM })
+        });
+        let data = null;
+        try {
+            data = await res.json();
+        } catch (e) {
+            throw new Error('{{ _("فشل إرسال الرسالة.") }}');
+        }
+        if (!res.ok || (data && data.error)) {
+            throw new Error((data && data.error) ? data.error : '{{ _("فشل إرسال الرسالة.") }}');
+        }
+        return data;
+    }
+
+    async function handleUploadAndSend(file) {
+        if (!IS_AUTH) return;
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('room', ROOM);
+
+        const res = await fetch(UPLOAD_URL, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': CSRF_TOKEN
+            },
+            body: formData
+        });
+        let data = null;
+        try {
+            data = await res.json();
+        } catch (e) {
+            alert('{{ _("فشل رفع الملف.") }}');
+            return;
+        }
+        if (!res.ok || !data || data.error || !data.token) {
+            alert((data && data.error) ? data.error : '{{ _("فشل رفع الملف.") }}');
+            return;
+        }
+        try {
+            await sendChatMessage(data.token);
+            loadMessages();
+        } catch (e) {
+            alert(e && e.message ? e.message : '{{ _("فشل إرسال الرسالة.") }}');
+        }
+    }
+
+    function postAction(url) {
+        return fetch(url, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': CSRF_TOKEN
+            }
+        }).then(async (res) => {
+            let data = null;
+            try {
+                data = await res.json();
+            } catch (e) {
+                data = null;
+            }
+            if (!res.ok) {
+                const err = (data && data.error) ? data.error : '{{ _("حدث خطأ.") }}';
+                throw new Error(err);
+            }
+            return data;
+        });
+    }
+
+    function deleteChatMessage(msgId) {
+        if (!CAN_MODERATE) return;
+        if (!confirm('{{ _("هل تريد حذف هذه الرسالة؟") }}')) return;
+        postAction(`/api/public-chat/delete/${msgId}`)
+            .then(() => {
+                const el = document.querySelector(`[data-msg-id="${msgId}"]`);
+                if (el) el.remove();
+            })
+            .catch(err => alert(err.message || '{{ _("حدث خطأ.") }}'));
+    }
+
+    function muteChatUser(userId, minutes) {
+        if (!CAN_MODERATE) return;
+        if (!confirm(`{{ _("هل تريد كتم المستخدم لمدة") }} ${minutes} {{ _("دقيقة؟") }}`)) return;
+        postAction(`/api/public-chat/mute/${userId}?minutes=${minutes}`)
+            .then(data => alert((data && data.message) ? data.message : '{{ _("تم.") }}'))
+            .catch(err => alert(err.message || '{{ _("حدث خطأ.") }}'));
+    }
+
+    function banChatUser(userId) {
+        if (!CAN_MODERATE) return;
+        if (!confirm('{{ _("هل تريد حظر المستخدم من الدردشة؟") }}')) return;
+        postAction(`/api/public-chat/ban/${userId}`)
+            .then(data => alert((data && data.message) ? data.message : '{{ _("تم.") }}'))
+            .catch(err => alert(err.message || '{{ _("حدث خطأ.") }}'));
+    }
+
+    function reportChatMessage(msgId) {
+        if (!confirm('{{ _("إرسال بلاغ عن هذه الرسالة؟") }}')) return;
+        postAction(`/api/public-chat/report/${msgId}`)
+            .then(data => alert((data && data.message) ? data.message : '{{ _("تم إرسال البلاغ.") }}'))
+            .catch(err => alert(err.message || '{{ _("حدث خطأ.") }}'));
+    }
+</script>
+{% endblock %}

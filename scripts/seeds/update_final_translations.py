@@ -8,8 +8,16 @@ sys.stdout.reconfigure(encoding='utf-8')
 
 # Path to messages.po
 PO_FILE = os.path.join('translations', 'en', 'LC_MESSAGES', 'messages.po')
-EN_US_PO_FILE = os.path.join('translations', 'en_US', 'LC_MESSAGES', 'messages.po')
-RECOVERED_PO_FILE = os.path.join('translations', 'en', 'LC_MESSAGES', 'messages_recovered.po')
+EN_US_PO_FILE = os.path.join(
+    'translations',
+    'en_US',
+    'LC_MESSAGES',
+    'messages.po')
+RECOVERED_PO_FILE = os.path.join(
+    'translations',
+    'en',
+    'LC_MESSAGES',
+    'messages_recovered.po')
 
 # Dictionary of Arabic to English translations
 TRANSLATIONS = {
@@ -2229,15 +2237,20 @@ TRANSLATIONS = {
 
 
 def contains_arabic(text):
-    if not text: return False
+    if not text:
+        return False
     return bool(re.search(r'[\u0600-\u06FF]', text))
 
+
 def escape_po_string(text):
-    if not text: return ""
+    if not text:
+        return ""
     return text.replace('\\', '\\\\').replace('"', '\\"').replace('\n', '\\n')
+
 
 def auto_translate(text):
     return None
+
 
 def load_po_translations(file_path):
     if not os.path.exists(file_path):
@@ -2260,8 +2273,9 @@ def load_po_translations(file_path):
                     if val.startswith('"') and val.endswith('"'):
                         current_msgid += val[1:-1]
                     j += 1
-                clean_msgid = current_msgid.replace('\\"', '"').replace('\\n', '\n')
-                
+                clean_msgid = current_msgid.replace(
+                    '\\"', '"').replace('\\n', '\n')
+
                 # Look for msgstr
                 current_msgstr = ""
                 # Find msgstr line
@@ -2275,18 +2289,20 @@ def load_po_translations(file_path):
                     if lines[temp_j].strip().startswith('msgid'):
                         break
                     temp_j += 1
-                
+
                 if found_msgstr:
                     val = lines[j].strip()[6:].strip()
                     if val.startswith('"') and val.endswith('"'):
                         current_msgstr += val[1:-1]
                     j2 = j + 1
-                    while j2 < len(lines) and lines[j2].strip().startswith('"'):
+                    while j2 < len(
+                            lines) and lines[j2].strip().startswith('"'):
                         val2 = lines[j2].strip()
                         if val2.startswith('"') and val2.endswith('"'):
                             current_msgstr += val2[1:-1]
                         j2 += 1
-                    clean_msgstr = current_msgstr.replace('\\"', '"').replace('\\n', '\n')
+                    clean_msgstr = current_msgstr.replace(
+                        '\\"', '"').replace('\\n', '\n')
                     if clean_msgstr:
                         translations[clean_msgid] = clean_msgstr
                     i = j2
@@ -2297,6 +2313,7 @@ def load_po_translations(file_path):
     except Exception as e:
         print(f"Error loading {file_path}: {e}")
     return translations
+
 
 def load_python_translations_dict(file_path):
     try:
@@ -2314,6 +2331,7 @@ def load_python_translations_dict(file_path):
         print(f"Error loading extra translations: {e}")
         return {}
 
+
 def update_translations():
     if not os.path.exists(PO_FILE):
         print(f"Error: {PO_FILE} not found.")
@@ -2321,7 +2339,8 @@ def update_translations():
 
     us_translations = load_po_translations(EN_US_PO_FILE)
     recovered_translations = load_po_translations(RECOVERED_PO_FILE)
-    extra_translations = load_python_translations_dict(os.path.join(os.path.dirname(__file__), "update_translations.py"))
+    extra_translations = load_python_translations_dict(
+        os.path.join(os.path.dirname(__file__), "update_translations.py"))
 
     print(f"Reading {PO_FILE}...")
     with open(PO_FILE, 'r', encoding='utf-8') as f:
@@ -2333,7 +2352,7 @@ def update_translations():
 
     while i < len(lines):
         line = lines[i]
-        
+
         if line.strip().startswith('msgid'):
             current_msgid = ""
             val = line.strip()[5:].strip()
@@ -2345,7 +2364,8 @@ def update_translations():
                 if val.startswith('"') and val.endswith('"'):
                     current_msgid += val[1:-1]
                 j += 1
-            clean_msgid = current_msgid.replace('\\"', '"').replace('\\n', '\n')
+            clean_msgid = current_msgid.replace(
+                '\\"', '"').replace('\\n', '\n')
             translation = TRANSLATIONS.get(clean_msgid)
             if translation is None and recovered_translations:
                 translation = recovered_translations.get(clean_msgid)
@@ -2371,7 +2391,8 @@ def update_translations():
                     if val2.startswith('"') and val2.endswith('"'):
                         current_msgstr += val2[1:-1]
                     j2 += 1
-                clean_msgstr = current_msgstr.replace('\\"', '"').replace('\\n', '\n')
+                clean_msgstr = current_msgstr.replace(
+                    '\\"', '"').replace('\\n', '\n')
                 should_update = False
                 if translation is not None:
                     if clean_msgstr == "":
@@ -2379,7 +2400,9 @@ def update_translations():
                     elif contains_arabic(clean_msgid) and contains_arabic(clean_msgstr) and not contains_arabic(translation):
                         should_update = True
                 if should_update:
-                    new_lines.append(f'msgstr "{escape_po_string(translation)}"\n')
+                    new_lines.append(
+                        f'msgstr "{
+                            escape_po_string(translation)}"\n')
                     updated_count += 1
                     print(f"Updated: {clean_msgid[:30]}...")
                 else:
@@ -2398,11 +2421,13 @@ def update_translations():
         f.writelines(new_lines)
     print(f"Done. Updated {updated_count} empty translations.")
 
+
 if __name__ == "__main__":
     update_translations()
     try:
         import subprocess
-        subprocess.run(["pybabel", "compile", "-d", "translations"], check=True)
+        subprocess.run(["pybabel", "compile", "-d",
+                       "translations"], check=True)
         print("Compiled translations.")
     except Exception as e:
         print(f"Warning: could not compile translations automatically: {e}")

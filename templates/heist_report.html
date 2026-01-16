@@ -40,9 +40,9 @@
         <div class="report-wrap m-0">
           <div class="report-card m-0">
             <div class="report-hero">
-              <img src="{{ url_for('static', filename=(crime_image or 'crimes/bank_heist.jpg')) }}"
+              <img src="{{ url_for('static', filename='images/' + (crime_image or 'crimes/bank_heist.jpg')) }}"
                    alt="{{ history.crime_name }}"
-                   onerror="this.onerror=null; this.src='{{ url_for('static', filename='crimes/bank_heist.jpg') }}';">
+                   onerror="this.onerror=null; this.src='{{ url_for('static', filename='images/crimes/bank_heist.jpg') }}';">
               <div class="overlay {{ animation or 'spark' }}">
                 {% if (animation or 'spark') == 'smoke' %}
                   <div class="smoke-bubble"></div>

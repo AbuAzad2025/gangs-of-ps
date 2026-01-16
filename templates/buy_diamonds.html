@@ -57,8 +57,9 @@
                     <hr class="border-gold opacity-50 my-5">
 
                     <h3 class="text-center gold-text-gradient mb-4">{{ _('نموذج تأكيد التحويل') }}</h3>
-                    <form method="POST" action="" class="luxury-form">
+                    <form method="POST" action="{% if next_url %}{{ url_for('main.buy_diamonds', next=next_url) }}{% else %}{{ url_for('main.buy_diamonds') }}{% endif %}" class="luxury-form">
                         {{ form.hidden_tag() }}
+                        <input type="hidden" name="next" value="{{ next_url or '' }}">
                         
                         <div class="form-row">
                             <div class="form-group col-md-6 mb-4">

@@ -4,11 +4,11 @@ from flask_babel import _
 def effective_level(user):
     try:
         return int(user.level + (user.rank_points_value // 50))
-    except Exception as e:
+    except Exception:
         from extensions import db
         try:
             db.session.rollback()
-        except:
+        except BaseException:
             pass
         return int(user.level)
 
@@ -64,7 +64,11 @@ def check_requirements(user, req):
         missing.append("exp")
 
     min_intel = _as_int(req.get("min_intelligence"))
-    if min_intel is not None and int(getattr(user, "intelligence", 0)) < min_intel:
+    if min_intel is not None and int(
+        getattr(
+            user,
+            "intelligence",
+            0)) < min_intel:
         reasons.append(_('تحتاج ذكاء %(n)s.', n=min_intel))
         missing.append("intelligence")
 

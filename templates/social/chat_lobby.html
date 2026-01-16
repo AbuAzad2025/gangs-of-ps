@@ -1,0 +1,341 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="chatna-shell">
+<div class="row no-gutters chatna-row">
+    <div class="col-md-4 col-lg-3 chatna-pane chatna-pane--sidebar">
+        {% set chat_sidebar_mode = 'lobby' %}
+        {% include "social/_chat_sidebar.html" %}
+    </div>
+
+    <div class="col-md-8 col-lg-9 chatna-pane chatna-pane--conversation">
+        <div class="chatna-conversation">
+            <div class="chatna-topbar">
+                <div class="d-flex align-items-center">
+                    <div class="chatna-title"><i class="fas fa-users mr-2"></i> {{ _('المتواجدون الآن') }}</div>
+                </div>
+                <div class="chatna-online">
+                    <span class="badge badge-success" id="online-count">0</span>
+                </div>
+            </div>
+
+            <div class="chatna-messages custom-scrollbar p-0">
+                <div class="p-3 border-bottom border-secondary" style="background: rgba(0,0,0,0.25);">
+                    <div class="card luxury-card border border-warning mb-0" style="background: rgba(0,0,0,0.25);">
+                        <div class="card-body py-3">
+                            <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center">
+                                <div class="mb-3 mb-lg-0">
+                                    <div class="text-gold font-weight-bold">
+                                        <i class="fas fa-crown mr-2"></i>{{ _('VIP') }}
+                                    </div>
+                                    <div class="text-muted small">
+                                        {{ _('غرفة VIP بميزات وتجربة أفخم، ودعم مباشر للمطور.') }}
+                                    </div>
+                                </div>
+                                <div class="d-flex flex-wrap align-items-center">
+                                    <a href="{{ url_for('main.chat_room', room_name='vip') }}" class="btn btn-outline-gold mr-2 mb-2">
+                                        <i class="fas fa-comments"></i> {{ _('دخول غرفة VIP') }}
+                                    </a>
+                                    {% if current_user.is_authenticated %}
+                                        {% if not is_vip %}
+                                        <form method="POST" action="{{ url_for('main.chat_vip_upgrade') }}" class="mr-2 mb-2">
+                                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                            <button type="submit" class="btn btn-gold">
+                                                <i class="fas fa-crown"></i> {{ _('ترقية VIP') }} ({{ vip_upgrade_cost_diamonds }} {{ _('ماس') }})
+                                            </button>
+                                        </form>
+                                        {% endif %}
+                                        <a href="{{ url_for('main.buy_diamonds', next=url_for('main.chat_room', room_name='vip')) }}" class="btn btn-outline-light mr-2 mb-2">
+                                            <i class="fas fa-gem"></i> {{ _('شراء الماس') }}
+                                        </a>
+                                        <form method="POST" action="{{ url_for('main.chat_vip_donate') }}" class="form-inline mb-2">
+                                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                            <input type="hidden" name="currency" value="diamonds">
+                                            <input type="number" class="form-control form-control-luxury mr-2" name="amount" min="1" placeholder="{{ _('تبرع (ماس)') }}" style="width: 140px;">
+                                            <button type="submit" class="btn btn-outline-gold">
+                                                <i class="fas fa-hand-holding-heart"></i> {{ _('تبرع') }}
+                                            </button>
+                                        </form>
+                                    {% else %}
+                                        <a href="{{ url_for('main.login', next=url_for('main.chat_lobby')) }}" class="btn btn-outline-light mb-2">
+                                            <i class="fas fa-sign-in-alt"></i> {{ _('تسجيل الدخول للترقية') }}
+                                        </a>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            {% if donation_target_username %}
+                            <div class="text-muted small mt-2">
+                                {{ _('سيدعم التبرع حساب') }}: <span class="text-light">{{ donation_target_username }}</span>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                <div id="users-grid" class="row p-3">
+                    <div class="col-12 text-center py-5">
+                        <i class="fas fa-spinner fa-spin fa-3x text-gold"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</div>
+
+<!-- Random Match Modal -->
+<div class="modal fade" id="matchModal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content luxury-card border-gold">
+            <div class="modal-body text-center p-5">
+                <div id="match-loading">
+                    <div class="spinner-border text-gold mb-3" role="status"></div>
+                    <h5 class="text-white">{{ _('جاري البحث عن شريك...') }}</h5>
+                </div>
+                <div id="match-result" class="d-none">
+                    <img id="match-avatar" src="" class="rounded-circle border border-gold mb-3" width="100" height="100">
+                    <h4 id="match-username" class="text-gold mb-1"></h4>
+                    <p id="match-details" class="text-muted mb-4"></p>
+                    
+                    <button id="match-start-chat" class="btn btn-success btn-lg px-5">
+                        <i class="fas fa-comments"></i> {{ _('بدء الدردشة') }}
+                    </button>
+                </div>
+                <div id="match-error" class="d-none">
+                    <i class="fas fa-exclamation-circle fa-3x text-danger mb-3"></i>
+                    <h5 class="text-white" id="match-error-msg"></h5>
+                    <button class="btn btn-outline-light mt-3" data-dismiss="modal">{{ _('إغلاق') }}</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .chatna-shell {
+        height: calc(100vh - 120px);
+        min-height: 560px;
+        border: 1px solid rgba(212, 175, 55, 0.22);
+        border-radius: 14px;
+        overflow: hidden;
+        background: radial-gradient(1100px 700px at 80% 0%, rgba(212, 175, 55, 0.10), transparent 55%),
+                    radial-gradient(900px 520px at 0% 100%, rgba(0, 180, 216, 0.10), transparent 52%),
+                    rgba(0, 0, 0, 0.35);
+        box-shadow: 0 18px 55px rgba(0, 0, 0, 0.55);
+    }
+
+    @media (max-width: 991.98px) {
+        .chatna-shell {
+            height: calc(100vh - 90px);
+            border-radius: 12px;
+        }
+    }
+
+    @media (max-width: 575.98px) {
+        .chatna-shell {
+            height: calc(100vh - 72px);
+            border-radius: 0;
+            border-left: 0;
+            border-right: 0;
+        }
+    }
+
+    .chatna-row {
+        height: 100%;
+        margin: 0;
+    }
+
+    .chatna-pane {
+        height: 100%;
+        padding: 0;
+    }
+
+    .chatna-pane--sidebar {
+        background: rgba(0, 0, 0, 0.25);
+        backdrop-filter: blur(10px);
+        border-right: 1px solid rgba(255, 255, 255, 0.06);
+    }
+
+    [dir="rtl"] .chatna-pane--sidebar {
+        border-right: 0;
+        border-left: 1px solid rgba(255, 255, 255, 0.06);
+    }
+
+    .chatna-pane--conversation {
+        background: rgba(0, 0, 0, 0.15);
+        backdrop-filter: blur(10px);
+    }
+
+    .chatna-pane--sidebar .card {
+        border-radius: 0;
+        height: 100%;
+        margin: 0;
+    }
+
+    .chatna-conversation {
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        background: rgba(0, 0, 0, 0.15);
+        backdrop-filter: blur(10px);
+    }
+
+    .chatna-topbar {
+        height: 56px;
+        flex: 0 0 auto;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0 14px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+        background: linear-gradient(90deg, rgba(0, 0, 0, 0.55), rgba(0, 0, 0, 0.15));
+    }
+
+    .chatna-title {
+        font-weight: 700;
+        color: rgba(255, 255, 255, 0.92);
+        max-width: 62vw;
+    }
+
+    .chatna-messages {
+        flex: 1 1 auto;
+        overflow: auto;
+        background: radial-gradient(900px 420px at 50% 0%, rgba(212, 175, 55, 0.08), transparent 55%),
+                    rgba(0, 0, 0, 0.25);
+    }
+
+    .user-card {
+        transition: transform 0.2s;
+        cursor: pointer;
+        background: rgba(0,0,0,0.4);
+        border: 1px solid #333;
+    }
+    .user-card:hover {
+        transform: translateY(-5px);
+        border-color: var(--gold);
+        background: rgba(0,0,0,0.6);
+    }
+    .pulse-button {
+        animation: pulse 2s infinite;
+    }
+    @keyframes pulse {
+        0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(220, 53, 69, 0.7); }
+        70% { transform: scale(1.05); box-shadow: 0 0 0 10px rgba(220, 53, 69, 0); }
+        100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(220, 53, 69, 0); }
+    }
+</style>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const isAuth = {{ 'true' if current_user.is_authenticated else 'false' }};
+        loadOnlineUsers();
+        const params = new URLSearchParams(window.location.search || '');
+        if (params.get('random') === '1') {
+            if (isAuth) {
+                startRandomChat();
+            } else {
+                window.location.href = `{{ url_for('main.chat_room', room_name='strangers') }}`;
+            }
+        }
+    });
+
+    const AVATAR_BASE = "{{ url_for('static', filename='images/avatars/') }}";
+
+    function loadOnlineUsers() {
+        const gender = document.getElementById('filter-gender').value;
+        const minAge = document.getElementById('filter-age-min').value;
+        const maxAge = document.getElementById('filter-age-max').value;
+        
+        const grid = document.getElementById('users-grid');
+        grid.innerHTML = '<div class="col-12 text-center py-5"><i class="fas fa-spinner fa-spin fa-3x text-gold"></i></div>';
+        
+        const params = new URLSearchParams({
+            gender: gender,
+            min_age: minAge,
+            max_age: maxAge
+        });
+
+        fetch(`{{ url_for('main.get_online_users') }}?${params}`)
+            .then(response => response.json())
+            .then(users => {
+                grid.innerHTML = '';
+                document.getElementById('online-count').innerText = users.length;
+                
+                if (users.length === 0) {
+                    grid.innerHTML = `<div class="col-12 text-center py-5 text-muted">{{ _('لا يوجد مستخدمين مطابقين للشروط حالياً.') }}</div>`;
+                    return;
+                }
+
+                users.forEach(user => {
+                    const ageText = user.age ? `, ${user.age} {{ _('سنة') }}` : '';
+                    const genderIcon = user.gender === 'female' ? '<i class="fas fa-venus text-danger"></i>' : '<i class="fas fa-mars text-primary"></i>';
+                    const vipBadge = user.is_vip ? '<span class="badge badge-warning ml-1">VIP</span>' : '';
+                    const vipCrown = user.is_vip ? '<i class="fas fa-crown text-warning"></i>' : '';
+                    
+                    const card = document.createElement('div');
+                    card.className = 'col-6 col-md-4 col-lg-3 mb-3';
+                    card.innerHTML = `
+                        <div class="card user-card h-100" onclick="openMessenger(${user.id})">
+                            <div class="card-body text-center p-3">
+                                <div class="position-relative d-inline-block mb-2">
+                                    <img src="${AVATAR_BASE + (user.avatar || 'default.png')}" class="rounded-circle border border-secondary" width="60" height="60">
+                                    <span class="position-absolute bg-success border border-dark rounded-circle" style="width: 12px; height: 12px; bottom: 0; right: 0;"></span>
+                                    ${user.is_vip ? '<span class="position-absolute" style="top: -6px; right: -6px; width: 22px; height: 22px; background: rgba(0,0,0,0.65); border: 1px solid rgba(212,175,55,0.7); border-radius: 50%; display: inline-flex; align-items: center; justify-content: center;">' + vipCrown + '</span>' : ''}
+                                </div>
+                                <h6 class="text-white text-truncate mb-1">${user.username} ${vipBadge}</h6>
+                                <small class="text-muted d-block mb-2">${genderIcon} ${ageText}</small>
+                                <button class="btn btn-xs btn-outline-gold">{{ _('مراسلة') }}</button>
+                            </div>
+                        </div>
+                    `;
+                    grid.appendChild(card);
+                });
+            });
+    }
+
+    function startRandomChat() {
+        $('#matchModal').modal('show');
+        document.getElementById('match-loading').classList.remove('d-none');
+        document.getElementById('match-result').classList.add('d-none');
+        document.getElementById('match-error').classList.add('d-none');
+        
+        const gender = document.getElementById('filter-gender').value; // Use current filter preference
+        const params = new URLSearchParams();
+        if(gender) params.append('gender', gender);
+
+        fetch(`{{ url_for('main.random_match') }}?${params}`)
+            .then(response => {
+                if (response.status === 204) throw new Error('No match found');
+                if (!response.ok) throw new Error('No match found');
+                return response.json();
+            })
+            .then(user => {
+                document.getElementById('match-loading').classList.add('d-none');
+                document.getElementById('match-result').classList.remove('d-none');
+                
+                document.getElementById('match-avatar').src = AVATAR_BASE + (user.avatar || 'default.png');
+                document.getElementById('match-username').innerText = user.username;
+                
+                const ageText = user.age ? `, ${user.age} {{ _('سنة') }}` : '';
+                const genderText = user.gender === 'female' ? '{{ _("أنثى") }}' : '{{ _("ذكر") }}';
+                document.getElementById('match-details').innerText = `${genderText}${ageText}`;
+                
+                document.getElementById('match-start-chat').onclick = function() {
+                    $('#matchModal').modal('hide');
+                    openMessenger(user.id);
+                };
+            })
+            .catch(err => {
+                document.getElementById('match-loading').classList.add('d-none');
+                document.getElementById('match-error').classList.remove('d-none');
+                document.getElementById('match-error-msg').innerText = '{{ _("لم يتم العثور على شريك متاح حالياً. حاول مرة أخرى.") }}';
+            });
+    }
+
+    function openMessenger(userId) {
+        // Redirect to messenger with open conversation
+        // Since messenger is SPA-ish, we might need to pass a param or handle it
+        // For now, let's assume messenger page can open a chat via URL hash or param
+        window.location.href = `{{ url_for('main.messenger') }}?chat_with=${userId}`;
+    }
+</script>
+{% endblock %}

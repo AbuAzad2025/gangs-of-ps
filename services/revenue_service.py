@@ -6,8 +6,6 @@ from dataclasses import dataclass
 from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional, Tuple
 
-from sqlalchemy import and_
-
 from extensions import db
 from models.log import UserLog
 from models.system import SystemConfig
@@ -30,7 +28,8 @@ def _parse_json_maybe(value: Any) -> Any:
     return None
 
 
-def _month_bounds(month_key: Optional[str]) -> Tuple[Optional[datetime], Optional[datetime]]:
+def _month_bounds(
+        month_key: Optional[str]) -> Tuple[Optional[datetime], Optional[datetime]]:
     if not month_key:
         return None, None
     s = month_key.strip()
@@ -82,7 +81,10 @@ class RevenueService:
     ACTION_REAL_MONEY = "ADMIN_REAL_MONEY_PURCHASE"
 
     @staticmethod
-    def real_money_report(month: Optional[str] = None, search: Optional[str] = None, limit: int = 5000) -> Dict[str, Any]:
+    def real_money_report(month: Optional[str] = None,
+                          search: Optional[str] = None,
+                          limit: int = 5000) -> Dict[str,
+                                                     Any]:
         start, end = _month_bounds(month)
         reset_at = _get_report_start_at()
         if reset_at and (start is None or reset_at > start):
@@ -90,8 +92,14 @@ class RevenueService:
         if reset_at and end and end <= reset_at:
             return {
                 "rows": [],
-                "totals": {"payments": {}, "resources": {}, "ops": 0, "users": 0},
-                "filters": {"month": month or "", "search": search or ""},
+                "totals": {
+                    "payments": {},
+                    "resources": {},
+                    "ops": 0,
+                    "users": 0},
+                "filters": {
+                    "month": month or "",
+                    "search": search or ""},
                 "months": [],
                 "start_at": reset_at,
             }
@@ -109,7 +117,8 @@ class RevenueService:
             if s:
                 q = q.filter(User.username.ilike(f"%{s}%"))
 
-        q = q.order_by(UserLog.timestamp.desc()).limit(int(max(1, min(limit, 20000))))
+        q = q.order_by(UserLog.timestamp.desc()).limit(
+            int(max(1, min(limit, 20000))))
 
         by_user: Dict[int, RevenueRow] = {}
         totals_payments: Dict[str, float] = defaultdict(float)
@@ -120,9 +129,11 @@ class RevenueService:
             if not isinstance(details, dict):
                 continue
 
-            cur = str(details.get("real_money_currency") or details.get("currency") or "USD").upper()
+            cur = str(details.get("real_money_currency")
+                      or details.get("currency") or "USD").upper()
             try:
-                paid = float(details.get("real_money_amount") or details.get("amount") or 0)
+                paid = float(details.get("real_money_amount")
+                             or details.get("amount") or 0)
             except Exception:
                 paid = 0.0
 
@@ -181,8 +192,11 @@ class RevenueService:
         }
 
     @staticmethod
-    def _available_months(limit: int = 18, reset_at: Optional[datetime] = None) -> List[str]:
-        q = UserLog.query.filter(UserLog.action == RevenueService.ACTION_REAL_MONEY)
+    def _available_months(
+            limit: int = 18,
+            reset_at: Optional[datetime] = None) -> List[str]:
+        q = UserLog.query.filter(
+            UserLog.action == RevenueService.ACTION_REAL_MONEY)
         if reset_at:
             q = q.filter(UserLog.timestamp >= reset_at)
         q = q.order_by(UserLog.timestamp.desc()).limit(2500).all()

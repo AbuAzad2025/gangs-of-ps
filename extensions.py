@@ -53,7 +53,13 @@ def _patch_platform_for_restricted_windows():
         machine = os.environ.get("PROCESSOR_ARCHITECTURE", "") or ""
         processor = os.environ.get("PROCESSOR_IDENTIFIER", "") or ""
         try:
-            return uname_result(system, node, release, version, machine, processor)
+            return uname_result(
+                system,
+                node,
+                release,
+                version,
+                machine,
+                processor)
         except TypeError:
             return uname_result(system, node, release, version, machine)
 
@@ -70,7 +76,7 @@ try:
         socketio = SocketIO(cors_allowed_origins="*", async_mode='eventlet')
     except Exception:
         socketio = SocketIO(cors_allowed_origins="*", async_mode='threading')
-except Exception as e:
+except Exception:
     socketio = None
 
 db = SQLAlchemy()
@@ -91,7 +97,7 @@ seo_manager = SEOManager()
 class MyAdminIndexView(AdminIndexView):
     def is_accessible(self):
         return current_user.is_authenticated and current_user.is_admin
-    
+
     def inaccessible_callback(self, name, **kwargs):
         return redirect(url_for('main.login'))
 

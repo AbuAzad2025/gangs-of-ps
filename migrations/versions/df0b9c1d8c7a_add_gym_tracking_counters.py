@@ -17,10 +17,28 @@ depends_on = None
 
 def upgrade():
     with op.batch_alter_table('user', schema=None) as batch_op:
-        batch_op.add_column(sa.Column('gym_sessions_count', sa.Integer(), nullable=False, server_default=sa.text('0')))
-        batch_op.add_column(sa.Column('gym_sessions_date', sa.Date(), nullable=True))
-        batch_op.add_column(sa.Column('gym_speedups_count', sa.Integer(), nullable=False, server_default=sa.text('0')))
-        batch_op.add_column(sa.Column('gym_speedups_date', sa.Date(), nullable=True))
+        batch_op.add_column(
+            sa.Column(
+                'gym_sessions_count',
+                sa.Integer(),
+                nullable=False,
+                server_default=sa.text('0')))
+        batch_op.add_column(
+            sa.Column(
+                'gym_sessions_date',
+                sa.Date(),
+                nullable=True))
+        batch_op.add_column(
+            sa.Column(
+                'gym_speedups_count',
+                sa.Integer(),
+                nullable=False,
+                server_default=sa.text('0')))
+        batch_op.add_column(
+            sa.Column(
+                'gym_speedups_date',
+                sa.Date(),
+                nullable=True))
 
 
 def downgrade():
@@ -29,4 +47,3 @@ def downgrade():
         batch_op.drop_column('gym_speedups_count')
         batch_op.drop_column('gym_sessions_date')
         batch_op.drop_column('gym_sessions_count')
-

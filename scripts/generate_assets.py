@@ -1,15 +1,17 @@
 import os
 
+
 def create_svg(path, text, color="#3498db"):
     svg_content = f'''<svg width="400" height="300" xmlns="http://www.w3.org/2000/svg">
   <rect width="100%" height="100%" fill="{color}"/>
   <text x="50%" y="50%" font-family="Arial" font-size="24" fill="white" dominant-baseline="middle" text-anchor="middle">{text}</text>
 </svg>'''
-    
+
     os.makedirs(os.path.dirname(path), exist_ok=True)
     with open(path, "w", encoding="utf-8") as f:
         f.write(svg_content)
     print(f"Created: {path}")
+
 
 base_dir = "d:/gang of Ps/GangsOfPalestine/static/images"
 
@@ -24,11 +26,13 @@ assets = [
     {"path": "items/ak47.svg", "text": "AK-47", "color": "#c0392b"},
     {"path": "items/m16.svg", "text": "M16", "color": "#27ae60"},
     {"path": "items/light_vest.svg", "text": "Light Vest", "color": "#f1c40f"},
-    {"path": "items/leather_jacket.svg", "text": "Leather Jacket", "color": "#8e44ad"},
+    {"path": "items/leather_jacket.svg",
+     "text": "Leather Jacket",
+     "color": "#8e44ad"},
     {"path": "items/tactical_vest.svg", "text": "Tactical Vest", "color": "#2c3e50"},
     {"path": "items/medkit.svg", "text": "Medkit", "color": "#e74c3c"},
     {"path": "items/energy_drink.svg", "text": "Energy Drink", "color": "#f39c12"},
-    
+
     # Crimes / Shared
     {"path": "crimes/wallet.svg", "text": "Wallet Theft", "color": "#f39c12"},
     {"path": "crimes/kiosk.svg", "text": "Kiosk Robbery", "color": "#d35400"},
@@ -44,14 +48,17 @@ assets = [
     {"path": "crimes/cyber.svg", "text": "Cyber Crime", "color": "#2980b9"},
     {"path": "crimes/bank_heist.svg", "text": "Bank Heist", "color": "#2c3e50"},
     {"path": "crimes/boss.svg", "text": "Boss Mission", "color": "#8e44ad"},
-    
+
     # Vehicles
-    {"path": "vehicles/subaru_impreza.svg", "text": "Subaru Impreza", "color": "#3498db"},
+    {"path": "vehicles/subaru_impreza.svg",
+        "text": "Subaru Impreza", "color": "#3498db"},
     {"path": "vehicles/golf_2.svg", "text": "Golf 2", "color": "#f1c40f"},
-    {"path": "vehicles/skoda_octavia.svg", "text": "Skoda Octavia", "color": "#bdc3c7"},
+    {"path": "vehicles/skoda_octavia.svg",
+        "text": "Skoda Octavia", "color": "#bdc3c7"},
     {"path": "vehicles/mazda_3.svg", "text": "Mazda 3", "color": "#95a5a6"},
-    {"path": "vehicles/hyundai_accent.svg", "text": "Hyundai Accent", "color": "#ecf0f1"},
-    
+    {"path": "vehicles/hyundai_accent.svg",
+        "text": "Hyundai Accent", "color": "#ecf0f1"},
+
     # Locations
     {"path": "locations/jerusalem.svg", "text": "Jerusalem", "color": "#f39c12"},
     {"path": "locations/gaza.svg", "text": "Gaza", "color": "#3498db"},

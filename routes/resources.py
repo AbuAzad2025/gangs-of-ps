@@ -1,6 +1,5 @@
 from flask import Blueprint, render_template, request, abort
 from flask_login import login_required, current_user
-from flask_babel import _
 from sqlalchemy import or_
 
 from models.log import UserLog, MoneySinkLog
@@ -34,7 +33,8 @@ def ledger(user_id):
 def _ledger_view(user_id: int):
     user = User.query.get_or_404(user_id)
     page = _parse_int(request.args.get('page', 1), 1)
-    per_page = min(max(_parse_int(request.args.get('per_page', 50), 50), 10), 200)
+    per_page = min(
+        max(_parse_int(request.args.get('per_page', 50), 50), 10), 200)
 
     q = UserLog.query.filter(UserLog.user_id == user_id).filter(
         or_(
@@ -57,16 +57,22 @@ def _ledger_view(user_id: int):
                 "id": log.id,
                 "timestamp": log.timestamp,
                 "action": log.action,
-                "scenario": BudgetService.scenario_for_action(log.action),
+                "scenario": BudgetService.scenario_for_action(
+                    log.action),
                 "result": log.result,
                 "deltas": deltas,
-                "before": log.before_state if isinstance(log.before_state, dict) else None,
-                "after": log.after_state if isinstance(log.after_state, dict) else None,
+                "before": log.before_state if isinstance(
+                    log.before_state,
+                    dict) else None,
+                "after": log.after_state if isinstance(
+                    log.after_state,
+                    dict) else None,
                 "ip": log.ip_address,
-            }
-        )
+            })
 
-    sink_entries = MoneySinkLog.query.filter(MoneySinkLog.user_id == user_id).order_by(MoneySinkLog.timestamp.desc()).limit(80).all()
+    sink_entries = MoneySinkLog.query.filter(
+        MoneySinkLog.user_id == user_id).order_by(
+        MoneySinkLog.timestamp.desc()).limit(80).all()
 
     return render_template(
         'resources/ledger.html',

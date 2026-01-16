@@ -12,6 +12,30 @@
             </div>
             <div class="card-body p-4">
                 <div class="mb-5 pb-4 border-bottom border-secondary">
+                    <h5 class="text-white mb-3">{{ _('المعلومات الشخصية') }}</h5>
+                    <form method="POST">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                        
+                        <div class="form-row">
+                            <div class="form-group col-md-6">
+                                <label class="text-light">{{ _('الجنس') }}</label>
+                                <select name="gender" class="form-control form-control-luxury">
+                                    <option value="male" {% if current_user.gender == 'male' %}selected{% endif %}>{{ _('ذكر') }}</option>
+                                    <option value="female" {% if current_user.gender == 'female' %}selected{% endif %}>{{ _('أنثى') }}</option>
+                                </select>
+                            </div>
+
+                            <div class="form-group col-md-6">
+                                <label class="text-light">{{ _('تاريخ الميلاد') }}</label>
+                                <input type="date" name="birthdate" class="form-control form-control-luxury" value="{{ current_user.birthdate }}">
+                            </div>
+                        </div>
+
+                        <button type="submit" class="btn btn-luxury-gold">{{ _('حفظ المعلومات') }}</button>
+                    </form>
+                </div>
+
+                <div class="mb-5 pb-4 border-bottom border-secondary">
                     <h5 class="text-white mb-3">{{ _('رفع صورة جديدة') }}</h5>
                     <form method="POST" enctype="multipart/form-data">
                         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>

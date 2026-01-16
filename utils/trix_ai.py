@@ -1,10 +1,8 @@
-import random
-
 class TrixAILogic:
     @staticmethod
     def get_doubling_action(state, player_index):
         """
-        Returns an action: {'type': 'double', 'item': 'king'|'queen', 'suit': ...} 
+        Returns an action: {'type': 'double', 'item': 'king'|'queen', 'suit': ...}
         or {'type': 'confirm'}
         """
         hand = TrixAILogic._hands_get(state, player_index)
@@ -34,23 +32,22 @@ class TrixAILogic:
         Calculates the best move for a bot player based on the current game state.
         Returns a card object {suit, rank}.
         """
-        hand = TrixAILogic._hands_get(state, player_index)
         valid_moves = TrixAILogic.get_valid_moves(state, player_index)
-        
+
         if not valid_moves:
-            return None # Should not happen if hand is not empty
-            
+            return None  # Should not happen if hand is not empty
+
         if len(valid_moves) == 1:
             return valid_moves[0]
-            
+
         contract = state.get('current_contract')
-        
+
         # Partnership Detection
         # Standard Trix partnership: 0 & 2 vs 1 & 3
         partner_index = (player_index + 2) % 4
         team_mode = state.get('team_mode', 'individual')
         is_partnership = team_mode == 'partnership'
-        
+
         # Strategy Router
         if contract == 'trix':
             return TrixAILogic._play_trix_contract(
@@ -67,7 +64,7 @@ class TrixAILogic:
         """
         hand = TrixAILogic._hands_get(state, player_index)
         contract = state.get('current_contract')
-        
+
         if contract == 'trix':
             valid = []
             piles = state['trix_piles']
@@ -87,8 +84,10 @@ class TrixAILogic:
             trick = state['trick']
             if not trick:
                 # Leading
-                # Can lead anything, unless Hearts restrictions in King contract
-                if contract == 'king' and not state.get('hearts_broken', False):
+                # Can lead anything, unless Hearts restrictions in King
+                # contract
+                if contract == 'king' and not state.get(
+                        'hearts_broken', False):
                     # Can only lead hearts if we have ONLY hearts
                     has_non_hearts = any(c['suit'] != '♥' for c in hand)
                     if has_non_hearts:
@@ -119,12 +118,12 @@ class TrixAILogic:
 
         if r in upper:
             idx = upper.index(r)
-            if idx > 0 and upper[idx-1] in pile and r not in pile:
+            if idx > 0 and upper[idx - 1] in pile and r not in pile:
                 return True
 
         if r in lower:
             idx = lower.index(r)
-            if idx > 0 and lower[idx-1] in pile and r not in pile:
+            if idx > 0 and lower[idx - 1] in pile and r not in pile:
                 return True
 
         return False
@@ -158,14 +157,32 @@ class TrixAILogic:
         return valid_moves[0]
 
     @staticmethod
-    def _play_trick_contract(state, player_index, valid_moves, contract, is_partnership, partner_index):
+    def _play_trick_contract(
+            state,
+            player_index,
+            valid_moves,
+            contract,
+            is_partnership,
+            partner_index):
         """
         Strategy for Trick-taking (King, Queens, Diamonds, Slapping, Complex).
         """
         trick = state['trick']
-        hand = TrixAILogic._hands_get(state, player_index)
         # Rank values for comparison
-        ranks = ['2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K', 'A']
+        ranks = [
+            '2',
+            '3',
+            '4',
+            '5',
+            '6',
+            '7',
+            '8',
+            '9',
+            '10',
+            'J',
+            'Q',
+            'K',
+            'A']
         rank_map = {r: i for i, r in enumerate(ranks)}
 
         def get_card_value(card):
@@ -175,7 +192,8 @@ class TrixAILogic:
         if not trick:
             # 1. Complex/King: Do NOT lead Hearts unless necessary
             # 2. Generally lead low cards to save high cards for defense, OR lead high to drain if safe.
-            # 3. If I have a dangerous card (e.g. King of Hearts), try to void a suit?
+            # 3. If I have a dangerous card (e.g. King of Hearts), try to void
+            # a suit?
             safe_leads = valid_moves
             if contract in ['king', 'complex']:
                 # Avoid leading Hearts if possible
@@ -204,7 +222,8 @@ class TrixAILogic:
         # Am I the last player?
         # is_last_player = len(trick) == 3
         # Can I win the trick?
-        # Check if I have cards of lead suit that are higher than current winner
+        # Check if I have cards of lead suit that are higher than current
+        # winner
         lead_suit_moves = [c for c in valid_moves if c['suit'] == lead_suit]
         if not lead_suit_moves:
             # I am VOID in lead suit. I can discard! (Sloughing)
@@ -231,7 +250,8 @@ class TrixAILogic:
         else:
             # I MUST follow suit.
             # Sort my legal moves by rank
-            lead_suit_moves.sort(key=lambda c: get_card_value(c))  # Low to High
+            lead_suit_moves.sort(
+                key=lambda c: get_card_value(c))  # Low to High
             highest_card_on_table = max(
                 [t['card'] for t in trick if t['card']['suit'] == lead_suit],
                 key=lambda c: get_card_value(c))
@@ -242,7 +262,8 @@ class TrixAILogic:
                 if danger_points > 0:
                     # Partner is eating shit. Do not add to it if possible?
                     # But I must follow suit.
-                    # Try to play lower than partner if possible to let them win?
+                    # Try to play lower than partner if possible
+                    # to let them win?
                     # Actually, if partner is winning, I want to play HIGH card
                     # (below theirs) if I can, to save low cards?
                     # No, if partner is eating points, I should play my HIGHEST
@@ -322,10 +343,10 @@ class TrixAILogic:
             '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K', 'A'
         ]
         rank_map = {r: i for i, r in enumerate(ranks)}
-        
+
         highest_val = -1
         winner_idx = -1
-        
+
         for t in trick:
             c = t['card']
             if c['suit'] == lead_suit:
@@ -351,10 +372,10 @@ class TrixAILogic:
             if contract == 'slapping' or contract == 'complex':
                 # Trick itself is bad, handled by "contract type" check usually
                 points += 0
-        
+
         if contract == 'slapping' or contract == 'complex':
             points += 15  # The trick itself
-             
+
         return points
 
     @staticmethod

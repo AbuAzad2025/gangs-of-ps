@@ -1,0 +1,292 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="card luxury-card" style="height: 700px; overflow: hidden;">
+    <div class="row no-gutters h-100">
+        <!-- Sidebar: Conversations -->
+        <div class="col-md-4 col-lg-3 border-left border-secondary d-flex flex-column h-100 bg-dark-gradient">
+            <div class="p-3 border-bottom border-secondary d-flex justify-content-between align-items-center">
+                <h5 class="mb-0 text-gold"><i class="fas fa-comments mr-2"></i> {{ _('المحادثات') }}</h5>
+            </div>
+            
+            <div class="list-group list-group-flush flex-grow-1 overflow-auto" id="conversation-list">
+                <!-- Loaded via JS -->
+                <div class="text-center mt-5 text-muted">
+                    <i class="fas fa-spinner fa-spin"></i> {{ _('جاري التحميل...') }}
+                </div>
+            </div>
+        </div>
+
+        <!-- Main: Chat Area -->
+        <div class="col-md-8 col-lg-9 d-flex flex-column h-100 bg-black-50">
+            <!-- Header -->
+            <div id="chat-header" class="p-3 border-bottom border-secondary d-none bg-dark-gradient">
+                <div class="d-flex align-items-center">
+                    <img id="header-avatar" src="" class="img-circle border border-gold mr-3" width="40" height="40" style="object-fit: cover;">
+                    <div>
+                        <h5 class="mb-0 text-white" id="header-username"></h5>
+                        <small class="text-success"><i class="fas fa-circle x-small"></i> {{ _('متصل') }}</small>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Empty State -->
+            <div id="empty-state" class="d-flex align-items-center justify-content-center h-100 flex-column text-muted">
+                <i class="far fa-paper-plane fa-5x mb-3 text-gold opacity-50"></i>
+                <h3>{{ _('اختر محادثة للبدء') }}</h3>
+                <p>{{ _('تواصل مع أعضاء عصابتك وأصدقائك بخصوصية تامة') }}</p>
+            </div>
+
+            <!-- Messages Container -->
+            <div id="chat-messages" class="flex-grow-1 p-4 d-none overflow-auto custom-scrollbar" style="background-color: rgba(0,0,0,0.5);">
+                <!-- Messages loaded by JS -->
+            </div>
+
+            <!-- Input Area -->
+            <div id="chat-input-area" class="p-3 border-top border-secondary d-none bg-dark-gradient">
+                <form id="messenger-form">
+                    <div class="input-group">
+                        <input type="text" id="messenger-input" class="form-control form-control-luxury py-4" placeholder="{{ _('اكتب رسالتك هنا...') }}" autocomplete="off" maxlength="1000">
+                        <div class="input-group-append">
+                            <button type="submit" class="btn btn-gold px-4"><i class="fas fa-paper-plane"></i></button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.bg-dark-gradient {
+    background: linear-gradient(180deg, #1a1a1a 0%, #0d0d0d 100%);
+}
+.bg-black-50 {
+    background-color: rgba(0,0,0,0.5);
+}
+.custom-scrollbar::-webkit-scrollbar {
+    width: 8px;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+    background: #0d0d0d; 
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+    background: #444; 
+    border-radius: 4px;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: #d4af37; 
+}
+.conversation-item {
+    transition: all 0.2s;
+    cursor: pointer;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+}
+.conversation-item:hover, .conversation-item.active {
+    background-color: rgba(212, 175, 55, 0.1);
+    border-right: 3px solid #d4af37;
+}
+.message-bubble {
+    max-width: 75%;
+    padding: 10px 15px;
+    border-radius: 15px;
+    margin-bottom: 10px;
+    position: relative;
+    word-wrap: break-word;
+}
+.message-sent {
+    background-color: #d4af37;
+    color: #000;
+    margin-right: auto;
+    border-bottom-right-radius: 2px;
+}
+.message-received {
+    background-color: #333;
+    color: #fff;
+    margin-left: auto;
+    border-bottom-left-radius: 2px;
+}
+.message-time {
+    font-size: 0.7rem;
+    opacity: 0.7;
+    margin-top: 5px;
+    display: block;
+    text-align: right;
+}
+</style>
+{% endblock %}
+
+{% block scripts %}
+<script>
+$(document).ready(function() {
+    $.ajaxSetup({
+        headers: {
+            'X-CSRFToken': "{{ csrf_token() }}"
+        }
+    });
+
+    const AVATAR_BASE = "/static/images/avatars/";
+
+    let currentReceiverId = null;
+    let pollInterval = null;
+    
+    // --- Load Conversations ---
+    function loadConversations() {
+        $.ajax({
+            url: "{{ url_for('main.messenger_conversations') }}",
+            success: function(conversations) {
+                const list = $('#conversation-list');
+                list.empty();
+                
+                if (conversations.length === 0) {
+                    list.html(`<div class="text-center mt-5 text-muted"><p>{{ _('لا توجد محادثات') }}</p></div>`);
+                    return;
+                }
+
+                conversations.forEach(c => {
+                    const isActive = c.user_id === currentReceiverId ? 'active' : '';
+                    const unreadBadge = c.unread_count > 0 ? `<span class="badge badge-danger ml-auto">${c.unread_count}</span>` : '';
+                    const isReadClass = !c.is_read && c.user_id !== {{ current_user.id }} ? 'font-weight-bold text-white' : 'text-muted';
+                    const safeLastMessage = escapeHtml(c.last_message || '');
+                    
+                    const html = `
+                        <div class="conversation-item p-3 d-flex align-items-center ${isActive}" onclick="openChat(${c.user_id}, '${c.username}', '${c.avatar}')">
+                            <img src="${AVATAR_BASE + c.avatar}" class="img-circle mr-3" width="40" height="40" style="object-fit: cover;" onerror="this.src='https://ui-avatars.com/api/?name=${c.username}&background=random';">
+                            <div class="flex-grow-1 overflow-hidden">
+                                <div class="d-flex justify-content-between">
+                                    <h6 class="mb-0 text-truncate ${c.unread_count > 0 ? 'text-gold' : 'text-light'}">${c.username}</h6>
+                                    <small class="text-muted ml-2">${c.timestamp.substring(11, 16)}</small>
+                                </div>
+                                <p class="mb-0 small text-truncate ${isReadClass}">${safeLastMessage}</p>
+                            </div>
+                            ${unreadBadge}
+                        </div>
+                    `;
+                    list.append(html);
+                });
+            }
+        });
+    }
+
+    // --- Open Chat ---
+    window.openChat = function(userId, username, avatar) {
+        if (currentReceiverId === userId) return;
+        
+        currentReceiverId = userId;
+        $('#empty-state').addClass('d-none');
+        $('#chat-header').removeClass('d-none');
+        $('#chat-messages').removeClass('d-none');
+        $('#chat-input-area').removeClass('d-none');
+        
+        $('#header-username').text(username);
+        $('#header-avatar').attr('src', `${AVATAR_BASE}${avatar || 'default.png'}`).attr('onerror', `this.src='https://ui-avatars.com/api/?name=${username}&background=random'`);
+        
+        loadConversations(); // Update active state
+        loadMessages(userId);
+        markAsRead(userId);
+        scrollToBottom();
+    };
+
+    // --- Load Messages ---
+    function loadMessages(userId) {
+        $.ajax({
+            url: `/api/messenger/messages/${userId}`,
+            success: function(messages) {
+                const container = $('#chat-messages');
+                container.empty();
+                
+                let lastDate = '';
+                
+                messages.forEach(msg => {
+                    const isMe = msg.sender_id == {{ current_user.id }};
+                    const msgClass = isMe ? 'message-sent' : 'message-received';
+                    const safeMessage = escapeHtml(msg.message || '');
+                    
+                    const html = `
+                        <div class="d-flex ${isMe ? 'flex-row' : 'flex-row-reverse'} mb-3">
+                            <div class="message-bubble ${msgClass}">
+                                ${safeMessage}
+                                <span class="message-time">
+                                    ${msg.created_at}
+                                    ${isMe ? (msg.is_read ? '<i class="fas fa-check-double text-primary ml-1"></i>' : '<i class="fas fa-check ml-1"></i>') : ''}
+                                </span>
+                            </div>
+                        </div>
+                    `;
+                    container.append(html);
+                });
+                
+                scrollToBottom();
+            }
+        });
+    }
+
+    function markAsRead(userId) {
+        $.post(`/api/messenger/mark_read/${userId}`);
+    }
+
+    function scrollToBottom() {
+        const container = $('#chat-messages');
+        container.scrollTop(container[0].scrollHeight);
+    }
+
+    // --- Send Message ---
+    $('#messenger-form').on('submit', function(e) {
+        e.preventDefault();
+        const input = $('#messenger-input');
+        const content = input.val().trim();
+        
+        if (!content || !currentReceiverId) return;
+        
+        $.ajax({
+            url: "{{ url_for('main.messenger_send') }}",
+            method: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify({
+                receiver_id: currentReceiverId,
+                content: content
+            }),
+            success: function(msg) {
+                input.val('');
+                loadMessages(currentReceiverId); // Reload to show new message and status
+                loadConversations(); // Update sidebar snippet
+            },
+            error: function(xhr) {
+                toastr.error(xhr.responseJSON ? xhr.responseJSON.error : 'Error sending message');
+            }
+        });
+    });
+
+    // --- Polling ---
+    setInterval(function() {
+        loadConversations();
+        if (currentReceiverId) {
+            // Optimization: Only append new messages instead of full reload?
+            // For now, full reload is safer for sync (read status etc) but heavier.
+            // Let's stick to full reload for simplicity as per "no errors" request.
+            loadMessages(currentReceiverId);
+        }
+    }, 5000);
+
+    // Initial Load
+    loadConversations();
+    
+    // Open chat if target_user is present
+    {% if target_user %}
+        // Small delay to ensure DOM is ready and functions defined
+        setTimeout(() => {
+            openChat({{ target_user.id }}, '{{ target_user.username }}', '{{ target_user.avatar }}');
+        }, 100);
+    {% endif %}
+});
+
+function escapeHtml(text) {
+    return String(text)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+}
+</script>
+{% endblock %}

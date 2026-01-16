@@ -5,12 +5,21 @@ from flask import Flask, request, has_request_context, flash, redirect, url_for,
 from flask_login import current_user
 from flask_babel import gettext as _
 import os
+from werkzeug.middleware.proxy_fix import ProxyFix
 from config import Config
 from extensions import db, migrate, login, admin, babel, csrf, limiter, talisman, mail, seo_manager, socketio, cache
+
 
 def create_app(config_class=Config):
     app = Flask(__name__)
     app.config.from_object(config_class)
+    app.wsgi_app = ProxyFix(
+        app.wsgi_app,
+        x_for=1,
+        x_proto=1,
+        x_host=1,
+        x_port=1,
+        x_prefix=1)
 
     def ensure_postgres_database_exists(database_uri: str) -> None:
         from sqlalchemy.engine.url import make_url
@@ -32,12 +41,15 @@ def create_app(config_class=Config):
         import psycopg2
         from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
 
-        conn = psycopg2.connect(maintenance_url.render_as_string(hide_password=False))
+        conn = psycopg2.connect(
+            maintenance_url.render_as_string(
+                hide_password=False))
         try:
             conn.set_isolation_level(ISOLATION_LEVEL_AUTOCOMMIT)
             cur = conn.cursor()
             try:
-                cur.execute("SELECT 1 FROM pg_database WHERE datname = %s", (db_name,))
+                cur.execute(
+                    "SELECT 1 FROM pg_database WHERE datname = %s", (db_name,))
                 exists = cur.fetchone() is not None
                 if not exists:
                     cur.execute(f'CREATE DATABASE "{db_name}"')
@@ -60,7 +72,9 @@ def create_app(config_class=Config):
             from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
             from sqlalchemy.pool import NullPool
 
-            conn = psycopg2.connect(test_db_url.render_as_string(hide_password=False))
+            conn = psycopg2.connect(
+                test_db_url.render_as_string(
+                    hide_password=False))
             try:
                 conn.set_isolation_level(ISOLATION_LEVEL_AUTOCOMMIT)
                 cur = conn.cursor()
@@ -71,7 +85,8 @@ def create_app(config_class=Config):
             finally:
                 conn.close()
 
-            engine_options = dict(app.config.get("SQLALCHEMY_ENGINE_OPTIONS") or {})
+            engine_options = dict(
+                app.config.get("SQLALCHEMY_ENGINE_OPTIONS") or {})
             connect_args = dict(engine_options.get("connect_args") or {})
             connect_args["options"] = f"-c search_path={test_schema}"
             engine_options["connect_args"] = connect_args
@@ -95,13 +110,13 @@ def create_app(config_class=Config):
     cache.init_app(app)
     if socketio:
         socketio.init_app(app, cors_allowed_origins="*")
-    
+
     # Content Security Policy (CSP)
     csp = {
         'default-src': '\'self\'',
         'script-src': [
             '\'self\'',
-            '\'unsafe-inline\'', # Required for AdminLTE and some inline JS
+            '\'unsafe-inline\'',  # Required for AdminLTE and some inline JS
             '\'unsafe-eval\'',   # Often required for some complex JS frameworks
             'cdnjs.cloudflare.com',
             'cdn.jsdelivr.net',
@@ -151,20 +166,59 @@ def create_app(config_class=Config):
             'wss:'
         ]
     }
-    
+
     # Initialize Talisman with CSP and other security headers
     is_production = os.environ.get('FLASK_ENV') == 'production'
-    force_https = os.environ.get('FORCE_HTTPS', str(is_production)).lower() == 'true'
-    
+    force_https = os.environ.get(
+        'FORCE_HTTPS',
+        str(is_production)).lower() == 'true'
+
     talisman.init_app(
-        app, 
+        app,
         content_security_policy=csp,
         force_https=force_https,
         strict_transport_security=True,
         session_cookie_secure=app.config['SESSION_COOKIE_SECURE'],
         session_cookie_http_only=True
     )
-    
+
+    @app.after_request
+    def _seo_robots_headers(response):
+        try:
+            path = (request.path or "").lower()
+            endpoint = request.endpoint or ""
+
+            noindex = False
+            if response.status_code in (404, 410):
+                noindex = True
+            if response.status_code in (401, 403):
+                noindex = True
+            if path.startswith("/admin") or path.startswith("/developer"):
+                noindex = True
+            if path.startswith("/confirm/") or path.startswith("/captcha/"):
+                noindex = True
+            if endpoint in {
+                "main.login",
+                "main.register",
+                "main.unconfirmed",
+                "main.logout",
+                "main.resend_confirmation",
+                "main.confirm_email",
+                "main.captcha_image",
+                "main.debug_login",
+            }:
+                noindex = True
+            if response.status_code in (301, 302, 303, 307, 308):
+                loc = (response.headers.get("Location") or "").lower()
+                if loc.startswith("/login") or loc.startswith("/register"):
+                    noindex = True
+
+            if noindex:
+                response.headers["X-Robots-Tag"] = "noindex, nofollow"
+        except Exception:
+            pass
+        return response
+
     # Initialize Babel
     def get_locale():
         if not has_request_context():
@@ -182,7 +236,7 @@ def create_app(config_class=Config):
         # return request.accept_languages.best_match(app.config['LANGUAGES'])
 
     babel.init_app(app, locale_selector=get_locale)
-    
+
     app.jinja_env.globals['get_locale'] = get_locale
 
     @app.template_filter('number_format')
@@ -198,7 +252,10 @@ def create_app(config_class=Config):
             interval = 60
             try:
                 from models.system import SystemConfig
-                interval = int(SystemConfig.get_value("elite_sync_interval_seconds", "60") or 60)
+                interval = int(
+                    SystemConfig.get_value(
+                        "elite_sync_interval_seconds",
+                        "60") or 60)
             except Exception:
                 interval = 60
             interval = max(5, interval)
@@ -209,7 +266,8 @@ def create_app(config_class=Config):
     def _maybe_sync_elite_titles(now):
         last_run = getattr(app, "_elite_sync_last_run", None)
         interval = _elite_sync_interval_seconds(now)
-        if last_run is not None and (now - last_run).total_seconds() < interval:
+        if last_run is not None and (
+                now - last_run).total_seconds() < interval:
             return
         from models.user import sync_elite_titles
         sync_elite_titles(now=now)
@@ -285,16 +343,19 @@ def create_app(config_class=Config):
             try:
                 db.session.commit()
             except Exception as e:
-                app.logger.error(f"DEBUG: Commit failed in _expire_player_effects: {e}")
+                app.logger.error(
+                    f"DEBUG: Commit failed in _expire_player_effects: {e}")
                 try:
                     db.session.rollback()
                 except Exception as rollback_err:
-                    app.logger.error(f"DEBUG: Rollback failed in _expire_player_effects: {rollback_err}")
+                    app.logger.error(
+                        f"DEBUG: Rollback failed in _expire_player_effects: {rollback_err}")
 
     # Global Status Check (Jail/Hospital)
     @app.before_request
     def check_player_status():
-        # Avoid rolling back in tests to prevent DetachedInstanceError with in-memory SQLite
+        # Avoid rolling back in tests to prevent DetachedInstanceError with
+        # in-memory SQLite
         if app.config.get('TESTING'):
             return
 
@@ -305,19 +366,23 @@ def create_app(config_class=Config):
 
         if current_user.is_authenticated:
             # Allow developers to access everything
-            from models.user import UserRole
             try:
                 if current_user.role == UserRole.DEVELOPER:
                     return
             except Exception:
-                # If we can't check role (e.g. DetachedInstanceError in tests), assume not developer
+                # If we can't check role (e.g. DetachedInstanceError in tests),
+                # assume not developer
                 pass
 
             if not request.endpoint:
                 return
-                
+
             # Allowed endpoints (static, logout, admin panel)
-            if any(x in request.endpoint for x in ['static', 'logout', 'admin']):
+            if any(
+                x in request.endpoint for x in [
+                    'static',
+                    'logout',
+                    'admin']):
                 return
             from datetime import datetime, timezone
             now = datetime.now(timezone.utc)
@@ -326,24 +391,30 @@ def create_app(config_class=Config):
             try:
                 _maybe_sync_elite_titles(now)
             except Exception as e:
-                app.logger.error(f"DEBUG: _maybe_sync_elite_titles failed: {e}")
+                app.logger.error(
+                    f"DEBUG: _maybe_sync_elite_titles failed: {e}")
                 try:
                     db.session.rollback()
                 except Exception as rollback_err:
-                    app.logger.error(f"DEBUG: rollback failed in _maybe_sync_elite_titles: {rollback_err}")
+                    app.logger.error(
+                        f"DEBUG: rollback failed in _maybe_sync_elite_titles: {rollback_err}")
                 pass
-            
+
             if not app.config.get('TESTING'):
-                if not current_user.is_verified and request.endpoint != 'main.unconfirmed' and 'static' not in request.endpoint:
+                if (
+                    (not current_user.is_verified)
+                    and request.endpoint != 'main.unconfirmed'
+                    and 'static' not in request.endpoint
+                ):
                     return redirect(url_for('main.unconfirmed'))
 
             try:
                 _expire_player_effects(now)
             except Exception:
-                 try:
-                     db.session.rollback()
-                 except Exception:
-                     pass
+                try:
+                    db.session.rollback()
+                except Exception:
+                    pass
 
             def _block_if_busy():
                 now_naive = now.replace(tzinfo=None)
@@ -358,11 +429,19 @@ def create_app(config_class=Config):
                         busy_until = gym_until
                         busy_kind = "gym"
 
-                if not busy_kind and current_user.crime_cooldown_until and current_user.crime_cooldown_until > now_naive:
+                if (
+                    (not busy_kind)
+                    and current_user.crime_cooldown_until
+                    and current_user.crime_cooldown_until > now_naive
+                ):
                     busy_until = current_user.crime_cooldown_until
                     busy_kind = "crime"
 
-                if not busy_kind and current_user.organized_crime_cooldown_until and current_user.organized_crime_cooldown_until > now_naive:
+                if (
+                    (not busy_kind)
+                    and current_user.organized_crime_cooldown_until
+                    and current_user.organized_crime_cooldown_until > now_naive
+                ):
                     busy_until = current_user.organized_crime_cooldown_until
                     busy_kind = "organized_crime"
 
@@ -380,41 +459,52 @@ def create_app(config_class=Config):
                     return None
                 if busy_kind == "gym" and endpoint == "main.do_crime":
                     return None
-                if busy_kind == "crime" and endpoint in {"main.crimes", "main.story"}:
+                if busy_kind == "crime" and endpoint in {
+                        "main.crimes", "main.story"}:
                     return None
-                if busy_kind == "organized_crime" and endpoint in {"main.organized_crimes"}:
+                if busy_kind == "organized_crime" and endpoint in {
+                        "main.organized_crimes"}:
                     return None
 
                 if busy_kind == "gym":
-                    remaining_seconds = max(1, int((busy_until - now).total_seconds()))
+                    remaining_seconds = max(
+                        1, int((busy_until - now).total_seconds()))
                     redirect_to = url_for("gym.index")
                 else:
-                    remaining_seconds = max(1, int((busy_until - now_naive).total_seconds()))
-                    redirect_to = url_for("main.crimes") if busy_kind == "crime" else url_for("main.organized_crimes")
+                    remaining_seconds = max(
+                        1, int((busy_until - now_naive).total_seconds()))
+                    if busy_kind == "crime":
+                        redirect_to = url_for("main.crimes")
+                    else:
+                        redirect_to = url_for("main.organized_crimes")
 
-                flash(_('عليك الانتظار %(seconds)s ثانية قبل القيام بمهمة أخرى!', seconds=remaining_seconds), 'danger')
+                flash(_('عليك الانتظار %(seconds)s ثانية قبل القيام بمهمة أخرى!',
+                      seconds=remaining_seconds), 'danger')
                 return redirect(redirect_to)
 
             blocked = _block_if_busy()
             if blocked:
                 return blocked
-            
+
             # Hospital Check
             hospital_until = current_user.hospital_until
             if hospital_until:
                 if hospital_until.tzinfo is None:
-                    hospital_until = hospital_until.replace(tzinfo=timezone.utc)
+                    hospital_until = hospital_until.replace(
+                        tzinfo=timezone.utc)
 
                 if hospital_until > now:
                     # Check if Dead (Health <= 0)
                     if current_user.health <= 0:
                         if 'graveyard.' not in request.endpoint:
-                            flash(_('لقد قُتلت! أنت الآن في المقبرة.'), 'danger')
+                            flash(
+                                _('لقد قُتلت! أنت الآن في المقبرة.'), 'danger')
                             return redirect(url_for('graveyard.index'))
                     else:
                         # Hospital (Injured but Alive)
                         if 'hospital.' not in request.endpoint:
-                            flash(_('أنت في المستشفى! عليك العلاج أو الانتظار.'), 'danger')
+                            flash(
+                                _('أنت في المستشفى! عليك العلاج أو الانتظار.'), 'danger')
                             return redirect(url_for('hospital.index'))
 
             jail_until = current_user.jail_until
@@ -436,7 +526,7 @@ def create_app(config_class=Config):
             db.session.remove()
         except Exception:
             pass
-    
+
     @app.teardown_appcontext
     def shutdown_session(exception=None):
         try:
@@ -450,11 +540,18 @@ def create_app(config_class=Config):
         from models.system import SystemConfig
         try:
             return dict(
-                discord_link=SystemConfig.get_value("discord_invite_link", app.config.get("DISCORD_INVITE_LINK")),
-                facebook_link=SystemConfig.get_value("facebook_link", app.config.get("FACEBOOK_LINK")),
-                twitter_link=SystemConfig.get_value("twitter_link", app.config.get("TWITTER_LINK")),
-                instagram_link=SystemConfig.get_value("instagram_link", app.config.get("INSTAGRAM_LINK"))
-            )
+                discord_link=SystemConfig.get_value(
+                    "discord_invite_link",
+                    app.config.get("DISCORD_INVITE_LINK")),
+                facebook_link=SystemConfig.get_value(
+                    "facebook_link",
+                    app.config.get("FACEBOOK_LINK")),
+                twitter_link=SystemConfig.get_value(
+                    "twitter_link",
+                    app.config.get("TWITTER_LINK")),
+                instagram_link=SystemConfig.get_value(
+                    "instagram_link",
+                    app.config.get("INSTAGRAM_LINK")))
         except Exception:
             return dict(
                 discord_link=app.config.get("DISCORD_INVITE_LINK"),
@@ -468,16 +565,17 @@ def create_app(config_class=Config):
     def inject_global_data():
         from models.system import Announcement
         from models.combat import CombatLog
-        from models.user import User
-        from sqlalchemy import desc
         from sqlalchemy.orm import joinedload
         from datetime import datetime, timezone, timedelta
-        
+
         now = getattr(g, "now_utc", None) or datetime.now(timezone.utc)
         cache_seconds = 5
         try:
             from models.system import SystemConfig
-            cache_seconds = int(SystemConfig.get_value("global_data_cache_seconds", str(cache_seconds)) or cache_seconds)
+            cache_seconds = int(
+                SystemConfig.get_value(
+                    "global_data_cache_seconds",
+                    str(cache_seconds)) or cache_seconds)
         except Exception:
             cache_seconds = 5
         cache_seconds = max(1, min(30, cache_seconds))
@@ -513,8 +611,10 @@ def create_app(config_class=Config):
                 for combat in recent_combat_rows:
                     attacker_name = _("مجهول")
                     if not getattr(combat, "is_attacker_anonymous", False):
-                        attacker_name = combat.attacker.username if combat.attacker else _("مجهول")
-                    defender_name = combat.defender.username if combat.defender else _("مجهول")
+                        attacker_name = combat.attacker.username if combat.attacker else _(
+                            "مجهول")
+                    defender_name = combat.defender.username if combat.defender else _(
+                        "مجهول")
                     recent_combat.append(
                         {
                             "attacker": attacker_name,
@@ -522,7 +622,10 @@ def create_app(config_class=Config):
                         }
                     )
                 cache = {
-                    "expires_at": now.replace(microsecond=0) + timedelta(seconds=cache_seconds),
+                    "expires_at": now.replace(
+                        microsecond=0) +
+                    timedelta(
+                        seconds=cache_seconds),
                     "latest_announcement": latest_announcement,
                     "recent_combat": recent_combat,
                 }
@@ -537,30 +640,53 @@ def create_app(config_class=Config):
         else:
             latest_announcement = cache.get("latest_announcement")
             recent_combat = cache.get("recent_combat") or []
-        
+
         ticker_items = []
         if latest_announcement:
-             ticker_items.append({'type': 'announcement', 'text': f"📢 {latest_announcement['title']}: {latest_announcement['content'][:50]}..."})
+            ticker_items.append(
+                {
+                    'type': 'announcement',
+                    'text': (
+                        f"📢 {latest_announcement['title']}: "
+                        f"{latest_announcement['content'][:50]}..."
+                    )
+                })
 
         for combat in recent_combat:
             try:
-                ticker_items.append({'type': 'combat', 'text': _("⚔️ %(attacker)s هاجم %(defender)s", attacker=combat.get("attacker") or _("مجهول"), defender=combat.get("defender") or _("مجهول"))})
-            except:
+                ticker_items.append({'type': 'combat',
+                                     'text': _("⚔️ %(attacker)s هاجم %(defender)s",
+                                               attacker=combat.get("attacker") or _("مجهول"),
+                                               defender=combat.get("defender") or _("مجهول"))})
+            except BaseException:
                 continue
-                
+
         # Add generic tips if empty
         if not ticker_items:
-             ticker_items.append({'type': 'tip', 'text': _("💡 نصيحة: قم بزيارة الجيم لزيادة قوتك!")})
-             ticker_items.append({'type': 'announcement', 'text': "📢 اللاعبين الكرام: لا تترددوا في طلب مزايا وتحديثات للعبة، نحن بخدمتكم. | Dear players: Do not hesitate to request game features and updates, we are at your service."})
-             ticker_items.append({'type': 'announcement', 'text': "👨‍💻 للتواصل والاقتراحات: يرجى التواصل مع المطور أزاد. | For suggestions and contact: Please reach out to Developer Azad."})
+            ticker_items.append({'type': 'tip', 'text': _(
+                "💡 نصيحة: قم بزيارة الجيم لزيادة قوتك!")})
+            ticker_items.append(
+                {
+                    'type': 'announcement',
+                    'text': (
+                        "📢 اللاعبين الكرام: لا تترددوا في طلب مزايا وتحديثات للعبة، نحن بخدمتكم. "
+                        "| Dear players: Do not hesitate to request game features and updates, we are at your service."
+                    )})
+            ticker_items.append(
+                {
+                    'type': 'announcement',
+                    'text': (
+                        "👨‍💻 للتواصل والاقتراحات: يرجى التواصل مع المطور أزاد. "
+                        "| For suggestions and contact: Please reach out to Developer Azad."
+                    )})
 
         return dict(
             global_announcement=latest_announcement,
             ticker_news=ticker_items
         )
 
-    # Import Blueprint
-    from routes import bp as main_bp
+    from routes import bp as main_bp, register_main_routes
+    register_main_routes()
     app.register_blueprint(main_bp)
 
     from routes.gang import bp as gang_bp
@@ -641,25 +767,48 @@ def create_app(config_class=Config):
 
     # Import Models (to ensure they are registered with SQLAlchemy)
     import models
-    
+
     # Register Admin Views
-    from flask_admin.contrib.sqla import ModelView
     from flask_admin.menu import MenuLink
-    from flask_login import current_user
-    from flask_babel import lazy_gettext as _
     from models.user import UserRole
     from admin_views import (
-        UserView, ItemView, VehicleView, LocationView, CrimeView, OrganizedCrimeView, 
-        GangView, LogView, AssetView, PaymentView, SecureModelView,
-        SystemConfigView, UserRankView, ForumCategoryView, ForumTopicView, AnnouncementView,
-        UserItemView, BountyView, CombatLogView, GangLogView, GangWarView,
-        DailyTaskView, WeeklyWinnerView, ReferralView, MessageView, MarketAssetView,
-        UserInvestmentView, ForumPostView, UserVehicleView,
-        HostessView, HostessKnowledgeView, LearningLogView, UserLogView
-    )
+        UserView,
+        ItemView,
+        VehicleView,
+        LocationView,
+        CrimeView,
+        OrganizedCrimeView,
+        GangView,
+        LogView,
+        AssetView,
+        PaymentView,
+        SecureModelView,
+        SystemConfigView,
+        UserRankView,
+        ForumCategoryView,
+        ForumTopicView,
+        AnnouncementView,
+        UserItemView,
+        BountyView,
+        CombatLogView,
+        GangLogView,
+        GangWarView,
+        DailyTaskView,
+        WeeklyWinnerView,
+        ReferralView,
+        MessageView,
+        MarketAssetView,
+        UserInvestmentView,
+        ForumPostView,
+        UserVehicleView,
+        HostessView,
+        HostessKnowledgeView,
+        LearningLogView,
+        UserLogView)
 
     with app.app_context():
-        # Check if views are already registered (only index view exists by default)
+        # Check if views are already registered (only index view exists by
+        # default)
         if len(admin._views) <= 1:
             # Seed Ranks
             try:
@@ -675,39 +824,7 @@ def create_app(config_class=Config):
                 #     for min_level, name in default_ranks:
                 #         db.session.add(models.UserRank(name=name, min_level=min_level))
                 #     db.session.commit()
-                
-                # Seed Organized Crimes Settings
-                # try:
-                #     from models.system import SystemConfig
-                #     if SystemConfig.get_value('organized_crimes_enabled') is None:
-                #         SystemConfig.set_value('organized_crimes_enabled', 'true', str(_('تفعيل الجرائم المنظمة')))
-                #     if SystemConfig.get_value('organized_crimes_allow_non_gang') is None:
-                #         SystemConfig.set_value('organized_crimes_allow_non_gang', 'true', str(_('السماح لغير الأعضاء في عصابات بالمشاركة')))
-                #     if SystemConfig.get_value('organized_crimes_min_creator_rank_level') is None:
-                #         SystemConfig.set_value('organized_crimes_min_creator_rank_level', '20', str(_('أقل مستوى لإنشاء جريمة منظمة')))
-                #     
-                #     # Market Settings
-                #     if SystemConfig.get_value('market_enable_spot') is None:
-                #         SystemConfig.set_value('market_enable_spot', 'true', str(_('تفعيل تداول السبوت')))
-                #     if SystemConfig.get_value('market_enable_futures') is None:
-                #         SystemConfig.set_value('market_enable_futures', 'true', str(_('تفعيل تداول الفيوتشر')))
-                #     if SystemConfig.get_value('market_enable_limit_orders') is None:
-                #         SystemConfig.set_value('market_enable_limit_orders', 'true', str(_('تفعيل أوامر الحد (Limit)')))
-                #     if SystemConfig.get_value('market_spot_min_buy_usd') is None:
-                #         SystemConfig.set_value('market_spot_min_buy_usd', '10', str(_('أقل مبلغ شراء سبوت (USD)')))
-                #     if SystemConfig.get_value('market_futures_leverages') is None:
-                #         SystemConfig.set_value('market_futures_leverages', '1,5,10,20,50,100', str(_('الرافعات المسموح بها للفيوتشر')))
-                #     if SystemConfig.get_value('market_update_interval_seconds') is None:
-                #         SystemConfig.set_value('market_update_interval_seconds', '60', str(_('فاصل تحديث الأسعار بالثواني')))
-                #     if SystemConfig.get_value('market_intel_cost') is None:
-                #         SystemConfig.set_value('market_intel_cost', '500', str(_('تكلفة شراء المعلومة')))
-                #     
-                #     # General Settings
-                #     if SystemConfig.get_value('maintenance_mode') is None:
-                #         SystemConfig.set_value('maintenance_mode', 'false', str(_('وضع الصيانة')))
-                #     if SystemConfig.get_value('welcome_message') is None:
-                #         SystemConfig.set_value('welcome_message', 'Welcome to Gangs of Palestine!', str(_('رسالة الترحيب')))
-                #         
+
                 # except Exception as e:
                 #     print(f"Error seeding organized crimes settings: {e}")
             except Exception as e:
@@ -715,49 +832,220 @@ def create_app(config_class=Config):
 
             # System & Logs
             admin.add_link(MenuLink(name=_('العودة للحارة'), url='/'))
-            admin.add_view(PaymentView(models.PaymentTransaction, db.session, name=_('المدفوعات'), category=_('الإدارة')))
-            admin.add_view(LogView(models.GameLog, db.session, name=_('سجل اللعبة'), category=_('الإدارة')))
-            admin.add_view(SystemConfigView(models.SystemConfig, db.session, name=_('إعدادات النظام'), category=_('الإدارة')))
-            admin.add_view(AnnouncementView(models.Announcement, db.session, name=_('الإعلانات'), category=_('الإدارة')))
-            
+            admin.add_view(
+                PaymentView(
+                    models.PaymentTransaction,
+                    db.session,
+                    name=_('المدفوعات'),
+                    category=_('الإدارة')))
+            admin.add_view(
+                LogView(
+                    models.GameLog,
+                    db.session,
+                    name=_('سجل اللعبة'),
+                    category=_('الإدارة')))
+            admin.add_view(
+                SystemConfigView(
+                    models.SystemConfig,
+                    db.session,
+                    name=_('إعدادات النظام'),
+                    category=_('الإدارة')))
+            admin.add_view(
+                AnnouncementView(
+                    models.Announcement,
+                    db.session,
+                    name=_('الإعلانات'),
+                    category=_('الإدارة')))
+
             # Users & Social
-            admin.add_view(UserView(models.User, db.session, name=_('المستخدمين'), category=_('اللاعبين')))
-            admin.add_view(UserRankView(models.UserRank, db.session, name=_('رتب اللاعبين'), category=_('اللاعبين')))
-            admin.add_view(GangView(models.Gang, db.session, name=_('العصابات'), category=_('اللاعبين'), endpoint='gang_admin'))
-            admin.add_view(GangWarView(models.GangWar, db.session, name=_('حروب العصابات'), category=_('اللاعبين')))
-            admin.add_view(HostessView(models.Hostess, db.session, name=_('المضيفات'), category=_('اللاعبين')))
-            admin.add_view(HostessKnowledgeView(models.HostessKnowledge, db.session, name=_('قاعدة المعرفة'), category=_('اللاعبين')))
-            admin.add_view(LearningLogView(models.LearningLog, db.session, name=_('سجل التعلم'), category=_('اللاعبين')))
-            
+            admin.add_view(
+                UserView(
+                    models.User,
+                    db.session,
+                    name=_('المستخدمين'),
+                    category=_('اللاعبين')))
+            admin.add_view(
+                UserRankView(
+                    models.UserRank,
+                    db.session,
+                    name=_('رتب اللاعبين'),
+                    category=_('اللاعبين')))
+            admin.add_view(
+                GangView(
+                    models.Gang,
+                    db.session,
+                    name=_('العصابات'),
+                    category=_('اللاعبين'),
+                    endpoint='gang_admin'))
+            admin.add_view(
+                GangWarView(
+                    models.GangWar,
+                    db.session,
+                    name=_('حروب العصابات'),
+                    category=_('اللاعبين')))
+            admin.add_view(
+                HostessView(
+                    models.Hostess,
+                    db.session,
+                    name=_('المضيفات'),
+                    category=_('اللاعبين')))
+            admin.add_view(
+                HostessKnowledgeView(
+                    models.HostessKnowledge,
+                    db.session,
+                    name=_('قاعدة المعرفة'),
+                    category=_('اللاعبين')))
+            admin.add_view(
+                LearningLogView(
+                    models.LearningLog,
+                    db.session,
+                    name=_('سجل التعلم'),
+                    category=_('اللاعبين')))
+
             # Game Content
-            admin.add_view(CrimeView(models.Crime, db.session, name=_('الجرائم'), category=_('عالم اللعبة')))
-            admin.add_view(OrganizedCrimeView(models.OrganizedCrime, db.session, name=_('الجرائم المنظمة'), category=_('عالم اللعبة')))
-            admin.add_view(ItemView(models.Item, db.session, name=_('الأغراض'), category=_('عالم اللعبة')))
-            admin.add_view(LocationView(models.Location, db.session, name=_('المناطق'), category=_('عالم اللعبة')))
-            admin.add_view(VehicleView(models.Vehicle, db.session, name=_('المركبات'), category=_('عالم اللعبة')))
-            admin.add_view(AssetView(models.Asset, db.session, name=_('الممتلكات'), category=_('عالم اللعبة')))
-            admin.add_view(DailyTaskView(models.DailyTask, db.session, name=_('المهام اليومية'), category=_('عالم اللعبة')))
-            
+            admin.add_view(
+                CrimeView(
+                    models.Crime,
+                    db.session,
+                    name=_('الجرائم'),
+                    category=_('عالم اللعبة')))
+            admin.add_view(
+                OrganizedCrimeView(
+                    models.OrganizedCrime,
+                    db.session,
+                    name=_('الجرائم المنظمة'),
+                    category=_('عالم اللعبة')))
+            admin.add_view(
+                ItemView(
+                    models.Item,
+                    db.session,
+                    name=_('الأغراض'),
+                    category=_('عالم اللعبة')))
+            admin.add_view(
+                LocationView(
+                    models.Location,
+                    db.session,
+                    name=_('المناطق'),
+                    category=_('عالم اللعبة')))
+            admin.add_view(
+                VehicleView(
+                    models.Vehicle,
+                    db.session,
+                    name=_('المركبات'),
+                    category=_('عالم اللعبة')))
+            admin.add_view(
+                AssetView(
+                    models.Asset,
+                    db.session,
+                    name=_('الممتلكات'),
+                    category=_('عالم اللعبة')))
+            admin.add_view(
+                DailyTaskView(
+                    models.DailyTask,
+                    db.session,
+                    name=_('المهام اليومية'),
+                    category=_('عالم اللعبة')))
+
             # Economy
-            admin.add_view(MarketAssetView(models.MarketAsset, db.session, name=_('الأسهم والعملات'), category=_('الاقتصاد')))
-            admin.add_view(UserInvestmentView(models.UserInvestment, db.session, name=_('استثمارات اللاعبين'), category=_('الاقتصاد')))
-            admin.add_view(SecureModelView(models.SpotOrder, db.session, name=_('أوامر السبوت'), category=_('الاقتصاد')))
-            admin.add_view(SecureModelView(models.FuturesPosition, db.session, name=_('صفقات الفيوتشر'), category=_('الاقتصاد')))
+            admin.add_view(
+                MarketAssetView(
+                    models.MarketAsset,
+                    db.session,
+                    name=_('الأسهم والعملات'),
+                    category=_('الاقتصاد')))
+            admin.add_view(
+                UserInvestmentView(
+                    models.UserInvestment,
+                    db.session,
+                    name=_('استثمارات اللاعبين'),
+                    category=_('الاقتصاد')))
+            admin.add_view(
+                SecureModelView(
+                    models.SpotOrder,
+                    db.session,
+                    name=_('أوامر السبوت'),
+                    category=_('الاقتصاد')))
+            admin.add_view(
+                SecureModelView(
+                    models.FuturesPosition,
+                    db.session,
+                    name=_('صفقات الفيوتشر'),
+                    category=_('الاقتصاد')))
 
             # Monitoring
-            admin.add_view(UserItemView(models.UserItem, db.session, name=_('مخزون اللاعبين'), category=_('المراقبة')))
-            admin.add_view(BountyView(models.Bounty, db.session, name=_('المكافآت'), category=_('المراقبة')))
-            admin.add_view(WeeklyWinnerView(models.WeeklyWinner, db.session, name=_('الفائزين'), category=_('المراقبة')))
-            admin.add_view(CombatLogView(models.CombatLog, db.session, name=_('سجل القتال'), category=_('المراقبة')))
-            admin.add_view(UserLogView(models.UserLog, db.session, name=_('سجل اللاعبين'), category=_('المراقبة')))
-            admin.add_view(GangLogView(models.GangLog, db.session, name=_('سجل العصابات'), category=_('المراقبة')))
-            admin.add_view(UserVehicleView(models.UserVehicle, db.session, name=_('مركبات المستخدمين'), category=_('المراقبة')))
-            admin.add_view(ReferralView(models.Referral, db.session, name=_('الإحالات'), category=_('المراقبة')))
-            admin.add_view(MessageView(models.Message, db.session, name=_('الرسائل'), category=_('المراقبة')))
+            admin.add_view(
+                UserItemView(
+                    models.UserItem,
+                    db.session,
+                    name=_('مخزون اللاعبين'),
+                    category=_('المراقبة')))
+            admin.add_view(
+                BountyView(
+                    models.Bounty,
+                    db.session,
+                    name=_('المكافآت'),
+                    category=_('المراقبة')))
+            admin.add_view(
+                WeeklyWinnerView(
+                    models.WeeklyWinner,
+                    db.session,
+                    name=_('الفائزين'),
+                    category=_('المراقبة')))
+            admin.add_view(
+                CombatLogView(
+                    models.CombatLog,
+                    db.session,
+                    name=_('سجل القتال'),
+                    category=_('المراقبة')))
+            admin.add_view(
+                UserLogView(
+                    models.UserLog,
+                    db.session,
+                    name=_('سجل اللاعبين'),
+                    category=_('المراقبة')))
+            admin.add_view(
+                GangLogView(
+                    models.GangLog,
+                    db.session,
+                    name=_('سجل العصابات'),
+                    category=_('المراقبة')))
+            admin.add_view(
+                UserVehicleView(
+                    models.UserVehicle,
+                    db.session,
+                    name=_('مركبات المستخدمين'),
+                    category=_('المراقبة')))
+            admin.add_view(
+                ReferralView(
+                    models.Referral,
+                    db.session,
+                    name=_('الإحالات'),
+                    category=_('المراقبة')))
+            admin.add_view(
+                MessageView(
+                    models.Message,
+                    db.session,
+                    name=_('الرسائل'),
+                    category=_('المراقبة')))
 
             # Forum
-            admin.add_view(ForumCategoryView(models.ForumCategory, db.session, name=_('أقسام المنتدى'), category=_('المجتمع')))
-            admin.add_view(ForumTopicView(models.ForumTopic, db.session, name=_('المواضيع'), category=_('المجتمع')))
-            admin.add_view(ForumPostView(models.ForumPost, db.session, name=_('الردود'), category=_('المجتمع')))
+            admin.add_view(
+                ForumCategoryView(
+                    models.ForumCategory,
+                    db.session,
+                    name=_('أقسام المنتدى'),
+                    category=_('المجتمع')))
+            admin.add_view(
+                ForumTopicView(
+                    models.ForumTopic,
+                    db.session,
+                    name=_('المواضيع'),
+                    category=_('المجتمع')))
+            admin.add_view(
+                ForumPostView(
+                    models.ForumPost,
+                    db.session,
+                    name=_('الردود'),
+                    category=_('المجتمع')))
 
     return app

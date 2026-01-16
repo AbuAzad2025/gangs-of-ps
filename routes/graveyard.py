@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, redirect, url_for, flash, request
+from flask import Blueprint, render_template, redirect, url_for, flash
 from flask_login import login_required, current_user
 from flask_babel import _
 from extensions import db, limiter
@@ -9,6 +9,7 @@ from services.resource_service import ResourceService
 
 bp = Blueprint('graveyard', __name__, url_prefix='/graveyard')
 
+
 @bp.route('/')
 def index():
     is_dead_viewer = False
@@ -18,33 +19,43 @@ def index():
     # Check if user is authenticated and DEAD (My Grave View)
     if current_user.is_authenticated and current_user.health <= 0:
         is_dead_viewer = True
-        
+
         # Check for pending request
-        pending_request = ResurrectionRequest.query.filter_by(user_id=current_user.id, status='pending').first()
+        pending_request = ResurrectionRequest.query.filter_by(
+            user_id=current_user.id, status='pending').first()
 
         # Get Cost based on Rank
         try:
             rp = current_user.rank_points_value
             effective_level = current_user.level + (rp // 50)
-            rank = UserRank.query.filter(UserRank.min_level <= effective_level).order_by(UserRank.min_level.desc()).first()
+            rank = UserRank.query.filter(
+                UserRank.min_level <= effective_level).order_by(
+                UserRank.min_level.desc()).first()
             if rank:
                 cost_diamonds = max(1, int(rank.resurrection_cost))
-        except:
+        except BaseException:
             pass
-        cost_diamonds = int(SystemConfig.get_value('graveyard_resurrection_cost_diamonds', str(cost_diamonds)) or cost_diamonds)
-    
-    # Public List (For everyone)
-    dead_users = User.query.filter(User.health <= 0).order_by(User.level.desc()).limit(20).all()
-    
-    meta_description = _("مقبرة الشهداء والضحايا في عصابات فلسطين. هنا يرقد من خسروا المعركة.")
+        cost_diamonds = int(
+            SystemConfig.get_value(
+                'graveyard_resurrection_cost_diamonds',
+                str(cost_diamonds)) or cost_diamonds)
 
-    return render_template('graveyard.html', 
-                           user=current_user if current_user.is_authenticated else None, 
-                           pending_request=pending_request, 
-                           cost_diamonds=cost_diamonds,
-                           is_dead_viewer=is_dead_viewer,
-                           dead_users=dead_users,
-                           meta_description=meta_description)
+    # Public List (For everyone)
+    dead_users = User.query.filter(
+        User.health <= 0).order_by(
+        User.level.desc()).limit(20).all()
+
+    meta_description = _(
+        "مقبرة الشهداء والضحايا في عصابات فلسطين. هنا يرقد من خسروا المعركة.")
+
+    return render_template(
+        'graveyard.html',
+        user=current_user if current_user.is_authenticated else None,
+        pending_request=pending_request,
+        cost_diamonds=cost_diamonds,
+        is_dead_viewer=is_dead_viewer,
+        dead_users=dead_users,
+        meta_description=meta_description)
 
 
 @bp.route('/resurrect', methods=['POST'])
@@ -60,18 +71,24 @@ def resurrect():
     try:
         rp = current_user.rank_points_value
         effective_level = current_user.level + (rp // 50)
-        rank = UserRank.query.filter(UserRank.min_level <= effective_level).order_by(UserRank.min_level.desc()).first()
+        rank = UserRank.query.filter(
+            UserRank.min_level <= effective_level).order_by(
+            UserRank.min_level.desc()).first()
         if rank:
             cost_diamonds = max(1, int(rank.resurrection_cost))
     except Exception:
         pass
     try:
-        cost_diamonds = int(SystemConfig.get_value('graveyard_resurrection_cost_diamonds', str(cost_diamonds)) or cost_diamonds)
+        cost_diamonds = int(
+            SystemConfig.get_value(
+                'graveyard_resurrection_cost_diamonds',
+                str(cost_diamonds)) or cost_diamonds)
     except Exception:
         cost_diamonds = 10
 
     # Lock user to prevent race conditions
-    db.session.query(User).filter_by(id=current_user.id).with_for_update().first()
+    db.session.query(User).filter_by(
+        id=current_user.id).with_for_update().first()
 
     # Atomic Deduction using ResourceService
     if not ResourceService.modify_resources(
@@ -82,7 +99,8 @@ def resurrect():
         expected_version=None
     ):
         db.session.rollback()
-        flash(_('ليس لديك ما يكفي من الماس! تحتاج إلى %(cost)s ماسة.', cost=cost_diamonds), 'danger')
+        flash(_('ليس لديك ما يكفي من الماس! تحتاج إلى %(cost)s ماسة.',
+              cost=cost_diamonds), 'danger')
         return redirect(url_for('graveyard.index'))
 
     current_user.health = current_user.max_health
@@ -103,22 +121,24 @@ def resurrect():
     flash(_('تم إحياؤك بنجاح!'), 'success')
     return redirect(url_for('main.hara'))
 
+
 @bp.route('/request_resurrection', methods=['POST'])
 @login_required
 @limiter.limit("3 per minute")
 def request_resurrection():
     if current_user.health > 0:
         return redirect(url_for('main.hara'))
-        
-    existing = ResurrectionRequest.query.filter_by(user_id=current_user.id, status='pending').first()
+
+    existing = ResurrectionRequest.query.filter_by(
+        user_id=current_user.id, status='pending').first()
     if existing:
         flash(_('لديك طلب قيد الانتظار بالفعل!'), 'warning')
         return redirect(url_for('graveyard.index'))
-        
+
     new_req = ResurrectionRequest(user_id=current_user.id)
     db.session.add(new_req)
     db.session.commit()
-    
+
     # Notify developers
     developers = User.query.filter_by(role=UserRole.DEVELOPER).all()
     for dev in developers:
@@ -126,8 +146,9 @@ def request_resurrection():
             sender_id=current_user.id,
             receiver_id=dev.id,
             subject=_('طلب إحياء جديد'),
-            body=_('اللاعب %(user)s قدم طلب إحياء.', user=current_user.username)
-        )
+            body=_(
+                'اللاعب %(user)s قدم طلب إحياء.',
+                user=current_user.username))
         db.session.add(msg)
     db.session.commit()
 

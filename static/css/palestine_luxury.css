@@ -1911,6 +1911,123 @@ h1, h2, h3, h4, h5, h6, .brand-text-custom, .luxury-title {
     transition: width 1s linear;
 }
 
+/* ==========================================================================
+   Garage Template Styles
+   ========================================================================== */
+.garage-header {
+    text-align: center;
+    margin-bottom: 2rem;
+    padding: 2rem 0;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.car-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: 14px;
+    overflow: hidden;
+    position: relative;
+    height: 100%;
+    box-shadow: var(--shadow-soft);
+    transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+}
+
+.car-card:hover {
+    transform: translateY(-4px);
+    border-color: rgba(255, 215, 0, 0.35);
+    box-shadow: var(--shadow-gold);
+}
+
+.status-badge {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    z-index: 2;
+    font-weight: 800;
+    font-size: 0.85rem;
+    padding: 6px 10px;
+    border-radius: 999px;
+    background: rgba(0, 0, 0, 0.55);
+    border: 1px solid rgba(255, 255, 255, 0.10);
+    color: #fff;
+    backdrop-filter: blur(6px);
+}
+
+.badge-active {
+    border-color: rgba(40, 167, 69, 0.45);
+    box-shadow: 0 10px 22px rgba(40, 167, 69, 0.14);
+}
+
+.badge-inactive {
+    border-color: rgba(108, 117, 125, 0.45);
+}
+
+.car-image-container {
+    height: 190px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0, 0, 0, 0.22);
+    border-bottom: 1px solid var(--border-color);
+    padding: 1rem;
+    overflow: hidden;
+}
+
+.car-image {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+    display: block;
+}
+
+@media (max-width: 575.98px) {
+    .car-image-container {
+        height: 160px;
+    }
+}
+
+.car-details {
+    padding: 1.25rem;
+}
+
+.car-title {
+    margin-bottom: 0.75rem;
+    font-weight: 900;
+    color: var(--gold-primary);
+    text-shadow: 0 6px 20px rgba(0, 0, 0, 0.65);
+}
+
+.stat-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 6px 0;
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+}
+
+.stat-row:last-child {
+    border-bottom: 0;
+}
+
+.stat-value {
+    font-weight: 900;
+    color: rgba(255, 255, 255, 0.92);
+}
+
+.condition-bar {
+    width: 100%;
+    height: 8px;
+    border-radius: 999px;
+    overflow: hidden;
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.condition-fill {
+    height: 100%;
+    border-radius: inherit;
+}
+
 .factory-job-card {
     transition: transform 160ms ease, box-shadow 160ms ease, border-color 160ms ease;
 }
@@ -2683,6 +2800,23 @@ h1, h2, h3, h4, h5, h6, .brand-text-custom, .luxury-title {
     .avatar-30 {
         width: 30px;
         height: 30px;
+    }
+
+    .table-avatar {
+        width: 42px;
+        height: 42px;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 1px solid rgba(212, 175, 55, 0.35);
+        box-shadow: 0 8px 18px rgba(0, 0, 0, 0.45);
+        flex: 0 0 auto;
+    }
+
+    @media (max-width: 575.98px) {
+        .table-avatar {
+            width: 36px;
+            height: 36px;
+        }
     }
     .stats-box {
         background: rgba(255,255,255,0.03);

@@ -151,14 +151,14 @@ async def capture_screenshots():
 
         try:
             public_urls = [
-                 ("http://localhost:8000/login",
-                  "endpoint_public_login.png"),
-                 ("http://localhost:8000/register",
-                  "endpoint_public_register.png"),
-                 ("http://localhost:8000/sitemap.xml",
-                  "endpoint_public_sitemap_xml.png"),
-                 ("http://localhost:8000/sitemap.xsl",
-                  "endpoint_public_sitemap_xsl.png"),
+                ("http://localhost:8000/login",
+                 "endpoint_public_login.png"),
+                ("http://localhost:8000/register",
+                 "endpoint_public_register.png"),
+                ("http://localhost:8000/sitemap.xml",
+                 "endpoint_public_sitemap_xml.png"),
+                ("http://localhost:8000/sitemap.xsl",
+                 "endpoint_public_sitemap_xsl.png"),
             ]
 
             # Switch to Arabic

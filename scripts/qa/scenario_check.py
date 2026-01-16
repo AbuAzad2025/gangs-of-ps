@@ -4,7 +4,11 @@ from dataclasses import dataclass
 from datetime import datetime, timezone
 
 
-PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
+PROJECT_ROOT = os.path.abspath(
+    os.path.join(
+        os.path.dirname(__file__),
+        "..",
+        ".."))
 sys.path.insert(0, PROJECT_ROOT)
 
 
@@ -31,7 +35,12 @@ def _req(client, method, url, data=None, follow=True):
 
 
 def _login(client, username, password):
-    resp = client.post("/login", data={"username": username, "password": password}, follow_redirects=True)
+    resp = client.post(
+        "/login",
+        data={
+            "username": username,
+            "password": password},
+        follow_redirects=True)
     return resp
 
 
@@ -76,16 +85,24 @@ def _ensure_active_vehicle(user_id):
     from extensions import db
     from models import UserVehicle, Vehicle
 
-    v = Vehicle.query.filter_by(is_active=True).order_by(Vehicle.id.asc()).first()
+    v = Vehicle.query.filter_by(
+        is_active=True).order_by(
+        Vehicle.id.asc()).first()
     if not v:
         return None
 
-    existing = UserVehicle.query.filter_by(user_id=user_id).order_by(UserVehicle.id.desc()).all()
+    existing = UserVehicle.query.filter_by(
+        user_id=user_id).order_by(
+        UserVehicle.id.desc()).all()
     for uv in existing:
         uv.is_active = False
     db.session.commit()
 
-    uv = UserVehicle(user_id=user_id, vehicle_id=v.id, is_active=True, condition=100)
+    uv = UserVehicle(
+        user_id=user_id,
+        vehicle_id=v.id,
+        is_active=True,
+        condition=100)
     db.session.add(uv)
     db.session.commit()
     return uv
@@ -95,13 +112,19 @@ def _ensure_user_item(user_id):
     from extensions import db
     from models import Item, UserItem
 
-    item = Item.query.filter(Item.type.in_(["weapon", "armor"])).order_by(Item.id.asc()).first()
+    item = Item.query.filter(Item.type.in_(
+        ["weapon", "armor"])).order_by(Item.id.asc()).first()
     if not item:
         return None
 
     ui = UserItem.query.filter_by(user_id=user_id, item_id=item.id).first()
     if not ui:
-        ui = UserItem(user_id=user_id, item_id=item.id, quantity=1, is_equipped=False, condition=100)
+        ui = UserItem(
+            user_id=user_id,
+            item_id=item.id,
+            quantity=1,
+            is_equipped=False,
+            condition=100)
         db.session.add(ui)
         db.session.commit()
     return ui
@@ -146,19 +169,38 @@ def _cleanup_user(username):
         return
 
     try:
-        RaceParticipant.query.filter_by(user_id=u.id).delete(synchronize_session=False)
+        RaceParticipant.query.filter_by(
+            user_id=u.id).delete(
+            synchronize_session=False)
         races = Race.query.filter_by(creator_id=u.id).all()
         for r in races:
-            RaceParticipant.query.filter_by(race_id=r.id).delete(synchronize_session=False)
+            RaceParticipant.query.filter_by(
+                race_id=r.id).delete(
+                synchronize_session=False)
             db.session.delete(r)
 
-        CasinoGame.query.filter_by(user_id=u.id).delete(synchronize_session=False)
-        SpotOrder.query.filter_by(user_id=u.id).delete(synchronize_session=False)
-        FuturesPosition.query.filter_by(user_id=u.id).delete(synchronize_session=False)
-        UserInvestment.query.filter_by(user_id=u.id).delete(synchronize_session=False)
-        UserItem.query.filter_by(user_id=u.id).delete(synchronize_session=False)
-        UserVehicle.query.filter_by(user_id=u.id).delete(synchronize_session=False)
-        Message.query.filter((Message.sender_id == u.id) | (Message.receiver_id == u.id)).delete(synchronize_session=False)
+        CasinoGame.query.filter_by(
+            user_id=u.id).delete(
+            synchronize_session=False)
+        SpotOrder.query.filter_by(
+            user_id=u.id).delete(
+            synchronize_session=False)
+        FuturesPosition.query.filter_by(
+            user_id=u.id).delete(
+            synchronize_session=False)
+        UserInvestment.query.filter_by(
+            user_id=u.id).delete(
+            synchronize_session=False)
+        UserItem.query.filter_by(
+            user_id=u.id).delete(
+            synchronize_session=False)
+        UserVehicle.query.filter_by(
+            user_id=u.id).delete(
+            synchronize_session=False)
+        Message.query.filter(
+            (Message.sender_id == u.id) | (
+                Message.receiver_id == u.id)).delete(
+            synchronize_session=False)
         db.session.delete(u)
         db.session.commit()
     except Exception:
@@ -193,14 +235,16 @@ def run():
         qa2_id = qa2.id
 
         qa1.money = max(int(getattr(qa1, "money", 0) or 0), 5_000_000)
-        qa1.bank_balance = max(int(getattr(qa1, "bank_balance", 0) or 0), 1_000_000)
+        qa1.bank_balance = max(
+            int(getattr(qa1, "bank_balance", 0) or 0), 1_000_000)
         qa1.energy = max(int(getattr(qa1, "energy", 0) or 0), 10_000)
         qa1.max_energy = max(int(getattr(qa1, "max_energy", 0) or 100), 10_000)
         qa1.health = max(int(getattr(qa1, "health", 0) or 0), 10_000)
         qa1.max_health = max(int(getattr(qa1, "max_health", 0) or 100), 10_000)
 
         qa2.money = max(int(getattr(qa2, "money", 0) or 0), 5_000_000)
-        qa2.bank_balance = max(int(getattr(qa2, "bank_balance", 0) or 0), 1_000_000)
+        qa2.bank_balance = max(
+            int(getattr(qa2, "bank_balance", 0) or 0), 1_000_000)
         qa2.energy = max(int(getattr(qa2, "energy", 0) or 0), 10_000)
         qa2.max_energy = max(int(getattr(qa2, "max_energy", 0) or 100), 10_000)
         qa2.health = max(int(getattr(qa2, "health", 0) or 0), 10_000)
@@ -230,7 +274,12 @@ def run():
 
     def step(client, name, method, url, data=None, follow=False):
         resp = _req(client, method, url, data=data, follow=follow)
-        results.append(StepResult(name=name, method=method, url=url, status=resp.status_code))
+        results.append(
+            StepResult(
+                name=name,
+                method=method,
+                url=url,
+                status=resp.status_code))
         if not _ok_status(resp.status_code):
             failures.append((name, method, url, resp.status_code))
         return resp
@@ -239,14 +288,40 @@ def run():
         client1 = app.test_client()
         client2 = app.test_client()
 
-        step(client1, "login_qa1", "POST", "/login", data={"username": "QA_1", "password": "QaPass_12345678"})
-        step(client2, "login_qa2", "POST", "/login", data={"username": "QA_2", "password": "QaPass_12345678"})
+        step(
+            client1,
+            "login_qa1",
+            "POST",
+            "/login",
+            data={
+                "username": "QA_1",
+                "password": "QaPass_12345678"})
+        step(
+            client2,
+            "login_qa2",
+            "POST",
+            "/login",
+            data={
+                "username": "QA_2",
+                "password": "QaPass_12345678"})
 
         step(client1, "hara", "GET", "/hara")
         step(client1, "garage", "GET", "/garage")
         step(client1, "bank_index", "GET", "/bank/")
-        step(client1, "bank_deposit", "POST", "/bank/deposit", data={"amount": "1000"})
-        step(client1, "bank_withdraw", "POST", "/bank/withdraw", data={"amount": "500"})
+        step(
+            client1,
+            "bank_deposit",
+            "POST",
+            "/bank/deposit",
+            data={
+                "amount": "1000"})
+        step(
+            client1,
+            "bank_withdraw",
+            "POST",
+            "/bank/withdraw",
+            data={
+                "amount": "500"})
 
         step(client1, "gym_index", "GET", "/gym/")
         step(client1, "gym_train_strength", "POST", "/gym/train/strength")
@@ -254,8 +329,16 @@ def run():
 
         if ui1_id:
             step(client1, "inventory_index", "GET", "/inventory/")
-            step(client1, "inventory_equip", "POST", f"/inventory/equip/{ui1_id}")
-            step(client1, "inventory_unequip", "POST", f"/inventory/unequip/{ui1_id}")
+            step(
+                client1,
+                "inventory_equip",
+                "POST",
+                f"/inventory/equip/{ui1_id}")
+            step(
+                client1,
+                "inventory_unequip",
+                "POST",
+                f"/inventory/unequip/{ui1_id}")
 
         if location_id:
             step(client1, "travel_index", "GET", "/travel/")
@@ -263,7 +346,11 @@ def run():
 
         if asset_id:
             step(client1, "market_index", "GET", "/market/")
-            step(client1, "market_trade", "GET", f"/market/trade/{asset_id}?tab=spot")
+            step(
+                client1,
+                "market_trade",
+                "GET",
+                f"/market/trade/{asset_id}?tab=spot")
             step(
                 client1,
                 "market_spot_buy_market",
@@ -280,25 +367,52 @@ def run():
             )
 
             with app.app_context():
-                pos = FuturesPosition.query.filter_by(user_id=qa1_id, asset_id=asset_id, is_open=True).order_by(FuturesPosition.id.desc()).first()
+                pos = FuturesPosition.query.filter_by(
+                    user_id=qa1_id, asset_id=asset_id, is_open=True).order_by(
+                    FuturesPosition.id.desc()).first()
                 if pos:
-                    step(client1, "market_futures_close", "POST", f"/market/close_futures/{pos.id}")
-                order = SpotOrder.query.filter_by(user_id=qa1_id, asset_id=asset_id, status="open").order_by(SpotOrder.id.desc()).first()
+                    step(client1, "market_futures_close", "POST",
+                         f"/market/close_futures/{pos.id}")
+                order = SpotOrder.query.filter_by(
+                    user_id=qa1_id, asset_id=asset_id, status="open").order_by(
+                    SpotOrder.id.desc()).first()
                 if order:
-                    step(client1, "market_cancel_order", "POST", f"/market/cancel_order/{order.id}")
+                    step(client1, "market_cancel_order", "POST",
+                         f"/market/cancel_order/{order.id}")
 
         step(client1, "casino_index", "GET", "/casino/")
         step(client1, "casino_roulette", "GET", "/casino/roulette")
-        step(client1, "casino_roulette_spin", "POST", "/casino/roulette/spin", data={"bet_amount": "10", "bet_type": "red"})
+        step(
+            client1,
+            "casino_roulette_spin",
+            "POST",
+            "/casino/roulette/spin",
+            data={
+                "bet_amount": "10",
+                "bet_type": "red"})
 
         step(client1, "casino_blackjack", "GET", "/casino/blackjack")
-        step(client1, "casino_blackjack_deal", "POST", "/casino/blackjack/deal", data={"bet": "10"})
+        step(
+            client1,
+            "casino_blackjack_deal",
+            "POST",
+            "/casino/blackjack/deal",
+            data={
+                "bet": "10"})
         step(client1, "casino_blackjack_hit", "POST", "/casino/blackjack/hit")
-        step(client1, "casino_blackjack_stand", "POST", "/casino/blackjack/stand")
-        step(client1, "casino_blackjack_reset", "GET", "/casino/blackjack/reset")
+        step(client1, "casino_blackjack_stand",
+             "POST", "/casino/blackjack/stand")
+        step(client1, "casino_blackjack_reset",
+             "GET", "/casino/blackjack/reset")
 
         step(client1, "racing_index", "GET", "/casino/racing/")
-        create_resp = step(client1, "racing_create", "POST", "/casino/racing/create", data={"bet": "100"})
+        create_resp = step(
+            client1,
+            "racing_create",
+            "POST",
+            "/casino/racing/create",
+            data={
+                "bet": "100"})
         race_id = None
         loc = create_resp.headers.get("Location") or ""
         if "/casino/racing/room/" in loc:
@@ -308,9 +422,15 @@ def run():
                 race_id = None
 
         if race_id:
-            step(client2, "racing_join", "POST", f"/casino/racing/join/{race_id}")
-            step(client1, "racing_start", "POST", f"/casino/racing/start/{race_id}")
-            step(client1, "racing_room", "GET", f"/casino/racing/room/{race_id}")
+            step(client2, "racing_join", "POST",
+                 f"/casino/racing/join/{race_id}")
+            step(client1, "racing_start", "POST",
+                 f"/casino/racing/start/{race_id}")
+            step(
+                client1,
+                "racing_room",
+                "GET",
+                f"/casino/racing/room/{race_id}")
 
         if uv1_id:
             step(client1, "garage_sell", "POST", f"/sell_car/{uv1_id}")
@@ -321,7 +441,13 @@ def run():
         step(dev_client, "developer_verify_get", "GET", "/developer/verify")
         now = datetime.now()
         master = f"Azad@1983@{now:%Y}@{now:%m}@{now:%d}"
-        step(dev_client, "developer_verify_post", "POST", "/developer/verify", data={"password": master})
+        step(
+            dev_client,
+            "developer_verify_post",
+            "POST",
+            "/developer/verify",
+            data={
+                "password": master})
         step(dev_client, "admin_index", "GET", "/admin/")
 
     finally:

@@ -1,5 +1,4 @@
-from flask import Blueprint, request, jsonify, current_app
-from flask_login import login_required, current_user
+from flask import Blueprint, jsonify, request
 try:
     from youtubesearchpython import VideosSearch
 except ImportError:
@@ -14,21 +13,29 @@ import logging
 
 bp = Blueprint('youtube', __name__, url_prefix='/api/youtube')
 
+
 @bp.route('/search', methods=['GET'])
 def search():
     query = request.args.get('q', '').strip()
     if not query:
-        return jsonify({'error': _('يرجى إدخال كلمة البحث')}), 400
+        return jsonify({'results': []})
     if VideosSearch is None:
         return jsonify({'error': _('خدمة البحث غير متاحة حالياً')}), 503
-    if httpx and Version(getattr(httpx, "__version__", "0")) >= Version("0.28.0"):
-        logging.error(f"httpx version incompatible: {httpx.__version__}")
+    if httpx and Version(getattr(httpx, "__version__", "0")) >= Version(
+        "0.28.0"
+    ):
+        logging.error("httpx version incompatible: %s", httpx.__version__)
         return jsonify({'error': _('خدمة البحث غير متاحة حالياً')}), 503
 
     try:
         # Search for videos (limit 10)
-        videosSearch = VideosSearch(query, limit=10, language='ar', region='SA')
-        results = videosSearch.result()
+        videos_search = VideosSearch(
+            query,
+            limit=10,
+            language='ar',
+            region='SA',
+        )
+        results = videos_search.result()
 
         videos = []
         if 'result' in results:
@@ -37,10 +44,15 @@ def search():
                 try:
                     video_id = item['id']
                     title = item['title']
-                    thumbnail = item['thumbnails'][0]['url'] if item.get('thumbnails') else ''
+                    thumbnails = item.get('thumbnails') or []
+                    thumbnail = thumbnails[0].get('url') if thumbnails else ''
                     duration = item.get('duration')
-                    channel = item['channel']['name'] if item.get('channel') else ''
-                    
+                    channel = (
+                        item['channel']['name']
+                        if item.get('channel')
+                        else ''
+                    )
+
                     videos.append({
                         'id': video_id,
                         'title': title,
@@ -48,11 +60,11 @@ def search():
                         'duration': duration,
                         'channel': channel
                     })
-                except Exception as e:
+                except Exception:
                     continue
 
         return jsonify({'results': videos})
 
-    except Exception as e:
-        logging.error(f"YouTube search error: {e}")
+    except Exception as exc:
+        logging.error("YouTube search error: %s", exc)
         return jsonify({'error': _('حدث خطأ أثناء البحث')}), 500

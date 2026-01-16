@@ -23,23 +23,98 @@ def upgrade():
         op.add_column("user", column)
         existing_cols.add(col_name)
 
-    ensure_column("jail_escape_attempts", sa.Column("jail_escape_attempts", sa.Integer(), server_default=sa.text("0"), nullable=True))
-    ensure_column("jail_escape_attempts_date", sa.Column("jail_escape_attempts_date", sa.Date(), nullable=True))
-    ensure_column("jail_escape_last_at", sa.Column("jail_escape_last_at", sa.DateTime(), nullable=True))
-    ensure_column("jail_gilboa_attempts", sa.Column("jail_gilboa_attempts", sa.Integer(), server_default=sa.text("0"), nullable=True))
-    ensure_column("jail_gilboa_attempts_date", sa.Column("jail_gilboa_attempts_date", sa.Date(), nullable=True))
-    ensure_column("jail_gilboa_last_at", sa.Column("jail_gilboa_last_at", sa.DateTime(), nullable=True))
-    ensure_column("gym_sessions_count", sa.Column("gym_sessions_count", sa.Integer(), server_default=sa.text("0"), nullable=True))
-    ensure_column("gym_sessions_date", sa.Column("gym_sessions_date", sa.Date(), nullable=True))
-    ensure_column("gym_speedups_count", sa.Column("gym_speedups_count", sa.Integer(), server_default=sa.text("0"), nullable=True))
-    ensure_column("gym_speedups_date", sa.Column("gym_speedups_date", sa.Date(), nullable=True))
+    ensure_column(
+        "jail_escape_attempts",
+        sa.Column(
+            "jail_escape_attempts",
+            sa.Integer(),
+            server_default=sa.text("0"),
+            nullable=True))
+    ensure_column(
+        "jail_escape_attempts_date",
+        sa.Column(
+            "jail_escape_attempts_date",
+            sa.Date(),
+            nullable=True))
+    ensure_column(
+        "jail_escape_last_at",
+        sa.Column(
+            "jail_escape_last_at",
+            sa.DateTime(),
+            nullable=True))
+    ensure_column(
+        "jail_gilboa_attempts",
+        sa.Column(
+            "jail_gilboa_attempts",
+            sa.Integer(),
+            server_default=sa.text("0"),
+            nullable=True))
+    ensure_column(
+        "jail_gilboa_attempts_date",
+        sa.Column(
+            "jail_gilboa_attempts_date",
+            sa.Date(),
+            nullable=True))
+    ensure_column(
+        "jail_gilboa_last_at",
+        sa.Column(
+            "jail_gilboa_last_at",
+            sa.DateTime(),
+            nullable=True))
+    ensure_column(
+        "gym_sessions_count",
+        sa.Column(
+            "gym_sessions_count",
+            sa.Integer(),
+            server_default=sa.text("0"),
+            nullable=True))
+    ensure_column(
+        "gym_sessions_date",
+        sa.Column(
+            "gym_sessions_date",
+            sa.Date(),
+            nullable=True))
+    ensure_column(
+        "gym_speedups_count",
+        sa.Column(
+            "gym_speedups_count",
+            sa.Integer(),
+            server_default=sa.text("0"),
+            nullable=True))
+    ensure_column(
+        "gym_speedups_date",
+        sa.Column(
+            "gym_speedups_date",
+            sa.Date(),
+            nullable=True))
 
-    ensure_column("organized_crime_cooldown_until", sa.Column("organized_crime_cooldown_until", sa.DateTime(), nullable=True))
-    ensure_column("is_chat_banned", sa.Column("is_chat_banned", sa.Boolean(), server_default=sa.false(), nullable=True))
-    ensure_column("failed_login_attempts", sa.Column("failed_login_attempts", sa.Integer(), server_default=sa.text("0"), nullable=True))
-    ensure_column("locked_until", sa.Column("locked_until", sa.DateTime(), nullable=True))
+    ensure_column(
+        "organized_crime_cooldown_until",
+        sa.Column(
+            "organized_crime_cooldown_until",
+            sa.DateTime(),
+            nullable=True))
+    ensure_column(
+        "is_chat_banned",
+        sa.Column(
+            "is_chat_banned",
+            sa.Boolean(),
+            server_default=sa.false(),
+            nullable=True))
+    ensure_column(
+        "failed_login_attempts",
+        sa.Column(
+            "failed_login_attempts",
+            sa.Integer(),
+            server_default=sa.text("0"),
+            nullable=True))
+    ensure_column(
+        "locked_until",
+        sa.Column(
+            "locked_until",
+            sa.DateTime(),
+            nullable=True))
 
 
 def downgrade():
     pass
-

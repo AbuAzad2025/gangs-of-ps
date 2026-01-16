@@ -55,8 +55,8 @@ def ensure_schema_updates():
         with db.engine.connect() as conn:
             conn.execute(text(
                 'ALTER TABLE "user" ADD COLUMN referral_code VARCHAR(16)'))
-            conn.execute(text(
-                'CREATE UNIQUE INDEX ix_user_referral_code ON "user" (referral_code)'))
+            conn.execute(
+                text('CREATE UNIQUE INDEX ix_user_referral_code ON "user" (referral_code)'))
             conn.commit()
 
     if 'referred_by_id' not in columns:
@@ -67,8 +67,8 @@ def ensure_schema_updates():
             conn.execute(text(
                 'ALTER TABLE "user" ADD CONSTRAINT fk_user_referred_by '
                 'FOREIGN KEY (referred_by_id) REFERENCES "user"(id)'))
-            conn.execute(text(
-                'CREATE INDEX ix_user_referred_by_id ON "user" (referred_by_id)'))
+            conn.execute(
+                text('CREATE INDEX ix_user_referred_by_id ON "user" (referred_by_id)'))
             conn.commit()
 
     # 2. Gang Upgrades Column
@@ -118,7 +118,8 @@ def initialize_items():
     for data in items_data:
         # Check if item exists (handling both types)
         type_filter = data['type']
-        item = Item.query.filter_by(name=data['name'], type=type_filter).first()
+        item = Item.query.filter_by(
+            name=data['name'], type=type_filter).first()
 
         if not item:
             item = Item(
@@ -183,7 +184,8 @@ def initialize_basic_crimes():
                 crime.reward_type = data.get('reward_type')
             reward_item_name = data.get('reward_item_name')
             if reward_item_name:
-                reward_item = Item.query.filter_by(name=reward_item_name).first()
+                reward_item = Item.query.filter_by(
+                    name=reward_item_name).first()
                 if reward_item:
                     crime.reward_item_id = reward_item.id
             db.session.add(crime)
@@ -191,47 +193,56 @@ def initialize_basic_crimes():
         else:
             updated = False
             seed_cooldown = data.get('cooldown', 60)
-            if crime.cooldown in (None, 60) and seed_cooldown != crime.cooldown:
+            if crime.cooldown in (
+                    None, 60) and seed_cooldown != crime.cooldown:
                 crime.cooldown = seed_cooldown
                 updated = True
 
             seed_min_level = data.get('min_level', 1)
-            if crime.min_level in (None, 1) and seed_min_level != crime.min_level:
+            if crime.min_level in (
+                    None, 1) and seed_min_level != crime.min_level:
                 crime.min_level = seed_min_level
                 updated = True
 
             seed_energy_cost = data.get('energy_cost', 10)
-            if crime.energy_cost in (None, 10) and seed_energy_cost != crime.energy_cost:
+            if crime.energy_cost in (
+                    None, 10) and seed_energy_cost != crime.energy_cost:
                 crime.energy_cost = seed_energy_cost
                 updated = True
 
             seed_money_min = data.get('money_reward_min', 10)
-            if crime.money_reward_min in (None, 10) and seed_money_min != crime.money_reward_min:
+            if crime.money_reward_min in (
+                    None, 10) and seed_money_min != crime.money_reward_min:
                 crime.money_reward_min = seed_money_min
                 updated = True
 
             seed_money_max = data.get('money_reward_max', 100)
-            if crime.money_reward_max in (None, 100) and seed_money_max != crime.money_reward_max:
+            if crime.money_reward_max in (
+                    None, 100) and seed_money_max != crime.money_reward_max:
                 crime.money_reward_max = seed_money_max
                 updated = True
 
             seed_exp_reward = data.get('exp_reward', 10)
-            if crime.exp_reward in (None, 10) and seed_exp_reward != crime.exp_reward:
+            if crime.exp_reward in (
+                    None, 10) and seed_exp_reward != crime.exp_reward:
                 crime.exp_reward = seed_exp_reward
                 updated = True
 
             seed_min_strength = data.get('min_strength', 0)
-            if crime.min_strength in (None, 0) and seed_min_strength != crime.min_strength:
+            if crime.min_strength in (
+                    None, 0) and seed_min_strength != crime.min_strength:
                 crime.min_strength = seed_min_strength
                 updated = True
 
             seed_min_agility = data.get('min_agility', 0)
-            if crime.min_agility in (None, 0) and seed_min_agility != crime.min_agility:
+            if crime.min_agility in (
+                    None, 0) and seed_min_agility != crime.min_agility:
                 crime.min_agility = seed_min_agility
                 updated = True
 
             seed_min_intelligence = data.get('min_intelligence', 0)
-            if crime.min_intelligence in (None, 0) and seed_min_intelligence != crime.min_intelligence:
+            if crime.min_intelligence in (
+                    None, 0) and seed_min_intelligence != crime.min_intelligence:
                 crime.min_intelligence = seed_min_intelligence
                 updated = True
 
@@ -278,7 +289,8 @@ def initialize_organized_crimes():
             crime.exp_reward = data.get('exp_reward', 100)
             crime.min_gang_level = data.get('min_gang_level', 1)
             crime.roles_config = data.get('roles_config', [])
-            crime.requirements = json.dumps(data.get('requirements', {}), ensure_ascii=False)
+            crime.requirements = json.dumps(
+                data.get('requirements', {}), ensure_ascii=False)
             crime.image = data.get('image', crime.image)
             crime.is_active = True
             db.session.add(crime)
@@ -295,7 +307,10 @@ def initialize_organized_crimes():
                         needs_role_upgrade = True
                     else:
                         for r in (crime.roles_config or []):
-                            if isinstance(r, dict) and ('min_stats' not in r) and ('req' in r):
+                            if isinstance(
+                                    r, dict) and (
+                                    'min_stats' not in r) and (
+                                    'req' in r):
                                 needs_role_upgrade = True
                                 break
                 except Exception:
@@ -379,7 +394,8 @@ def initialize_hostesses():
                     with open(prompt_file, 'r', encoding='utf-8') as f:
                         system_prompt = f.read()
 
-                    hostess = Hostess.query.filter_by(name=data['name']).first()
+                    hostess = Hostess.query.filter_by(
+                        name=data['name']).first()
                     if not hostess:
                         hostess = Hostess(name=data['name'])
                         db.session.add(hostess)
@@ -398,10 +414,12 @@ def initialize_hostesses():
                     vp = data.get('video_prompt')
                     if vp:
                         try:
-                            hostess.video_prompt = json.dumps(vp, ensure_ascii=False)
+                            hostess.video_prompt = json.dumps(
+                                vp, ensure_ascii=False)
                         except Exception:
                             hostess.video_prompt = None
-                    hostess.personality_config = json.dumps(data['personality_config'])
+                    hostess.personality_config = json.dumps(
+                        data['personality_config'])
                     hostess.system_prompt = system_prompt
                     hostess.is_public = data.get('is_public', False)
 
@@ -414,7 +432,8 @@ def initialize_hostesses():
                     logging.error(f"ERROR loading hostess {name}: {e}")
 
     if count > 0:
-        logging.info(f"Seeded/Updated {count} hostesses from deep training data.")
+        logging.info(
+            f"Seeded/Updated {count} hostesses from deep training data.")
 
 
 def initialize_hostess_knowledge():
@@ -428,10 +447,10 @@ def initialize_hostess_knowledge():
         # Check if knowledge exists (by question and language)
         # We assume general knowledge (hostess_id=None)
         k = HostessKnowledge.query.filter_by(
-                question=data['question'],
-                language=data.get('language', 'ar'),
-                hostess_id=None
-            ).first()
+            question=data['question'],
+            language=data.get('language', 'ar'),
+            hostess_id=None
+        ).first()
 
         if not k:
             k = HostessKnowledge(
@@ -586,7 +605,7 @@ def take_economy_snapshot():
         .limit(limit)
         .all()
     )
-    
+
     top_wealth = sum([(u.money + u.bank_balance) for u in top_users])
     total_wealth = total_money + total_bank
 

@@ -4,6 +4,7 @@ import json
 from flask import current_app
 from utils.essentials import load_json_seed
 
+
 class GangService:
     _upgrades_data = None
 
@@ -25,28 +26,30 @@ class GangService:
         """
         if not gang_id:
             return 0
-        
+
         gang = db.session.get(Gang, gang_id)
         if not gang or not gang.upgrades:
             return 0
-            
+
         try:
             current_upgrades = json.loads(gang.upgrades)
-        except:
+        except BaseException:
             return 0
-            
+
         level = current_upgrades.get(buff_type, 0)
         if level == 0:
             return 0
-            
+
         upgrades_data = cls.get_upgrades_data()
-        upgrade_def = next((u for u in upgrades_data if u['id'] == buff_type), None)
-        
+        upgrade_def = next(
+            (u for u in upgrades_data if u['id'] == buff_type), None)
+
         if not upgrade_def:
             return 0
-            
-        level_def = next((l for l in upgrade_def['levels'] if l['level'] == level), None)
+
+        level_def = next(
+            (level_row for level_row in upgrade_def['levels'] if level_row['level'] == level), None)
         if not level_def:
             return 0
-            
+
         return level_def['effect']

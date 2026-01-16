@@ -2,94 +2,143 @@
 
 {% block content %}
 
-<div class="container h-100">
-    <div class="row h-100 justify-content-center align-items-center">
-        <div class="col-md-6 col-lg-5 col-xl-4">
-            <div class="auth-card card-luxury">
-                <div class="card-header text-center border-0 bg-transparent pt-4">
-                    <h2 class="auth-title mb-0">{{ _('إنشاء حساب جديد') }}</h2>
-                    <p class="text-muted mt-2">{{ _('انضم إلى عصابات فلسطين') }}</p>
+<div class="container-fluid position-relative min-h-65vh d-flex align-items-center py-4">
+    <div class="auth-bg-pattern"></div>
+
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-lg-7 mb-5 mb-lg-0 fade-in-right">
+                <div class="trend-card">
+                    <h2 class="gold-text-gradient mb-3 font-weight-bold font-reem-kufi">
+                        <i class="fas fa-user-plus mr-2"></i> {{ _('ابدأ رحلتك الآن') }}
+                    </h2>
+                    <p class="text-light lead mb-4">
+                        {{ _('أنشئ حسابك خلال دقيقة، وابدأ المنافسة في عالم عصابات فلسطين.') }}
+                    </p>
+
+                    <div class="briefs-section">
+                        <h5 class="text-gold mb-3" style="font-family: 'Reem Kufi', sans-serif;"><i class="fas fa-bolt mr-2"></i> {{ _('لماذا تسجل؟') }}</h5>
+                        <ul class="list-unstyled text-light small mb-0">
+                            <li class="mb-2 d-flex align-items-center"><i class="fas fa-check-circle text-success mr-2"></i> {{ _('حروب عصابات وتقدم مستمر وشخصية قابلة للتطوير.') }}</li>
+                            <li class="mb-2 d-flex align-items-center"><i class="fas fa-check-circle text-success mr-2"></i> {{ _('تجارة وسوق أسود وموارد قابلة للربح داخل اللعبة.') }}</li>
+                            <li class="mb-2 d-flex align-items-center"><i class="fas fa-check-circle text-success mr-2"></i> {{ _('دردشة عامة وتواصل مع اللاعبين بسهولة.') }}</li>
+                        </ul>
+                    </div>
+
+                    <div class="mt-4 d-flex justify-content-center justify-content-lg-start gap-2 flex-wrap">
+                        <a href="{{ url_for('main.chat_lobby') }}" class="btn btn-outline-gold btn-lg shadow-sm font-weight-bold m-1">
+                            <i class="fas fa-comments mr-2"></i> {{ _('دخول الدردشة') }}
+                        </a>
+                        <a href="{{ url_for('main.index') }}" class="btn btn-outline-light btn-lg shadow-sm font-weight-bold m-1">
+                            <i class="fas fa-home mr-2"></i> {{ _('العودة للرئيسية') }}
+                        </a>
+                    </div>
                 </div>
-                <div class="card-body p-4">
-                    <form method="POST">
-                        {{ form.hidden_tag() }}
-                        <div class="mb-4">
-                            {{ form.username.label(class="form-label text-gold") }}
-                            <div class="input-group">
-                                <div class="input-group-prepend">
+            </div>
+
+            <div class="col-lg-5">
+                <div class="auth-card card-luxury">
+                    <div class="card-header text-center border-0 bg-transparent pt-4">
+                        <h2 class="auth-title mb-0">{{ _('إنشاء حساب جديد') }}</h2>
+                        <p class="text-muted mt-2">{{ _('انضم إلى عصابات فلسطين') }}</p>
+                    </div>
+                    <div class="card-body p-4">
+                        <form method="POST">
+                            {{ form.hidden_tag() }}
+                            <div class="mb-4">
+                                {{ form.username.label(class="form-label text-gold") }}
+                                <div class="input-group">
                                     <span class="input-group-text bg-dark border-secondary text-gold"><i class="fas fa-user"></i></span>
+                                    {{ form.username(class="form-control form-control-luxury", placeholder=_("اسم المستخدم")) }}
                                 </div>
-                                {{ form.username(class="form-control form-control-luxury", placeholder=_("اسم المستخدم")) }}
+                                {% for error in form.username.errors %}
+                                    <span class="text-danger small mt-1 d-block">{{ error }}</span>
+                                {% endfor %}
                             </div>
-                            {% for error in form.username.errors %}
-                                <span class="text-danger small mt-1 d-block">{{ error }}</span>
-                            {% endfor %}
-                        </div>
-                        <div class="mb-4">
-                            {{ form.password.label(class="form-label text-gold") }}
-                            <div class="input-group">
-                                <div class="input-group-prepend">
-                                    <span class="input-group-text bg-dark border-secondary text-gold"><i class="fas fa-lock"></i></span>
+                            <div class="mb-4">
+                                {{ form.birthdate.label(class="form-label text-gold") }}
+                                <div class="input-group">
+                                    <span class="input-group-text bg-dark border-secondary text-gold"><i class="fas fa-birthday-cake"></i></span>
+                                    {{ form.birthdate(class="form-control form-control-luxury", type="date") }}
                                 </div>
-                                {{ form.password(class="form-control form-control-luxury", placeholder=_("كلمة المرور"), id="password") }}
-                                <div class="input-group-append">
+                                {% for error in form.birthdate.errors %}
+                                    <span class="text-danger small mt-1 d-block">{{ error }}</span>
+                                {% endfor %}
+                            </div>
+                            <div class="mb-4">
+                                {{ form.password.label(class="form-label text-gold") }}
+                                <div class="input-group">
+                                    <span class="input-group-text bg-dark border-secondary text-gold"><i class="fas fa-lock"></i></span>
+                                    {{ form.password(class="form-control form-control-luxury", placeholder=_("كلمة المرور"), id="password") }}
                                     <button class="btn btn-outline-secondary bg-dark border-secondary text-gold" type="button" onclick="togglePasswordVisibility('password', this)" aria-label="{{ _('إظهار/إخفاء كلمة المرور') }}">
                                         <i class="fas fa-eye"></i>
                                     </button>
                                 </div>
+                                {% for error in form.password.errors %}
+                                    <span class="text-danger small mt-1 d-block">{{ error }}</span>
+                                {% endfor %}
                             </div>
-                            {% for error in form.password.errors %}
-                                <span class="text-danger small mt-1 d-block">{{ error }}</span>
-                            {% endfor %}
-                        </div>
-                        <div class="mb-4">
-                            {{ form.confirm_password.label(class="form-label text-gold") }}
-                            <div class="input-group">
-                                <div class="input-group-prepend">
+                            <div class="mb-4">
+                                {{ form.confirm_password.label(class="form-label text-gold") }}
+                                <div class="input-group">
                                     <span class="input-group-text bg-dark border-secondary text-gold"><i class="fas fa-lock"></i></span>
-                                </div>
-                                {{ form.confirm_password(class="form-control form-control-luxury", placeholder=_("تأكيد كلمة المرور"), id="confirm_password") }}
-                                <div class="input-group-append">
+                                    {{ form.confirm_password(class="form-control form-control-luxury", placeholder=_("تأكيد كلمة المرور"), id="confirm_password") }}
                                     <button class="btn btn-outline-secondary bg-dark border-secondary text-gold" type="button" onclick="togglePasswordVisibility('confirm_password', this)" aria-label="{{ _('إظهار/إخفاء تأكيد كلمة المرور') }}">
                                         <i class="fas fa-eye"></i>
                                     </button>
                                 </div>
+                                {% for error in form.confirm_password.errors %}
+                                    <span class="text-danger small mt-1 d-block">{{ error }}</span>
+                                {% endfor %}
                             </div>
-                            {% for error in form.confirm_password.errors %}
-                                <span class="text-danger small mt-1 d-block">{{ error }}</span>
-                            {% endfor %}
-                        </div>
-                        <div class="mb-4">
-                            <label class="form-label text-gold">{{ _('رمز التحقق البشري') }}</label>
-                            <div class="d-flex flex-column align-items-center mb-2">
-                                <img src="{{ url_for('main.captcha_image') }}" alt="Captcha" class="img-fluid rounded border border-warning mb-2 max-h-80" id="captchaImage">
-                                <button type="button" class="btn btn-sm btn-outline-light" onclick="document.getElementById('captchaImage').src='{{ url_for('main.captcha_image') }}?' + Math.random();">
-                                    <i class="fas fa-sync-alt"></i> {{ _('تغيير الرمز') }}
+                            <div class="mb-4">
+                                <label class="form-label text-gold">{{ _('رمز التحقق البشري') }}</label>
+                                <div class="d-flex flex-column align-items-center mb-2">
+                                    <img src="{{ url_for('main.captcha_image') }}" alt="Captcha" class="img-fluid rounded border border-warning mb-2 max-h-80" id="captchaImage">
+                                    <button type="button" class="btn btn-sm btn-outline-light" onclick="document.getElementById('captchaImage').src='{{ url_for('main.captcha_image') }}?' + Math.random();">
+                                        <i class="fas fa-sync-alt"></i> {{ _('تغيير الرمز') }}
+                                    </button>
+                                </div>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-dark border-secondary text-gold"><i class="fas fa-shield-alt"></i></span>
+                                    {{ form.captcha(class="form-control form-control-luxury", placeholder=_("اكتب الرمز الظاهر في الصورة")) }}
+                                </div>
+                                {% for error in form.captcha.errors %}
+                                    <span class="text-danger small mt-1 d-block">{{ error }}</span>
+                                {% endfor %}
+                            </div>
+                            <div class="d-grid mb-4">
+                                <button type="submit" class="btn btn-luxury-gold btn-block btn-lg shadow-sm font-weight-bold">
+                                    {{ _('إنشاء الحساب') }} <i class="fas fa-user-plus ml-2"></i>
                                 </button>
                             </div>
-                            <div class="input-group">
-                                <div class="input-group-prepend">
-                                    <span class="input-group-text bg-dark border-secondary text-gold"><i class="fas fa-shield-alt"></i></span>
-                                </div>
-                                {{ form.captcha(class="form-control form-control-luxury", placeholder=_("اكتب الرمز الظاهر في الصورة")) }}
+
+                            <div class="d-grid mb-4">
+                                <a href="{{ url_for('main.chat_lobby') }}" class="btn btn-outline-gold btn-block btn-lg shadow-sm font-weight-bold">
+                                    <i class="fas fa-comments mr-2"></i> {{ _('دخول الدردشة') }}
+                                </a>
                             </div>
-                            {% for error in form.captcha.errors %}
-                                <span class="text-danger small mt-1 d-block">{{ error }}</span>
-                            {% endfor %}
-                        </div>
-                        <div class="d-grid mb-4">
-                            <button type="submit" class="btn btn-luxury-gold btn-block btn-lg shadow-sm font-weight-bold">
-                                {{ _('إنشاء الحساب') }} <i class="fas fa-user-plus ml-2"></i>
-                            </button>
-                        </div>
-                        
+
+                            <div class="d-grid mb-4">
+                                <a href="{{ url_for('main.buy_diamonds', next=(request.args.get('next') or url_for('main.chat_room', room_name='vip'))) }}" class="btn btn-outline-light btn-block btn-lg shadow-sm font-weight-bold">
+                                    <i class="fas fa-gem mr-2"></i> {{ _('شراء الماس') }} - VIP
+                                </a>
+                            </div>
+
+                            <div class="text-center mt-3">
+                                <p class="mb-0 text-light">
+                                    {{ _('لديك حساب بالفعل؟') }} 
+                                    <a href="{{ url_for('main.login', next=request.args.get('next')) }}" class="auth-link font-weight-bold">{{ _('سجل دخولك') }}</a>
+                                </p>
+                            </div>
+                        </form>
                         <div class="text-center mt-3">
                             <p class="mb-0 text-light">
-                                {{ _('لديك حساب بالفعل؟') }} 
-                                <a href="{{ url_for('main.login') }}" class="auth-link font-weight-bold">{{ _('سجل دخولك') }}</a>
+                                {{ _('أو يمكنك') }} 
+                                <a href="{{ url_for('main.index') }}" class="text-gold font-weight-bold">{{ _('استكشاف الموقع كزائر') }}</a>
                             </p>
                         </div>
-                    </form>
+                    </div>
                 </div>
             </div>
         </div>

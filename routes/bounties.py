@@ -3,19 +3,21 @@ from flask_login import login_required, current_user
 from extensions import db, limiter
 from flask_babel import _
 from models import Bounty, User
-from sqlalchemy import func, select
 from services.resource_service import ResourceService
 from datetime import datetime, timezone
 
 bp = Blueprint('bounties', __name__, url_prefix='/bounties')
 
+
 @bp.route('/')
 @login_required
 def index():
     # Group bounties by target
-    # This query might need adjustment depending on exact needs, but getting all bounties is a start
+    # This query might need adjustment depending on exact needs, but getting
+    # all bounties is a start
     bounties = Bounty.query.order_by(Bounty.amount.desc()).limit(50).all()
     return render_template('bounties.html', bounties=bounties)
+
 
 @bp.route('/place', methods=['POST'])
 @login_required
@@ -46,10 +48,12 @@ def place():
         return redirect(url_for('bounties.index'))
 
     # Atomic Deduction
-    if not ResourceService.modify_resources(current_user.id, {'money': -amount}, 'place_bounty', auto_commit=False, expected_version=None):
+    if not ResourceService.modify_resources(
+            current_user.id, {
+            'money': -amount}, 'place_bounty', auto_commit=False, expected_version=None):
         flash(_('ليس لديك مال كافٍ!'), 'danger')
         return redirect(url_for('bounties.index'))
-    
+
     # Create bounty
     bounty = Bounty(
         placer_id=current_user.id,
@@ -62,6 +66,7 @@ def place():
 
     flash(_('تم وضع المكافأة بنجاح!'), 'success')
     return redirect(url_for('bounties.index'))
+
 
 @bp.route('/buy_off/<int:bounty_id>', methods=['POST'])
 @login_required
@@ -76,7 +81,7 @@ def buy_off(bounty_id):
         if jail_until > now:
             flash(_('أنت في السجن ولا يمكنك إزالة المكافآت!'), 'danger')
             return redirect(url_for('jail.index'))
-    
+
     if current_user.hospital_until:
         hospital_until = current_user.hospital_until
         if hospital_until.tzinfo is None:
@@ -96,18 +101,20 @@ def buy_off(bounty_id):
     bounty = db.session.get(Bounty, bounty_id)
     if not bounty:
         abort(404)
-    
-    # Only the target can buy off the bounty? Or anyone? 
+
+    # Only the target can buy off the bounty? Or anyone?
     # Usually the target bribes to remove it.
     if bounty.target_id != current_user.id:
         flash(_('يمكنك فقط إزالة المكافآت الموضوعة عليك!'), 'danger')
         return redirect(url_for('bounties.index'))
 
     # Lock user to prevent race conditions (Global Lock Order: User -> Bounty)
-    db.session.query(User).filter_by(id=current_user.id).with_for_update().first()
+    db.session.query(User).filter_by(
+        id=current_user.id).with_for_update().first()
 
     # Lock Bounty
-    bounty = db.session.query(Bounty).filter_by(id=bounty_id).with_for_update().first()
+    bounty = db.session.query(Bounty).filter_by(
+        id=bounty_id).with_for_update().first()
     if not bounty:
         flash(_('المكافأة لم تعد موجودة!'), 'warning')
         return redirect(url_for('bounties.index'))
@@ -117,7 +124,9 @@ def buy_off(bounty_id):
         return redirect(url_for('bounties.index'))
 
     # Atomic Deduction
-    if not ResourceService.modify_resources(current_user.id, {'money': -bounty.amount}, 'buy_off_bounty', auto_commit=False, expected_version=None):
+    if not ResourceService.modify_resources(
+            current_user.id, {
+            'money': -bounty.amount}, 'buy_off_bounty', auto_commit=False, expected_version=None):
         db.session.rollback()
         flash(_('ليس لديك مال كافٍ لإزالة المكافأة!'), 'danger')
         return redirect(url_for('bounties.index'))

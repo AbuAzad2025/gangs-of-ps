@@ -1,18 +1,28 @@
 from extensions import db
 from datetime import datetime
 
+
 class HostessKnowledge(db.Model):
     __tablename__ = 'hostess_knowledge'
-    
+
     id = db.Column(db.Integer, primary_key=True)
-    hostess_id = db.Column(db.Integer, db.ForeignKey('hostesses.id'), nullable=True, index=True) # Link to specific hostess, null means general knowledge
+    hostess_id = db.Column(
+        db.Integer,
+        db.ForeignKey('hostesses.id'),
+        nullable=True,
+        index=True)  # Link to specific hostess, null means general knowledge
     question = db.Column(db.Text, nullable=False)
     answer = db.Column(db.Text, nullable=False)
-    category = db.Column(db.String(64), index=True) # e.g., company, gameplay, technical, general
-    keywords = db.Column(db.Text) # Comma-separated keywords for simpler search
-    language = db.Column(db.String(10), default='ar', index=True) # 'ar' or 'en'
+    # e.g., company, gameplay, technical, general
+    category = db.Column(db.String(64), index=True)
+    # Comma-separated keywords for simpler search
+    keywords = db.Column(db.Text)
+    language = db.Column(
+        db.String(10),
+        default='ar',
+        index=True)  # 'ar' or 'en'
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    
+
     def to_dict(self):
         return {
             'id': self.id,
@@ -24,16 +34,20 @@ class HostessKnowledge(db.Model):
             'language': self.language
         }
 
+
 class LearningLog(db.Model):
     __tablename__ = 'learning_logs'
-    
+
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, nullable=True) # Removed ForeignKey constraint to avoid circular dependency issues during seed
+    # Removed ForeignKey constraint to avoid circular dependency issues during
+    # seed
+    user_id = db.Column(db.Integer, nullable=True)
     user_question = db.Column(db.Text, nullable=False)
     ai_response = db.Column(db.Text, nullable=False)
-    was_helpful = db.Column(db.Boolean, nullable=True) # True/False if user gives feedback
+    # True/False if user gives feedback
+    was_helpful = db.Column(db.Boolean, nullable=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    
+
     def to_dict(self):
         return {
             'id': self.id,

@@ -1,3 +1,5 @@
+from utils.backup_manager import BackupManager
+from factory import create_app
 import os
 import sys
 import subprocess
@@ -7,12 +9,10 @@ from dotenv import load_dotenv
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
-from factory import create_app
-from utils.backup_manager import BackupManager
-
 
 def _db_url():
-    return os.environ.get("DATABASE_URL") or "postgresql://postgres:123@localhost:5432/gangsofpalestine"
+    return os.environ.get(
+        "DATABASE_URL") or "postgresql://postgres:123@localhost:5432/gangsofpalestine"
 
 
 def _parse_db_url(db_url):
@@ -27,7 +27,11 @@ def _parse_db_url(db_url):
 
 
 def create_backup():
-    env_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".env"))
+    env_path = os.path.abspath(
+        os.path.join(
+            os.path.dirname(__file__),
+            "..",
+            ".env"))
     load_dotenv(env_path)
     os.environ["DATABASE_URL"] = _db_url()
     app = create_app()

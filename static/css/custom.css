@@ -335,92 +335,6 @@ input, textarea {
   margin-left: 10px; /* RTL aware if needed */
 }
 
-/* Chat Widget Styles */
-.public-chat-widget {
-    position: fixed;
-    bottom: 0;
-    right: 20px; /* Default LTR, adjusted for RTL via dir check below */
-    width: 300px;
-    background: #1e1e1e;
-    border: 1px solid #d4af37;
-    border-bottom: none;
-    border-radius: 8px 8px 0 0;
-    z-index: 10000; /* High z-index to sit on top */
-    box-shadow: 0 -5px 15px rgba(0,0,0,0.5);
-    transition: all 0.3s ease;
-}
-
-.public-chat-widget.collapsed {
-    height: 45px; /* Adjust height to match header */
-    overflow: hidden;
-}
-
-.public-chat-widget .chat-header {
-    padding: 10px 15px;
-    background: #d4af37;
-    color: #000;
-    cursor: pointer;
-    font-weight: bold;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    height: 45px;
-}
-
-.public-chat-widget .chat-body {
-    height: 300px;
-    display: flex;
-    flex-direction: column;
-    background: rgba(30, 30, 30, 0.95);
-}
-
-.public-chat-widget.collapsed .chat-body {
-    display: none;
-}
-
-.public-chat-widget .chat-messages {
-    flex: 1;
-    overflow-y: auto;
-    padding: 10px;
-}
-
-.public-chat-widget .chat-input-area {
-    padding: 10px;
-    border-top: 1px solid #444;
-    display: flex;
-    gap: 5px;
-}
-
-.chat-message {
-    margin-bottom: 10px;
-    padding: 5px;
-    border-bottom: 1px solid #333;
-}
-.chat-message .sender {
-    font-weight: bold;
-    color: #d4af37;
-    font-size: 0.9em;
-    margin-bottom: 2px;
-}
-.chat-message .content {
-    color: #fff;
-    word-break: break-word;
-}
-.chat-message .time {
-    font-size: 0.7em;
-    color: #888;
-    text-align: right; /* RTL aware */
-}
-
-/* RTL Support for Chat Widget */
-[dir="rtl"] .public-chat-widget {
-    right: auto;
-    left: 20px;
-}
-[dir="rtl"] .chat-message .time {
-    text-align: left;
-}
-
 /* News Ticker Styles */
 .news-ticker-container {
     position: fixed;
@@ -496,24 +410,9 @@ input, textarea {
     100% { transform: translateX(100%); }
 }
 
-/* Adjust Chat Widget to not overlap News Ticker */
-.public-chat-widget {
-    bottom: 40px !important; /* Height of news ticker */
-    border-radius: 8px 8px 0 0;
-}
-
-/* Chat Widget Input Area Fix */
-.public-chat-widget .chat-input-area {
-    align-items: center;
-}
-
-.public-chat-widget .chat-input-area input {
-    height: 38px; /* Match button height */
-}
-
 /* Adjust PWA Install Button */
 #pwa-install-btn {
-    bottom: 120px !important; /* Move up above chat and ticker */
+    bottom: 80px !important;
 }
 
 /* YouTube Widget Enhanced */

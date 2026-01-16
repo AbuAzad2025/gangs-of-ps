@@ -1,5 +1,6 @@
 import random
 
+
 class TarneebGameLogic:
     SUITS = ['♥', '♦', '♣', '♠']
     RANKS = ['2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K', 'A']
@@ -28,14 +29,17 @@ class TarneebGameLogic:
 
     @staticmethod
     def _fresh_deck():
-        deck = [{'suit': s, 'rank': r} for s in TarneebGameLogic.SUITS for r in TarneebGameLogic.RANKS]
+        deck = [{'suit': s, 'rank': r}
+                for s in TarneebGameLogic.SUITS for r in TarneebGameLogic.RANKS]
         random.shuffle(deck)
         return deck
 
     @staticmethod
     def deal(state):
         deck = TarneebGameLogic._fresh_deck()
-        state['hands'] = [sorted(deck[i*13:(i+1)*13], key=lambda c: (TarneebGameLogic.SUITS.index(c['suit']), TarneebGameLogic.RANK_VALUES[c['rank']])) for i in range(4)]
+        state['hands'] = [sorted(deck[i * 13:(i + 1) * 13],
+                                 key=lambda c: (TarneebGameLogic.SUITS.index(c['suit']),
+                                                TarneebGameLogic.RANK_VALUES[c['rank']])) for i in range(4)]
         state['turn_seat'] = 0
         state['phase'] = 'bidding'
         state['current_bid'] = {'value': 0, 'trump': None, 'bidder': None}
@@ -65,20 +69,26 @@ class TarneebGameLogic:
         current = state.get('current_bid', {'value': 0})
 
         if action == 'pass':
-            state['bidding_history'].append({'player': player_index, 'action': 'pass'})
+            state['bidding_history'].append(
+                {'player': player_index, 'action': 'pass'})
             state['passes_in_row'] = (state.get('passes_in_row', 0) + 1)
             state['turn_seat'] = (player_index + 1) % 4
-            # Fallback: if 4 consecutive passes and no current bid, nudge bidding to continue
-            if state['passes_in_row'] >= 4 and not state['current_bid'].get('bidder'):
-                # Force minimal bid by next player based on longest suit to avoid deadlock
+            # Fallback: if 4 consecutive passes and no current bid, nudge
+            # bidding to continue
+            if state['passes_in_row'] >= 4 and not state['current_bid'].get(
+                    'bidder'):
+                # Force minimal bid by next player based on longest suit to
+                # avoid deadlock
                 nxt = state['turn_seat']
                 hand = state['hands'][nxt]
                 suit_counts = {s: 0 for s in TarneebGameLogic.SUITS}
                 for c in hand:
                     suit_counts[c['suit']] += 1
                 best_suit = max(suit_counts, key=lambda s: suit_counts[s])
-                state['current_bid'] = {'value': 7, 'trump': best_suit, 'bidder': nxt}
-                state['bidding_history'].append({'player': nxt, 'action': 'bid', 'value': 7, 'trump': best_suit})
+                state['current_bid'] = {
+                    'value': 7, 'trump': best_suit, 'bidder': nxt}
+                state['bidding_history'].append(
+                    {'player': nxt, 'action': 'bid', 'value': 7, 'trump': best_suit})
                 state['passes_in_row'] = 0
                 state['turn_seat'] = (nxt + 1) % 4
         else:
@@ -87,14 +97,22 @@ class TarneebGameLogic:
             if value < 7 or value > 13 or trump not in TarneebGameLogic.SUITS:
                 return {'valid': False, 'message': 'Invalid bid'}
             if value <= current.get('value', 0):
-                return {'valid': False, 'message': 'Bid must be higher than current'}
-            state['current_bid'] = {'value': value, 'trump': trump, 'bidder': player_index}
-            state['bidding_history'].append({'player': player_index, 'action': 'bid', 'value': value, 'trump': trump})
+                return {
+                    'valid': False,
+                    'message': 'Bid must be higher than current'}
+            state['current_bid'] = {
+                'value': value,
+                'trump': trump,
+                'bidder': player_index}
+            state['bidding_history'].append(
+                {'player': player_index, 'action': 'bid', 'value': value, 'trump': trump})
             state['passes_in_row'] = 0
             state['turn_seat'] = (player_index + 1) % 4
 
-        # End of bidding when there is a current bid and next three consecutive passes occurred
-        if state['current_bid'].get('bidder') is not None and state['passes_in_row'] >= 3:
+        # End of bidding when there is a current bid and next three consecutive
+        # passes occurred
+        if state['current_bid'].get(
+                'bidder') is not None and state['passes_in_row'] >= 3:
             # Move to doubling phase before playing
             state['trump'] = state['current_bid']['trump']
             state['contract_value'] = state['current_bid']['value']
@@ -129,30 +147,39 @@ class TarneebGameLogic:
                 return {'valid': False, 'message': 'Only opponents can double'}
             if action == 'double':
                 state['doubled'] = True
-                state['doubling_history'].append({'player': player_index, 'action': 'double'})
+                state['doubling_history'].append(
+                    {'player': player_index, 'action': 'double'})
                 state['doubling_passes'] = 0
                 # Give turn to declarer to optionally redouble
                 state['turn_seat'] = declarer
             else:
                 # pass from opponent
-                state['doubling_history'].append({'player': player_index, 'action': 'pass'})
-                state['doubling_passes'] = (state.get('doubling_passes', 0) + 1)
+                state['doubling_history'].append(
+                    {'player': player_index, 'action': 'pass'})
+                state['doubling_passes'] = (
+                    state.get('doubling_passes', 0) + 1)
                 # Next opponent gets chance
-                next_opponent = (player_index + 2) % 4 if ((player_index + 2) % 4) in ((declarer + 1) % 4, (declarer + 3) % 4) else (player_index + 1) % 4
+                next_opponent = (player_index + 2) % 4 if ((player_index + 2) % 4) in (
+                    (declarer + 1) % 4, (declarer + 3) % 4) else (player_index + 1) % 4
                 state['turn_seat'] = next_opponent
                 # If both opponents passed, start playing
                 if state['doubling_passes'] >= 2:
                     state['phase'] = 'playing'
                     state['turn_seat'] = declarer
         else:
-            # Already doubled; declarer team may redouble or pass, then start playing
+            # Already doubled; declarer team may redouble or pass, then start
+            # playing
             if player_team != declarer_team and action != 'pass':
-                return {'valid': False, 'message': 'Only declarers can redouble'}
+                return {
+                    'valid': False,
+                    'message': 'Only declarers can redouble'}
             if action == 'redouble':
                 state['redoubled'] = True
-                state['doubling_history'].append({'player': player_index, 'action': 'redouble'})
+                state['doubling_history'].append(
+                    {'player': player_index, 'action': 'redouble'})
             else:
-                state['doubling_history'].append({'player': player_index, 'action': 'pass'})
+                state['doubling_history'].append(
+                    {'player': player_index, 'action': 'pass'})
             state['phase'] = 'playing'
             state['turn_seat'] = declarer
         return {'valid': True, 'state': state}
@@ -165,7 +192,8 @@ class TarneebGameLogic:
             return {'valid': False, 'message': 'Not your turn'}
 
         hand = state['hands'][player_index]
-        card_in_hand = next((c for c in hand if c['suit'] == card.get('suit') and c['rank'] == card.get('rank')), None)
+        card_in_hand = next((c for c in hand if c['suit'] == card.get(
+            'suit') and c['rank'] == card.get('rank')), None)
         if not card_in_hand:
             return {'valid': False, 'message': 'Card not in hand'}
 
@@ -174,7 +202,9 @@ class TarneebGameLogic:
             lead_suit = trick[0]['card']['suit']
             has_lead = any(c['suit'] == lead_suit for c in hand)
             if has_lead and card_in_hand['suit'] != lead_suit:
-                return {'valid': False, 'message': 'Must follow suit if possible'}
+                return {
+                    'valid': False,
+                    'message': 'Must follow suit if possible'}
 
         # Execute play
         hand.remove(card_in_hand)
@@ -193,10 +223,12 @@ class TarneebGameLogic:
                 if c['suit'] == trump and wp['suit'] != trump:
                     winning_play = play
                 elif c['suit'] == wp['suit']:
-                    if TarneebGameLogic.RANK_VALUES[c['rank']] > TarneebGameLogic.RANK_VALUES[wp['rank']]:
+                    if TarneebGameLogic.RANK_VALUES[c['rank']
+                                                    ] > TarneebGameLogic.RANK_VALUES[wp['rank']]:
                         winning_play = play
                 elif c['suit'] == trump and wp['suit'] == trump:
-                    if TarneebGameLogic.RANK_VALUES[c['rank']] > TarneebGameLogic.RANK_VALUES[wp['rank']]:
+                    if TarneebGameLogic.RANK_VALUES[c['rank']
+                                                    ] > TarneebGameLogic.RANK_VALUES[wp['rank']]:
                         winning_play = play
 
             winner = winning_play['player']
@@ -226,18 +258,17 @@ class TarneebGameLogic:
                         state['team_scores'][declarer_team] += contract_value
                     else:
                         state['team_scores'][declarer_team] -= contract_value
-                
+
                 # Check for Game End (Target 31)
                 score_a = state['team_scores']['A']
                 score_b = state['team_scores']['B']
                 target_score = 31
-                
+
                 if score_a >= target_score or score_b >= target_score:
                     state['phase'] = 'finished'
                 else:
                     # Start new round
                     TarneebGameLogic.deal(state)
-
 
         else:
             state['turn_seat'] = (player_index + 1) % 4
@@ -250,23 +281,29 @@ class TarneebGameLogic:
             current_bid = state.get('current_bid', {})
             current_val = current_bid.get('value', 0)
             current_bidder = current_bid.get('bidder')
-            
+
             # Helper to evaluate hand strength per suit
             def eval_suit(suit):
                 cards = [c for c in hand if c['suit'] == suit]
-                if not cards: return 0
+                if not cards:
+                    return 0
                 points = 0
                 length = len(cards)
                 # High card points
                 ranks = [c['rank'] for c in cards]
-                if 'A' in ranks: points += 1
-                if 'K' in ranks: points += 0.8
-                if 'Q' in ranks: points += 0.6
-                if 'J' in ranks: points += 0.4
-                
+                if 'A' in ranks:
+                    points += 1
+                if 'K' in ranks:
+                    points += 0.8
+                if 'Q' in ranks:
+                    points += 0.6
+                if 'J' in ranks:
+                    points += 0.4
+
                 # Length points
-                if length >= 5: points += (length - 4)
-                
+                if length >= 5:
+                    points += (length - 4)
+
                 # Trump strength bonus if this is trump
                 return points + (length * 0.5)
 
@@ -278,29 +315,34 @@ class TarneebGameLogic:
                 if strength > max_strength:
                     max_strength = strength
                     best_suit = s
-            
+
             # Estimate bid
-            estimated_bid = int(round(max_strength + 4)) # Base + strength
-            if estimated_bid < 7: estimated_bid = 0 # Pass
-            
+            estimated_bid = int(round(max_strength + 4))  # Base + strength
+            if estimated_bid < 7:
+                estimated_bid = 0  # Pass
+
             # Partner Logic
             partner_index = (player_index + 2) % 4
             is_partner_winning = (current_bidder == partner_index)
-            
+
             if is_partner_winning:
                 partner_strength = max(current_val - 4, 0)
                 margin = max_strength - partner_strength
                 if best_suit == current_bid.get('trump'):
                     if margin >= 0.8 and estimated_bid > current_val:
                         bid_val = current_val + 1
-                        return {'type': 'bid', 'bid': {'value': bid_val, 'trump': best_suit}}
+                        return {
+                            'type': 'bid', 'bid': {
+                                'value': bid_val, 'trump': best_suit}}
                     return {'type': 'pass', 'bid': {'action': 'pass'}}
                 else:
                     if margin >= 1.5 and estimated_bid > current_val:
                         bid_val = current_val + 1
-                        return {'type': 'bid', 'bid': {'value': bid_val, 'trump': best_suit}}
+                        return {
+                            'type': 'bid', 'bid': {
+                                'value': bid_val, 'trump': best_suit}}
                     return {'type': 'pass', 'bid': {'action': 'pass'}}
-            
+
             # Normal Bidding
             if estimated_bid > current_val:
                 # Don't jump too high, just +1 or start at 7
@@ -308,7 +350,11 @@ class TarneebGameLogic:
                 # Cap at estimated
                 if bid_val > estimated_bid:
                     return {'type': 'pass', 'bid': {'action': 'pass'}}
-                return {'type': 'bid', 'bid': {'value': bid_val, 'trump': best_suit}}
+                return {
+                    'type': 'bid',
+                    'bid': {
+                        'value': bid_val,
+                        'trump': best_suit}}
             else:
                 return {'type': 'pass', 'bid': {'action': 'pass'}}
 
@@ -319,42 +365,48 @@ class TarneebGameLogic:
             hand = state['hands'][player_index]
             trick = state.get('trick', [])
             trump = state.get('trump')
-            
+
             chosen_card = None
-            
+
             if not trick:
                 # Leading
                 # 1. Lead Ace of non-trump if available (Standard safe lead)
-                aces = [c for c in hand if c['rank'] == 'A' and c['suit'] != trump]
+                aces = [c for c in hand if c['rank']
+                        == 'A' and c['suit'] != trump]
                 if aces:
                     chosen_card = aces[0]
                 else:
-                    # 2. Lead Trump if we have many to clear? Only if we are declarer usually.
+                    # 2. Lead Trump if we have many to clear? Only if we are
+                    # declarer usually.
                     trumps = [c for c in hand if c['suit'] == trump]
                     declarer_team = state.get('declarer_team')
                     my_team = 'A' if player_index in (0, 2) else 'B'
-                    
+
                     if my_team == declarer_team and len(trumps) >= 3:
-                         # Lead high trump to draw
-                         trumps.sort(key=lambda c: TarneebGameLogic.RANK_VALUES[c['rank']], reverse=True)
-                         chosen_card = trumps[0]
+                        # Lead high trump to draw
+                        trumps.sort(
+                            key=lambda c: TarneebGameLogic.RANK_VALUES[c['rank']], reverse=True)
+                        chosen_card = trumps[0]
                     else:
                         # 3. Lead singleton/doubleton (short suits) to ruff later?
                         # Or just lead highest card of longest non-trump suit?
                         # Let's lead safe low card if not sure.
                         non_trumps = [c for c in hand if c['suit'] != trump]
                         if non_trumps:
-                            non_trumps.sort(key=lambda c: TarneebGameLogic.RANK_VALUES[c['rank']]) # Low to high
+                            # Low to high
+                            non_trumps.sort(
+                                key=lambda c: TarneebGameLogic.RANK_VALUES[c['rank']])
                             chosen_card = non_trumps[0]
                         else:
                             # Only trumps left
-                            trumps.sort(key=lambda c: TarneebGameLogic.RANK_VALUES[c['rank']])
+                            trumps.sort(
+                                key=lambda c: TarneebGameLogic.RANK_VALUES[c['rank']])
                             chosen_card = trumps[0]
             else:
                 # Following
                 lead_suit = trick[0]['card']['suit']
                 follow = [c for c in hand if c['suit'] == lead_suit]
-                
+
                 # Check who is winning
                 winning_play = trick[0]
                 for play in trick[1:]:
@@ -363,41 +415,47 @@ class TarneebGameLogic:
                     if c['suit'] == trump and wp['suit'] != trump:
                         winning_play = play
                     elif c['suit'] == wp['suit']:
-                        if TarneebGameLogic.RANK_VALUES[c['rank']] > TarneebGameLogic.RANK_VALUES[wp['rank']]:
+                        if TarneebGameLogic.RANK_VALUES[c['rank']
+                                                        ] > TarneebGameLogic.RANK_VALUES[wp['rank']]:
                             winning_play = play
                     elif c['suit'] == trump and wp['suit'] == trump:
-                         if TarneebGameLogic.RANK_VALUES[c['rank']] > TarneebGameLogic.RANK_VALUES[wp['rank']]:
+                        if TarneebGameLogic.RANK_VALUES[c['rank']
+                                                        ] > TarneebGameLogic.RANK_VALUES[wp['rank']]:
                             winning_play = play
-                            
+
                 winning_player = winning_play['player']
                 partner_index = (player_index + 2) % 4
                 partner_winning = (winning_player == partner_index)
-                
+
                 if follow:
                     # Must follow suit
-                    follow.sort(key=lambda c: TarneebGameLogic.RANK_VALUES[c['rank']]) # Low to High
-                    
+                    # Low to High
+                    follow.sort(
+                        key=lambda c: TarneebGameLogic.RANK_VALUES[c['rank']])
+
                     if partner_winning:
                         # Partner is winning. Do we need to overtake?
                         # If partner's card is not master (e.g. not Ace), and we have Ace?
                         # Simplified: If partner winning, play low.
-                        chosen_card = follow[0] 
+                        chosen_card = follow[0]
                     else:
                         # Partner losing. Try to win.
                         # Can we beat the current winner?
                         # If winner is trump, we can't beat with lead suit.
-                        current_winner_is_trump = (winning_play['card']['suit'] == trump)
+                        current_winner_is_trump = (
+                            winning_play['card']['suit'] == trump)
                         if current_winner_is_trump:
                             # We can't beat trump with follow suit. Play low.
                             chosen_card = follow[0]
                         else:
                             # Try to beat rank
                             win_val = TarneebGameLogic.RANK_VALUES[winning_play['card']['rank']]
-                            better = [c for c in follow if TarneebGameLogic.RANK_VALUES[c['rank']] > win_val]
+                            better = [
+                                c for c in follow if TarneebGameLogic.RANK_VALUES[c['rank']] > win_val]
                             if better:
-                                chosen_card = better[0] # Lowest winner
+                                chosen_card = better[0]  # Lowest winner
                             else:
-                                chosen_card = follow[0] # Can't win, play low
+                                chosen_card = follow[0]  # Can't win, play low
                 else:
                     # Void in lead suit
                     # Can we trump?
@@ -406,38 +464,49 @@ class TarneebGameLogic:
                         if partner_winning:
                             # Partner winning, no need to waste trump unless current winner is weak?
                             # Discard lowest non-trump
-                            non_trumps = [c for c in hand if c['suit'] != trump]
+                            non_trumps = [
+                                c for c in hand if c['suit'] != trump]
                             if non_trumps:
-                                non_trumps.sort(key=lambda c: TarneebGameLogic.RANK_VALUES[c['rank']])
+                                non_trumps.sort(
+                                    key=lambda c: TarneebGameLogic.RANK_VALUES[c['rank']])
                                 chosen_card = non_trumps[0]
                             else:
                                 # Only trumps, play low trump
-                                trumps.sort(key=lambda c: TarneebGameLogic.RANK_VALUES[c['rank']])
+                                trumps.sort(
+                                    key=lambda c: TarneebGameLogic.RANK_VALUES[c['rank']])
                                 chosen_card = trumps[0]
                         else:
                             # Partner losing, try to trump
                             # Do we need to over-trump?
-                            current_winner_is_trump = (winning_play['card']['suit'] == trump)
+                            current_winner_is_trump = (
+                                winning_play['card']['suit'] == trump)
                             if current_winner_is_trump:
                                 win_val = TarneebGameLogic.RANK_VALUES[winning_play['card']['rank']]
-                                better = [c for c in trumps if TarneebGameLogic.RANK_VALUES[c['rank']] > win_val]
+                                better = [
+                                    c for c in trumps if TarneebGameLogic.RANK_VALUES[c['rank']] > win_val]
                                 if better:
                                     chosen_card = better[0]
                                 else:
                                     # Can't overtrump, discard
-                                    non_trumps = [c for c in hand if c['suit'] != trump]
+                                    non_trumps = [
+                                        c for c in hand if c['suit'] != trump]
                                     if non_trumps:
-                                         non_trumps.sort(key=lambda c: TarneebGameLogic.RANK_VALUES[c['rank']])
-                                         chosen_card = non_trumps[0]
+                                        non_trumps.sort(
+                                            key=lambda c: TarneebGameLogic.RANK_VALUES[c['rank']])
+                                        chosen_card = non_trumps[0]
                                     else:
-                                         chosen_card = trumps[0] # Forced low trump
+                                        # Forced low trump
+                                        chosen_card = trumps[0]
                             else:
-                                # Winner is not trump, any trump wins. Play low trump.
-                                trumps.sort(key=lambda c: TarneebGameLogic.RANK_VALUES[c['rank']])
+                                # Winner is not trump, any trump wins. Play low
+                                # trump.
+                                trumps.sort(
+                                    key=lambda c: TarneebGameLogic.RANK_VALUES[c['rank']])
                                 chosen_card = trumps[0]
                     else:
                         # No trump, discard lowest
-                        hand.sort(key=lambda c: TarneebGameLogic.RANK_VALUES[c['rank']])
+                        hand.sort(
+                            key=lambda c: TarneebGameLogic.RANK_VALUES[c['rank']])
                         chosen_card = hand[0]
 
             return {'type': 'play', 'card': chosen_card}

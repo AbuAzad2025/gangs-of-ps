@@ -6,7 +6,6 @@ import random
 import json
 
 from extensions import db, limiter
-from sqlalchemy import select, or_
 from models import Item, UserItem, FarmJob, SystemConfig, UserFacility, User
 from models.location import Location
 from models.contract import FarmSupplyContract
@@ -196,7 +195,8 @@ def _get_facilities_config():
 
 
 def _get_user_facility_level(user_id, facility_key):
-    uf = UserFacility.query.filter_by(user_id=user_id, facility_key=facility_key).first()
+    uf = UserFacility.query.filter_by(
+        user_id=user_id, facility_key=facility_key).first()
     return int(uf.level) if uf and uf.level is not None else 0
 
 
@@ -228,7 +228,8 @@ def _facility_effects(meta, level):
 
 
 def _add_user_item(user_id, item, qty):
-    ui = db.session.query(UserItem).filter_by(user_id=user_id, item_id=item.id).with_for_update().first()
+    ui = db.session.query(UserItem).filter_by(
+        user_id=user_id, item_id=item.id).with_for_update().first()
     if ui:
         ui.quantity += qty
     else:
@@ -251,7 +252,10 @@ def index():
     except Exception:
         max_parallel = 1
 
-    running_jobs = FarmJob.query.filter_by(user_id=current_user.id, status='running').order_by(FarmJob.ends_at.asc()).limit(10).all()
+    running_jobs = FarmJob.query.filter_by(
+        user_id=current_user.id,
+        status='running').order_by(
+        FarmJob.ends_at.asc()).limit(10).all()
     now = _now_utc()
 
     boost_cfg = (cfg.get("boost") or {}).get(tier) or {}
@@ -283,8 +287,11 @@ def index():
     requirements_cfg = cfg.get("requirements") or {}
 
     products_meta = cfg.get("products") or {}
-    item_names = [m.get("item_name") for m in products_meta.values() if isinstance(m, dict) and m.get("item_name")]
-    items = Item.query.filter(Item.name.in_(item_names)).all() if item_names else []
+    item_names = [
+        m.get("item_name") for m in products_meta.values() if isinstance(
+            m, dict) and m.get("item_name")]
+    items = Item.query.filter(Item.name.in_(
+        item_names)).all() if item_names else []
     by_name = {i.name: i for i in items}
 
     for farm_type, meta in (cfg.get("products") or {}).items():
@@ -309,7 +316,8 @@ def index():
 
         unlocked = bool(is_ok and pricing)
         locked_reason = reasons[0] if reasons else None
-        if not pricing and min_tier and _tier_rank(tier) < _tier_rank(min_tier):
+        if not pricing and min_tier and _tier_rank(
+                tier) < _tier_rank(min_tier):
             locked_reason = _('طور نفسك لفتحها.')
         elif not pricing and min_tier:
             locked_reason = locked_reason or _('طور نفسك لفتحها.')
@@ -335,22 +343,28 @@ def index():
     if not catalog and not running and cfg.get("products"):
         # If catalog is empty but products exist in config, it means Item query failed for all.
         # This suggests a database sync issue.
-        flash(_("تحذير: لم يتم العثور على المنتجات في قاعدة البيانات. يرجى مراجعة الإدارة."), "warning")
+        flash(
+            _("تحذير: لم يتم العثور على المنتجات في قاعدة البيانات. يرجى مراجعة الإدارة."),
+            "warning")
 
-    user_facilities = UserFacility.query.filter_by(user_id=current_user.id).all()
-    uf_by_key = {u.facility_key: u for u in user_facilities if u and u.facility_key}
+    user_facilities = UserFacility.query.filter_by(
+        user_id=current_user.id).all()
+    uf_by_key = {
+        u.facility_key: u for u in user_facilities if u and u.facility_key}
 
     facilities = []
     contract_source = None
     contract_source_level = 0
-    for key, meta in sorted((fcfg.get("facilities") or {}).items(), key=lambda x: x[0]):
+    for key, meta in sorted(
+            (fcfg.get("facilities") or {}).items(), key=lambda x: x[0]):
         name = meta.get("name") or key
         uf = uf_by_key.get(key)
         current_level = int(uf.level) if uf and uf.level is not None else 0
         stages = list(meta.get("stages") or [])
         max_level = len(stages)
 
-        next_stage = stages[current_level] if 0 <= current_level < len(stages) else None
+        next_stage = stages[current_level] if 0 <= current_level < len(
+            stages) else None
         can_upgrade = False
         next_cost = None
         req_tier = None
@@ -369,7 +383,8 @@ def index():
                 last = last.replace(tzinfo=timezone.utc)
             if last:
                 until = last + timedelta(hours=cooldown_hours)
-                perk_remaining_seconds = max(0, int((until - now).total_seconds()))
+                perk_remaining_seconds = max(
+                    0, int((until - now).total_seconds()))
 
         time_mul, rare_chance = _facility_effects(meta, current_level)
         facilities.append({
@@ -394,7 +409,9 @@ def index():
             contract_source_level = current_level
 
     locations = Location.query.order_by(Location.id.asc()).all()
-    active_contract = FarmSupplyContract.query.filter_by(user_id=current_user.id, status='active').order_by(FarmSupplyContract.ends_at.desc()).first()
+    active_contract = FarmSupplyContract.query.filter_by(
+        user_id=current_user.id, status='active').order_by(
+        FarmSupplyContract.ends_at.desc()).first()
     if active_contract and not active_contract.is_active:
         active_contract.status = 'expired'
         db.session.add(active_contract)
@@ -404,22 +421,43 @@ def index():
     active_contract_location = None
     if active_contract:
         try:
-            active_contract_location = db.session.get(Location, active_contract.location_id)
+            active_contract_location = db.session.get(
+                Location, active_contract.location_id)
         except Exception:
             active_contract_location = None
 
     tier_n = _tier_rank(tier)
-    contract_duration_minutes = int(SystemConfig.get_value("farm_contract_duration_minutes", "60") or 60)
-    contract_base_cost = int(SystemConfig.get_value("farm_contract_base_cost", "25") or 25)
-    contract_cost_per_tier = int(SystemConfig.get_value("farm_contract_cost_per_tier", "10") or 10)
-    contract_base_bonus = float(SystemConfig.get_value("farm_contract_base_bonus", "0.10") or 0.10)
-    contract_bonus_per_facility_level = float(SystemConfig.get_value("farm_contract_bonus_per_facility_level", "0.03") or 0.03)
-    contract_max_bonus = float(SystemConfig.get_value("farm_contract_max_bonus", "0.25") or 0.25)
+    contract_duration_minutes = int(
+        SystemConfig.get_value(
+            "farm_contract_duration_minutes",
+            "60") or 60)
+    contract_base_cost = int(
+        SystemConfig.get_value(
+            "farm_contract_base_cost",
+            "25") or 25)
+    contract_cost_per_tier = int(
+        SystemConfig.get_value(
+            "farm_contract_cost_per_tier",
+            "10") or 10)
+    contract_base_bonus = float(
+        SystemConfig.get_value(
+            "farm_contract_base_bonus",
+            "0.10") or 0.10)
+    contract_bonus_per_facility_level = float(SystemConfig.get_value(
+        "farm_contract_bonus_per_facility_level", "0.03") or 0.03)
+    contract_max_bonus = float(
+        SystemConfig.get_value(
+            "farm_contract_max_bonus",
+            "0.25") or 0.25)
 
     contract_offer = None
     if contract_source:
-        bonus = min(contract_max_bonus, contract_base_bonus + contract_bonus_per_facility_level * max(0, contract_source_level - 1) + 0.01 * max(0, tier_n - 1))
-        cost = max(1, contract_base_cost + contract_cost_per_tier * max(0, tier_n - 1))
+        base_bonus = contract_base_bonus
+        facility_bonus = contract_bonus_per_facility_level * max(0, contract_source_level - 1)
+        tier_bonus = 0.01 * max(0, tier_n - 1)
+        bonus = min(contract_max_bonus, base_bonus + facility_bonus + tier_bonus)
+        cost = max(1, contract_base_cost +
+                   contract_cost_per_tier * max(0, tier_n - 1))
         contract_offer = {
             "facility_key": contract_source,
             "facility_level": contract_source_level,
@@ -450,7 +488,8 @@ def index():
 @limiter.limit("10 per minute")
 def upgrade_facility(facility_key):
     # Lock user to prevent race conditions on facility upgrades
-    db.session.query(User).filter_by(id=current_user.id).with_for_update().first()
+    db.session.query(User).filter_by(
+        id=current_user.id).with_for_update().first()
 
     fcfg = _get_facilities_config()
     meta = (fcfg.get("facilities") or {}).get(facility_key)
@@ -478,17 +517,32 @@ def upgrade_facility(facility_key):
         return redirect(url_for('farm.index'))
 
     if current_user.diamonds < cost:
-        flash(_('ليس لديك ما يكفي من الماس! تحتاج إلى %(cost)s ماسة.', cost=cost), 'danger')
+        flash(_('ليس لديك ما يكفي من الماس! تحتاج إلى %(cost)s ماسة.',
+              cost=cost), 'danger')
         return redirect(url_for('farm.index'))
 
     # Atomic deduction via ResourceService
-    if not ResourceService.modify_resources(current_user.id, {'diamonds': -cost}, 'farm_facility_upgrade', auto_commit=False, expected_version=None, log_extra={'facility_key': facility_key, 'cost': cost}):
+    if not ResourceService.modify_resources(
+        current_user.id,
+        {
+            'diamonds': -cost},
+        'farm_facility_upgrade',
+        auto_commit=False,
+        expected_version=None,
+        log_extra={
+            'facility_key': facility_key,
+            'cost': cost}):
         flash(_('ليس لديك ما يكفي من الماس!'), 'danger')
         return redirect(url_for('farm.index'))
 
-    uf = UserFacility.query.filter_by(user_id=current_user.id, facility_key=facility_key).first()
+    uf = UserFacility.query.filter_by(
+        user_id=current_user.id,
+        facility_key=facility_key).first()
     if not uf:
-        uf = UserFacility(user_id=current_user.id, facility_key=facility_key, level=current_level + 1)
+        uf = UserFacility(
+            user_id=current_user.id,
+            facility_key=facility_key,
+            level=current_level + 1)
         db.session.add(uf)
     else:
         uf.level = current_level + 1
@@ -496,7 +550,8 @@ def upgrade_facility(facility_key):
         db.session.add(uf)
 
     db.session.commit()
-    flash(_('تم تطوير %(name)s للمستوى %(lvl)s.', name=meta.get("name") or facility_key, lvl=current_level + 1), 'success')
+    flash(_('تم تطوير %(name)s للمستوى %(lvl)s.', name=meta.get(
+        "name") or facility_key, lvl=current_level + 1), 'success')
     return redirect(url_for('farm.index'))
 
 
@@ -505,10 +560,13 @@ def upgrade_facility(facility_key):
 @limiter.limit("10 per minute")
 def use_facility_perk(facility_key):
     # Lock User to prevent race conditions on inventory
-    db.session.query(User).filter_by(id=current_user.id).with_for_update().first()
-    
+    db.session.query(User).filter_by(
+        id=current_user.id).with_for_update().first()
+
     # Lock UserFacility row
-    uf = db.session.query(UserFacility).filter_by(user_id=current_user.id, facility_key=facility_key).with_for_update().first()
+    uf = db.session.query(UserFacility).filter_by(
+        user_id=current_user.id,
+        facility_key=facility_key).with_for_update().first()
 
     fcfg = _get_facilities_config()
     meta = (fcfg.get("facilities") or {}).get(facility_key)
@@ -527,8 +585,12 @@ def use_facility_perk(facility_key):
         return redirect(url_for('farm.index'))
 
     if not uf:
-        # Should be covered by level check (0 < unlock_level usually), but safe to create if logic allows
-        uf = UserFacility(user_id=current_user.id, facility_key=facility_key, level=level)
+        # Should be covered by level check (0 < unlock_level usually), but safe
+        # to create if logic allows
+        uf = UserFacility(
+            user_id=current_user.id,
+            facility_key=facility_key,
+            level=level)
         db.session.add(uf)
         db.session.flush()
 
@@ -543,7 +605,8 @@ def use_facility_perk(facility_key):
         return redirect(url_for('farm.index'))
 
     rare_item_name = meta.get("rare_item_name")
-    item = Item.query.filter_by(name=rare_item_name).first() if rare_item_name else None
+    item = Item.query.filter_by(
+        name=rare_item_name).first() if rare_item_name else None
     if not item:
         flash(_('عنصر المكافأة غير موجود.'), 'danger')
         return redirect(url_for('farm.index'))
@@ -554,7 +617,8 @@ def use_facility_perk(facility_key):
     db.session.add(uf)
     db.session.commit()
 
-    flash(_('تم تفعيل ميزة %(name)s واستلام %(qty)s × %(item)s.', name=meta.get("name") or facility_key, qty=qty, item=item.name), 'success')
+    flash(_('تم تفعيل ميزة %(name)s واستلام %(qty)s × %(item)s.', name=meta.get(
+        "name") or facility_key, qty=qty, item=item.name), 'success')
     return redirect(url_for('farm.index'))
 
 
@@ -563,7 +627,8 @@ def use_facility_perk(facility_key):
 @limiter.limit("10 per minute")
 def buy_contract():
     # Lock user to prevent race conditions on contract purchase
-    db.session.query(User).filter_by(id=current_user.id).with_for_update().first()
+    db.session.query(User).filter_by(
+        id=current_user.id).with_for_update().first()
 
     location_id = request.form.get("location_id", type=int)
     if not location_id:
@@ -585,31 +650,55 @@ def buy_contract():
     for key, meta in (cfg.get("facilities") or {}).items():
         c = meta.get("contract") or {}
         unlock_lvl = int(c.get("unlock_level") or 0)
-        l = _get_user_facility_level(current_user.id, key)
-        if l >= unlock_lvl and l > best_level:
+        facility_level = _get_user_facility_level(current_user.id, key)
+        if facility_level >= unlock_lvl and facility_level > best_level:
             best_key = key
-            best_level = l
+            best_level = facility_level
 
     if not best_key:
         flash(_('طور مرافقك لفتح عقد التوريد.'), 'warning')
         return redirect(url_for('farm.index'))
 
-    duration_minutes = int(SystemConfig.get_value("farm_contract_duration_minutes", "60") or 60)
-    base_cost = int(SystemConfig.get_value("farm_contract_base_cost", "25") or 25)
-    cost_per_tier = int(SystemConfig.get_value("farm_contract_cost_per_tier", "10") or 10)
-    base_bonus = float(SystemConfig.get_value("farm_contract_base_bonus", "0.10") or 0.10)
-    bonus_per_level = float(SystemConfig.get_value("farm_contract_bonus_per_facility_level", "0.03") or 0.03)
-    max_bonus = float(SystemConfig.get_value("farm_contract_max_bonus", "0.25") or 0.25)
+    duration_minutes = int(
+        SystemConfig.get_value(
+            "farm_contract_duration_minutes",
+            "60") or 60)
+    base_cost = int(
+        SystemConfig.get_value(
+            "farm_contract_base_cost",
+            "25") or 25)
+    cost_per_tier = int(
+        SystemConfig.get_value(
+            "farm_contract_cost_per_tier",
+            "10") or 10)
+    base_bonus = float(
+        SystemConfig.get_value(
+            "farm_contract_base_bonus",
+            "0.10") or 0.10)
+    bonus_per_level = float(
+        SystemConfig.get_value(
+            "farm_contract_bonus_per_facility_level",
+            "0.03") or 0.03)
+    max_bonus = float(
+        SystemConfig.get_value(
+            "farm_contract_max_bonus",
+            "0.25") or 0.25)
 
-    bonus = min(max_bonus, base_bonus + bonus_per_level * max(0, best_level - 1) + 0.01 * max(0, tier_n - 1))
+    bonus = min(max_bonus, base_bonus + bonus_per_level *
+                max(0, best_level - 1) + 0.01 * max(0, tier_n - 1))
     cost = max(1, base_cost + cost_per_tier * max(0, tier_n - 1))
 
     if current_user.diamonds < cost:
-        flash(_('ليس لديك ما يكفي من الماس! تحتاج إلى %(cost)s ماسة.', cost=cost), 'danger')
+        flash(_('ليس لديك ما يكفي من الماس! تحتاج إلى %(cost)s ماسة.',
+              cost=cost), 'danger')
         return redirect(url_for('farm.index'))
 
     now = datetime.now(timezone.utc)
-    active = FarmSupplyContract.query.filter_by(user_id=current_user.id, status='active', location_id=location_id).order_by(FarmSupplyContract.ends_at.desc()).first()
+    active = FarmSupplyContract.query.filter_by(
+        user_id=current_user.id,
+        status='active',
+        location_id=location_id).order_by(
+        FarmSupplyContract.ends_at.desc()).first()
     if active and not active.is_active:
         active.status = 'expired'
         db.session.add(active)
@@ -619,15 +708,20 @@ def buy_contract():
     # Atomic Deduction using ResourceService
     success = ResourceService.modify_resources(
         user_id=current_user.id,
-        changes={'diamonds': -cost},
+        changes={
+            'diamonds': -cost},
         reason='farm_buy_contract',
         auto_commit=False,
         expected_version=current_user.version,
-        log_extra={'location_id': location_id, 'cost': cost, 'bonus_percent': bonus, 'duration_minutes': duration_minutes}
-    )
+        log_extra={
+            'location_id': location_id,
+            'cost': cost,
+            'bonus_percent': bonus,
+            'duration_minutes': duration_minutes})
 
     if not success:
-        flash(_('ليس لديك ما يكفي من الماس! تحتاج إلى %(cost)s ماسة.', cost=cost), 'danger')
+        flash(_('ليس لديك ما يكفي من الماس! تحتاج إلى %(cost)s ماسة.',
+              cost=cost), 'danger')
         return redirect(url_for('farm.index'))
 
     if active:
@@ -635,9 +729,17 @@ def buy_contract():
         if ends and ends.tzinfo is None:
             ends = ends.replace(tzinfo=timezone.utc)
         if ends and ends > now:
-            active.ends_at = (ends + timedelta(minutes=duration_minutes)).replace(tzinfo=None)
+            active.ends_at = (
+                ends +
+                timedelta(
+                    minutes=duration_minutes)).replace(
+                tzinfo=None)
         else:
-            active.ends_at = (now + timedelta(minutes=duration_minutes)).replace(tzinfo=None)
+            active.ends_at = (
+                now +
+                timedelta(
+                    minutes=duration_minutes)).replace(
+                tzinfo=None)
         active.bonus_percent = bonus
         db.session.add(active)
     else:
@@ -647,13 +749,18 @@ def buy_contract():
             bonus_percent=bonus,
             status='active',
             created_at=now,
-            ends_at=(now + timedelta(minutes=duration_minutes)).replace(tzinfo=None),
+            ends_at=(
+                now +
+                timedelta(
+                    minutes=duration_minutes)).replace(
+                tzinfo=None),
         )
         db.session.add(contract)
 
     db.session.commit()
 
-    flash(_('تم تفعيل عقد توريد في %(city)s لمدة %(min)s دقيقة. زيادة بيع: %(pct)s%%', city=location.name, min=duration_minutes, pct=int(bonus * 100)), 'success')
+    flash(_('تم تفعيل عقد توريد في %(city)s لمدة %(min)s دقيقة. زيادة بيع: %(pct)s%%',
+          city=location.name, min=duration_minutes, pct=int(bonus * 100)), 'success')
     return redirect(url_for('farm.index'))
 
 
@@ -664,14 +771,17 @@ def start():
     cfg = _get_farm_config()
     fcfg = _get_facilities_config()
 
-    db.session.query(User).filter_by(id=current_user.id).with_for_update().first()
+    db.session.query(User).filter_by(
+        id=current_user.id).with_for_update().first()
 
     max_parallel = 1
     try:
         max_parallel = int(cfg.get("max_parallel_jobs") or 1)
     except Exception:
         max_parallel = 1
-    if FarmJob.query.filter_by(user_id=current_user.id, status='running').count() >= max_parallel:
+    if FarmJob.query.filter_by(
+            user_id=current_user.id,
+            status='running').count() >= max_parallel:
         flash(_('لديك عملية مزرعة جارية بالفعل.'), 'warning')
         return redirect(url_for('farm.index'))
 
@@ -710,8 +820,11 @@ def start():
         return redirect(url_for('farm.index'))
 
     facility_key, facility_meta = _facility_for_farm_type(fcfg, farm_type)
-    facility_level = _get_user_facility_level(current_user.id, facility_key) if facility_key else 0
-    time_mul, rare_chance = _facility_effects(facility_meta, facility_level) if facility_meta else (1.0, 0.0)
+    facility_level = _get_user_facility_level(
+        current_user.id, facility_key) if facility_key else 0
+    time_mul, rare_chance = _facility_effects(
+        facility_meta, facility_level) if facility_meta else (
+        1.0, 0.0)
 
     pricing = tier_cfg[farm_type]
     diamonds_cost = int(pricing.get("diamonds") or 1)
@@ -719,7 +832,8 @@ def start():
     out_min, out_max = pricing.get("out") or (1, 1)
 
     if current_user.diamonds < diamonds_cost:
-        flash(_('ليس لديك ما يكفي من الماس! تحتاج إلى %(cost)s ماسة.', cost=diamonds_cost), 'danger')
+        flash(_('ليس لديك ما يكفي من الماس! تحتاج إلى %(cost)s ماسة.',
+              cost=diamonds_cost), 'danger')
         return redirect(url_for('farm.index'))
 
     # Atomic deduction via ResourceService
@@ -735,7 +849,11 @@ def start():
         return redirect(url_for('farm.index'))
 
     minutes = _weighted_int(int(min_m), int(max_m), w_low=0.65, w_mid=0.3)
-    output_amount = _weighted_int(int(out_min), int(out_max), w_low=0.7, w_mid=0.25)
+    output_amount = _weighted_int(
+        int(out_min),
+        int(out_max),
+        w_low=0.7,
+        w_mid=0.25)
 
     if time_mul and time_mul != 1.0:
         minutes = max(1, int(round(minutes * float(time_mul))))
@@ -775,8 +893,10 @@ def start():
 @login_required
 @limiter.limit("20 per minute")
 def claim(job_id):
-    db.session.query(User).filter_by(id=current_user.id).with_for_update().first()
-    job = FarmJob.query.filter_by(id=job_id, user_id=current_user.id).with_for_update().first()
+    db.session.query(User).filter_by(
+        id=current_user.id).with_for_update().first()
+    job = FarmJob.query.filter_by(
+        id=job_id, user_id=current_user.id).with_for_update().first()
     if not job or job.status != 'running':
         flash(_('هذه العملية غير موجودة.'), 'danger')
         return redirect(url_for('farm.index'))
@@ -785,7 +905,10 @@ def claim(job_id):
         flash(_('لسه بدري! العملية لم تنته بعد.'), 'warning')
         return redirect(url_for('farm.index'))
 
-    item = job.output_item or (db.session.get(Item, job.output_item_id) if job.output_item_id else None)
+    item = job.output_item or (
+        db.session.get(
+            Item,
+            job.output_item_id) if job.output_item_id else None)
     if not item:
         flash(_('عنصر الإنتاج غير موجود.'), 'danger')
         return redirect(url_for('farm.index'))
@@ -796,7 +919,8 @@ def claim(job_id):
     db.session.add(job)
     db.session.commit()
 
-    flash(_('تم استلام الإنتاج: %(qty)s × %(name)s.', qty=job.output_amount, name=item.name), 'success')
+    flash(_('تم استلام الإنتاج: %(qty)s × %(name)s.',
+          qty=job.output_amount, name=item.name), 'success')
     return redirect(url_for('farm.index'))
 
 
@@ -805,7 +929,8 @@ def claim(job_id):
 @limiter.limit("10 per minute")
 def boost(job_id):
     # Lock job row to prevent double boosting
-    job = FarmJob.query.filter_by(id=job_id, user_id=current_user.id).with_for_update().first()
+    job = FarmJob.query.filter_by(
+        id=job_id, user_id=current_user.id).with_for_update().first()
     if not job or job.status != 'running':
         flash(_('هذه العملية غير موجودة.'), 'danger')
         return redirect(url_for('farm.index'))
@@ -830,11 +955,21 @@ def boost(job_id):
     diamonds_cost = max(min_cost, int(remaining_minutes * cost_per_min))
 
     if current_user.diamonds < diamonds_cost:
-        flash(_('ليس لديك ما يكفي من الماس! تحتاج إلى %(cost)s ماسة.', cost=diamonds_cost), 'danger')
+        flash(_('ليس لديك ما يكفي من الماس! تحتاج إلى %(cost)s ماسة.',
+              cost=diamonds_cost), 'danger')
         return redirect(url_for('farm.index'))
 
     # Atomic deduction via ResourceService
-    if not ResourceService.modify_resources(current_user.id, {'diamonds': -diamonds_cost}, 'farm_boost_job', auto_commit=False, expected_version=None, log_extra={'job_id': job.id, 'cost': diamonds_cost}):
+    if not ResourceService.modify_resources(
+        current_user.id,
+        {
+            'diamonds': -diamonds_cost},
+        'farm_boost_job',
+        auto_commit=False,
+        expected_version=None,
+        log_extra={
+            'job_id': job.id,
+            'cost': diamonds_cost}):
         flash(_('ليس لديك ما يكفي من الماس!'), 'danger')
         return redirect(url_for('farm.index'))
 
@@ -842,5 +977,6 @@ def boost(job_id):
     db.session.add(job)
     db.session.commit()
 
-    flash(_('تم إنهاء العملية فوراً مقابل %(cost)s ماسة.', cost=diamonds_cost), 'success')
+    flash(_('تم إنهاء العملية فوراً مقابل %(cost)s ماسة.',
+          cost=diamonds_cost), 'success')
     return redirect(url_for('farm.index'))

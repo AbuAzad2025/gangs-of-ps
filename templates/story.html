@@ -149,7 +149,7 @@
     {% set story_alt_label = _(story.alt_label_msgid) if story.alt_label_msgid is defined else (story.alt_label if story.alt_label else '') %}
     <div class="story-card">
       <div class="story-hero">
-        <img src="{{ url_for('static', filename=(story.image or 'crimes/wallet.jpg')) }}" alt="{{ story_title }}" onerror="this.onerror=null; this.src='{{ url_for('static', filename='crimes/wallet.jpg') }}';">
+        <img src="{{ url_for('static', filename='images/' + (story.image or 'crimes/wallet.jpg')) }}" alt="{{ story_title }}" onerror="this.onerror=null; this.src='{{ url_for('static', filename='images/crimes/wallet.jpg') }}';">
         <div class="story-overlay {{ story.animation or 'spark' }}">
           {% if (story.animation or 'spark') == 'smoke' %}
             <div class="smoke-bubble"></div>

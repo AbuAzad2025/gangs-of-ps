@@ -1,36 +1,47 @@
 from extensions import db
 from datetime import datetime, timezone
 
+
 class Hostess(db.Model):
     __tablename__ = 'hostesses'
-    
+
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(64), nullable=False)
-    role = db.Column(db.String(32), nullable=False) # luck, spy, support
+    role = db.Column(db.String(32), nullable=False)  # luck, spy, support
     price = db.Column(db.Integer, default=1000)
     image = db.Column(db.String(128), default='default_hostess.jpg')
     description = db.Column(db.Text)
-    dialogue_style = db.Column(db.String(32), default='friendly') # friendly, mysterious, flirty, energetic
+    # friendly, mysterious, flirty, energetic
+    dialogue_style = db.Column(db.String(32), default='friendly')
     intro_message = db.Column(db.String(256))
-    
+
     # Buffs
-    buff_type = db.Column(db.String(32)) # casino_luck, gym_boost, hospital_recovery, crime_success
-    buff_value = db.Column(db.Float, default=0.0) # e.g., 0.10 for 10%
-    
+    # casino_luck, gym_boost, hospital_recovery, crime_success
+    buff_type = db.Column(db.String(32))
+    buff_value = db.Column(db.Float, default=0.0)  # e.g., 0.10 for 10%
+
     # AI Training Data
-    system_prompt = db.Column(db.Text) # Custom prompt for this specific hostess
-    training_examples = db.Column(db.Text) # JSON string of few-shot examples [{"user": "...", "assistant": "..."}]
-    
+    # Custom prompt for this specific hostess
+    system_prompt = db.Column(db.Text)
+    # JSON string of few-shot examples [{"user": "...", "assistant": "..."}]
+    training_examples = db.Column(db.Text)
+
     # Video Configuration
-    video = db.Column(db.String(128)) # Path to video file (mp4/webm)
-    video_prompt = db.Column(db.Text) # JSON prompt for video generation (Sora/Runway style)
+    video = db.Column(db.String(128))  # Path to video file (mp4/webm)
+    # JSON prompt for video generation (Sora/Runway style)
+    video_prompt = db.Column(db.Text)
 
     # Voice & Personality Configuration
-    voice_config = db.Column(db.Text) # JSON: {"provider": "browser|elevenlabs", "voice_id": "...", "pitch": 1.0, "rate": 1.0}
-    personality_config = db.Column(db.Text) # JSON: {"flirt_level": 1-10, "shyness": 1-10, "dominance": 1-10}
-    appearance_config = db.Column(db.Text) # JSON: {"clothing": "...", "hair": "...", "body": "...", "accessories": "..."}
-    knowledge_base = db.Column(db.Text) # User manual or specific knowledge for the hostess
-    is_avatar_active = db.Column(db.Boolean, default=False) # Enable "Real Human Avatar" mode (video loop)
+    # JSON: {"provider": "browser|elevenlabs", "voice_id": "...", "pitch": 1.0, "rate": 1.0}
+    voice_config = db.Column(db.Text)
+    # JSON: {"flirt_level": 1-10, "shyness": 1-10, "dominance": 1-10}
+    personality_config = db.Column(db.Text)
+    # JSON: {"clothing": "...", "hair": "...", "body": "...", "accessories": "..."}
+    appearance_config = db.Column(db.Text)
+    # User manual or specific knowledge for the hostess
+    knowledge_base = db.Column(db.Text)
+    # Enable "Real Human Avatar" mode (video loop)
+    is_avatar_active = db.Column(db.Boolean, default=False)
     self_learning_enabled = db.Column(db.Boolean, default=True)
     memory_enabled = db.Column(db.Boolean, default=True)
     last_trained_at = db.Column(db.DateTime, nullable=True)
@@ -40,20 +51,34 @@ class Hostess(db.Model):
     # RPG Stats
     level = db.Column(db.Integer, default=1)
     exp = db.Column(db.Integer, default=0)
-    charm = db.Column(db.Integer, default=10) # Increases buff effectiveness
-    intelligence = db.Column(db.Integer, default=10) # Unlocks more knowledge
-    combat_skill = db.Column(db.Integer, default=0) # For combat support
-    loyalty = db.Column(db.Integer, default=50) # Affects willingness to do risky tasks
-    
+    charm = db.Column(db.Integer, default=10)  # Increases buff effectiveness
+    intelligence = db.Column(db.Integer, default=10)  # Unlocks more knowledge
+    combat_skill = db.Column(db.Integer, default=0)  # For combat support
+    # Affects willingness to do risky tasks
+    loyalty = db.Column(db.Integer, default=50)
+
     special_move_cooldown = db.Column(db.DateTime, nullable=True)
 
     # Exclusivity & Ranking
-    current_player_id = db.Column(db.Integer, db.ForeignKey('user.id', use_alter=True, name='fk_hostess_current_player_id'), nullable=True, unique=True)
-    min_rank = db.Column(db.Integer, default=1) # Minimum level required
-    is_public = db.Column(db.Boolean, default=False) # If True (e.g. Jasmin), she is not hireable/exclusive
+    current_player_id = db.Column(
+        db.Integer,
+        db.ForeignKey(
+            'user.id',
+            use_alter=True,
+            name='fk_hostess_current_player_id'),
+        nullable=True,
+        unique=True)
+    min_rank = db.Column(db.Integer, default=1)  # Minimum level required
+    # If True (e.g. Jasmin), she is not hireable/exclusive
+    is_public = db.Column(db.Boolean, default=False)
 
     # Relationship
-    current_player = db.relationship('User', foreign_keys=[current_player_id], backref=db.backref('hired_hostess', uselist=False))
+    current_player = db.relationship(
+        'User',
+        foreign_keys=[current_player_id],
+        backref=db.backref(
+            'hired_hostess',
+            uselist=False))
 
     def to_dict(self):
         return {
@@ -79,15 +104,19 @@ class Hostess(db.Model):
             'is_hired': self.current_player_id is not None
         }
 
+
 class VideoScenario(db.Model):
     __tablename__ = 'video_scenarios'
-    
+
     id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String(128), nullable=False)
     description = db.Column(db.Text)
-    script_json = db.Column(db.Text, nullable=False) # The full JSON content
-    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
-    
+    script_json = db.Column(db.Text, nullable=False)  # The full JSON content
+    created_at = db.Column(
+        db.DateTime,
+        default=lambda: datetime.now(
+            timezone.utc))
+
     def to_dict(self):
         return {
             'id': self.id,
@@ -96,26 +125,53 @@ class VideoScenario(db.Model):
             'script_json': self.script_json
         }
 
+
 class HostessChatMessage(db.Model):
     __tablename__ = 'hostess_chat_messages'
 
     id = db.Column(db.Integer, primary_key=True)
-    hostess_id = db.Column(db.Integer, db.ForeignKey('hostesses.id'), nullable=False, index=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True, index=True)
+    hostess_id = db.Column(
+        db.Integer,
+        db.ForeignKey('hostesses.id'),
+        nullable=False,
+        index=True)
+    user_id = db.Column(
+        db.Integer,
+        db.ForeignKey('user.id'),
+        nullable=True,
+        index=True)
     role = db.Column(db.String(16), nullable=False)
     content = db.Column(db.Text, nullable=False)
-    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
+    created_at = db.Column(
+        db.DateTime,
+        default=lambda: datetime.now(
+            timezone.utc))
+
 
 class HostessMemory(db.Model):
     __tablename__ = 'hostess_memories'
 
     id = db.Column(db.Integer, primary_key=True)
-    hostess_id = db.Column(db.Integer, db.ForeignKey('hostesses.id'), nullable=False, index=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False, index=True)
+    hostess_id = db.Column(
+        db.Integer,
+        db.ForeignKey('hostesses.id'),
+        nullable=False,
+        index=True)
+    user_id = db.Column(
+        db.Integer,
+        db.ForeignKey('user.id'),
+        nullable=False,
+        index=True)
     key = db.Column(db.String(64), nullable=False, index=True)
     value = db.Column(db.Text, nullable=False)
     importance = db.Column(db.Integer, default=1)
     source = db.Column(db.String(16), default='auto')
     is_active = db.Column(db.Boolean, default=True)
-    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
-    updated_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
+    created_at = db.Column(
+        db.DateTime,
+        default=lambda: datetime.now(
+            timezone.utc))
+    updated_at = db.Column(
+        db.DateTime,
+        default=lambda: datetime.now(
+            timezone.utc))

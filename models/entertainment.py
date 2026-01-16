@@ -1,26 +1,37 @@
 from datetime import datetime
 from extensions import db
 
+
 class GameRoom(db.Model):
     __tablename__ = 'game_rooms'
 
     id = db.Column(db.Integer, primary_key=True)
-    game_type = db.Column(db.String(20), nullable=False) # 'chess', 'trix'
+    game_type = db.Column(db.String(20), nullable=False)  # 'chess', 'trix'
     name = db.Column(db.String(64), nullable=False)
-    status = db.Column(db.String(20), default='waiting') # 'waiting', 'playing', 'finished'
+    # 'waiting', 'playing', 'finished'
+    status = db.Column(db.String(20), default='waiting')
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    
+
     # JSON field to store game state (board FEN, cards, turn, etc.)
     game_state = db.Column(db.JSON, default={})
-    
+
     # Betting Logic
-    currency_type = db.Column(db.String(20), default='money') # 'money' or 'diamonds'
+    currency_type = db.Column(db.String(20),
+                              default='money')  # 'money' or 'diamonds'
     stake_amount = db.Column(db.BigInteger, default=0)
     pot_amount = db.Column(db.BigInteger, default=0)
-    
+
     # Relationships
-    players = db.relationship('GamePlayer', backref='room', lazy='dynamic', cascade='all, delete-orphan')
-    messages = db.relationship('GameChat', backref='room', lazy='dynamic', cascade='all, delete-orphan')
+    players = db.relationship(
+        'GamePlayer',
+        backref='room',
+        lazy='dynamic',
+        cascade='all, delete-orphan')
+    messages = db.relationship(
+        'GameChat',
+        backref='room',
+        lazy='dynamic',
+        cascade='all, delete-orphan')
 
     def to_dict(self):
         return {
@@ -36,16 +47,26 @@ class GameRoom(db.Model):
             'game_state': self.game_state
         }
 
+
 class GamePlayer(db.Model):
     __tablename__ = 'game_players'
 
     id = db.Column(db.Integer, primary_key=True)
-    room_id = db.Column(db.Integer, db.ForeignKey('game_rooms.id'), nullable=False, index=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False, index=True)
+    room_id = db.Column(
+        db.Integer,
+        db.ForeignKey('game_rooms.id'),
+        nullable=False,
+        index=True)
+    user_id = db.Column(
+        db.Integer,
+        db.ForeignKey('user.id'),
+        nullable=False,
+        index=True)
     joined_at = db.Column(db.DateTime, default=datetime.utcnow)
-    seat_index = db.Column(db.Integer) # 0 for White/Player1, 1 for Black/Player2, etc.
+    # 0 for White/Player1, 1 for Black/Player2, etc.
+    seat_index = db.Column(db.Integer)
     is_ready = db.Column(db.Boolean, default=False)
-    
+
     user = db.relationship('User')
 
     def to_dict(self):
@@ -57,15 +78,24 @@ class GamePlayer(db.Model):
             'is_ready': self.is_ready
         }
 
+
 class GameChat(db.Model):
     __tablename__ = 'game_chat'
 
     id = db.Column(db.Integer, primary_key=True)
-    room_id = db.Column(db.Integer, db.ForeignKey('game_rooms.id'), nullable=False, index=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False, index=True)
+    room_id = db.Column(
+        db.Integer,
+        db.ForeignKey('game_rooms.id'),
+        nullable=False,
+        index=True)
+    user_id = db.Column(
+        db.Integer,
+        db.ForeignKey('user.id'),
+        nullable=False,
+        index=True)
     message = db.Column(db.String(500), nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    
+
     user = db.relationship('User')
 
     def to_dict(self):

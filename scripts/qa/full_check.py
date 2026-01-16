@@ -8,7 +8,11 @@ from html.parser import HTMLParser
 from urllib.parse import urlparse, urlunparse
 
 
-PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
+PROJECT_ROOT = os.path.abspath(
+    os.path.join(
+        os.path.dirname(__file__),
+        "..",
+        ".."))
 TEMPLATES_DIR = os.path.join(PROJECT_ROOT, "templates")
 STATIC_DIR = os.path.join(PROJECT_ROOT, "static")
 
@@ -85,7 +89,7 @@ def _collect_css_static_urls():
         for m in rx.finditer(txt):
             p = m.group(1)
             if p.startswith("/static/"):
-                found.add(p[len("/static/") :])
+                found.add(p[len("/static/"):])
     return found
 
 
@@ -110,7 +114,8 @@ def _is_internal_path(u):
         return False
     if u.startswith("http://") or u.startswith("https://"):
         return False
-    if u.startswith("mailto:") or u.startswith("tel:") or u.startswith("javascript:"):
+    if u.startswith("mailto:") or u.startswith(
+            "tel:") or u.startswith("javascript:"):
         return False
     if u.startswith("#"):
         return False
@@ -202,8 +207,8 @@ def run_full_check(max_pages=800):
     )
 
     missing_static = sorted(
-        p for p in (static_in_templates | static_in_css) if not _static_exists(p)
-    )
+        p for p in (
+            static_in_templates | static_in_css) if not _static_exists(p))
 
     client = app.test_client()
     now = datetime.now()
@@ -250,7 +255,8 @@ def run_full_check(max_pages=800):
                 queue.append(loc)
             continue
         if status >= 400:
-            if url.startswith("/admin/") and "/ajax/lookup/" in url and status in (400, 404):
+            if url.startswith(
+                    "/admin/") and "/ajax/lookup/" in url and status in (400, 404):
                 continue
             crawl_other_bad.append((url, status))
             continue
@@ -266,7 +272,8 @@ def run_full_check(max_pages=800):
         try:
             parser.feed(html)
         except Exception:
-            parser.urls = re.findall(r"(?:href|src|action)\s*=\s*['\"]([^'\"]+)['\"]", html)
+            parser.urls = re.findall(
+                r"(?:href|src|action)\s*=\s*['\"]([^'\"]+)['\"]", html)
 
         for raw in parser.urls:
             if not raw:

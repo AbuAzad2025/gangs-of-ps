@@ -197,11 +197,17 @@
                                     {{ _('تسجيل الدخول') }} <i class="fas fa-sign-in-alt ml-2"></i>
                                 </button>
                             </div>
+
+                            <div class="d-grid mb-4">
+                                <a href="{{ url_for('main.chat_lobby') }}" class="btn btn-outline-gold btn-block btn-lg shadow-sm font-weight-bold">
+                                    <i class="fas fa-comments mr-2"></i> {{ _('دخول الدردشة') }}
+                                </a>
+                            </div>
                             
                             <div class="text-center mt-3">
                                 <p class="mb-0 text-light">
                                     {{ _('ليس لديك حساب؟') }} 
-                                    <a href="{{ url_for('main.register') }}" class="auth-link font-weight-bold">{{ _('سجل الآن') }}</a>
+                                    <a href="{{ url_for('main.register', next=request.args.get('next')) }}" class="auth-link font-weight-bold">{{ _('سجل الآن') }}</a>
                                 </p>
                                 <p class="mt-3">
                                     <a href="{{ url_for('main.guide') }}" class="text-gold small" style="text-decoration: underline;">

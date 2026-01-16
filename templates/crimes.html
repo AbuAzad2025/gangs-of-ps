@@ -157,7 +157,11 @@
                         {% for it in preview_items %}
                             <div class="preview-item-box mx-1 mb-1">
                                 {% if it.image %}
-                                    <img src="{{ url_for('static', filename=it.image) }}" alt="{{ _(it.name) }}" class="img-cover-full" onerror="this.onerror=null; this.src='{{ url_for('static', filename='crimes/wallet.jpg') }}';">
+                                    {% set img_path = it.image %}
+                                    {% if not img_path.startswith('images/') %}
+                                        {% set img_path = 'images/' + img_path %}
+                                    {% endif %}
+                                    <img src="{{ url_for('static', filename=img_path) }}" alt="{{ _(it.name) }}" class="img-cover-full" onerror="this.onerror=null; this.src='{{ url_for('static', filename='images/crimes/wallet.jpg') }}';">
                                 {% else %}
                                     <i class="fas fa-gem text-success"></i>
                                 {% endif %}

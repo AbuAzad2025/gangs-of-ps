@@ -4,7 +4,7 @@ import json
 from collections import defaultdict
 from dataclasses import dataclass
 from datetime import datetime, timezone, timedelta
-from typing import Any, Dict, Iterable, List, Optional, Tuple
+from typing import Any, Dict, Iterable, List, Optional
 
 from sqlalchemy import or_
 
@@ -37,7 +37,8 @@ def _parse_json_maybe(value: Any) -> Any:
     return None
 
 
-def _extract_resource_deltas_from_log(log: UserLog, resources: Iterable[str]) -> Dict[str, int]:
+def _extract_resource_deltas_from_log(
+        log: UserLog, resources: Iterable[str]) -> Dict[str, int]:
     deltas: Dict[str, int] = {}
     details = _parse_json_maybe(getattr(log, "details", None))
     if isinstance(details, dict):
@@ -78,11 +79,23 @@ def _scenario_from_action(action: str) -> str:
         return "الكازينو"
     if a.startswith("GAME_"):
         return "الترفيه والرهانات"
-    if a.startswith("AI_RACE_") or a.startswith("RACE_") or a in {"CREATE_RACE", "JOIN_RACE", "CANCEL_RACE_REFUND", "RACE_WIN"}:
+    if a.startswith("AI_RACE_") or a.startswith("RACE_") or a in {
+            "CREATE_RACE", "JOIN_RACE", "CANCEL_RACE_REFUND", "RACE_WIN"}:
         return "السباقات"
-    if a.startswith("SPOT_") or a.startswith("FUTURES_") or a in {"BUY_INTEL_MARKET", "BUY_ASSET_SPOT", "SELL_ASSET_SPOT"}:
+    if a.startswith("SPOT_") or a.startswith("FUTURES_") or a in {
+            "BUY_INTEL_MARKET", "BUY_ASSET_SPOT", "SELL_ASSET_SPOT"}:
         return "السوق والتداول"
-    if a.startswith("AUCTION_") or a in {"BUY_SMUGGLING", "SELL_SMUGGLING", "BUY_BLACK_MARKET_ITEM", "SELL_LOOT", "REPAIR_LOOT", "REPAIR_ALL_LOOT", "BUY_SERVICE_SAFEHOUSE", "BUY_SERVICE_DISGUISE", "BUY_SERVICE_COOL_OFF", "SPY"}:
+    if a.startswith("AUCTION_") or a in {
+        "BUY_SMUGGLING",
+        "SELL_SMUGGLING",
+        "BUY_BLACK_MARKET_ITEM",
+        "SELL_LOOT",
+        "REPAIR_LOOT",
+        "REPAIR_ALL_LOOT",
+        "BUY_SERVICE_SAFEHOUSE",
+        "BUY_SERVICE_DISGUISE",
+        "BUY_SERVICE_COOL_OFF",
+            "SPY"}:
         return "السوق السوداء"
     if a.startswith("HOSPITAL_"):
         return "المستشفى"
@@ -92,7 +105,9 @@ def _scenario_from_action(action: str) -> str:
         return "التنقل والحواجز"
     if a.startswith("GANG_"):
         return "العصابة والخزنة"
-    if a in {"BUY_PROPERTY", "PROPERTY_INCOME_COLLECTION"} or a.startswith("MAINTENANCE_"):
+    if a in {
+        "BUY_PROPERTY",
+            "PROPERTY_INCOME_COLLECTION"} or a.startswith("MAINTENANCE_"):
         return "العقارات والاقتصاد"
     if a.startswith("COMBAT_") or a in {"PLACE_BOUNTY", "BUY_OFF_BOUNTY"}:
         return "القتال والمكافآت"
@@ -102,14 +117,21 @@ def _scenario_from_action(action: str) -> str:
         return "المزرعة"
     if a.startswith("ROOM_"):
         return "الترفيه والرهانات"
-    if a in {"INVESTIGATE_COST", "ORGANIZED_CRIME_LEAVE_PENALTY", "ORGANIZED_CRIME_REWARD", "CRIME_SUCCESS"} or a.startswith("DAILY_TASK_"):
+    if a in {
+        "INVESTIGATE_COST",
+        "ORGANIZED_CRIME_LEAVE_PENALTY",
+        "ORGANIZED_CRIME_REWARD",
+            "CRIME_SUCCESS"} or a.startswith("DAILY_TASK_"):
         return "الجريمة والمهام"
 
     return "غير مصنّف"
 
 
-def _sum_real_money_revenue(user_id: int, start: Optional[datetime] = None) -> Dict[str, float]:
-    q = UserLog.query.filter(UserLog.user_id == user_id, UserLog.action == "REAL_MONEY_REVENUE")
+def _sum_real_money_revenue(
+        user_id: int, start: Optional[datetime] = None) -> Dict[str, float]:
+    q = UserLog.query.filter(
+        UserLog.user_id == user_id,
+        UserLog.action == "REAL_MONEY_REVENUE")
     if start:
         q = q.filter(UserLog.timestamp >= start)
     totals: Dict[str, float] = defaultdict(float)
@@ -190,7 +212,8 @@ class BudgetService:
         return _extract_resource_deltas_from_log(log, BudgetService.RESOURCES)
 
     @staticmethod
-    def compute_user_budget(user_id: int, range_key: str = "30d") -> Dict[str, Any]:
+    def compute_user_budget(
+            user_id: int, range_key: str = "30d") -> Dict[str, Any]:
         now = datetime.now(timezone.utc).replace(tzinfo=None)
         range_key = (range_key or "30d").strip().lower()
 
@@ -211,19 +234,27 @@ class BudgetService:
         if start:
             q = q.filter(UserLog.timestamp >= start)
 
-        q = q.filter(
-            or_(
-                UserLog.details.ilike("%money%"),
-                UserLog.details.ilike("%bank_balance%"),
-                UserLog.details.ilike("%diamonds%"),
-                UserLog.action.in_(["ROOM_CREATE", "ROOM_JOIN", "ROOM_LEAVE", "ROOM_FINISH"]),
-                UserLog.action.ilike("ADMIN_%"),
-                UserLog.action.in_(["DEVELOPER_POWER"]),
-                UserLog.action.ilike("BANK_%"),
-            )
-        ).order_by(UserLog.timestamp.desc())
+        q = q.filter(or_(UserLog.details.ilike("%money%"),
+                         UserLog.details.ilike("%bank_balance%"),
+                         UserLog.details.ilike("%diamonds%"),
+                         UserLog.action.in_(["ROOM_CREATE",
+                                             "ROOM_JOIN",
+                                             "ROOM_LEAVE",
+                                             "ROOM_FINISH"]),
+                         UserLog.action.ilike("ADMIN_%"),
+                         UserLog.action.in_(["DEVELOPER_POWER"]),
+                         UserLog.action.ilike("BANK_%"),
+                         )).order_by(UserLog.timestamp.desc())
 
-        rows: Dict[str, Dict[str, Any]] = defaultdict(lambda: {"count": 0, "money_in": 0, "money_out": 0, "bank_in": 0, "bank_out": 0, "diamonds_in": 0, "diamonds_out": 0})
+        rows: Dict[str,
+                   Dict[str,
+                        Any]] = defaultdict(lambda: {"count": 0,
+                                                     "money_in": 0,
+                                                     "money_out": 0,
+                                                     "bank_in": 0,
+                                                     "bank_out": 0,
+                                                     "diamonds_in": 0,
+                                                     "diamonds_out": 0})
         actions_seen: Dict[str, int] = defaultdict(int)
 
         for log in q.yield_per(500):
@@ -257,15 +288,32 @@ class BudgetService:
                 bucket["diamonds_out"] += abs(diamonds_delta)
 
         sink_q = MoneySinkLog.query.filter(MoneySinkLog.user_id == user_id)
-        sink_time_col = getattr(MoneySinkLog, "created_at", None) or getattr(MoneySinkLog, "timestamp", None)
+        sink_time_col = getattr(
+            MoneySinkLog,
+            "created_at",
+            None) or getattr(
+            MoneySinkLog,
+            "timestamp",
+            None)
         if start and sink_time_col is not None:
             sink_q = sink_q.filter(sink_time_col >= start)
-        sink_rows = sink_q.with_entities(MoneySinkLog.sink_type, db.func.sum(MoneySinkLog.amount)).group_by(MoneySinkLog.sink_type).all()
-        implicit_expenses = [{"type": t, "amount": int(a or 0)} for (t, a) in sink_rows if a]
+        sink_rows = sink_q.with_entities(
+            MoneySinkLog.sink_type, db.func.sum(
+                MoneySinkLog.amount)).group_by(
+            MoneySinkLog.sink_type).all()
+        implicit_expenses = [{"type": t, "amount": int(
+            a or 0)} for (t, a) in sink_rows if a]
         implicit_expenses.sort(key=lambda x: x["amount"], reverse=True)
 
         budget_rows: List[BudgetRow] = []
-        totals = {"count": 0, "money_in": 0, "money_out": 0, "bank_in": 0, "bank_out": 0, "diamonds_in": 0, "diamonds_out": 0}
+        totals = {
+            "count": 0,
+            "money_in": 0,
+            "money_out": 0,
+            "bank_in": 0,
+            "bank_out": 0,
+            "diamonds_in": 0,
+            "diamonds_out": 0}
         for scenario, d in rows.items():
             r = BudgetRow(
                 scenario=scenario,
@@ -286,9 +334,19 @@ class BudgetService:
             totals["diamonds_in"] += r.diamonds_in
             totals["diamonds_out"] += r.diamonds_out
 
-        budget_rows.sort(key=lambda r: (r.currency_out + r.money_out + r.bank_out + r.diamonds_out), reverse=True)
+        budget_rows.sort(
+            key=lambda r: (
+                r.currency_out +
+                r.money_out +
+                r.bank_out +
+                r.diamonds_out),
+            reverse=True)
 
-        top_actions = sorted(actions_seen.items(), key=lambda kv: kv[1], reverse=True)[:20]
+        top_actions = sorted(
+            actions_seen.items(),
+            key=lambda kv: kv[1],
+            reverse=True)[
+            :20]
 
         reset_at = _real_money_reset_at()
         real_start = start if range_key != "all" else None
@@ -297,22 +355,42 @@ class BudgetService:
         real_money_range = _sum_real_money_revenue(user_id, start=real_start)
         real_money_all_time = _sum_real_money_revenue(user_id, start=reset_at)
 
+        currency_in = totals["money_in"] + totals["bank_in"]
+        currency_out = totals["money_out"] + totals["bank_out"]
+        totals_out = {
+            **totals,
+            "money_net": totals["money_in"] - totals["money_out"],
+            "bank_net": totals["bank_in"] - totals["bank_out"],
+            "diamonds_net": totals["diamonds_in"] - totals["diamonds_out"],
+            "currency_in": currency_in,
+            "currency_out": currency_out,
+            "currency_net": currency_in - currency_out,
+        }
+        rows_out = [
+            r.__dict__
+            | {
+                "money_net": r.money_net,
+                "bank_net": r.bank_net,
+                "diamonds_net": r.diamonds_net,
+                "currency_in": r.currency_in,
+                "currency_out": r.currency_out,
+                "currency_net": r.currency_net,
+            }
+            for r in budget_rows
+        ]
+        top_actions_out = [
+            {"action": a, "count": c, "scenario": _scenario_from_action(a)}
+            for (a, c) in top_actions
+        ]
+
         return {
             "range": range_key,
             "start": start,
             "end": now,
-            "totals": {
-                **totals,
-                "money_net": totals["money_in"] - totals["money_out"],
-                "bank_net": totals["bank_in"] - totals["bank_out"],
-                "diamonds_net": totals["diamonds_in"] - totals["diamonds_out"],
-                "currency_in": totals["money_in"] + totals["bank_in"],
-                "currency_out": totals["money_out"] + totals["bank_out"],
-                "currency_net": (totals["money_in"] + totals["bank_in"]) - (totals["money_out"] + totals["bank_out"]),
-            },
-            "rows": [r.__dict__ | {"money_net": r.money_net, "bank_net": r.bank_net, "diamonds_net": r.diamonds_net, "currency_in": r.currency_in, "currency_out": r.currency_out, "currency_net": r.currency_net} for r in budget_rows],
+            "totals": totals_out,
+            "rows": rows_out,
             "implicit_expenses": implicit_expenses[:20],
-            "top_actions": [{"action": a, "count": c, "scenario": _scenario_from_action(a)} for (a, c) in top_actions],
+            "top_actions": top_actions_out,
             "real_money": {
                 "range": real_money_range,
                 "all_time": real_money_all_time,

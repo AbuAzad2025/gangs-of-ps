@@ -33,7 +33,7 @@
                     <div class="profile-rank-badge">
                         <i class="fas fa-crown mr-2"></i> {{ _(user.rank_title) }}
                     </div>
-                    {% if user.jail_until and user.jail_until > now %}
+                    {% if user.jail_until and user.jail_until.replace(tzinfo=None) > now.replace(tzinfo=None) %}
                     <div class="badge bg-danger text-white mt-2 p-2 shadow-sm rounded-pill">
                         <i class="fas fa-lock mr-1"></i> {{ _('سجين في عوفر') }}
                     </div>
@@ -122,6 +122,47 @@
                         <a href="{{ url_for('main.send_message', to=user.username) }}" class="btn-action-secondary">
                             <i class="fas fa-envelope mr-2"></i> {{ _('إرسال رسالة') }}
                         </a>
+                        {% if friendship_state == 'none' %}
+                        <form action="{{ url_for('main.friend_request', user_id=user.id) }}" method="POST" class="mb-0 mt-2">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                            <button type="submit" class="btn-action-secondary w-100">
+                                <i class="fas fa-user-plus mr-2"></i> {{ _('إضافة صديق') }}
+                            </button>
+                        </form>
+                        {% elif friendship_state == 'outgoing' %}
+                        <form action="{{ url_for('main.friend_remove', user_id=user.id) }}" method="POST" class="mb-0 mt-2">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                            <button type="submit" class="btn-action-secondary w-100">
+                                <i class="fas fa-user-clock mr-2"></i> {{ _('إلغاء الطلب') }}
+                            </button>
+                        </form>
+                        {% elif friendship_state == 'incoming' %}
+                        <div class="d-flex mt-2" style="gap:.5rem;">
+                            <form action="{{ url_for('main.friend_accept', user_id=user.id) }}" method="POST" class="mb-0 flex-fill">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                                <button type="submit" class="btn btn-warning btn-block">
+                                    <i class="fas fa-check mr-1"></i> {{ _('قبول') }}
+                                </button>
+                            </form>
+                            <form action="{{ url_for('main.friend_reject', user_id=user.id) }}" method="POST" class="mb-0 flex-fill">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                                <button type="submit" class="btn btn-outline-secondary btn-block">
+                                    <i class="fas fa-times mr-1"></i> {{ _('رفض') }}
+                                </button>
+                            </form>
+                        </div>
+                        {% elif friendship_state == 'friends' %}
+                        <form action="{{ url_for('main.friend_remove', user_id=user.id) }}" method="POST" class="mb-0 mt-2">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                            <button type="submit" class="btn-action-secondary w-100">
+                                <i class="fas fa-user-minus mr-2"></i> {{ _('إزالة صديق') }}
+                            </button>
+                        </form>
+                        {% elif friendship_state == 'blocked' %}
+                        <button type="button" class="btn-action-secondary w-100 mt-2" disabled>
+                            <i class="fas fa-ban mr-2"></i> {{ _('غير متاح') }}
+                        </button>
+                        {% endif %}
                     {% else %}
                         <a href="{{ url_for('main.edit_profile') }}" class="btn-action-primary">
                             <i class="fas fa-cog mr-2"></i> {{ _('تعديل الملف الشخصي') }}
@@ -165,6 +206,16 @@
                                 <i class="fas fa-users mr-2"></i> {{ _('العصابة') }}
                             </a>
                         </li>
+                        {% if user.id == current_user.id %}
+                        <li class="nav-item">
+                            <a class="nav-link custom-nav-link" id="friends-tab" data-toggle="tab" href="#friends" role="tab">
+                                <i class="fas fa-user-friends mr-2"></i> {{ _('الأصدقاء') }}
+                                {% if pending_friends_in_count %}
+                                <span class="badge badge-warning ml-1">{{ pending_friends_in_count }}</span>
+                                {% endif %}
+                            </a>
+                        </li>
+                        {% endif %}
                     </ul>
                 </div>
                 
@@ -589,6 +640,77 @@
                             </div>
                         {% endif %}
                     </div>
+
+                    {% if user.id == current_user.id %}
+                    <div class="tab-pane fade" id="friends" role="tabpanel">
+                        <div class="p-4">
+                            {% if friend_requests_in %}
+                            <div class="mb-4">
+                                <h5 class="text-gold mb-3">{{ _('طلبات صداقة واردة') }}</h5>
+                                {% for item in friend_requests_in %}
+                                <div class="d-flex align-items-center py-2 border-bottom border-secondary">
+                                    <img src="{{ url_for('static', filename='images/avatars/' + (item.user.avatar or 'default.png')) }}" class="rounded-circle mr-2" width="34" height="34" onerror="this.onerror=null; this.src='{{ url_for('static', filename='images/avatars/default.png') }}';">
+                                    <a href="{{ url_for('main.profile', user_id=item.user.id) }}" class="text-light">{{ item.user.username }}</a>
+                                    <div class="ml-auto d-flex" style="gap:.5rem;">
+                                        <form action="{{ url_for('main.friend_accept', user_id=item.user.id) }}" method="POST" class="mb-0">
+                                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                                            <button type="submit" class="btn btn-sm btn-warning">{{ _('قبول') }}</button>
+                                        </form>
+                                        <form action="{{ url_for('main.friend_reject', user_id=item.user.id) }}" method="POST" class="mb-0">
+                                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                                            <button type="submit" class="btn btn-sm btn-outline-secondary">{{ _('رفض') }}</button>
+                                        </form>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+
+                            {% if friend_requests_out %}
+                            <div class="mb-4">
+                                <h5 class="text-gold mb-3">{{ _('طلبات صداقة مرسلة') }}</h5>
+                                {% for item in friend_requests_out %}
+                                <div class="d-flex align-items-center py-2 border-bottom border-secondary">
+                                    <img src="{{ url_for('static', filename='images/avatars/' + (item.user.avatar or 'default.png')) }}" class="rounded-circle mr-2" width="34" height="34" onerror="this.onerror=null; this.src='{{ url_for('static', filename='images/avatars/default.png') }}';">
+                                    <a href="{{ url_for('main.profile', user_id=item.user.id) }}" class="text-light">{{ item.user.username }}</a>
+                                    <div class="ml-auto">
+                                        <form action="{{ url_for('main.friend_remove', user_id=item.user.id) }}" method="POST" class="mb-0">
+                                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                                            <button type="submit" class="btn btn-sm btn-outline-warning">{{ _('إلغاء') }}</button>
+                                        </form>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+
+                            {% if friends_list %}
+                            <div>
+                                <h5 class="text-gold mb-3">{{ _('الأصدقاء') }}</h5>
+                                {% for item in friends_list %}
+                                <div class="d-flex align-items-center py-2 border-bottom border-secondary">
+                                    <img src="{{ url_for('static', filename='images/avatars/' + (item.user.avatar or 'default.png')) }}" class="rounded-circle mr-2" width="34" height="34" onerror="this.onerror=null; this.src='{{ url_for('static', filename='images/avatars/default.png') }}';">
+                                    <a href="{{ url_for('main.profile', user_id=item.user.id) }}" class="text-light">{{ item.user.username }}</a>
+                                    <div class="ml-auto">
+                                        <form action="{{ url_for('main.friend_remove', user_id=item.user.id) }}" method="POST" class="mb-0">
+                                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                                            <button type="submit" class="btn btn-sm btn-outline-danger">{{ _('إزالة') }}</button>
+                                        </form>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+
+                            {% if (not friend_requests_in) and (not friend_requests_out) and (not friends_list) %}
+                            <div class="text-center py-5">
+                                <i class="fas fa-user-friends fa-3x text-muted mb-3 opacity-50"></i>
+                                <h5 class="text-muted">{{ _('لا يوجد أصدقاء أو طلبات حالياً') }}</h5>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endif %}
                 </div>
             </div>
         </div>

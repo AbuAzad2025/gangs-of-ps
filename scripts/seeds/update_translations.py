@@ -100,7 +100,7 @@ translations = {
     "حذفها المرسل": "Deleted by Sender",
     "حذفها المستقبل": "Deleted by Receiver",
     "هل أنت متأكد من حذف هذه الرسالة نهائياً من قاعدة البيانات؟": "Are you sure you want to permanently delete this message from the database?",
-    
+
     # Market & Trade
     "تغيير 24س": "24h Change",
     "أعلى 24س": "24h High",
@@ -545,7 +545,7 @@ translations = {
     "متزوج": "Married",
     "خاطب": "Engaged",
     "مرتبط": "In a Relationship",
-    
+
     # Occupation & New Mechanics
     "🚧 حاجز للأمن الداخلي (حماس): \"هات هويتك وشو بتعمل هون؟\" تحقيق سريع ومضيت.": "🚧 Hamas Internal Security Checkpoint: \"ID card! What are you doing here?\" Quick interrogation and you passed.",
     "🚓 دورية للأمن %(branch)s وقفتك: \"ممنوع التجول بالسلاح هون يا شب\". تفتيش وتدقيق أمني.": "🚓 %(branch)s Security Patrol stopped you: \"No weapons allowed here.\" Security check.",
@@ -558,7 +558,7 @@ translations = {
     "🕵️ جاسوس بلغ عنك! قوات خاصة حاصرتك قبل ما تبدأ. أخذوك تحقيق 60 دقيقة.": "🕵️ A spy reported you! Special forces surrounded you before you started. Taken for interrogation for 60 mins.",
     "👮 كنت ماشي في حالك، وقفتك دورية واعتقلوك عشوائياً (اعتقال إداري).": "👮 You were minding your business, a patrol stopped you and arrested you randomly (Administrative Detention).",
     "🧗 علقت بالسلك وأجت دورية حرس حدود لقطتك. \"تهريب عمال؟ تعال هون!\"": "🧗 You got stuck in the fence and a Border Police patrol caught you. \"Smuggling workers? Come here!\"",
-    
+
     # New Translations from UI Review
     "الترند - أحداث مباشرة": "Trend - Live Events",
     "الترند - نبض الشارع": "Trend - Street Pulse",
@@ -643,7 +643,11 @@ translations = {
 }
 
 # Resolve target PO path (default to local repo path, allow override via CLI)
-DEFAULT_PO_PATH = os.path.join('translations', 'en', 'LC_MESSAGES', 'messages.po')
+DEFAULT_PO_PATH = os.path.join(
+    'translations',
+    'en',
+    'LC_MESSAGES',
+    'messages.po')
 po_path = sys.argv[1] if len(sys.argv) > 1 else DEFAULT_PO_PATH
 
 if not os.path.isfile(po_path):
@@ -659,7 +663,7 @@ current_msgid = None
 i = 0
 while i < len(lines):
     line = lines[i]
-    
+
     # Check for fuzzy mark
     if line.strip().startswith('#, fuzzy'):
         # Skip this line if we have a translation for the next msgid
@@ -671,11 +675,11 @@ while i < len(lines):
                 msgid = lines[temp_i].strip()[7:-1]
                 if msgid in translations:
                     # We have a translation, so we can remove the fuzzy mark
-                    i += 1 # Skip the fuzzy line
-                    continue 
+                    i += 1  # Skip the fuzzy line
+                    continue
                 break
             elif lines[temp_i].strip() == '' or lines[temp_i].startswith('#'):
-                 temp_i += 1
+                temp_i += 1
             else:
                 break
         # If we didn't skip, process normally

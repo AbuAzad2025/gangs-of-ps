@@ -1,6 +1,7 @@
 from contextvars import ContextVar
 
-_RESOURCE_MUTATION_ALLOWED: ContextVar[bool] = ContextVar("resource_mutation_allowed", default=False)
+_RESOURCE_MUTATION_ALLOWED: ContextVar[bool] = ContextVar(
+    "resource_mutation_allowed", default=False)
 
 
 def allow_resource_mutation() -> object:
@@ -16,4 +17,3 @@ def is_resource_mutation_allowed() -> bool:
         return bool(_RESOURCE_MUTATION_ALLOWED.get())
     except Exception:
         return False
-

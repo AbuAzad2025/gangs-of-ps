@@ -4,12 +4,13 @@ import subprocess
 from urllib.parse import urlparse
 import argparse
 
+
 def restore_database(backup_file, db_url):
     """Restores a PostgreSQL database from a SQL backup file."""
-    
+
     print(f"Starting restore process...")
     print(f"Backup file: {backup_file}")
-    
+
     if not os.path.exists(backup_file):
         print(f"Error: Backup file '{backup_file}' not found.")
         return False
@@ -59,7 +60,7 @@ def restore_database(backup_file, db_url):
     ]
 
     logging.info(f"Connecting to {host}:{port}/{dbname} as {user}...")
-    
+
     try:
         # Run psql
         subprocess.run(cmd, env=env, check=True)
@@ -75,11 +76,15 @@ def restore_database(backup_file, db_url):
         print(f"\nAn unexpected error occurred: {e}")
         return False
 
+
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description='Restore PostgreSQL database from backup.')
+    parser = argparse.ArgumentParser(
+        description='Restore PostgreSQL database from backup.')
     parser.add_argument('backup_file', help='Path to the .sql backup file')
-    parser.add_argument('db_url', help='Target Connection String (postgresql://user:pass@host:port/dbname)')
-    
+    parser.add_argument(
+        'db_url',
+        help='Target Connection String (postgresql://user:pass@host:port/dbname)')
+
     args = parser.parse_args()
-    
+
     restore_database(args.backup_file, args.db_url)

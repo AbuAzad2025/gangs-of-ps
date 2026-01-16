@@ -25,9 +25,9 @@ class SecureModelView(ModelView):
     page_size = 20
     can_export = True
     can_view_details = True
-    create_modal = True
-    edit_modal = True
-    details_modal = True
+    create_modal = False
+    edit_modal = False
+    details_modal = False
 
     def scaffold_form(self):
         form_class = super().scaffold_form()
@@ -209,6 +209,55 @@ class UserView(SecureModelView):
         'inventory': _inventory_formatter
     }
 
+    def on_model_change(self, form, model, is_created):
+        try:
+            from sqlalchemy import inspect
+            from services.resource_service import ResourceService
+
+            state = inspect(model)
+            watched = ("money", "bank_balance", "diamonds")
+            deltas = {}
+            revert = {}
+
+            for field in watched:
+                try:
+                    hist = state.attrs[field].history
+                except Exception:
+                    continue
+                if not hist.has_changes():
+                    continue
+
+                old_v = hist.deleted[0] if hist.deleted else None
+                new_v = hist.added[0] if hist.added else getattr(model, field)
+                old_i = int(old_v or 0)
+                new_i = int(new_v or 0)
+                if old_i != new_i:
+                    deltas[field] = new_i - old_i
+                    revert[field] = old_i
+
+            if not deltas:
+                return
+
+            for field, old_i in revert.items():
+                setattr(model, field, old_i)
+
+            ok = ResourceService.modify_resources(
+                int(model.id),
+                deltas,
+                'admin_panel_edit',
+                check_balance=True,
+                auto_commit=False,
+                expected_version=None,
+                log_extra={
+                    'admin_id': int(getattr(current_user, "id", 0) or 0)
+                },
+            )
+            if not ok:
+                raise RuntimeError("Failed to update resources")
+        except Exception as ex:
+            flash(_('فشل تحديث موارد المستخدم: %(e)s', e=str(ex)), 'error')
+            raise
+
     def delete_model(self, model):
         """
         Override delete_model to handle related records cleanup
@@ -236,10 +285,19 @@ class UserView(SecureModelView):
 
             # Delete related data
             UserItem.query.filter_by(user_id=model.id).delete()
-            uv_ids = [row[0] for row in self.session.query(UserVehicle.id).filter_by(user_id=model.id).all()]
+            uv_ids = [
+                row[0]
+                for row in self.session.query(UserVehicle.id)
+                .filter_by(user_id=model.id)
+                .all()
+            ]
             if uv_ids:
-                RaceParticipant.query.filter(RaceParticipant.user_vehicle_id.in_(uv_ids)).delete(synchronize_session=False)
-            RaceParticipant.query.filter_by(user_id=model.id).delete(synchronize_session=False)
+                RaceParticipant.query.filter(
+                    RaceParticipant.user_vehicle_id.in_(uv_ids)
+                ).delete(synchronize_session=False)
+            RaceParticipant.query.filter_by(user_id=model.id).delete(
+                synchronize_session=False
+            )
             UserVehicle.query.filter_by(user_id=model.id).delete()
             UserDailyTask.query.filter_by(user_id=model.id).delete()
             UserCrimeCooldown.query.filter_by(user_id=model.id).delete()
@@ -687,21 +745,70 @@ class PaymentView(SecureModelView):
     }
 
     def on_model_change(self, form, model, is_created):
-        # Log the change
-        log_details = (
-            f"Payment (ID: {model.id}) for user '{model.user.username}' "
-            f"was {'created' if is_created else 'updated'}."
-        )
         try:
+            if (
+                (not is_created)
+                and str(model.status) == 'completed'
+                and bool(model.is_verified)
+            ):
+                from models import UserLog
+                from services.resource_service import ResourceService
+
+                reason = 'real_money_diamonds_credit'
+                trans_id = str(getattr(model, 'transaction_id', '') or '')
+                already = None
+                if trans_id:
+                    already = UserLog.query.filter_by(
+                        user_id=int(model.user_id),
+                        action=reason.upper(),
+                    ).filter(UserLog.details.contains(trans_id)).first()
+
+                if not already:
+                    diamonds_amount = int(
+                        getattr(model, 'diamonds_amount', 0) or 0
+                    )
+                    if diamonds_amount > 0:
+                        ok = ResourceService.modify_resources(
+                            int(model.user_id),
+                            {'diamonds': diamonds_amount},
+                            reason,
+                            check_balance=False,
+                            auto_commit=False,
+                            expected_version=None,
+                            log_extra={
+                                'payment_transaction_id': int(model.id),
+                                'transaction_id': trans_id,
+                                'real_money_amount': float(
+                                    getattr(model, 'amount_usd', 0) or 0
+                                ),
+                                'real_money_currency': 'USD',
+                            },
+                        )
+                        if not ok:
+                            model.status = 'pending'
+                            model.is_verified = False
+                            flash(
+                                _(
+                                    'فشل شحن الماس تلقائياً. '
+                                    'تم إعادة الطلب إلى قيد الانتظار.'
+                                ),
+                                'error',
+                            )
+
+            log_details = (
+                f"Payment (ID: {model.id}) for user '{model.user.username}' "
+                f"was {'created' if is_created else 'updated'}."
+            )
             db.session.add(
                 GameLog(
                     admin_id=current_user.id,
                     action="Payment Change",
-                    details=log_details))
-            db.session.commit()
+                    target_id=int(model.user_id),
+                    details=log_details,
+                )
+            )
         except Exception as e:
-            db.session.rollback()
-            flash(f"Failed to log payment change: {e}", "error")
+            flash(f"Failed to process payment change: {e}", "error")
 
 
 class SystemConfigView(SecureModelView):

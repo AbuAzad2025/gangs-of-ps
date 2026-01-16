@@ -1,3 +1,5 @@
+from config import Config
+from factory import create_app
 import sys
 import os
 from dotenv import load_dotenv
@@ -11,8 +13,6 @@ if project_home not in sys.path:
 load_dotenv(os.path.join(project_home, '.env'))
 
 # Import the application factory
-from factory import create_app
-from config import Config
 
 # Create the application instance
 # PythonAnywhere looks for an object named 'application'

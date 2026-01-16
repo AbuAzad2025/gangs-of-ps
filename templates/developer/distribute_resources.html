@@ -27,10 +27,9 @@
                     <div class="form-group mb-4">
                         <label class="text-gold">{{ _('نوع الموارد') }}</label>
                         <select name="resource_type" class="form-control form-control-luxury">
-                            <option value="money">{{ _('كاش (Money)') }}</option>
-                            <option value="diamonds">{{ _('الماس (Diamonds)') }}</option>
-                            <option value="bullets">{{ _('رصاص (Bullets)') }}</option>
-                            <option value="bank_balance">{{ _('رصيد بنكي (Bank Balance)') }}</option>
+                            {% for value, label in resource_options %}
+                                <option value="{{ value }}">{{ label }}</option>
+                            {% endfor %}
                         </select>
                     </div>
 

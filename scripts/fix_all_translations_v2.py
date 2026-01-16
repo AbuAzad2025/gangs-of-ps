@@ -223,15 +223,15 @@ translations = {
     "ياسمين": "Jasmin",
     "ياسمين VIP (الإصدار الفاخر): ملكة السهرة والحظ. وجودها معك يعني الهيبة، الحظ، والأخبار الحصرية. مش مجرد مضيفة، هي شريكة نجاح.": "Jasmin VIP (Deluxe Edition): Queen of the evening and luck. Her presence means prestige, luck, and exclusive news. Not just a hostess, she's a partner in success.",
     "أهلاً فيك في أخطر حارة بفلسطين! 🇵🇸 أنا ياسمين، دليلك الشخصي في عالم العصابات. بدك تعرف كيف تعمل أول مليون؟ أو وين مخبى السلاح القوي؟ اسألني وأنا بضبطك! 😉💸": "Welcome to the most dangerous neighborhood in Palestine! 🇵🇸 I'm Jasmin, your personal guide in the gang world. Wanna know how to make your first million? Or where the powerful weapons are hidden? Ask me and I'll hook you up! 😉💸",
-    
+
     "ليلى": "Layla",
     "النسخة المطورة: سيدة الحظ الغامضة. مستوى أسطوري.": "Upgraded Version: The Mysterious Lady of Luck. Legendary Level.",
     "لقد عدت أقوى من أي وقت مضى... الحظ كله بين يدي الآن.": "I have returned stronger than ever... All the luck is in my hands now.",
-    
+
     "روبي": "Ruby",
     "الوردة الحمراء الخطرة. خبيرة التكتيك والرهانات العالية.": "The Dangerous Red Rose. Tactics and High Stakes Expert.",
     "اللعب مع الكبار بدو قلب ميت... جاهز للمخاطرة؟": "Playing with the big shots requires a dead heart... Ready to risk it?",
-    
+
     "سارة": "Sarah",
     "النسخة المطورة: ملكة الدعم الطبي. شفاء سريع وعناية فائقة.": "Upgraded Version: Queen of Medical Support. Fast healing and superior care.",
     "سلامتك يا بطل. خليني أهتم فيك شوي... 😉": "Stay safe, champion. Let me take care of you for a bit... 😉",
@@ -331,13 +331,13 @@ translations = {
     "بدأت عملية الإصلاح. ستستغرق %(min)s دقيقة.": "Repair started. Will take %(min)s minutes.",
     "تم بيع السيارة %(name)s وحصلت على %(price)s شيكل.": "Sold car %(name)s for %(price)s shekels.",
     "لا تملك كاش كافي للصهر! التكلفة: %(cost)s$": "You don't have enough cash! (required: %(cost)s$)",
-    
+
     # SEO
     "عصابات فلسطين, Gangs of Palestine, لعبة مافيا, RPG, شركة أزاد, Azad Company, ياسمين, ذكاء اصطناعي, العاب عربية": "Gangs of Palestine, Gangs of Palestine, Mafia Game, RPG, Azad Company, Azad Company, Jasmin, AI, Arab Games",
-    
+
     # Essentials (Seed)
     "نفّذ 3 جرائم": "Perform 3 crimes",
-    
+
     # Hostess Training
     "مضيفة الاستقبال": "Reception Hostess",
     "أنت %(name)s، زعيمة اللعبة وواجهة الاستقبال الرسمية في GangsOfPalestine. ": "You are %(name)s, the game leader and official reception interface in GangsOfPalestine. ",
@@ -365,7 +365,7 @@ translations = {
     "ابدأ بدور واضح: نفّذ مهام يومية، جهّز مواردك، ثم انضم لعصابة تناسب مستواك أو أنشئ عصابة إذا عندك فريق ثابت.": "Start with a clear role: Perform daily tasks, prepare your resources, then join a gang that fits your level or create a gang if you have a stable team.",
     "ليش انحظرت؟": "Why was I banned?",
     "إذا ظهر لك حظر مؤقت فغالباً فيه وقت انتهاء وسبب. التزم بالقواعد وانتظر انتهاء المدة. إذا تعتقد خطأ: تواصل مع الإدارة عبر القنوات المتاحة داخل اللعبة.": "If a temporary ban appears, it usually has an expiry time and reason. Stick to the rules and wait for it to expire. If you think it's a mistake: Contact administration via available channels inside the game.",
-    
+
     # Backup Manager
     "لم يتم العثور على إعدادات قاعدة البيانات.": "Database settings not found.",
     "تم إنشاء النسخة الاحتياطية بنجاح.": "Backup created successfully.",
@@ -379,7 +379,7 @@ translations = {
     "تم حذف النسخة الاحتياطية بنجاح.": "Backup deleted successfully.",
     "حدث خطأ أثناء الحذف: %(error)s": "Error during deletion: %(error)s",
     "الملف غير موجود.": "File not found.",
-    
+
     # Invite Friends
     "دعوة الأصدقاء": "Invite Friends",
     "برنامج الإحالة": "Referral Program",
@@ -393,7 +393,7 @@ translations = {
     "انضم لي في عصابات فلسطين!": "Join me in Gangs of Palestine!",
     "إجمالي الدعوات": "Total Invites",
     "قيد الانتظار": "Pending",
-    
+
     # Missing Hostess/Widget
     "جاري الاتصال...": "Connecting...",
     "لقد سحقت %(target)s في عصابات فلسطين! وسرقت منه $%(money)s! انضم لي الآن وسيطر على المدينة!": "I crushed %(target)s in Gangs of Palestine! And stole $%(money)s! Join me now and rule the city!",
@@ -423,7 +423,7 @@ translations = {
     "اكتبي رسالتك...": "Type your message...",
     "متصلة الآن": "Online Now",
     "اليوم": "Today",
-    
+
     # Gym
     "النادي الرياضي": "Gym",
     "طور مهاراتك القتالية والجسدية": "Develop your combat and physical skills",
@@ -438,7 +438,7 @@ translations = {
     "تزيد من ضرر هجماتك": "Increases your attack damage",
     "تقلل من الضرر المتلقى": "Reduces damage received",
     "تزيد فرصة المراوغة والهروب": "Increases dodge and escape chance",
-    
+
     # Settings
     "إعدادات النظام": "System Settings",
     "إضافة سريعة": "Quick Add",
@@ -451,7 +451,7 @@ translations = {
     "الوصف": "Description",
     "هل أنت متأكد من الحذف؟": "Are you sure you want to delete?",
     "لا توجد إعدادات مضافة": "No settings added",
-    
+
     # Ranks (Common)
     "مستجد": "Newbie",
     "جندي": "Soldier",
@@ -478,12 +478,15 @@ translations = {
 po_path = os.path.join('translations', 'en', 'LC_MESSAGES', 'messages.po')
 
 # Helper to check if string is mostly ASCII (English)
+
+
 def is_ascii(s):
     try:
         s.encode('ascii')
         return True
     except UnicodeEncodeError:
         return False
+
 
 # Read PO file
 with open(po_path, 'r', encoding='utf-8') as f:
@@ -509,29 +512,30 @@ for entry in entries:
     msgid = ""
     msgid_lines = []
     in_msgid = False
-    
+
     for line in entry:
         if line.startswith('msgid "'):
-            msgid = line[7:-1] # Keep quotes handling simple for now, usually strip "
+            # Keep quotes handling simple for now, usually strip "
+            msgid = line[7:-1]
             in_msgid = True
         elif line.startswith('msgstr "'):
             in_msgid = False
         elif in_msgid and line.startswith('"'):
-             msgid += line.strip('"')
+            msgid += line.strip('"')
 
     # Normalize msgid (remove escapes if needed, but dict has simple strings)
     # The dict keys don't have newlines usually, but PO might.
     # For now, let's try exact match on the concatenated string.
-    
+
     is_fuzzy = any("#, fuzzy" in line for line in entry)
-    
+
     new_entry = []
-    
+
     if msgid in translations:
         # We have a translation!
         for line in entry:
             if "#, fuzzy" in line:
-                continue # Remove fuzzy flag
+                continue  # Remove fuzzy flag
             if line.startswith('msgstr "'):
                 new_entry.append(f'msgstr "{translations[msgid]}"')
             # Handle multiline msgstr replacement (we just replace the first line and ignore others? No, that's dangerous)
@@ -539,7 +543,7 @@ for entry in entries:
             # But here we are constructing a NEW entry.
             # Simplified: we just copy everything EXCEPT msgstr lines.
             # Wait, this logic is tricky with line-by-line copy.
-            
+
         # Better approach: Reconstruct the entry
         reconstructed = []
         for line in entry:
@@ -555,7 +559,7 @@ for entry in entries:
             else:
                 reconstructed.append(line)
         new_entry = reconstructed
-        
+
     elif is_ascii(msgid) and msgid.strip() != "":
         # English msgid -> English msgstr
         reconstructed = []
@@ -573,7 +577,7 @@ for entry in entries:
         new_entry = entry
 
     final_lines.extend(new_entry)
-    final_lines.append("") # Separator
+    final_lines.append("")  # Separator
 
 with open(po_path, 'w', encoding='utf-8') as f:
     f.write("\n".join(final_lines))

@@ -26,7 +26,8 @@ os.makedirs("static/audio", exist_ok=True)
 
 for name, text in texts:
     print(f"Generating {name}...")
-    tts = gTTS(text=text, lang='en', tld='co.uk') # British accent is often more 'cinematic' or just different
+    # British accent is often more 'cinematic' or just different
+    tts = gTTS(text=text, lang='en', tld='co.uk')
     tts.save(f"static/audio/{name}.mp3")
 
 print("All audio files generated.")

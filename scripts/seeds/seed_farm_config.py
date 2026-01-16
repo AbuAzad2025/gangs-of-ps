@@ -1,13 +1,17 @@
+from models.system import SystemConfig
+from extensions import db
+from factory import create_app
 import sys
 import os
 import json
 
 # Add project root to path
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../../')))
+sys.path.append(
+    os.path.abspath(
+        os.path.join(
+            os.path.dirname(__file__),
+            '../../')))
 
-from factory import create_app
-from extensions import db
-from models.system import SystemConfig
 
 app = create_app()
 
@@ -71,7 +75,7 @@ default_config = {
 with app.app_context():
     print("Seeding farm_config_json...")
     json_str = json.dumps(default_config, ensure_ascii=False)
-    
+
     # Check current value
     curr = SystemConfig.query.filter_by(key="farm_config_json").first()
     if curr:
@@ -79,9 +83,12 @@ with app.app_context():
         curr.value = json_str
     else:
         print("No existing config. Creating new...")
-        new_conf = SystemConfig(key="farm_config_json", value=json_str, description="Farm Configuration")
+        new_conf = SystemConfig(
+            key="farm_config_json",
+            value=json_str,
+            description="Farm Configuration")
         db.session.add(new_conf)
-    
+
     try:
         db.session.commit()
         print("Successfully saved farm_config_json.")

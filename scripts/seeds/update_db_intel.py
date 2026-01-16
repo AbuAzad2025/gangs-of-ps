@@ -1,10 +1,15 @@
+from sqlalchemy import text
+from factory import create_app, db
 import os
 import sys
 
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')))
+sys.path.append(
+    os.path.abspath(
+        os.path.join(
+            os.path.dirname(__file__),
+            '..',
+            '..')))
 
-from factory import create_app, db
-from sqlalchemy import text
 
 app = create_app()
 
@@ -13,7 +18,8 @@ with app.app_context():
         with db.engine.connect() as conn:
             # Try to add the column. If it fails, it likely exists.
             try:
-                conn.execute(text('ALTER TABLE "user" ADD COLUMN intelligence INTEGER DEFAULT 10'))
+                conn.execute(
+                    text('ALTER TABLE "user" ADD COLUMN intelligence INTEGER DEFAULT 10'))
                 conn.commit()
                 print("Added 'intelligence' column to User table.")
             except Exception as e:

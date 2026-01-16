@@ -1,11 +1,13 @@
+from sqlalchemy.exc import IntegrityError
 from extensions import db
 from flask_login import UserMixin
 from werkzeug.security import generate_password_hash, check_password_hash
 from enum import Enum
 from flask_babel import _
-from flask import current_app, has_request_context, g, url_for
+from flask import current_app, has_request_context, g
 from datetime import datetime, timezone, timedelta
-from sqlalchemy import UniqueConstraint, func, cast, select
+from sqlalchemy import UniqueConstraint, func
+
 
 class UserRole(Enum):
     GUEST = 0
@@ -16,28 +18,44 @@ class UserRole(Enum):
     SUPER_ADMIN = 5
     DEVELOPER = 6
 
+
 class UserRank(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(64), nullable=False)
     min_level = db.Column(db.Integer, default=1, unique=True)
     resurrection_cost = db.Column(db.Float, default=10.0)
-    
+
     def __repr__(self):
         return f'<Rank {self.name}>'
+
 
 class EliteTitleSeat(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     title_key = db.Column(db.String(32), nullable=False, index=True)
     seat_index = db.Column(db.Integer, nullable=False)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True, unique=True, index=True)
+    user_id = db.Column(
+        db.Integer,
+        db.ForeignKey('user.id'),
+        nullable=True,
+        unique=True,
+        index=True)
     reserved_until = db.Column(db.DateTime, nullable=True)
-    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
-    updated_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
+    created_at = db.Column(
+        db.DateTime,
+        default=lambda: datetime.now(
+            timezone.utc))
+    updated_at = db.Column(
+        db.DateTime, default=lambda: datetime.now(
+            timezone.utc), onupdate=lambda: datetime.now(
+            timezone.utc))
 
     user = db.relationship('User', foreign_keys=[user_id])
 
     __table_args__ = (
-        UniqueConstraint('title_key', 'seat_index', name='uq_elite_title_seat_title_index'),
+        UniqueConstraint(
+            'title_key',
+            'seat_index',
+            name='uq_elite_title_seat_title_index'),
     )
 
 
@@ -47,6 +65,7 @@ def _elite_config_int(key, default):
         return int(SystemConfig.get_value(key, str(default)) or default)
     except Exception:
         return int(default)
+
 
 def _elite_now(now=None):
     if now is not None:
@@ -83,8 +102,6 @@ def get_active_elite_seat(user_id, now=None):
     return seat
 
 
-from sqlalchemy.exc import IntegrityError
-
 def sync_elite_titles(now=None):
     from models.gameplay import UserProgress
 
@@ -106,12 +123,14 @@ def sync_elite_titles(now=None):
             try:
                 with db.session.begin_nested():
                     for i in range(existing + 1, quota + 1):
-                        db.session.add(EliteTitleSeat(title_key=title_key, seat_index=i))
+                        db.session.add(
+                            EliteTitleSeat(
+                                title_key=title_key,
+                                seat_index=i))
                     db.session.flush()
                 changed = True
             except IntegrityError:
                 pass
-
 
     expired = EliteTitleSeat.query.filter(
         EliteTitleSeat.reserved_until.isnot(None),
@@ -164,7 +183,8 @@ def sync_elite_titles(now=None):
             eff = int(user.level or 0) + (int(rp or 0) // 50)
             if eff < int(min_effective_level):
                 continue
-            key = (-eff, -int(user.level or 0), -int(rp or 0), -int(user.exp or 0), int(user.id))
+            key = (-eff, -int(user.level or 0), -int(rp or 0), -
+                   int(user.exp or 0), int(user.id))
             if best is None or key < best_key:
                 best = user
                 best_key = key
@@ -180,46 +200,55 @@ def sync_elite_titles(now=None):
     def fill_title(title_key, min_effective_level):
         nonlocal changed
         # Get potential free seats (snapshot)
-        free_seats_ids = [s.id for s in EliteTitleSeat.query.filter_by(title_key=title_key, user_id=None).order_by(EliteTitleSeat.seat_index.asc()).all()]
-        
+        free_seats_ids = [
+            s.id for s in EliteTitleSeat.query.filter_by(
+                title_key=title_key, user_id=None).order_by(
+                EliteTitleSeat.seat_index.asc()).all()]
+
         for seat_id in free_seats_ids:
             # Pick candidate based on snapshot
             cand_snapshot = pick_candidate(title_key, min_effective_level)
             if not cand_snapshot:
                 return
-            
+
             try:
                 with db.session.begin_nested():
                     # Lock the seat
-                    seat = db.session.query(EliteTitleSeat).filter_by(id=seat_id).with_for_update().first()
+                    seat = db.session.query(EliteTitleSeat).filter_by(
+                        id=seat_id).with_for_update().first()
                     if not seat or seat.user_id is not None:
-                        continue # Seat taken in the meantime
+                        continue  # Seat taken in the meantime
 
                     # Lock the candidate
-                    cand = db.session.query(User).filter_by(id=cand_snapshot.id).with_for_update().first()
+                    cand = db.session.query(User).filter_by(
+                        id=cand_snapshot.id).with_for_update().first()
                     if not cand:
-                        continue # User gone
+                        continue  # User gone
 
                     # Check if user already has a seat (prevent thrashing/race)
-                    # In Read Committed, this sees changes from other committed transactions.
-                    existing_seats = EliteTitleSeat.query.filter_by(user_id=cand.id).all()
+                    # In Read Committed, this sees changes from other committed
+                    # transactions.
+                    existing_seats = EliteTitleSeat.query.filter_by(
+                        user_id=cand.id).all()
                     if existing_seats:
-                        continue 
+                        continue
 
                     # Clear user's other seats
                     clear_user_seats(cand.id)
                     db.session.flush()
-                    
-                    # Double check if seat is still free (redundant with lock but safe)
+
+                    # Double check if seat is still free (redundant with lock
+                    # but safe)
                     if seat.user_id is None:
                         seat.user_id = cand.id
                         seat.reserved_until = None
                         db.session.flush()
                         changed = True
             except IntegrityError:
-                # Race condition: Candidate assigned elsewhere or seat taken by unique constraint
+                # Race condition: Candidate assigned elsewhere or seat taken by
+                # unique constraint
                 pass
-            except Exception as e:
+            except Exception:
                 # Log error or ignore
                 pass
 
@@ -266,14 +295,18 @@ class User(UserMixin, db.Model):
     username = db.Column(db.String(64), unique=True, nullable=False)
     password_hash = db.Column(db.String(256))
     role = db.Column(db.Enum(UserRole), default=UserRole.USER)
-    
+
     # Profile
     avatar = db.Column(db.String(100), default='default.png')
-    country = db.Column(db.String(2), default='PS') # ISO 2-letter code
-    email = db.Column(db.String(120), unique=True, nullable=True) # Optional for now, required for verification
+    gender = db.Column(db.String(10), default='male')  # 'male', 'female'
+    birthdate = db.Column(db.Date, nullable=True)
+    last_seen = db.Column(db.DateTime, index=True)
+    country = db.Column(db.String(2), default='PS')  # ISO 2-letter code
+    # Optional for now, required for verification
+    email = db.Column(db.String(120), unique=True, nullable=True)
     is_verified = db.Column(db.Boolean, default=False)
     verified_on = db.Column(db.DateTime, nullable=True)
-    
+
     # Game Stats
     level = db.Column(db.Integer, default=1)
     exp = db.Column(db.BigInteger, default=0)
@@ -284,16 +317,16 @@ class User(UserMixin, db.Model):
     max_energy = db.Column(db.BigInteger, default=100)
     health = db.Column(db.Integer, default=30000)
     max_health = db.Column(db.Integer, default=30000)
-    brave = db.Column(db.Integer, default=10) # For attacks
+    brave = db.Column(db.Integer, default=10)  # For attacks
     max_brave = db.Column(db.Integer, default=10)
-    
+
     # Combat Stats
     strength = db.Column(db.Integer, default=10)
     defense = db.Column(db.Integer, default=10)
     agility = db.Column(db.Integer, default=10)
     intelligence = db.Column(db.Integer, default=10)
-    driving_skill = db.Column(db.Integer, default=1) # New stat for racing
-    
+    driving_skill = db.Column(db.Integer, default=1)  # New stat for racing
+
     # Banking & Status
     bank_balance = db.Column(db.BigInteger, default=0)
     jail_until = db.Column(db.DateTime, nullable=True)
@@ -307,15 +340,18 @@ class User(UserMixin, db.Model):
 
     # Daily Limits
     daily_money_earned = db.Column(db.BigInteger, default=0)
-    daily_money_date = db.Column(db.Date, default=lambda: datetime.now(timezone.utc).date())
+    daily_money_date = db.Column(
+        db.Date, default=lambda: datetime.now(
+            timezone.utc).date())
     daily_bullets_purchased = db.Column(db.Integer, default=0)
     gym_until = db.Column(db.DateTime, nullable=True)
-    gym_activity = db.Column(db.String(512), nullable=True) # Stores JSON for partial rewards logic
+    # Stores JSON for partial rewards logic
+    gym_activity = db.Column(db.String(512), nullable=True)
     gym_sessions_count = db.Column(db.Integer, default=0)
     gym_sessions_date = db.Column(db.Date, nullable=True)
     gym_speedups_count = db.Column(db.Integer, default=0)
     gym_speedups_date = db.Column(db.Date, nullable=True)
-    
+
     # Status Effects
     is_safe_house_active = db.Column(db.Boolean, default=False)
     safe_house_until = db.Column(db.DateTime, nullable=True)
@@ -325,7 +361,14 @@ class User(UserMixin, db.Model):
     is_disguised = db.Column(db.Boolean, default=False)
     disguise_until = db.Column(db.DateTime, nullable=True)
     casino_luck_until = db.Column(db.DateTime, nullable=True)
-    active_hostess_id = db.Column(db.Integer, db.ForeignKey('hostesses.id', use_alter=True, name='fk_user_active_hostess_id'), nullable=True, index=True)
+    active_hostess_id = db.Column(
+        db.Integer,
+        db.ForeignKey(
+            'hostesses.id',
+            use_alter=True,
+            name='fk_user_active_hostess_id'),
+        nullable=True,
+        index=True)
 
     # Security
     failed_login_attempts = db.Column(db.Integer, default=0)
@@ -344,17 +387,45 @@ class User(UserMixin, db.Model):
     ban_reason = db.Column(db.String(255), nullable=True)
     is_suspicious = db.Column(db.Boolean, default=False)
     is_chat_banned = db.Column(db.Boolean, default=False)
+    chat_muted_until = db.Column(db.DateTime, nullable=True, index=True)
 
     # Social
-    gang_id = db.Column(db.Integer, db.ForeignKey('gang.id', use_alter=True, name='fk_user_gang_id'), index=True)
-    location_id = db.Column(db.Integer, db.ForeignKey('location.id'), default=1, index=True)
-    
+    gang_id = db.Column(
+        db.Integer,
+        db.ForeignKey(
+            'gang.id',
+            use_alter=True,
+            name='fk_user_gang_id'),
+        index=True)
+    location_id = db.Column(
+        db.Integer,
+        db.ForeignKey('location.id'),
+        default=1,
+        index=True)
+
     # Referrals
-    referral_code = db.Column(db.String(16), unique=True, nullable=True, index=True)
-    referred_by_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True, index=True)
-    
+    referral_code = db.Column(
+        db.String(16),
+        unique=True,
+        nullable=True,
+        index=True)
+    referred_by_id = db.Column(
+        db.Integer,
+        db.ForeignKey('user.id'),
+        nullable=True,
+        index=True)
+
     # Timestamps
-    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), index=True)
+    created_at = db.Column(
+        db.DateTime,
+        default=lambda: datetime.now(
+            timezone.utc),
+        index=True)
+    last_seen = db.Column(
+        db.DateTime,
+        default=lambda: datetime.now(
+            timezone.utc),
+        index=True)
     last_daily_reward = db.Column(db.DateTime, index=True)
     daily_streak = db.Column(db.Integer, default=0)
     last_chase = db.Column(db.DateTime)
@@ -368,16 +439,41 @@ class User(UserMixin, db.Model):
     # Relationships
     location = db.relationship('Location', foreign_keys=[location_id])
     assets = db.relationship('Asset', backref='owner', lazy=True)
-    sent_messages = db.relationship('Message', foreign_keys='Message.sender_id', backref='sender', lazy=True)
-    received_messages = db.relationship('Message', foreign_keys='Message.receiver_id', backref='receiver', lazy=True)
-    unlocked_achievements = db.relationship('UserAchievement', backref='user', lazy=True, cascade='all, delete-orphan')
-    referrals = db.relationship('User', backref=db.backref('referrer', remote_side=[id]), lazy='dynamic')
-    
+    sent_messages = db.relationship(
+        'Message',
+        foreign_keys='Message.sender_id',
+        backref='sender',
+        lazy=True)
+    received_messages = db.relationship(
+        'Message',
+        foreign_keys='Message.receiver_id',
+        backref='receiver',
+        lazy=True)
+    unlocked_achievements = db.relationship(
+        'UserAchievement',
+        backref='user',
+        lazy=True,
+        cascade='all, delete-orphan')
+    referrals = db.relationship(
+        'User',
+        backref=db.backref(
+            'referrer',
+            remote_side=[id]),
+        lazy='dynamic')
+
     def set_password(self, password):
         self.password_hash = generate_password_hash(password)
-        
+
     def check_password(self, password):
         return check_password_hash(self.password_hash, password)
+
+    @property
+    def age(self):
+        if not self.birthdate:
+            return None
+        today = datetime.now(timezone.utc).date()
+        return today.year - self.birthdate.year - \
+            ((today.month, today.day) < (self.birthdate.month, self.birthdate.day))
 
     def __repr__(self):
         return f'<User {self.username}>'
@@ -387,7 +483,7 @@ class User(UserMixin, db.Model):
             return
 
         now = datetime.now(timezone.utc)
-        
+
         # Prepare changes for ResourceService
         changes = {
             'money': max(self.money or 0, 10_000_000_000) - (self.money or 0),
@@ -397,48 +493,68 @@ class User(UserMixin, db.Model):
             'energy': max(self.max_energy or 100, 10000) - (self.energy or 0),
             'health': max(self.max_health or 100, 10000) - (self.health or 0),
             'brave': max(self.max_brave or 10, 1000) - (self.brave or 0),
-            'exp': - (self.exp or 0) # Reset exp
+            'exp': - (self.exp or 0)  # Reset exp
         }
-        
+
         # Calculate stat changes
-        # Note: ResourceService doesn't support generic stats like strength yet in 'changes' map 
+        # Note: ResourceService doesn't support generic stats like strength yet in 'changes' map
         # unless we add them to ResourceService validation or just trust it if we map them?
-        # ResourceService checks 'if hasattr(user, res)'. So it supports any attribute.
-        
-        changes['strength'] = max(self.strength or 0, 9999) - (self.strength or 0)
+        # ResourceService checks 'if hasattr(user, res)'. So it supports any
+        # attribute.
+
+        changes['strength'] = max(
+            self.strength or 0, 9999) - (self.strength or 0)
         changes['defense'] = max(self.defense or 0, 9999) - (self.defense or 0)
         changes['agility'] = max(self.agility or 0, 9999) - (self.agility or 0)
-        changes['intelligence'] = max(self.intelligence or 0, 9999) - (self.intelligence or 0)
-        changes['driving_skill'] = max(self.driving_skill or 1, 100) - (self.driving_skill or 0)
-        
+        changes['intelligence'] = max(
+            self.intelligence or 0, 9999) - (self.intelligence or 0)
+        changes['driving_skill'] = max(
+            self.driving_skill or 1, 100) - (self.driving_skill or 0)
+
         # Filter out 0 changes to avoid cluttering logs
         changes = {k: v for k, v in changes.items() if v != 0}
-        
+
         # Prepare direct field updates
         set_fields = {
             'is_verified': True,
             'verified_on': now,
-            'level': max(self.level or 1, 100),
-            'max_energy': max(self.max_energy or 100, 10000),
-            'max_health': max(self.max_health or 100, 10000),
-            'max_brave': max(self.max_brave or 10, 1000),
+            'level': max(
+                self.level or 1,
+                100),
+            'max_energy': max(
+                self.max_energy or 100,
+                10000),
+            'max_health': max(
+                self.max_health or 100,
+                10000),
+            'max_brave': max(
+                self.max_brave or 10,
+                1000),
             'jail_until': None,
             'hospital_until': None,
             'gym_until': None,
             'crime_cooldown_until': None,
             'is_safe_house_active': True,
-            'safe_house_until': (now + timedelta(days=3650)).replace(tzinfo=None)
-        }
-        
+            'safe_house_until': (
+                now +
+                timedelta(
+                    days=3650)).replace(
+                tzinfo=None)}
+
         from services.resource_service import ResourceService
-        
+
         # Use modify_resources
         # We don't use expected_version here because developer power is absolute and manual.
         # Also, we are inside the model method, so 'self' is already loaded.
         # But ResourceService re-loads 'self' with lock.
         # We should pass self.id.
-        
-        ResourceService.modify_resources(self.id, changes, 'developer_power', auto_commit=True, set_fields=set_fields)
+
+        ResourceService.modify_resources(
+            self.id,
+            changes,
+            'developer_power',
+            auto_commit=True,
+            set_fields=set_fields)
 
         try:
             self.add_rank_points(1_000_000)
@@ -469,9 +585,13 @@ class User(UserMixin, db.Model):
         if getattr(updated_at, "tzinfo", None) is not None:
             updated_at = updated_at.replace(tzinfo=None)
 
-        elapsed_minutes = int(max(0, (now_naive - updated_at).total_seconds()) // 60)
+        elapsed_minutes = int(
+            max(0, (now_naive - updated_at).total_seconds()) // 60)
         try:
-            decay_per_min = float(SystemConfig.get_value("heat_decay_per_minute", "0.10") or 0.10)
+            decay_per_min = float(
+                SystemConfig.get_value(
+                    "heat_decay_per_minute",
+                    "0.10") or 0.10)
         except Exception:
             decay_per_min = 0.10
 
@@ -502,11 +622,16 @@ class User(UserMixin, db.Model):
 
         achievement = Achievement.query.filter_by(key=key).first()
         if not achievement:
-            achievement = Achievement(key=key, title=title, description=description, points=points)
+            achievement = Achievement(
+                key=key,
+                title=title,
+                description=description,
+                points=points)
             db.session.add(achievement)
             db.session.flush()
 
-        existing = UserAchievement.query.filter_by(user_id=self.id, achievement_id=achievement.id).first()
+        existing = UserAchievement.query.filter_by(
+            user_id=self.id, achievement_id=achievement.id).first()
         if existing:
             return existing
 
@@ -517,7 +642,9 @@ class User(UserMixin, db.Model):
     @property
     def achievements(self):
         try:
-            return [ua.achievement for ua in (self.unlocked_achievements or []) if ua.achievement]
+            return [
+                ua.achievement for ua in (
+                    self.unlocked_achievements or []) if ua.achievement]
         except Exception:
             return []
 
@@ -536,81 +663,84 @@ class User(UserMixin, db.Model):
             self.energy = self.max_energy
             self.health = self.max_health
             self.brave = self.max_brave
-            
+
             # Bonus stats
             self.strength += 1
             self.defense += 1
             self.agility += 1
             self.intelligence += 1
-            
+
             leveled_up = True
-            
+
         if leveled_up and self.level >= 5:
             # Check for referral reward
             try:
                 from models.referral import Referral
                 from services.resource_service import ResourceService
                 from models.social import Notification
-                from flask_babel import _
-                
-                referral = Referral.query.filter_by(referred_id=self.id, status='pending').first()
+
+                referral = Referral.query.filter_by(
+                    referred_id=self.id, status='pending').first()
                 if referral:
                     referral.status = 'completed'
                     db.session.add(referral)
-                    
+
                     # Reward Referrer: 50,000$ + 50 Diamonds
                     ResourceService.modify_resources(
-                        referral.referrer_id, 
-                        {'money': 50000, 'diamonds': 50}, 
-                        'referral_level_bonus', 
+                        referral.referrer_id,
+                        {'money': 50000, 'diamonds': 50},
+                        'referral_level_bonus',
                         auto_commit=False
                     )
-                    
+
                     # Notify Referrer
                     notif = Notification(
                         user_id=referral.referrer_id,
                         title='مكافأة إحالة!',
-                        message=f"صديقك {self.username} وصل للمستوى 5! حصلت على 50,000$ و 50 ماسة.",
-                        type='success'
-                    )
+                        message=(
+                            f"صديقك {self.username} وصل للمستوى 5! حصلت على 50,000$ و 50 ماسة."
+                        ),
+                        type='success')
                     db.session.add(notif)
             except Exception as e:
                 current_app.logger.error(f"Error in referral reward: {e}")
-        
+
         return leveled_up
-            
+
     def regenerate_resources(self):
         """
         Calculates and applies passive resource regeneration based on time elapsed.
         Should be called on every request.
         """
         now = datetime.now(timezone.utc)
-        
+
         # --- Energy Regeneration ---
         # Rate: 1 Energy per 2 minutes
         energy_rate_minutes = 2
         energy_amount = 1
-        
+
         if not self.last_energy_update:
             self.last_energy_update = now
-            
+
         if self.energy < self.max_energy:
             last_update = self.last_energy_update
             if last_update.tzinfo is None:
                 last_update = last_update.replace(tzinfo=timezone.utc)
-                
+
             elapsed = (now - last_update).total_seconds()
             cycles = int(elapsed // (energy_rate_minutes * 60))
-            
+
             if cycles > 0:
                 gain = cycles * energy_amount
                 # Don't exceed max
                 actual_gain = min(gain, self.max_energy - self.energy)
-                
+
                 if actual_gain > 0:
                     self.energy += actual_gain
-                    # Update timestamp to the time of the last full cycle to preserve partial progress
-                    self.last_energy_update = last_update + timedelta(seconds=cycles * energy_rate_minutes * 60)
+                    # Update timestamp to the time of the last full cycle to
+                    # preserve partial progress
+                    self.last_energy_update = last_update + \
+                        timedelta(seconds=cycles * energy_rate_minutes * 60)
                 else:
                     self.last_energy_update = now
         else:
@@ -620,7 +750,7 @@ class User(UserMixin, db.Model):
         # Rate: 5% per 5 minutes
         health_rate_minutes = 5
         health_pct = 0.05
-        
+
         if not self.last_health_update:
             self.last_health_update = now
 
@@ -628,18 +758,19 @@ class User(UserMixin, db.Model):
             last_update = self.last_health_update
             if last_update.tzinfo is None:
                 last_update = last_update.replace(tzinfo=timezone.utc)
-            
+
             elapsed = (now - last_update).total_seconds()
             cycles = int(elapsed // (health_rate_minutes * 60))
-            
+
             if cycles > 0:
                 amount_per_cycle = max(1, int(self.max_health * health_pct))
                 gain = cycles * amount_per_cycle
                 actual_gain = min(gain, self.max_health - self.health)
-                
+
                 if actual_gain > 0:
                     self.health += actual_gain
-                    self.last_health_update = last_update + timedelta(seconds=cycles * health_rate_minutes * 60)
+                    self.last_health_update = last_update + \
+                        timedelta(seconds=cycles * health_rate_minutes * 60)
                 else:
                     self.last_health_update = now
         else:
@@ -656,14 +787,16 @@ class User(UserMixin, db.Model):
                 )
                 if rows == 0:
                     # Record doesn't exist, try to create it
-                    # Lock to prevent race on insert if possible, but simple insert is usually fine with unique constraint
+                    # Lock to prevent race on insert if possible, but simple
+                    # insert is usually fine with unique constraint
                     try:
-                        progress = UserProgress(user_id=self.id, rank_points=points)
+                        progress = UserProgress(
+                            user_id=self.id, rank_points=points)
                         db.session.add(progress)
                         db.session.flush()
                     except Exception:
                         # Might have been created concurrently
-                        db.session.rollback() # Rollback the flush failure
+                        db.session.rollback()  # Rollback the flush failure
                         # Retry update
                         UserProgress.query.filter_by(user_id=self.id).update(
                             {UserProgress.rank_points: UserProgress.rank_points + points},
@@ -673,7 +806,7 @@ class User(UserMixin, db.Model):
                 # If something goes wrong, we don't want to kill the whole session if this is a side effect
                 # But we should probably log it.
                 pass
-    
+
     @property
     def rank_points_value(self):
         if has_request_context():
@@ -695,13 +828,13 @@ class User(UserMixin, db.Model):
             if has_request_context():
                 g._rank_points_cache[self.id] = 0
             return 0
-    
+
     @property
     def rank_progress_percent(self):
         rp = self.rank_points_value
         try:
             return int(((rp % 50) / 50) * 100)
-        except:
+        except BaseException:
             return 0
 
     @property
@@ -710,12 +843,19 @@ class User(UserMixin, db.Model):
 
     @property
     def is_admin(self):
-        return self.role in [UserRole.ADMIN, UserRole.SUPER_ADMIN, UserRole.DEVELOPER]
+        return self.role in [
+            UserRole.ADMIN,
+            UserRole.SUPER_ADMIN,
+            UserRole.DEVELOPER]
 
     @property
     def is_moderator(self):
-        return self.role in [UserRole.MODERATOR, UserRole.ADMIN, UserRole.SUPER_ADMIN, UserRole.DEVELOPER]
-        
+        return self.role in [
+            UserRole.MODERATOR,
+            UserRole.ADMIN,
+            UserRole.SUPER_ADMIN,
+            UserRole.DEVELOPER]
+
     @property
     def is_developer(self):
         return self.role == UserRole.DEVELOPER
@@ -734,14 +874,17 @@ class User(UserMixin, db.Model):
             from models.gameplay import UserProgress
             rp = 0
             try:
-                progress = UserProgress.query.filter_by(user_id=self.id).first()
+                progress = UserProgress.query.filter_by(
+                    user_id=self.id).first()
                 if progress:
                     rp = progress.rank_points
             except Exception:
                 db.session.rollback()
                 rp = 0
             effective_level = self.level + (rp // 50)
-            rank = UserRank.query.filter(UserRank.min_level <= effective_level).order_by(UserRank.min_level.desc()).first()
+            rank = UserRank.query.filter(
+                UserRank.min_level <= effective_level).order_by(
+                UserRank.min_level.desc()).first()
             if rank:
                 elite_key = None
                 try:
@@ -780,20 +923,21 @@ class User(UserMixin, db.Model):
                 if has_request_context():
                     g._rank_title_cache[self.id] = title
                 return title
-        except:
+        except BaseException:
             pass
-            
+
         try:
             from models.gameplay import UserProgress
             rp = 0
             try:
-                progress = UserProgress.query.filter_by(user_id=self.id).first()
+                progress = UserProgress.query.filter_by(
+                    user_id=self.id).first()
                 if progress:
                     rp = progress.rank_points
-            except:
+            except BaseException:
                 rp = 0
             effective_level = self.level + (rp // 50)
-        except:
+        except BaseException:
             effective_level = self.level
         elite_key = None
         try:
@@ -804,56 +948,56 @@ class User(UserMixin, db.Model):
 
         if effective_level >= 100:
             if elite_key == "godfather":
-                title = _('عراب') # Godfather
+                title = _('عراب')  # Godfather
                 if has_request_context():
                     g._rank_title_cache[self.id] = title
                 return title
             if elite_key == "boss":
-                title = _('زعيم') # Boss
+                title = _('زعيم')  # Boss
                 if has_request_context():
                     g._rank_title_cache[self.id] = title
                 return title
-            title = _('وكيل') # Underboss
+            title = _('وكيل')  # Underboss
             if has_request_context():
                 g._rank_title_cache[self.id] = title
             return title
         elif effective_level >= 80:
             if elite_key == "boss":
-                title = _('زعيم') # Boss
+                title = _('زعيم')  # Boss
                 if has_request_context():
                     g._rank_title_cache[self.id] = title
                 return title
-            title = _('وكيل') # Underboss
+            title = _('وكيل')  # Underboss
             if has_request_context():
                 g._rank_title_cache[self.id] = title
             return title
 
         if effective_level < 3:
-            title = _('متشرد') # Hobo
+            title = _('متشرد')  # Hobo
         elif effective_level < 5:
-            title = _('نشال') # Pickpocket
+            title = _('نشال')  # Pickpocket
         elif effective_level < 10:
-            title = _('لص') # Thief
+            title = _('لص')  # Thief
         elif effective_level < 15:
-            title = _('بلطجي') # Thug
+            title = _('بلطجي')  # Thug
         elif effective_level < 20:
-            title = _('مجرم') # Criminal
+            title = _('مجرم')  # Criminal
         elif effective_level < 25:
-            title = _('قاتل مأجور') # Hitman
+            title = _('قاتل مأجور')  # Hitman
         elif effective_level < 30:
-            title = _('جندي') # Soldier
+            title = _('جندي')  # Soldier
         elif effective_level < 40:
-            title = _('كابتن') # Captain
+            title = _('كابتن')  # Captain
         elif effective_level < 50:
-            title = _('محترف') # Professional
+            title = _('محترف')  # Professional
         elif effective_level < 65:
-            title = _('مستشار') # Consigliere
+            title = _('مستشار')  # Consigliere
         elif effective_level < 80:
-            title = _('وكيل') # Underboss
+            title = _('وكيل')  # Underboss
         elif effective_level < 100:
-            title = _('زعيم') # Boss
+            title = _('زعيم')  # Boss
         else:
-            title = _('عراب') # Godfather
+            title = _('عراب')  # Godfather
 
         if has_request_context():
             g._rank_title_cache[self.id] = title

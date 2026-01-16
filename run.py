@@ -16,13 +16,15 @@ if not is_cli and not is_pythonanywhere:
     except ImportError:
         pass
 
-from factory import create_app, db
-from extensions import socketio
-from config import Config, TestConfig
 from flask.cli import with_appcontext
+from config import Config, TestConfig
+from extensions import socketio
+from factory import create_app, db
+
 
 cfg = TestConfig if os.environ.get("USE_TEST_DB") == "1" else Config
 app = create_app(cfg)
+
 
 @app.cli.command("seed_db")
 @with_appcontext
@@ -30,11 +32,12 @@ def seed_db():
     from utils.essentials import initialize_essentials
     """Seeds the database with initial data using the centralized initialization logic."""
     db.create_all()
-    
+
     # Use the centralized initialization function
     initialize_essentials(app)
-    
+
     app.logger.info("Database seeding completed!")
+
 
 @app.cli.command("economy_daily")
 @with_appcontext
@@ -44,6 +47,7 @@ def economy_daily():
     app.logger.info("Starting daily economy checks...")
     process_daily_economy_checks()
     app.logger.info("Daily economy checks completed!")
+
 
 if __name__ == '__main__':
     app.logger.info("Starting Flask Server...")

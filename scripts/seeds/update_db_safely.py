@@ -1,13 +1,19 @@
+from sqlalchemy import text, inspect
+from extensions import db
+from factory import create_app
 import os
 import sys
 
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')))
+sys.path.append(
+    os.path.abspath(
+        os.path.join(
+            os.path.dirname(__file__),
+            '..',
+            '..')))
 
-from factory import create_app
-from extensions import db
-from sqlalchemy import text, inspect
 
 app = create_app()
+
 
 def update_db():
     with app.app_context():
@@ -52,7 +58,8 @@ def update_db():
         required_tables = {"user", "hostesses", "market_asset"}
         existing_tables = get_tables()
         if not required_tables.issubset(existing_tables):
-            print("Missing core tables detected. Creating missing tables via SQLAlchemy...")
+            print(
+                "Missing core tables detected. Creating missing tables via SQLAlchemy...")
             db.create_all()
             inspector = inspect(engine)
             existing_tables = get_tables()
@@ -134,7 +141,7 @@ def update_db():
                         "referred_by_id",
                         'ALTER TABLE "user" ADD COLUMN referred_by_id INTEGER REFERENCES "user"(id)',
                     )
-                    
+
                     ensure_index(
                         conn,
                         'CREATE UNIQUE INDEX IF NOT EXISTS ix_user_referral_code ON "user" (referral_code)',
@@ -317,6 +324,7 @@ def update_db():
                 trans.rollback()
                 print(f"Schema update failed: {e}")
                 raise
+
 
 if __name__ == "__main__":
     update_db()

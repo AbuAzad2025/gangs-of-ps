@@ -8,29 +8,37 @@ import random
 
 bp = Blueprint('police_chase', __name__, url_prefix='/police_chase')
 
+
 @bp.route('/')
 @login_required
 def index():
     # Check if user is in an active chase state
     active_chase = session.get('active_chase', False)
     chase_difficulty = session.get('chase_difficulty', 1)
-    
+
     can_chase = True
     remaining_time = 0
-    
+
     # Cooldown Check
     if current_user.last_chase:
         last_chase = current_user.last_chase
         if last_chase.tzinfo is None:
             last_chase = last_chase.replace(tzinfo=timezone.utc)
-            
+
         now = datetime.now(timezone.utc)
         if now - last_chase < timedelta(minutes=5):
             can_chase = False
             remaining = timedelta(minutes=5) - (now - last_chase)
             remaining_time = int(remaining.total_seconds())
-            
-    return render_template('police_chase.html', can_chase=can_chase, remaining_time=remaining_time, user=current_user, active_chase=active_chase, difficulty=chase_difficulty)
+
+    return render_template(
+        'police_chase.html',
+        can_chase=can_chase,
+        remaining_time=remaining_time,
+        user=current_user,
+        active_chase=active_chase,
+        difficulty=chase_difficulty)
+
 
 @bp.route('/start', methods=['POST'])
 @login_required
@@ -40,40 +48,44 @@ def start():
         last_chase = current_user.last_chase
         if last_chase.tzinfo is None:
             last_chase = last_chase.replace(tzinfo=timezone.utc)
-            
+
         now = datetime.now(timezone.utc)
         if now - last_chase < timedelta(minutes=5):
             flash(_('عليك الانتظار قبل المطاردة التالية!'), 'danger')
             return redirect(url_for('police_chase.index'))
-    
+
     # Start Active Chase Session
     session['active_chase'] = True
-    session['chase_difficulty'] = 1 # Standard difficulty for manual start
-    
+    session['chase_difficulty'] = 1  # Standard difficulty for manual start
+
     # Use ResourceService to update last_chase atomically
     if not ResourceService.modify_resources(
         current_user.id,
-        {}, # No resource changes
+        {},  # No resource changes
         'police_chase_start',
         auto_commit=False,
         expected_version=None,
-        set_fields={'last_chase': datetime.now(timezone.utc).replace(tzinfo=None)}
+        set_fields={
+            'last_chase': datetime.now(
+                timezone.utc).replace(
+            tzinfo=None)}
     ):
         flash(_('حدث خطأ أثناء بدء المطاردة.'), 'error')
         return redirect(url_for('police_chase.index'))
-        
+
     db.session.commit()
-    
+
     return redirect(url_for('police_chase.index'))
+
 
 @bp.route('/escape/<method>', methods=['POST'])
 @login_required
 def escape(method):
     if not session.get('active_chase'):
         return redirect(url_for('police_chase.index'))
-    
+
     difficulty = session.get('chase_difficulty', 1)
-    
+
     # Base difficulty score needed to escape
     required_score = 50 + (difficulty * 10)
     try:
@@ -81,34 +93,34 @@ def escape(method):
     except Exception:
         heat = 0
     required_score += int(heat / 5)
-    
+
     user_score = 0
     msg = ""
-    
+
     if method == 'hide':
         # Intelligence Check
         user_score = current_user.intelligence * 2 + random.randint(1, 50)
         # Bonus if in own neighborhood/location (concept)
         msg = _('حاولت الاختباء في الأزقة الضيقة...')
-        
+
     elif method == 'run':
         # Agility + Vehicle Check
         user_score = current_user.agility * 2 + random.randint(1, 50)
         # Vehicle bonus could be added here
         msg = _('دعست بنزين وحاولت تسبقهم...')
-        
+
     elif method == 'fight':
         # Strength Check
         user_score = current_user.strength * 2 + random.randint(1, 50)
         # Weapon bonus could be added here
         msg = _('قررت تواجههم وتفتح النار!')
-        required_score += 20 # Fighting is harder/riskier
-        
+        required_score += 20  # Fighting is harder/riskier
+
     else:
         abort(404)
-        
+
     # Result
-    
+
     # Add Random Event Flavor
     events = [
         _('🚧 قفزت فوق حاجز شرطة!'),
@@ -120,24 +132,31 @@ def escape(method):
     random_event = random.choice(events)
     msg += " " + random_event
 
-    animation = 'speed' if method == 'run' else 'smoke' if method == 'hide' else 'spark'
-    image = 'crimes/car_theft.jpg' if method == 'run' else 'crimes/smuggling.jpg' if method == 'hide' else 'crimes/arms_deal.jpg'
+    if method == 'run':
+        animation = 'speed'
+        image = 'crimes/car_theft.jpg'
+    elif method == 'hide':
+        animation = 'smoke'
+        image = 'crimes/smuggling.jpg'
+    else:
+        animation = 'spark'
+        image = 'crimes/arms_deal.jpg'
 
     if user_score >= required_score:
         winnings = random.randint(150, 850) * difficulty
         xp_gain = 5 * difficulty
-        
+
         heat_change = 5
         if method == 'hide':
             heat_change = -20
         elif method == 'run':
             heat_change = -10
-            
+
         ResourceService.modify_resources(
-            current_user.id, 
-            {'money': winnings, 'exp': xp_gain, 'heat': heat_change}, 
-            'police_chase_escape', 
-            auto_commit=False, 
+            current_user.id,
+            {'money': winnings, 'exp': xp_gain, 'heat': heat_change},
+            'police_chase_escape',
+            auto_commit=False,
             expected_version=None
         )
 
@@ -165,7 +184,8 @@ def escape(method):
         saved_by_buff = False
         try:
             from services.gang_service import GangService
-            gang_buff = GangService.get_gang_buff(current_user.gang_id, 'security_detail')
+            gang_buff = GangService.get_gang_buff(
+                current_user.gang_id, 'security_detail')
             if gang_buff > 0 and random.randint(1, 100) <= gang_buff:
                 saved_by_buff = True
         except Exception as e:
@@ -175,7 +195,7 @@ def escape(method):
             # Saved by Security Detail
             session.pop('active_chase', None)
             session.pop('chase_difficulty', None)
-            
+
             # Reduce heat slightly as they covered tracks
             ResourceService.modify_resources(
                 current_user.id,
@@ -197,19 +217,23 @@ def escape(method):
                 'next_url': url_for('main.crimes'),
                 'alt_url': url_for('police_chase.index'),
                 'alt_label': _('رجوع'),
-                'stats': None
-            }
+                'stats': None}
             return redirect(url_for('main.story'))
 
         jail_time = 60 * difficulty
-        jail_until_dt = (datetime.now(timezone.utc) + timedelta(seconds=jail_time)).replace(tzinfo=None)
-        
+        jail_until_dt = (
+            datetime.now(
+                timezone.utc) +
+            timedelta(
+                seconds=jail_time)).replace(
+            tzinfo=None)
+
         # Use ResourceService to safely update status and clear heat
         ResourceService.modify_resources(
-            current_user.id, 
-            {}, 
-            'police_chase_fail', 
-            auto_commit=False, 
+            current_user.id,
+            {},
+            'police_chase_fail',
+            auto_commit=False,
             expected_version=None,
             set_fields={
                 'jail_until': jail_until_dt,
@@ -217,7 +241,7 @@ def escape(method):
                 'heat_updated_at': None
             }
         )
-        
+
         session.pop('active_chase', None)
         session.pop('chase_difficulty', None)
         db.session.commit()

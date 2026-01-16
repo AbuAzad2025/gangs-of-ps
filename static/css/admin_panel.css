@@ -34,6 +34,49 @@ body {
 .main-sidebar {
   background-color: var(--admin-panel) !important;
   border-right: 1px solid var(--admin-gold-dim);
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  height: 100vh;
+  min-height: 100vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  z-index: 1030 !important;
+}
+
+.main-sidebar .sidebar {
+  flex: 1 1 auto;
+  height: auto;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding-bottom: 16px;
+}
+
+.modal {
+  z-index: 2000 !important;
+}
+
+.modal-backdrop {
+  z-index: 1990 !important;
+}
+
+.brand-image {
+  opacity: 1 !important;
+}
+
+.nav-sidebar .nav-link {
+  color: rgba(255, 255, 255, 0.85) !important;
+}
+
+.nav-sidebar .nav-link.active,
+.nav-sidebar .nav-link:hover {
+  background-color: rgba(212, 175, 55, 0.12) !important;
+  color: #fff !important;
+}
+
+.nav-treeview > .nav-item > .nav-link {
+  padding-right: 1.5rem;
 }
 
 .brand-link {
@@ -43,6 +86,105 @@ body {
 
 .content-wrapper {
   background-color: var(--admin-bg) !important;
+}
+
+.content-header,
+.main-header,
+.main-footer {
+  background-color: var(--admin-bg) !important;
+  color: var(--admin-text) !important;
+  border-color: var(--admin-gold-dim) !important;
+}
+
+.card,
+.box,
+.callout,
+.info-box,
+.modal-content,
+.dropdown-menu {
+  background-color: var(--admin-surface) !important;
+  color: var(--admin-text) !important;
+  border: 1px solid var(--admin-border) !important;
+}
+
+.modal-header,
+.modal-footer {
+  border-color: var(--admin-border) !important;
+}
+
+.table {
+  color: var(--admin-text) !important;
+  background-color: transparent !important;
+}
+
+.table thead th {
+  border-color: var(--admin-border) !important;
+  color: rgba(255, 255, 255, 0.9) !important;
+}
+
+.table td,
+.table th {
+  border-color: rgba(255, 255, 255, 0.08) !important;
+}
+
+.table tbody tr {
+  background-color: rgba(255, 255, 255, 0.02) !important;
+}
+
+.table.table-striped tbody tr:nth-of-type(odd) {
+  background-color: rgba(255, 255, 255, 0.035) !important;
+}
+
+.table-hover tbody tr:hover {
+  background-color: rgba(212, 175, 55, 0.08) !important;
+}
+
+.pagination .page-link {
+  background-color: rgba(0, 0, 0, 0.35) !important;
+  border-color: rgba(255, 255, 255, 0.12) !important;
+  color: rgba(255, 255, 255, 0.85) !important;
+}
+
+.pagination .page-item.active .page-link {
+  background-color: rgba(212, 175, 55, 0.22) !important;
+  border-color: rgba(212, 175, 55, 0.55) !important;
+  color: #fff !important;
+}
+
+.breadcrumb {
+  background-color: transparent !important;
+}
+
+.breadcrumb-item a {
+  color: rgba(212, 175, 55, 0.9) !important;
+}
+
+.form-control,
+.custom-select,
+.select2-container--default .select2-selection--single,
+.select2-container--default .select2-selection--multiple {
+  background-color: rgba(0, 0, 0, 0.35) !important;
+  color: var(--admin-text) !important;
+  border-color: rgba(255, 255, 255, 0.12) !important;
+}
+
+.form-control:focus,
+.custom-select:focus,
+.select2-container--default.select2-container--focus .select2-selection--multiple,
+.select2-container--default.select2-container--focus .select2-selection--single {
+  border-color: rgba(212, 175, 55, 0.55) !important;
+  box-shadow: 0 0 0 0.2rem rgba(212, 175, 55, 0.15) !important;
+}
+
+.btn-primary,
+.btn-success,
+.btn-info,
+.btn-warning,
+.btn-danger,
+.btn-secondary,
+.btn-light,
+.btn-dark {
+  border-color: rgba(255, 255, 255, 0.12) !important;
 }
 
 /* -------------------------------------------------------------------------- */

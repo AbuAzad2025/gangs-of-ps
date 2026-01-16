@@ -1,11 +1,11 @@
 import os
 import shutil
-import time
 import subprocess
 from datetime import datetime
 from flask import current_app
 from flask_babel import _
 from urllib.parse import urlparse
+
 
 class BackupManager:
     @staticmethod
@@ -27,7 +27,7 @@ class BackupManager:
         """Returns a list of backup files sorted by date (newest first)."""
         backup_dir = cls.get_backup_dir()
         backups = []
-        
+
         if not os.path.exists(backup_dir):
             return []
 
@@ -46,7 +46,7 @@ class BackupManager:
                     })
                 except OSError:
                     continue
-        
+
         # Sort by timestamp descending
         backups.sort(key=lambda x: x['timestamp'], reverse=True)
         return backups
@@ -76,7 +76,7 @@ class BackupManager:
         # Check system PATH first
         if shutil.which(tool_name):
             return tool_name
-            
+
         # Check common Windows paths
         possible_paths = [
             r"C:\Program Files\PostgreSQL\18\bin",
@@ -86,13 +86,13 @@ class BackupManager:
             r"C:\Program Files\PostgreSQL\14\bin",
             r"C:\Program Files\PostgreSQL\13\bin",
         ]
-        
+
         for p in possible_paths:
             full_path = os.path.join(p, tool_name + ".exe")
             if os.path.exists(full_path):
                 return full_path
-                
-        return tool_name # Fallback to trying the command directly
+
+        return tool_name  # Fallback to trying the command directly
 
     @classmethod
     def create_backup(cls):
@@ -120,18 +120,25 @@ class BackupManager:
             '-U', creds['user'],
             '-h', str(creds['host']),
             '-p', str(creds['port']),
-            '-F', 'p', # plain text sql
+            '-F', 'p',  # plain text sql
             '-f', filepath,
             creds['dbname']
         ]
 
         try:
-            subprocess.run(cmd, env=env, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            subprocess.run(
+                cmd,
+                env=env,
+                check=True,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE)
             return True, _("تم إنشاء النسخة الاحتياطية بنجاح.")
         except subprocess.CalledProcessError as e:
-            return False, _("فشل إنشاء النسخة الاحتياطية: %(error)s", error=e.stderr.decode('utf-8') if e.stderr else str(e))
+            return False, _("فشل إنشاء النسخة الاحتياطية: %(error)s",
+                            error=e.stderr.decode('utf-8') if e.stderr else str(e))
         except FileNotFoundError:
-             return False, _("لم يتم العثور على أداة pg_dump. تأكد من تثبيت PostgreSQL.")
+            return False, _(
+                "لم يتم العثور على أداة pg_dump. تأكد من تثبيت PostgreSQL.")
         except Exception as e:
             return False, _("حدث خطأ غير متوقع: %(error)s", error=str(e))
 
@@ -143,9 +150,9 @@ class BackupManager:
 
         backup_dir = cls.get_backup_dir()
         filepath = os.path.join(backup_dir, filename)
-        
+
         if not os.path.exists(filepath):
-             return False, _("ملف النسخة الاحتياطية غير موجود.")
+            return False, _("ملف النسخة الاحتياطية غير موجود.")
 
         # Set PGPASSWORD env var
         env = os.environ.copy()
@@ -165,12 +172,19 @@ class BackupManager:
         ]
 
         try:
-            subprocess.run(cmd, env=env, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            subprocess.run(
+                cmd,
+                env=env,
+                check=True,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE)
             return True, _("تم استعادة النسخة الاحتياطية بنجاح.")
         except subprocess.CalledProcessError as e:
-            return False, _("فشل استعادة النسخة الاحتياطية: %(error)s", error=e.stderr.decode('utf-8') if e.stderr else str(e))
+            return False, _("فشل استعادة النسخة الاحتياطية: %(error)s",
+                            error=e.stderr.decode('utf-8') if e.stderr else str(e))
         except FileNotFoundError:
-             return False, _("لم يتم العثور على أداة psql. تأكد من تثبيت PostgreSQL.")
+            return False, _(
+                "لم يتم العثور على أداة psql. تأكد من تثبيت PostgreSQL.")
         except Exception as e:
             return False, _("حدث خطأ غير متوقع: %(error)s", error=str(e))
 
@@ -178,7 +192,7 @@ class BackupManager:
     def delete_backup(cls, filename):
         backup_dir = cls.get_backup_dir()
         path = os.path.join(backup_dir, filename)
-        
+
         if os.path.exists(path):
             try:
                 os.remove(path)

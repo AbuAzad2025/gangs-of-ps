@@ -23,5 +23,6 @@
     {"name": "ساعة يد فاخرة مسروقة", "description": "ساعة فخمة تحتاج تنظيف/تصليح قبل البيع", "type": "loot", "cost": 9000, "image": "crimes/jewelry.jpg", "is_black_market": false},
     {"name": "رزمة دخان مهرب", "description": "دخان مهرب… مربح بس مخاطرة", "type": "loot", "cost": 800, "image": "crimes/kiosk.jpg", "is_black_market": false},
     {"name": "قنبلة دخانية", "description": "تخبيك لحظات وتخرب رؤية اللي وراك", "type": "consumable", "cost": 2500, "image": "items/smoke_grenade.jpg", "recover_energy": 0, "recover_health": 0, "is_black_market": true},
+    {"name": "متفجرات C4", "description": "مخصصة لنسف البيوت الآمنة أثناء الهجوم. استخدام واحد.", "type": "consumable", "cost": 80000, "image": "explosives.jpg", "recover_energy": 0, "recover_health": 0, "is_black_market": true},
     {"name": "جهاز تشويش", "description": "يعطل كاميرات وإشارات لفترة قصيرة", "type": "consumable", "cost": 7500, "image": "items/jammer.jpg", "recover_energy": 0, "recover_health": 0, "is_black_market": true}
 ]

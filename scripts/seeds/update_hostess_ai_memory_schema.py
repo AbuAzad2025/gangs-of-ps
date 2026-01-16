@@ -1,13 +1,20 @@
+from sqlalchemy import text
+from factory import create_app
+from extensions import db
 import os
 import sys
 
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')))
+sys.path.append(
+    os.path.abspath(
+        os.path.join(
+            os.path.dirname(__file__),
+            '..',
+            '..')))
 
-from extensions import db
-from factory import create_app
-from sqlalchemy import text
 
-os.environ.setdefault('DATABASE_URL', 'postgresql://postgres:123@localhost:5432/gangsofpalestine')
+os.environ.setdefault(
+    'DATABASE_URL',
+    'postgresql://postgres:123@localhost:5432/gangsofpalestine')
 
 app = create_app()
 
@@ -28,16 +35,20 @@ def update_schema():
                     trans.commit()
                     return
 
-                columns = {c['name'] for c in inspector.get_columns('hostesses')}
+                columns = {c['name']
+                           for c in inspector.get_columns('hostesses')}
 
                 if 'self_learning_enabled' not in columns:
-                    conn.execute(text("ALTER TABLE hostesses ADD COLUMN self_learning_enabled BOOLEAN DEFAULT TRUE"))
+                    conn.execute(
+                        text("ALTER TABLE hostesses ADD COLUMN self_learning_enabled BOOLEAN DEFAULT TRUE"))
                     print("Added hostesses.self_learning_enabled")
                 if 'memory_enabled' not in columns:
-                    conn.execute(text("ALTER TABLE hostesses ADD COLUMN memory_enabled BOOLEAN DEFAULT TRUE"))
+                    conn.execute(
+                        text("ALTER TABLE hostesses ADD COLUMN memory_enabled BOOLEAN DEFAULT TRUE"))
                     print("Added hostesses.memory_enabled")
                 if 'last_trained_at' not in columns:
-                    conn.execute(text("ALTER TABLE hostesses ADD COLUMN last_trained_at TIMESTAMP"))
+                    conn.execute(
+                        text("ALTER TABLE hostesses ADD COLUMN last_trained_at TIMESTAMP"))
                     print("Added hostesses.last_trained_at")
 
                 tables = set(db.inspect(db.engine).get_table_names())
@@ -53,8 +64,10 @@ def update_schema():
                             created_at TIMESTAMPTZ DEFAULT NOW()
                         )
                     """))
-                    conn.execute(text("CREATE INDEX ix_hostess_chat_messages_hostess_id ON hostess_chat_messages (hostess_id)"))
-                    conn.execute(text("CREATE INDEX ix_hostess_chat_messages_user_id ON hostess_chat_messages (user_id)"))
+                    conn.execute(
+                        text("CREATE INDEX ix_hostess_chat_messages_hostess_id ON hostess_chat_messages (hostess_id)"))
+                    conn.execute(
+                        text("CREATE INDEX ix_hostess_chat_messages_user_id ON hostess_chat_messages (user_id)"))
                     print("Created hostess_chat_messages")
 
                 if 'hostess_memories' not in tables:
@@ -72,9 +85,12 @@ def update_schema():
                             updated_at TIMESTAMPTZ DEFAULT NOW()
                         )
                     """))
-                    conn.execute(text("CREATE INDEX ix_hostess_memories_hostess_id ON hostess_memories (hostess_id)"))
-                    conn.execute(text("CREATE INDEX ix_hostess_memories_user_id ON hostess_memories (user_id)"))
-                    conn.execute(text("CREATE INDEX ix_hostess_memories_key ON hostess_memories (key)"))
+                    conn.execute(
+                        text("CREATE INDEX ix_hostess_memories_hostess_id ON hostess_memories (hostess_id)"))
+                    conn.execute(
+                        text("CREATE INDEX ix_hostess_memories_user_id ON hostess_memories (user_id)"))
+                    conn.execute(
+                        text("CREATE INDEX ix_hostess_memories_key ON hostess_memories (key)"))
                     print("Created hostess_memories")
 
                 trans.commit()

@@ -14,7 +14,7 @@ class Config:
     # Default to SQLite for easy local development
     default_db_url = 'sqlite:///' + os.path.join(basedir, 'app.db')
     env_db_url = os.environ.get('DATABASE_URL')
-    
+
     # if env_db_url and not env_db_url.startswith('postgresql://'):
     #    raise ValueError(
     #        'Only PostgreSQL is supported. '
@@ -61,10 +61,14 @@ class Config:
     BABEL_TRANSLATION_DIRECTORIES = 'translations'
 
     # Social Media Configuration
-    DISCORD_INVITE_LINK = os.environ.get('DISCORD_INVITE_LINK') or 'https://discord.gg/actHePygND'
-    FACEBOOK_LINK = os.environ.get('FACEBOOK_LINK') or 'https://facebook.com/GangsOfPalestine'
-    TWITTER_LINK = os.environ.get('TWITTER_LINK') or 'https://twitter.com/GangsOfPS'
-    INSTAGRAM_LINK = os.environ.get('INSTAGRAM_LINK') or 'https://instagram.com/GangsOfPS'
+    DISCORD_INVITE_LINK = os.environ.get(
+        'DISCORD_INVITE_LINK') or 'https://discord.gg/actHePygND'
+    FACEBOOK_LINK = os.environ.get(
+        'FACEBOOK_LINK') or 'https://facebook.com/GangsOfPalestine'
+    TWITTER_LINK = os.environ.get(
+        'TWITTER_LINK') or 'https://twitter.com/GangsOfPS'
+    INSTAGRAM_LINK = os.environ.get(
+        'INSTAGRAM_LINK') or 'https://instagram.com/GangsOfPS'
 
     # AI Configuration
     OPENAI_API_KEY = os.environ.get('OPENAI_API_KEY')

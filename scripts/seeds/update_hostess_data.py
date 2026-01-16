@@ -1,11 +1,16 @@
+from extensions import db
+from models import Hostess, HostessKnowledge
+from factory import create_app
 import os
 import sys
 
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')))
+sys.path.append(
+    os.path.abspath(
+        os.path.join(
+            os.path.dirname(__file__),
+            '..',
+            '..')))
 
-from factory import create_app
-from models import Hostess, HostessKnowledge
-from extensions import db
 
 app = create_app()
 
@@ -14,15 +19,15 @@ with app.app_context():
     jasmin = Hostess.query.filter(Hostess.name.ilike('%Jasmin%')).first()
     if jasmin:
         jasmin.is_public = True
-        jasmin.min_rank = 0 # No rank needed for concierge
+        jasmin.min_rank = 0  # No rank needed for concierge
         print(f"Updated Jasmin: is_public={jasmin.is_public}")
 
     # 2. Update others
     # Layla (Spy) - Mid tier
     layla = Hostess.query.filter(Hostess.name.ilike('%Layla%')).first()
     if layla:
-        layla.min_rank = 5 # Rank 5 (e.g., Lieutenant)
-        layla.price = 50000 # Expensive
+        layla.min_rank = 5  # Rank 5 (e.g., Lieutenant)
+        layla.price = 50000  # Expensive
         print(f"Updated Layla: min_rank={layla.min_rank}")
 
     # Ruby (Luck) - High tier

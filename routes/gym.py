@@ -12,10 +12,12 @@ import random
 
 bp = Blueprint('gym', __name__, url_prefix='/gym')
 
+
 def _aware_utc(dt):
     if dt and getattr(dt, "tzinfo", None) is None:
         return dt.replace(tzinfo=timezone.utc)
     return dt
+
 
 def _round_money(x, step=100):
     try:
@@ -25,9 +27,11 @@ def _round_money(x, step=100):
     step = max(1, int(step))
     return int(round(x / step) * step)
 
+
 def _cfg_bool(key, default=False):
     v = SystemConfig.get_value(key, 'true' if default else 'false')
     return str(v).strip().lower() in ('1', 'true', 'yes', 'on')
+
 
 def _cfg_int(key, default):
     try:
@@ -35,11 +39,13 @@ def _cfg_int(key, default):
     except Exception:
         return int(default)
 
+
 def _cfg_float(key, default):
     try:
         return float(SystemConfig.get_value(key, str(float(default))))
     except Exception:
         return float(default)
+
 
 def _cooldown_seconds_left(last_at, cooldown_seconds, now):
     if not last_at:
@@ -49,6 +55,7 @@ def _cooldown_seconds_left(last_at, cooldown_seconds, now):
         return 0
     until = a + timedelta(seconds=int(max(0, cooldown_seconds)))
     return max(0, int((until - now).total_seconds()))
+
 
 def _get_training_defs():
     return [
@@ -81,6 +88,7 @@ def _get_training_defs():
         },
     ]
 
+
 def _stat_label(stat):
     return {
         "strength": _("القوة"),
@@ -88,6 +96,7 @@ def _stat_label(stat):
         "agility": _("الرشاقة"),
         "intelligence": _("الذكاء"),
     }.get(stat, stat)
+
 
 def _stat_icon(stat):
     return {
@@ -97,10 +106,12 @@ def _stat_icon(stat):
         "intelligence": "fas fa-brain",
     }.get(stat, "fas fa-dumbbell")
 
+
 def _stat_energy_cost(stat):
     if stat == "intelligence":
         return max(0, _cfg_int("gym_energy_cost_intelligence", 10))
     return max(0, _cfg_int("gym_energy_cost_default", 5))
+
 
 def _money_base_cost(user, stat):
     base = max(0, _cfg_int("gym_money_base_cost", 100))
@@ -112,6 +123,7 @@ def _money_base_cost(user, stat):
     raw = base + (lvl * per_level) + (stat_val * per_stat)
     return max(0, _round_money(raw, step=step))
 
+
 def _build_training_options(user):
     defs = _get_training_defs()
     out = {}
@@ -121,7 +133,13 @@ def _build_training_options(user):
         options = []
         for d in defs:
             gain = int(d["gain"])
-            money = _round_money(base_money * float(d["money_factor"]), step=_cfg_int("gym_money_round_step", 50))
+            money = _round_money(
+                base_money *
+                float(
+                    d["money_factor"]),
+                step=_cfg_int(
+                    "gym_money_round_step",
+                    50))
             diamonds = int(d.get("diamond_cost") or 0)
             options.append(
                 {
@@ -138,16 +156,19 @@ def _build_training_options(user):
         out[stat] = options
     return out
 
+
 def _claim_rewards(user):
     # Ensure we have the latest user state and lock the row to prevent race conditions
-    # We use the ID to query, ensuring we get the session object attached to this transaction
-    user = db.session.query(User).filter_by(id=user.id).with_for_update().first()
-    
+    # We use the ID to query, ensuring we get the session object attached to
+    # this transaction
+    user = db.session.query(User).filter_by(
+        id=user.id).with_for_update().first()
+
     if not user.gym_activity:
         user.gym_until = None
         db.session.commit()
         return False
-        
+
     try:
         data = json.loads(user.gym_activity)
         stat = data.get('stat')
@@ -167,8 +188,13 @@ def _claim_rewards(user):
             f'gym_reward_{stat}',
             auto_commit=False,
             expected_version=user.version,
-            set_fields={'gym_activity': None, 'gym_until': None},
-            log_extra={'plan': plan_key, 'money_cost': money_cost, 'diamond_cost': diamond_cost},
+            set_fields={
+                'gym_activity': None,
+                'gym_until': None},
+            log_extra={
+                'plan': plan_key,
+                'money_cost': money_cost,
+                'diamond_cost': diamond_cost},
         )
         if not ok:
             db.session.rollback()
@@ -178,19 +204,35 @@ def _claim_rewards(user):
         user.add_rank_points(1)
         leveled_up = user.check_level_up()
         if leveled_up:
-            ref_url = url_for('main.register', ref=user.referral_code, _external=True)
-            share_text = _("أصبحت زعيم مستوى %(level)s في عصابات فلسطين! هل تجرؤ على تحديي؟ %(url)s", level=user.level, url=ref_url)
+            ref_url = url_for(
+                'main.register',
+                ref=user.referral_code,
+                _external=True)
+            share_text = _(
+                "أصبحت زعيم مستوى %(level)s في عصابات فلسطين! هل تجرؤ على تحديي؟ %(url)s",
+                level=user.level,
+                url=ref_url)
             wa_link = f"https://wa.me/?text={share_text}"
-            
-            flash(_('مبروك! وصلت للمستوى %(level)s! <a href="%(url)s" target="_blank" class="btn btn-sm btn-success ml-2"><i class="fab fa-whatsapp"></i> شارك</a>', level=user.level, url=wa_link), 'success')
-            
+
+            flash(
+                _(
+                    'مبروك! وصلت للمستوى %(level)s! '
+                    '<a href="%(url)s" target="_blank" class="btn btn-sm btn-success ml-2">'
+                    '<i class="fab fa-whatsapp"></i> شارك</a>',
+                    level=user.level,
+                    url=wa_link),
+                'success')
+
         update_daily_task_progress(user, 'gym')
-        
-        msg = _('انتهى التمرين! حصلت على %(exp)s خبرة و %(stat)s %(stat_name)s',
-               exp=exp_gain, stat=stat_gain, stat_name=_stat_label(stat))
+
+        msg = _(
+            'انتهى التمرين! حصلت على %(exp)s خبرة و %(stat)s %(stat_name)s',
+            exp=exp_gain,
+            stat=stat_gain,
+            stat_name=_stat_label(stat))
         flash(msg, 'success')
-        
-    except Exception as e:
+
+    except Exception:
         flash(_('حدث خطأ أثناء استلام المكافأة.'), 'danger')
         try:
             user.gym_activity = None
@@ -203,6 +245,7 @@ def _claim_rewards(user):
     db.session.commit()
     return True
 
+
 @bp.route('/')
 @login_required
 def index():
@@ -211,16 +254,16 @@ def index():
     training_options = _build_training_options(current_user)
     active = False
     active_data = None
-    
+
     if current_user.gym_until:
         gym_until = current_user.gym_until
         if gym_until.tzinfo is None:
             gym_until = gym_until.replace(tzinfo=timezone.utc)
-            
+
         if now >= gym_until:
             _claim_rewards(current_user)
             return redirect(url_for('gym.index'))
-            
+
         remaining_seconds = int((gym_until - now).total_seconds())
         active = remaining_seconds > 0
         if current_user.gym_activity:
@@ -228,20 +271,30 @@ def index():
                 active_data = json.loads(current_user.gym_activity)
             except Exception:
                 active_data = None
-            
+
     speedup_enabled = _cfg_bool('gym_enable_speedup', True)
     speedup_per_min_money = max(0, _cfg_int('gym_speedup_per_min_money', 120))
-    speedup_fast_finish_diamonds = max(0, _cfg_int('gym_speedup_finish_diamonds', 5))
-    speedup_options_minutes_raw = (SystemConfig.get_value('gym_speedup_options_minutes', '15,60') or '15,60')
+    speedup_fast_finish_diamonds = max(
+        0, _cfg_int('gym_speedup_finish_diamonds', 5))
+    speedup_options_minutes_raw = (
+        SystemConfig.get_value(
+            'gym_speedup_options_minutes',
+            '15,60') or '15,60')
     try:
-        speedup_minutes = [int(x.strip()) for x in str(speedup_options_minutes_raw).split(',') if x.strip()]
+        speedup_minutes = [int(x.strip()) for x in str(
+            speedup_options_minutes_raw).split(',') if x.strip()]
     except Exception:
         speedup_minutes = [15, 60]
     speedup_minutes = [m for m in speedup_minutes if m > 0]
     speedup_options = []
     if active and speedup_enabled and speedup_per_min_money > 0:
         for m in speedup_minutes:
-            cost = int(_round_money(m * speedup_per_min_money, step=_cfg_int('gym_money_round_step', 50)))
+            cost = int(
+                _round_money(
+                    m * speedup_per_min_money,
+                    step=_cfg_int(
+                        'gym_money_round_step',
+                        50)))
             speedup_options.append({'minutes': m, 'cost': cost})
 
     return render_template(
@@ -257,19 +310,21 @@ def index():
         speedup_finish_diamonds=speedup_fast_finish_diamonds,
     )
 
+
 @bp.route('/cancel', methods=['POST'])
 @login_required
 @limiter.limit("10 per minute")
 def cancel_training():
     # Lock user row to prevent double cancellation/rewards
-    user = db.session.query(User).filter_by(id=current_user.id).with_for_update().first()
+    user = db.session.query(User).filter_by(
+        id=current_user.id).with_for_update().first()
 
     if not user.gym_activity:
         user.gym_until = None
         db.session.commit()
         flash(_('تم إلغاء فترة الراحة.'), 'info')
         return redirect(url_for('gym.index'))
-        
+
     try:
         data = json.loads(user.gym_activity)
         stat = data.get('stat')
@@ -277,23 +332,23 @@ def cancel_training():
         total_stat = data.get('stat_gain', 0)
         start_ts = data.get('start_time', 0)
         duration = data.get('duration', 120)
-        
+
         start_time = datetime.fromtimestamp(start_ts, timezone.utc)
         now = datetime.now(timezone.utc)
         elapsed = (now - start_time).total_seconds()
-        
+
         # Calculate ratio (cap at 1.0)
         ratio = min(1.0, max(0.0, elapsed / duration))
-        
+
         partial_exp = int(total_exp * ratio)
-        partial_stat = total_stat * ratio 
-        
+        partial_stat = total_stat * ratio
+
         # Probabilistic rounding for stats
         earned_stat = int(partial_stat)
         remainder = partial_stat - earned_stat
         if random.random() < remainder:
             earned_stat += 1
-            
+
         if earned_stat > 0 or partial_exp > 0:
             changes = {
                 'exp': partial_exp,
@@ -313,18 +368,35 @@ def cancel_training():
                 db.session.rollback()
                 flash(_('حدث خطأ أثناء الإلغاء.'), 'danger')
                 return redirect(url_for('gym.index'))
-            flash(_('تم إنهاء التمرين مبكراً. حصلت على %(exp)s خبرة و %(stat)s %(stat_name)s بناءً على المدة التي قضيتها.', 
-                   exp=partial_exp, stat=earned_stat, stat_name=_stat_label(stat)), 'warning')
+            flash(
+                _(
+                    'تم إنهاء التمرين مبكراً. حصلت على %(exp)s خبرة و %(stat)s %(stat_name)s '
+                    'بناءً على المدة التي قضيتها.',
+                    exp=partial_exp,
+                    stat=earned_stat,
+                    stat_name=_stat_label(stat)),
+                'warning')
         else:
-            ResourceService.modify_resources(user.id, {}, 'gym_cancel', auto_commit=False, expected_version=user.version, set_fields={'gym_activity': None, 'gym_until': None})
-            flash(_('تم إنهاء التمرين مبكراً جداً! لم تحصل على أي فائدة.'), 'warning')
+            ResourceService.modify_resources(
+                user.id,
+                {},
+                'gym_cancel',
+                auto_commit=False,
+                expected_version=user.version,
+                set_fields={
+                    'gym_activity': None,
+                    'gym_until': None})
+            flash(
+                _('تم إنهاء التمرين مبكراً جداً! لم تحصل على أي فائدة.'),
+                'warning')
 
-    except Exception as e:
+    except Exception:
         # flash(str(e), 'danger') # Debug
         flash(_('حدث خطأ أثناء الإلغاء.'), 'danger')
 
     db.session.commit()
     return redirect(url_for('gym.index'))
+
 
 @bp.route('/speed_up', methods=['POST'])
 @login_required
@@ -340,7 +412,8 @@ def speed_up():
         return redirect(url_for('gym.index'))
 
     now = datetime.now(timezone.utc)
-    user = db.session.query(User).filter_by(id=current_user.id).with_for_update().first()
+    user = db.session.query(User).filter_by(
+        id=current_user.id).with_for_update().first()
 
     until = _aware_utc(user.gym_until)
     if not until or until <= now:
@@ -349,7 +422,8 @@ def speed_up():
 
     today = now.date()
     speedup_limit = max(0, _cfg_int('gym_speedup_daily_limit', 50))
-    used = int(user.gym_speedups_count or 0) if getattr(user, "gym_speedups_date", None) == today else 0
+    used = int(user.gym_speedups_count or 0) if getattr(
+        user, "gym_speedups_date", None) == today else 0
     if speedup_limit and used >= speedup_limit:
         flash(_('وصلت لحد التسريع اليومي.'), 'warning')
         return redirect(url_for('gym.index'))
@@ -381,10 +455,16 @@ def speed_up():
         flash(_('فشل التسريع.'), 'danger')
         return redirect(url_for('gym.index'))
 
-    db.session.add(MoneySinkLog(user_id=user.id, sink_type="gym_speedup", amount=cost, details=f"Speedup {minutes}m"))
+    db.session.add(
+        MoneySinkLog(
+            user_id=user.id,
+            sink_type="gym_speedup",
+            amount=cost,
+            details=f"Speedup {minutes}m"))
     db.session.commit()
     flash(_('تم تسريع التدريب %(m)s دقيقة.'), 'success')
     return redirect(url_for('gym.index'))
+
 
 @bp.route('/finish_now', methods=['POST'])
 @login_required
@@ -395,7 +475,8 @@ def finish_now():
         return redirect(url_for('gym.index'))
 
     now = datetime.now(timezone.utc)
-    user = db.session.query(User).filter_by(id=current_user.id).with_for_update().first()
+    user = db.session.query(User).filter_by(
+        id=current_user.id).with_for_update().first()
     until = _aware_utc(user.gym_until)
     if not until or until <= now:
         flash(_('لا يوجد تدريب فعّال.'), 'info')
@@ -403,7 +484,8 @@ def finish_now():
 
     today = now.date()
     speedup_limit = max(0, _cfg_int('gym_speedup_daily_limit', 50))
-    used = int(user.gym_speedups_count or 0) if getattr(user, "gym_speedups_date", None) == today else 0
+    used = int(user.gym_speedups_count or 0) if getattr(
+        user, "gym_speedups_date", None) == today else 0
     if speedup_limit and used >= speedup_limit:
         flash(_('وصلت لحد التسريع اليومي.'), 'warning')
         return redirect(url_for('gym.index'))
@@ -413,7 +495,11 @@ def finish_now():
         flash(_('لا تملك ألماس كافٍ. تحتاج %(cost)s ماسة.'), 'danger')
         return redirect(url_for('gym.index'))
 
-    set_fields = {'gym_until': now.replace(tzinfo=None), 'gym_speedups_date': today, 'gym_speedups_count': used + 1}
+    set_fields = {
+        'gym_until': now.replace(
+            tzinfo=None),
+        'gym_speedups_date': today,
+        'gym_speedups_count': used + 1}
     ok = ResourceService.modify_resources(
         user.id,
         {'diamonds': -cost},
@@ -431,26 +517,29 @@ def finish_now():
     db.session.commit()
     return redirect(url_for('gym.index'))
 
+
 @bp.route('/train/<stat>', methods=['POST'])
 @login_required
 @limiter.limit("10 per minute")
 def train(stat):
     # Lock user row to prevent concurrent training
-    user = db.session.query(User).filter_by(id=current_user.id).with_for_update().first()
+    user = db.session.query(User).filter_by(
+        id=current_user.id).with_for_update().first()
 
     # Check if already training
     now = datetime.now(timezone.utc)
-    
+
     if user.gym_until:
         gym_until = user.gym_until
         if gym_until.tzinfo is None:
             gym_until = gym_until.replace(tzinfo=timezone.utc)
-            
+
         if gym_until > now:
             remaining = gym_until - now
             minutes = int(remaining.total_seconds() / 60)
             seconds = int(remaining.total_seconds() % 60)
-            flash(_('أنت تتمرن حالياً! انتظر %(min)s دقيقة و %(sec)s ثانية.', min=minutes, sec=seconds), 'warning')
+            flash(_('أنت تتمرن حالياً! انتظر %(min)s دقيقة و %(sec)s ثانية.',
+                  min=minutes, sec=seconds), 'warning')
             return redirect(url_for('gym.index'))
 
     plan = (request.form.get('plan') or 'basic').strip()
@@ -465,31 +554,46 @@ def train(stat):
 
     today = now.date()
     session_limit = max(0, _cfg_int('gym_daily_sessions_limit', 100))
-    used_sessions = int(user.gym_sessions_count or 0) if getattr(user, "gym_sessions_date", None) == today else 0
+    used_sessions = int(
+        user.gym_sessions_count or 0) if getattr(
+        user,
+        "gym_sessions_date",
+        None) == today else 0
     if session_limit and used_sessions >= session_limit:
         flash(_('وصلت لحد تمارين اليوم.'), 'warning')
         return redirect(url_for('gym.index'))
 
     cost_energy = _stat_energy_cost(stat)
     base_money = _money_base_cost(user, stat)
-    cost_money = int(_round_money(base_money * float(d['money_factor']), step=_cfg_int('gym_money_round_step', 50)))
+    cost_money = int(
+        _round_money(
+            base_money *
+            float(
+                d['money_factor']),
+            step=_cfg_int(
+                'gym_money_round_step',
+                50)))
     cost_diamonds = int(d.get('diamond_cost') or 0)
-    
+
     stat_gain = int(d['gain'])
-    msg = _('%(plan)s: بدأت تدريب %(stat)s', plan=d['label'], stat=_stat_label(stat))
-        
+    msg = _(
+        '%(plan)s: بدأت تدريب %(stat)s',
+        plan=d['label'],
+        stat=_stat_label(stat))
+
     # Hostess Buff
     exp_gain = int(d['exp'])
-    
+
     # Track extra stats for hostess buff
     extra_stat_gain = 0
-    
+
     if current_user.active_hostess_id:
         hostess = db.session.get(Hostess, current_user.active_hostess_id)
         if hostess and hostess.buff_type == 'gym_boost':
-            extra_exp = int(2 * (hostess.buff_value if hostess.buff_value else 0.5))
+            extra_exp = int(
+                2 * (hostess.buff_value if hostess.buff_value else 0.5))
             exp_gain += extra_exp
-            
+
             # Chance for double stat gain
             chance = hostess.buff_value if hostess.buff_value else 0.2
             if random.random() < chance:
@@ -503,12 +607,12 @@ def train(stat):
         if gang_buff > 0:
             # Increase EXP
             exp_gain = int(exp_gain * (1 + gang_buff / 100))
-            
+
             # Increase Stat Chance
             if random.random() < (gang_buff / 100):
-                 extra_stat_gain += 1
-                 if "مكافأة" not in msg:
-                     msg += _(" (مكافأة العصابة!)")
+                extra_stat_gain += 1
+                if "مكافأة" not in msg:
+                    msg += _(" (مكافأة العصابة!)")
     except Exception as e:
         current_app.logger.error(f"Error applying gang buff: {e}")
 
@@ -526,7 +630,11 @@ def train(stat):
     }
 
     injury_chance_pct = max(0, _cfg_int('gym_injury_chance_percent', 2))
-    injured = (not current_app.config.get('TESTING', False)) and (random.randint(1, 100) <= injury_chance_pct)
+    injured = (
+        not current_app.config.get(
+            'TESTING', False)) and (
+        random.randint(
+            1, 100) <= injury_chance_pct)
 
     changes = {'money': -cost_money, 'energy': -cost_energy}
     if cost_diamonds > 0:
@@ -540,12 +648,20 @@ def train(stat):
 
     if injured:
         hospital_time = max(10, _cfg_int('gym_injury_hospital_seconds', 120))
-        set_fields['hospital_until'] = (now + timedelta(seconds=hospital_time)).replace(tzinfo=None)
+        set_fields['hospital_until'] = (
+            now +
+            timedelta(
+                seconds=hospital_time)).replace(
+            tzinfo=None)
         set_fields['gym_activity'] = None
         set_fields['gym_until'] = None
     else:
         set_fields['gym_activity'] = json.dumps(activity_data)
-        set_fields['gym_until'] = (now + timedelta(seconds=duration)).replace(tzinfo=None)
+        set_fields['gym_until'] = (
+            now +
+            timedelta(
+                seconds=duration)).replace(
+            tzinfo=None)
 
     success = ResourceService.modify_resources(
         user_id=user.id,
@@ -569,7 +685,13 @@ def train(stat):
             flash(_('حدث خطأ أثناء الخصم، حاول مرة أخرى.'), 'danger')
         return redirect(url_for('gym.index'))
 
-    db.session.add(MoneySinkLog(user_id=user.id, sink_type="gym_train", amount=cost_money, details=f"{stat}:{d['key']}"))
+    db.session.add(
+        MoneySinkLog(
+            user_id=user.id,
+            sink_type="gym_train",
+            amount=cost_money,
+            details=f"{stat}:{
+                d['key']}"))
     db.session.commit()
 
     if injured:

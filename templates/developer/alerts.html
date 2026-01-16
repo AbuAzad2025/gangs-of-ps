@@ -39,7 +39,7 @@
                                         {% endif %}
                                         {{ alert.title }}
                                     </h5>
-                                    <small class="text-muted">{{ moment(alert.timestamp).fromNow() }}</small>
+                                    <small class="text-muted">{{ alert.timestamp.strftime('%Y-%m-%d %H:%M') if alert.timestamp else '' }}</small>
                                 </div>
                                 <p class="mb-1">{{ alert.message }}</p>
                                 <div class="mt-2">

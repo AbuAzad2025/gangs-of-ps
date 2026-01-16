@@ -33,7 +33,7 @@ def _add_user_item(user_id, item, qty):
     result = UserItem.query.filter_by(user_id=user_id, item_id=item.id).update({
         UserItem.quantity: UserItem.quantity + qty
     }, synchronize_session=False)
-    
+
     if result == 0:
         # Item doesn't exist, create it
         # Handle race condition using nested transaction (savepoint)
@@ -49,7 +49,7 @@ def _add_user_item(user_id, item, qty):
                 UserItem.quantity: UserItem.quantity + qty
             }, synchronize_session=False)
             return None
-    
+
     return None
 
 
@@ -62,15 +62,15 @@ def _consume_user_item(user_id, item_id, qty):
     ).update({
         UserItem.quantity: UserItem.quantity - qty
     }, synchronize_session=False)
-    
+
     if result > 0:
         # Cleanup empty items if needed, though 0 quantity is often fine to keep
         # But to match previous logic (delete if <= 0):
-        # We can't easily delete in the same query. 
+        # We can't easily delete in the same query.
         # We can do a second query to clean up, or just leave it at 0.
         # Previous logic:
         # if ui.quantity <= 0: db.session.delete(ui)
-        
+
         # Let's clean up zero quantity items
         UserItem.query.filter(
             UserItem.user_id == user_id,
@@ -78,7 +78,7 @@ def _consume_user_item(user_id, item_id, qty):
             UserItem.quantity <= 0
         ).delete(synchronize_session=False)
         return True
-        
+
     return False
 
 
@@ -203,8 +203,10 @@ def index():
             elif r.item_id == explosive_item.id:
                 explosive_qty = int(r.quantity or 0)
     else:
-        metal_qty = _get_user_item_qty(current_user.id, metal_item.id) if metal_item else 0
-        explosive_qty = _get_user_item_qty(current_user.id, explosive_item.id) if explosive_item else 0
+        metal_qty = _get_user_item_qty(
+            current_user.id, metal_item.id) if metal_item else 0
+        explosive_qty = _get_user_item_qty(
+            current_user.id, explosive_item.id) if explosive_item else 0
 
     max_parallel = 1
     try:
@@ -212,7 +214,9 @@ def index():
     except Exception:
         max_parallel = 1
 
-    running_jobs = FactoryJob.query.filter_by(user_id=current_user.id, status='running').order_by(FactoryJob.ends_at.asc()).limit(10).all()
+    running_jobs = FactoryJob.query.filter_by(
+        user_id=current_user.id, status='running').order_by(
+        FactoryJob.ends_at.asc()).limit(10).all()
 
     lvl = _effective_level(current_user)
     tier = _tier_for_level(lvl)
@@ -235,7 +239,9 @@ def index():
         if remaining_seconds > 0:
             remaining_minutes = max(1, (remaining_seconds + 59) // 60)
             boost_cost = max(min_cost, int(remaining_minutes * cost_per_min))
-        running.append({"job": job, "remaining_seconds": remaining_seconds, "boost_cost": boost_cost})
+        running.append({"job": job,
+                        "remaining_seconds": remaining_seconds,
+                        "boost_cost": boost_cost})
 
     reqs = cfg.get("requirements") or {}
     job_cards = []
@@ -256,7 +262,8 @@ def index():
             "hint_url": hint_url,
         })
 
-    allowed = list({name for name, _w in (cfg.get("smelt_sources") or []) if name})
+    allowed = list({name for name, _w in (
+        cfg.get("smelt_sources") or []) if name})
     weights = {n: float(w) for n, w in (cfg.get("smelt_sources") or [])}
     smeltable = []
     if allowed:
@@ -276,7 +283,10 @@ def index():
             base_ingots = max(1, int(round(w)))
             if tier in {"t4", "t5"}:
                 base_ingots += 1
-            smeltable.append({"item": it, "qty": int(ui.quantity or 0), "weight": w, "base_ingots": base_ingots})
+            smeltable.append({"item": it,
+                              "qty": int(ui.quantity or 0),
+                              "weight": w,
+                              "base_ingots": base_ingots})
 
     return render_template(
         'factory.html',
@@ -308,24 +318,24 @@ def smelt():
         if jail_until.tzinfo is None:
             jail_until = jail_until.replace(tzinfo=timezone.utc)
         if jail_until > now:
-             flash(_('أنت في السجن ولا يمكنك استخدام المصنع!'), 'danger')
-             return redirect(url_for('jail.index'))
-             
+            flash(_('أنت في السجن ولا يمكنك استخدام المصنع!'), 'danger')
+            return redirect(url_for('jail.index'))
+
     if current_user.hospital_until:
         hospital_until = current_user.hospital_until
         if hospital_until.tzinfo is None:
             hospital_until = hospital_until.replace(tzinfo=timezone.utc)
         if hospital_until > now:
-             flash(_('أنت في المستشفى ولا يمكنك استخدام المصنع!'), 'danger')
-             return redirect(url_for('hospital.index'))
+            flash(_('أنت في المستشفى ولا يمكنك استخدام المصنع!'), 'danger')
+            return redirect(url_for('hospital.index'))
 
     if current_user.gym_until:
         gym_until = current_user.gym_until
         if gym_until.tzinfo is None:
             gym_until = gym_until.replace(tzinfo=timezone.utc)
         if gym_until > now:
-             flash(_('أنت تتدرب ولا يمكنك استخدام المصنع!'), 'danger')
-             return redirect(url_for('gym.index'))
+            flash(_('أنت تتدرب ولا يمكنك استخدام المصنع!'), 'danger')
+            return redirect(url_for('gym.index'))
 
     cfg = _get_factory_config()
     metal_item = _get_material_item(cfg["metal_item_name"])
@@ -348,21 +358,34 @@ def smelt():
         flash(_('لا يمكنك صهر هذا العنصر.'), 'warning')
         return redirect(url_for('factory.index'))
 
-    db.session.execute(select(User).where(User.id == current_user.id).with_for_update()).scalar_one()
+    db.session.execute(
+        select(User).where(
+            User.id == current_user.id).with_for_update()).scalar_one()
 
     smelt_cost = 5000
     if current_user.money < smelt_cost:
-        flash(_('لا تملك كاش كافي للصهر! التكلفة: %(cost)s$', cost=smelt_cost), 'danger')
+        flash(_('لا تملك كاش كافي للصهر! التكلفة: %(cost)s$',
+              cost=smelt_cost), 'danger')
         return redirect(url_for('factory.index'))
 
     # Atomic deduction via ResourceService (Locks User)
-    if not ResourceService.modify_resources(current_user.id, {'money': -smelt_cost}, 'factory_smelt_cost', auto_commit=False, expected_version=None, log_extra={'item_id': src_item.id, 'item_name': src_item.name, 'cost': smelt_cost}):
+    if not ResourceService.modify_resources(
+        current_user.id,
+        {
+            'money': -smelt_cost},
+        'factory_smelt_cost',
+        auto_commit=False,
+        expected_version=None,
+        log_extra={
+            'item_id': src_item.id,
+            'item_name': src_item.name,
+            'cost': smelt_cost}):
         flash(_('لا تملك كاش كافي للصهر!'), 'danger')
         return redirect(url_for('factory.index'))
 
     # Consume Item (Locks UserItem) - Consistent Order: User -> UserItem
     if not _consume_user_item(current_user.id, src_item.id, 1):
-        db.session.rollback() # Refund money
+        db.session.rollback()  # Refund money
         flash(_('لا تملك هذا العنصر.'), 'danger')
         return redirect(url_for('factory.index'))
 
@@ -373,7 +396,6 @@ def smelt():
         details=f"Smelted {src_item.name}"
     )
     db.session.add(sink_log)
-
 
     lvl = _effective_level(current_user)
     tier = _tier_for_level(lvl)
@@ -396,7 +418,8 @@ def smelt():
     _add_user_item(current_user.id, metal_item, ingots)
     db.session.commit()
 
-    flash(_('تم صهر %(name)s وتحويله إلى %(qty)s سبائك معدن.', name=src_item.name, qty=ingots), 'success')
+    flash(_('تم صهر %(name)s وتحويله إلى %(qty)s سبائك معدن.',
+          name=src_item.name, qty=ingots), 'success')
     return redirect(url_for('factory.index'))
 
 
@@ -411,14 +434,17 @@ def start_job():
         flash(_('عناصر المصنع غير مكتملة في قاعدة البيانات.'), 'danger')
         return redirect(url_for('factory.index'))
 
-    db.session.execute(select(User).where(User.id == current_user.id).with_for_update()).scalar_one()
+    db.session.execute(
+        select(User).where(
+            User.id == current_user.id).with_for_update()).scalar_one()
 
     max_parallel = 1
     try:
         max_parallel = int(cfg.get("max_parallel_jobs") or 1)
     except Exception:
         max_parallel = 1
-    running_count = FactoryJob.query.filter_by(user_id=current_user.id, status='running').count()
+    running_count = FactoryJob.query.filter_by(
+        user_id=current_user.id, status='running').count()
     if running_count >= max_parallel:
         flash(_('لديك عملية تصنيع جارية بالفعل.'), 'warning')
         return redirect(url_for('factory.index'))
@@ -453,7 +479,8 @@ def start_job():
         min_m, max_m = pricing["expl_minutes"]
 
     if current_user.diamonds < diamonds_cost:
-        flash(_('ليس لديك ما يكفي من الماس! تحتاج إلى %(cost)s ماسة.', cost=diamonds_cost), 'danger')
+        flash(_('ليس لديك ما يكفي من الماس! تحتاج إلى %(cost)s ماسة.',
+              cost=diamonds_cost), 'danger')
         return redirect(url_for('factory.index'))
 
     if _get_user_item_qty(current_user.id, metal_item.id) < metal_cost:
@@ -461,7 +488,17 @@ def start_job():
         return redirect(url_for('factory.index'))
 
     # Atomic deduction for diamonds via ResourceService
-    if not ResourceService.modify_resources(current_user.id, {'diamonds': -diamonds_cost}, 'factory_start_job', auto_commit=False, expected_version=None, log_extra={'job_type': job_type, 'cost': diamonds_cost, 'metal_used': metal_cost}):
+    if not ResourceService.modify_resources(
+        current_user.id,
+        {
+            'diamonds': -diamonds_cost},
+        'factory_start_job',
+        auto_commit=False,
+        expected_version=None,
+        log_extra={
+            'job_type': job_type,
+            'cost': diamonds_cost,
+            'metal_used': metal_cost}):
         flash(_('ليس لديك ما يكفي من الماس!'), 'danger')
         return redirect(url_for('factory.index'))
 
@@ -473,7 +510,11 @@ def start_job():
         return redirect(url_for('factory.index'))
 
     minutes = _weighted_int(int(min_m), int(max_m), w_low=0.6, w_mid=0.3)
-    output_amount = _weighted_int(int(out_min), int(out_max), w_low=0.7, w_mid=0.25)
+    output_amount = _weighted_int(
+        int(out_min),
+        int(out_max),
+        w_low=0.7,
+        w_mid=0.25)
     ends_at = (_now_utc() + timedelta(minutes=minutes)).replace(tzinfo=None)
 
     job = FactoryJob(
@@ -501,10 +542,13 @@ def claim(job_id):
     explosive_item = _get_material_item(cfg["explosive_item_name"])
 
     # Lock User first to prevent deadlock (User -> Job)
-    db.session.execute(select(User).where(User.id == current_user.id).with_for_update()).scalar_one()
+    db.session.execute(
+        select(User).where(
+            User.id == current_user.id).with_for_update()).scalar_one()
 
     # Lock the job row to prevent double claiming
-    job = FactoryJob.query.filter_by(id=job_id, user_id=current_user.id).with_for_update().first()
+    job = FactoryJob.query.filter_by(
+        id=job_id, user_id=current_user.id).with_for_update().first()
     if not job or job.status != 'running':
         flash(_('هذه العملية غير موجودة.'), 'danger')
         return redirect(url_for('factory.index'))
@@ -514,7 +558,12 @@ def claim(job_id):
         return redirect(url_for('factory.index'))
 
     if job.job_type == 'bullets':
-        if not ResourceService.modify_resources(current_user.id, {'bullets': int(job.output_amount)}, 'factory_claim_bullets', auto_commit=False, expected_version=None, log_extra={'job_id': job.id, 'qty': int(job.output_amount)}):
+        if not ResourceService.modify_resources(
+            current_user.id, {
+                'bullets': int(
+                    job.output_amount)}, 'factory_claim_bullets', auto_commit=False, expected_version=None, log_extra={
+                'job_id': job.id, 'qty': int(
+                    job.output_amount)}):
             flash(_('حدث خطأ أثناء استلام الموارد. حاول مرة أخرى.'), 'danger')
             return redirect(url_for('factory.index'))
     else:
@@ -543,30 +592,33 @@ def boost(job_id):
         if jail_until.tzinfo is None:
             jail_until = jail_until.replace(tzinfo=timezone.utc)
         if jail_until > now:
-             flash(_('أنت في السجن ولا يمكنك استخدام المصنع!'), 'danger')
-             return redirect(url_for('jail.index'))
-             
+            flash(_('أنت في السجن ولا يمكنك استخدام المصنع!'), 'danger')
+            return redirect(url_for('jail.index'))
+
     if current_user.hospital_until:
         hospital_until = current_user.hospital_until
         if hospital_until.tzinfo is None:
             hospital_until = hospital_until.replace(tzinfo=timezone.utc)
         if hospital_until > now:
-             flash(_('أنت في المستشفى ولا يمكنك استخدام المصنع!'), 'danger')
-             return redirect(url_for('hospital.index'))
+            flash(_('أنت في المستشفى ولا يمكنك استخدام المصنع!'), 'danger')
+            return redirect(url_for('hospital.index'))
 
     if current_user.gym_until:
         gym_until = current_user.gym_until
         if gym_until.tzinfo is None:
             gym_until = gym_until.replace(tzinfo=timezone.utc)
         if gym_until > now:
-             flash(_('أنت تتدرب ولا يمكنك استخدام المصنع!'), 'danger')
-             return redirect(url_for('gym.index'))
+            flash(_('أنت تتدرب ولا يمكنك استخدام المصنع!'), 'danger')
+            return redirect(url_for('gym.index'))
 
     # Lock User first
-    db.session.execute(select(User).where(User.id == current_user.id).with_for_update()).scalar_one()
+    db.session.execute(
+        select(User).where(
+            User.id == current_user.id).with_for_update()).scalar_one()
 
     # Lock job
-    job = FactoryJob.query.filter_by(id=job_id, user_id=current_user.id).with_for_update().first()
+    job = FactoryJob.query.filter_by(
+        id=job_id, user_id=current_user.id).with_for_update().first()
     if not job or job.status != 'running':
         flash(_('هذه العملية غير موجودة.'), 'danger')
         return redirect(url_for('factory.index'))
@@ -598,11 +650,21 @@ def boost(job_id):
     diamonds_cost = max(min_cost, int(remaining_minutes * cost_per_min))
 
     if current_user.diamonds < diamonds_cost:
-        flash(_('ليس لديك ما يكفي من الماس! تحتاج إلى %(cost)s ماسة.', cost=diamonds_cost), 'danger')
+        flash(_('ليس لديك ما يكفي من الماس! تحتاج إلى %(cost)s ماسة.',
+              cost=diamonds_cost), 'danger')
         return redirect(url_for('factory.index'))
 
     # Atomic deduction via ResourceService
-    if not ResourceService.modify_resources(current_user.id, {'diamonds': -diamonds_cost}, 'factory_boost_job', auto_commit=False, expected_version=None, log_extra={'job_id': job.id, 'cost': diamonds_cost}):
+    if not ResourceService.modify_resources(
+        current_user.id,
+        {
+            'diamonds': -diamonds_cost},
+        'factory_boost_job',
+        auto_commit=False,
+        expected_version=None,
+        log_extra={
+            'job_id': job.id,
+            'cost': diamonds_cost}):
         flash(_('ليس لديك ما يكفي من الماس!'), 'danger')
         return redirect(url_for('factory.index'))
 
@@ -610,5 +672,6 @@ def boost(job_id):
     db.session.add(job)
     db.session.commit()
 
-    flash(_('تم تسريع التصنيع وإنهاؤه فوراً مقابل %(cost)s ماسة.', cost=diamonds_cost), 'success')
+    flash(_('تم تسريع التصنيع وإنهاؤه فوراً مقابل %(cost)s ماسة.',
+          cost=diamonds_cost), 'success')
     return redirect(url_for('factory.index'))
