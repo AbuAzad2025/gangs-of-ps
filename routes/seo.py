@@ -16,6 +16,15 @@ def robots():
         "Disallow: /developer/",
         "Disallow: /api/",
         "Disallow: /socket.io/",
+        "Disallow: /hara",
+        "Disallow: /black_market/",
+        "Disallow: /farm/",
+        "Disallow: /factory/",
+        "Disallow: /garage/",
+        "Disallow: /inventory/",
+        "Disallow: /resources/",
+        "Disallow: /racing/",
+        "Disallow: /entertainment/",
         "Disallow: /login",
         "Disallow: /register",
         "Disallow: /logout",
@@ -29,6 +38,7 @@ def robots():
         "Disallow: /forum/topic/*/lock",
         "Disallow: /forum/topic/*/pin",
         "Disallow: /forum/post/*/delete",
+        "Disallow: /:",
         "",
         f"Sitemap: {sitemap_url}"
     ]
@@ -240,73 +250,6 @@ def sitemap():
                 priority="0.6",
                 lastmod=getattr(t, "last_post_at", None) or getattr(t, "created_at", None),
             )
-    except Exception:
-        pass
-
-    try:
-        disallowed_prefixes = (
-            "/static/",
-            "/admin/",
-            "/developer/",
-            "/api/",
-            "/socket.io/",
-            "/confirm/",
-            "/captcha/",
-        )
-        disallowed_exact = {
-            "/robots.txt",
-            "/sitemap.xml",
-            "/sitemap.xsl",
-            "/login",
-            "/register",
-            "/logout",
-            "/unconfirmed",
-            "/resend_confirmation",
-            "/hara",
-        }
-
-        for rule in current_app.url_map.iter_rules():
-            if "GET" not in (rule.methods or set()):
-                continue
-            if rule.arguments:
-                continue
-
-            path = str(rule.rule or "")
-            if not path.startswith("/"):
-                continue
-            if path in disallowed_exact:
-                continue
-            if any(path.startswith(p) for p in disallowed_prefixes):
-                continue
-
-            changefreq = "weekly"
-            priority = "0.5"
-            if path == "/":
-                changefreq = "daily"
-                priority = "1.0"
-            elif path.rstrip("/") in {"/guide"}:
-                changefreq = "monthly"
-                priority = "0.7"
-            elif path.startswith("/forum"):
-                changefreq = "daily"
-                priority = "0.8"
-            elif path.startswith("/news"):
-                changefreq = "daily"
-                priority = "0.8"
-            elif path.startswith("/graveyard"):
-                changefreq = "daily"
-                priority = "0.7"
-            elif path.startswith("/organized_crimes"):
-                changefreq = "daily"
-                priority = "0.8"
-            elif path.startswith("/leaderboard"):
-                changefreq = "daily"
-                priority = "0.7"
-            elif path.startswith("/chat"):
-                changefreq = "daily"
-                priority = "0.6"
-
-            add_page(path, changefreq=changefreq, priority=priority)
     except Exception:
         pass
 

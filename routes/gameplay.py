@@ -116,11 +116,31 @@ def organized_crimes():
     min_creator_rank_level = int(SystemConfig.get_value(
         'organized_crimes_min_creator_rank_level', '20'))
 
-    if OrganizedCrime.query.count() < 6:
-        from utils.essentials import initialize_items, initialize_organized_crimes
-        initialize_items()
-        initialize_organized_crimes()
-        db.session.commit()
+    try:
+        from utils.essentials import (
+            initialize_items,
+            initialize_organized_crimes,
+            load_json_seed,
+        )
+
+        seed_data = load_json_seed('organized_crimes.json') or []
+        seed_names = {
+            d.get('name')
+            for d in seed_data
+            if isinstance(d, dict) and d.get('name')
+        }
+        existing_names = {
+            name
+            for (name,) in OrganizedCrime.query.with_entities(
+                OrganizedCrime.name
+            ).all()
+        }
+        if seed_names and (seed_names - existing_names):
+            initialize_items()
+            initialize_organized_crimes()
+            db.session.commit()
+    except Exception:
+        pass
 
     if not enabled:
         flash(_('الجرائم المنظمة غير مفعلة حالياً.'), 'warning')

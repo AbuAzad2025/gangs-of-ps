@@ -136,8 +136,8 @@
     <!-- Active Rooms -->
     <h3 class="text-light mb-4"><i class="fas fa-list"></i> {{ _('غرف اللاعبين المتاحة') }}</h3>
     <div class="row">
-        {% for room in rooms %}
-        {% if room.status == 'waiting' %}
+        {% set waiting_rooms = rooms | selectattr('status', 'equalto', 'waiting') | list %}
+        {% for room in waiting_rooms %}
         <div class="col-md-4 mb-3">
             <div class="card bg-secondary text-white border-dark hover-scale">
                 <div class="card-body">
@@ -171,7 +171,6 @@
                 </div>
             </div>
         </div>
-        {% endif %}
         {% else %}
         <div class="col-12 text-center">
             <p class="text-muted">{{ _('لا يوجد غرف انتظار حالياً. قم بإنشاء واحدة!') }}</p>

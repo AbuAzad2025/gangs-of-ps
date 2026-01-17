@@ -219,6 +219,45 @@
     }
   },
   {
+    "name": "ممر إلى لبنان",
+    "description": "رحلة نجاة طويلة… تمر على قرى ومخيمات، وتحتاج صبر وحذر.",
+    "min_level": 17,
+    "min_members": 3,
+    "max_members": 5,
+    "duration_minutes": 85,
+    "cooldown_hours": 30,
+    "energy_cost": 80,
+    "money_reward_min": 9000,
+    "money_reward_max": 18000,
+    "exp_reward": 650,
+    "min_gang_level": 2,
+    "image": "crimes/wall.jpg",
+    "roles_config": [
+      {"name": "دليل طريق", "description": "يحفظ المسارات ويتجنب نقاط التفتيش", "icon": "fas fa-map-signs", "min_stats": {"intelligence": 18, "agility": 14}},
+      {"name": "مسعف", "description": "يتعامل مع الإصابات والإرهاق بسرعة", "icon": "fas fa-first-aid", "min_stats": {"intelligence": 16, "defense": 14}},
+      {"name": "مراقب", "description": "يراقب الحركة ويعطي إنذار مبكر", "icon": "fas fa-binoculars", "min_stats": {"intelligence": 20}},
+      {"name": "سائق", "description": "ينقل الفريق بين النقاط بأقل ضجة", "icon": "fas fa-car", "min_stats": {"agility": 24}}
+    ],
+    "requirements": {
+      "required_item": "طقم إسعاف",
+      "penalty_money_pct": 0.05,
+      "penalty_xp_pct": 0.1,
+      "penalty_energy_min": 10,
+      "heat_window_hours": 10,
+      "heat_success_penalty_pct": 6.0,
+      "heat_jail_boost_pct": 16.0,
+      "lucky_event_pct": 7.0,
+      "lucky_money_pct": 18.0,
+      "lucky_exp_pct": 35.0,
+      "role_bonuses": {
+        "دليل طريق": {"money_pct": 6, "exp_bonus": 55, "rank_points": 2},
+        "مسعف": {"money_pct": 4, "exp_bonus": 85, "rank_points": 2},
+        "مراقب": {"money_pct": 5, "exp_bonus": 65, "rank_points": 2},
+        "سائق": {"money_pct": 7, "exp_bonus": 45, "rank_points": 1}
+      }
+    }
+  },
+  {
     "name": "اغتيال هدف",
     "description": "عملية دقيقة… طلقة وحدة وتختفي.",
     "min_level": 28,

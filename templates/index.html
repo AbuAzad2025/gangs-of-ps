@@ -243,19 +243,19 @@
                         <div class="row">
                             <div class="col-md-6">
                                 <ul class="text-light mb-0">
-                                    <li>{{ _('القدس') }} (Jerusalem)</li>
-                                    <li>{{ _('غزة') }} (Gaza)</li>
-                                    <li>{{ _('رام الله') }} (Ramallah)</li>
-                                    <li>{{ _('نابلس') }} (Nablus)</li>
-                                    <li>{{ _('الخليل') }} (Hebron)</li>
+                                    <li>{% if get_locale() == 'ar' %}{{ _('القدس') }} (Jerusalem){% else %}{{ _('القدس') }}{% endif %}</li>
+                                    <li>{% if get_locale() == 'ar' %}{{ _('غزة') }} (Gaza){% else %}{{ _('غزة') }}{% endif %}</li>
+                                    <li>{% if get_locale() == 'ar' %}{{ _('رام الله') }} (Ramallah){% else %}{{ _('رام الله') }}{% endif %}</li>
+                                    <li>{% if get_locale() == 'ar' %}{{ _('نابلس') }} (Nablus){% else %}{{ _('نابلس') }}{% endif %}</li>
+                                    <li>{% if get_locale() == 'ar' %}{{ _('الخليل') }} (Hebron){% else %}{{ _('الخليل') }}{% endif %}</li>
                                 </ul>
                             </div>
                             <div class="col-md-6">
                                 <ul class="text-light mb-0">
-                                    <li>{{ _('جنين') }} (Jenin)</li>
-                                    <li>{{ _('أريحا') }} (Jericho)</li>
-                                    <li>{{ _('بيت لحم') }} (Bethlehem)</li>
-                                    <li>{{ _('طولكرم') }} (Tulkarm)</li>
+                                    <li>{% if get_locale() == 'ar' %}{{ _('جنين') }} (Jenin){% else %}{{ _('جنين') }}{% endif %}</li>
+                                    <li>{% if get_locale() == 'ar' %}{{ _('أريحا') }} (Jericho){% else %}{{ _('أريحا') }}{% endif %}</li>
+                                    <li>{% if get_locale() == 'ar' %}{{ _('بيت لحم') }} (Bethlehem){% else %}{{ _('بيت لحم') }}{% endif %}</li>
+                                    <li>{% if get_locale() == 'ar' %}{{ _('طولكرم') }} (Tulkarm){% else %}{{ _('طولكرم') }}{% endif %}</li>
                                 </ul>
                             </div>
                         </div>

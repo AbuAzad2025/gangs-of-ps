@@ -75,8 +75,8 @@ class TarneebGameLogic:
             state['turn_seat'] = (player_index + 1) % 4
             # Fallback: if 4 consecutive passes and no current bid, nudge
             # bidding to continue
-            if state['passes_in_row'] >= 4 and not state['current_bid'].get(
-                    'bidder'):
+            if state['passes_in_row'] >= 4 and state['current_bid'].get(
+                    'bidder') is None:
                 # Force minimal bid by next player based on longest suit to
                 # avoid deadlock
                 nxt = state['turn_seat']
@@ -133,9 +133,13 @@ class TarneebGameLogic:
             return {'valid': False, 'message': 'Not your turn'}
 
         declarer = state.get('current_bid', {}).get('bidder')
+        if declarer is None:
+            return {'valid': False, 'message': 'No declarer for doubling phase'}
         declarer_team = state.get('declarer_team')
         player_team = 'A' if player_index in (0, 2) else 'B'
-        opponent_team = 'B' if declarer_team == 'A' else 'A'
+        opp1 = (declarer + 1) % 4
+        opp2 = (declarer + 3) % 4
+        opponents = {opp1, opp2}
 
         action = (choice or {}).get('action')
         if action not in ['double', 'redouble', 'pass']:
@@ -143,7 +147,7 @@ class TarneebGameLogic:
 
         # Opponents may double; declarers may redouble after a double
         if not state.get('doubled', False):
-            if player_team != opponent_team and action != 'pass':
+            if player_index not in opponents and action != 'pass':
                 return {'valid': False, 'message': 'Only opponents can double'}
             if action == 'double':
                 state['doubled'] = True
@@ -156,16 +160,16 @@ class TarneebGameLogic:
                 # pass from opponent
                 state['doubling_history'].append(
                     {'player': player_index, 'action': 'pass'})
-                state['doubling_passes'] = (
-                    state.get('doubling_passes', 0) + 1)
-                # Next opponent gets chance
-                next_opponent = (player_index + 2) % 4 if ((player_index + 2) % 4) in (
-                    (declarer + 1) % 4, (declarer + 3) % 4) else (player_index + 1) % 4
-                state['turn_seat'] = next_opponent
-                # If both opponents passed, start playing
+                opponent_passes = [
+                    h for h in state.get('doubling_history', [])
+                    if h.get('action') == 'pass' and h.get('player') in opponents
+                ]
+                state['doubling_passes'] = len(opponent_passes)
                 if state['doubling_passes'] >= 2:
                     state['phase'] = 'playing'
                     state['turn_seat'] = declarer
+                else:
+                    state['turn_seat'] = opp2 if player_index == opp1 else opp1
         else:
             # Already doubled; declarer team may redouble or pass, then start
             # playing
@@ -247,17 +251,28 @@ class TarneebGameLogic:
             if total_tricks >= 13:
                 # Scoring
                 declarer_team = state.get('declarer_team')
+                other_team = 'B' if declarer_team == 'A' else 'A'
                 contract_value = int(state.get('contract_value') or 0)
                 team_tricks = state.get('team_tricks', {'A': 0, 'B': 0})
-                if team_tricks['A'] == 13 or team_tricks['B'] == 13:
-                    winner_team = 'A' if team_tricks['A'] == 13 else 'B'
-                    state['team_scores'][winner_team] += 26
-                else:
-                    made_contract = team_tricks[declarer_team] >= contract_value
-                    if made_contract:
-                        state['team_scores'][declarer_team] += contract_value
+                mult = 4 if state.get('redoubled') else 2 if state.get('doubled') else 1
+                declarer_tricks = int(team_tricks.get(declarer_team) or 0)
+                other_tricks = int(team_tricks.get(other_team) or 0)
+
+                if contract_value == 13:
+                    if declarer_tricks == 13:
+                        state['team_scores'][declarer_team] += 26 * mult
                     else:
-                        state['team_scores'][declarer_team] -= contract_value
+                        state['team_scores'][declarer_team] -= 16 * mult
+                        state['team_scores'][other_team] += other_tricks * 2
+                else:
+                    if declarer_tricks >= contract_value:
+                        if declarer_tricks == 13:
+                            state['team_scores'][declarer_team] += 16 * mult
+                        else:
+                            state['team_scores'][declarer_team] += declarer_tricks * mult
+                    else:
+                        state['team_scores'][declarer_team] -= contract_value * mult
+                        state['team_scores'][other_team] += other_tricks
 
                 # Check for Game End (Target 31)
                 score_a = state['team_scores']['A']

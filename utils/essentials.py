@@ -1,7 +1,7 @@
 import logging
 from extensions import db
 from models import (
-    Location, Item, OrganizedCrime, Crime, Vehicle, DailyTask
+    Location, Item, OrganizedCrime, Crime, Vehicle, DailyTask, Announcement
 )
 from models.hostess import Hostess
 from models.knowledge import HostessKnowledge
@@ -37,10 +37,63 @@ def initialize_essentials(app):
         initialize_hostesses()
         initialize_hostess_knowledge()
         initialize_daily_tasks()
+        initialize_announcements()
         ensure_schema_updates()  # Migration shim
         take_economy_snapshot()
         db.session.commit()
         logging.info("Essential game data verification completed.")
+
+
+def initialize_announcements():
+    blocked_title = "فن وتاريخ في الألعاب: «أحلام على وسادة»"
+    blocked_url = (
+        "https://www.aljazeera.net/culture/2026/1/1/"
+        "%D9%84%D8%B9%D8%A8%D8%A9-%D8%A3%D8%AD%D9%84%D8%A7%D9%85-%D8%B9%D9%84%D9%89-"
+        "%D9%88%D8%B3%D8%A7%D8%AF%D8%A9-%D8%AD%D9%8A%D9%86-%D8%AA%D8%B1%D9%88%D9%89-"
+        "%D8%A7%D9%84%D9%86%D9%83%D8%A8%D8%A9"
+    )
+
+    to_remove = []
+    try:
+        to_remove.extend(
+            Announcement.query.filter(Announcement.title == blocked_title).all()
+        )
+    except Exception:
+        try:
+            db.session.rollback()
+        except Exception:
+            pass
+
+    try:
+        to_remove.extend(
+            Announcement.query.filter(Announcement.content.contains(blocked_url)).all()
+        )
+    except Exception:
+        try:
+            db.session.rollback()
+        except Exception:
+            pass
+
+    seen_ids = set()
+    unique = []
+    for a in to_remove:
+        if not getattr(a, "id", None) or a.id in seen_ids:
+            continue
+        seen_ids.add(a.id)
+        unique.append(a)
+
+    for a in unique:
+        try:
+            db.session.delete(a)
+        except Exception:
+            try:
+                a.is_active = False
+                db.session.add(a)
+            except Exception:
+                try:
+                    db.session.rollback()
+                except Exception:
+                    pass
 
 
 def ensure_schema_updates():
@@ -297,6 +350,12 @@ def initialize_organized_crimes():
             count += 1
         else:
             updated = False
+            if crime.is_active is False:
+                crime.is_active = True
+                updated = True
+            if data.get('description') and not (crime.description or '').strip():
+                crime.description = data.get('description')
+                updated = True
             if data.get('image') and crime.image != data.get('image'):
                 crime.image = data.get('image')
                 updated = True

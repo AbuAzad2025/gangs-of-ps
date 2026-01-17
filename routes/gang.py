@@ -1016,12 +1016,59 @@ def organized_crimes():
         return redirect(url_for('gang.index'))
 
     gang = db.session.get(Gang, current_user.gang_id)
-    crimes = OrganizedCrime.query.all()
+    try:
+        from utils.essentials import (
+            initialize_items,
+            initialize_organized_crimes,
+            load_json_seed,
+        )
+
+        seed_data = load_json_seed('organized_crimes.json') or []
+        seed_names = {
+            d.get('name')
+            for d in seed_data
+            if isinstance(d, dict) and d.get('name')
+        }
+        existing_names = {
+            name
+            for (name,) in OrganizedCrime.query.with_entities(
+                OrganizedCrime.name
+            ).all()
+        }
+        if seed_names and (seed_names - existing_names):
+            initialize_items()
+            initialize_organized_crimes()
+            db.session.commit()
+    except Exception:
+        pass
+
+    crimes = OrganizedCrime.query.filter_by(is_active=True).order_by(
+        OrganizedCrime.min_level.asc()
+    ).all()
+
+    crime_meta = {}
+    try:
+        import json
+        for c in crimes:
+            reqs = {}
+            try:
+                reqs = json.loads(c.requirements) if c.requirements else {}
+            except Exception:
+                reqs = {}
+            crime_meta[c.id] = {
+                'required_item': reqs.get('required_item'),
+                'heat_window_hours': reqs.get('heat_window_hours'),
+                'double_patrol_pct': reqs.get('double_patrol_pct'),
+                'lucky_event_pct': reqs.get('lucky_event_pct'),
+            }
+    except Exception:
+        crime_meta = {}
 
     return render_template(
         'gang/organized_crimes.html',
         gang=gang,
-        crimes=crimes)
+        crimes=crimes,
+        crime_meta=crime_meta)
 
 
 @bp.route('/do_organized_crime/<int:crime_id>', methods=['POST'])

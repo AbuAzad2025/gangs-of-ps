@@ -65,6 +65,7 @@ class TrixGameLogic:
 
     @staticmethod
     def init_game(state):
+        state['rev'] = 0
         state['phase'] = 'init'
         state['hands'] = {0: [], 1: [], 2: [], 3: []}
         state['scores'] = {0: 0, 1: 0, 2: 0, 3: 0}
@@ -81,6 +82,15 @@ class TrixGameLogic:
         state['finished_players'] = []
         state['turn_seat'] = 0
         TrixGameLogic.deal(state)
+
+        kingdom_owner = None
+        for seat in range(4):
+            hand = TrixGameLogic._hands_get(state, seat)
+            if any(c.get('suit') == '♥' and c.get('rank') == '7' for c in hand):
+                kingdom_owner = seat
+                break
+        if kingdom_owner is not None:
+            state['kingdom_player'] = kingdom_owner
 
         if state.get('trix_style') == 'complex':
             state['current_contract'] = 'complex'
@@ -105,13 +115,18 @@ class TrixGameLogic:
         if contract not in state.get('available_contracts', []):
             return {'valid': False, 'message': 'Contract not available'}
 
+        state['doubles'] = {'king': None, 'queens': {}}
+        state['doubling_confirms'] = []
+        state['hearts_broken'] = False
+        state['finished_players'] = []
+        state['trix_piles'] = {s: [] for s in TrixGameLogic.SUITS}
+
         state['current_contract'] = contract
         state['available_contracts'].remove(contract)
 
         # Determine phase based on contract
         if contract in ['king', 'queens', 'complex']:
             state['phase'] = 'doubling'
-            state['doubling_confirms'] = []
         else:
             state['phase'] = 'playing'
 
@@ -161,9 +176,9 @@ class TrixGameLogic:
             return {'valid': False, 'message': 'Card not in hand'}
 
         if not state['trick'] and card['suit'] == '♥' and state.get(
-                'current_contract') == 'king':
+                'current_contract') in ('king', 'complex'):
             has_non_hearts = any(c['suit'] != '♥' for c in hand)
-            if has_non_hearts and not state.get('hearts_broken'):
+            if has_non_hearts:
                 return {
                     'valid': False,
                     'message': 'Cannot lead hearts unless only hearts remain'}
@@ -186,7 +201,7 @@ class TrixGameLogic:
                         )
                     except Exception:
                         pass
-                    return {'valid': False, 'message': 'Must follow suit'}
+                    return {'valid': False, 'message': 'يجب الالتزام بنوع الورقة الأولى إذا كانت متوفرة لديك'}
 
             # Check if hearts are broken (Playing hearts on non-heart suit)
             if lead_suit != '♥' and card['suit'] == '♥':
@@ -218,16 +233,39 @@ class TrixGameLogic:
         doubles = state.get('doubles', {})
 
         if contract == 'king':
-            for c in cards:
-                if c['suit'] == '♥' and c['rank'] == 'K':
-                    mult = 2 if doubles.get('king') is not None else 1
-                    state['scores'][winner_player] += -75 * mult
+            if any(c['suit'] == '♥' and c['rank'] == 'K' for c in cards):
+                holder = doubles.get('king')
+                if holder is None:
+                    state['scores'][winner_player] += -75
+                else:
+                    leader = trick[0]['player']
+                    if winner_player != holder:
+                        state['scores'][winner_player] += -150
+                        state['scores'][holder] += 75
+                    else:
+                        if leader == holder:
+                            state['scores'][winner_player] += -75
+                        else:
+                            state['scores'][winner_player] += -150
+                            state['scores'][leader] += 75
 
         elif contract == 'queens':
             for c in cards:
                 if c['rank'] == 'Q':
-                    mult = 2 if c['suit'] in doubles.get('queens', {}) else 1
-                    state['scores'][winner_player] += -25 * mult
+                    holder = (doubles.get('queens') or {}).get(c['suit'])
+                    if holder is None:
+                        state['scores'][winner_player] += -25
+                    else:
+                        leader = trick[0]['player']
+                        if winner_player != holder:
+                            state['scores'][winner_player] += -50
+                            state['scores'][holder] += 25
+                        else:
+                            if leader == holder:
+                                state['scores'][winner_player] += -25
+                            else:
+                                state['scores'][winner_player] += -50
+                                state['scores'][leader] += 25
 
         elif contract == 'diamonds':
             for c in cards:
@@ -240,12 +278,35 @@ class TrixGameLogic:
         elif contract == 'complex':
             for c in cards:
                 if c['suit'] == '♥' and c['rank'] == 'K':
-                    state['scores'][winner_player] += (-150 if doubles.get(
-                        'king') is not None else -75)
+                    holder = doubles.get('king')
+                    if holder is None:
+                        state['scores'][winner_player] += -75
+                    else:
+                        leader = trick[0]['player']
+                        if winner_player != holder:
+                            state['scores'][winner_player] += -150
+                            state['scores'][holder] += 75
+                        else:
+                            if leader == holder:
+                                state['scores'][winner_player] += -75
+                            else:
+                                state['scores'][winner_player] += -150
+                                state['scores'][leader] += 75
                 if c['rank'] == 'Q':
-                    mult = - \
-                        50 if c['suit'] in doubles.get('queens', {}) else -25
-                    state['scores'][winner_player] += mult
+                    holder = (doubles.get('queens') or {}).get(c['suit'])
+                    if holder is None:
+                        state['scores'][winner_player] += -25
+                    else:
+                        leader = trick[0]['player']
+                        if winner_player != holder:
+                            state['scores'][winner_player] += -50
+                            state['scores'][holder] += 25
+                        else:
+                            if leader == holder:
+                                state['scores'][winner_player] += -25
+                            else:
+                                state['scores'][winner_player] += -50
+                                state['scores'][leader] += 25
                 if c['suit'] == '♦':
                     state['scores'][winner_player] += -10
             state['scores'][winner_player] += -15
@@ -313,7 +374,6 @@ class TrixGameLogic:
                 state['kingdom_player'] = (state['kingdom_player'] + 1) % 4
                 state['available_contracts'] = list(
                     TrixGameLogic.CONTRACTS.keys())
-                TrixGameLogic.deal(state)
                 state['doubles'] = {'king': None, 'queens': {}}
 
             # For next contract in kingdom
@@ -419,10 +479,12 @@ class TrixGameLogic:
 
     @staticmethod
     def declare_double(state, player_index, dtype, suit=None):
-        if state['phase'] != 'playing' and state['phase'] != 'doubling':
+        if state['phase'] != 'doubling':
             return {'valid': False, 'message': 'Not in doubling phase'}
         hand = TrixGameLogic._hands_get(state, player_index)
         if dtype == 'king':
+            if state.get('current_contract') not in ('king', 'complex'):
+                return {'valid': False, 'message': 'Invalid contract for king double'}
             has_king = any(c['suit'] == '♥' and c['rank'] == 'K' for c in hand)
             if not has_king:
                 return {
@@ -431,6 +493,8 @@ class TrixGameLogic:
             state['doubles']['king'] = player_index
             return {'valid': True, 'state': state}
         elif dtype == 'queen':
+            if state.get('current_contract') not in ('queens', 'complex'):
+                return {'valid': False, 'message': 'Invalid contract for queen double'}
             if suit not in TrixGameLogic.SUITS:
                 return {'valid': False, 'message': 'Invalid suit'}
             has_q = any(c['suit'] == suit and c['rank'] == 'Q' for c in hand)

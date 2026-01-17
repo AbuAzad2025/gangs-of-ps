@@ -67,11 +67,11 @@
                 <div id="contract-selection" class="contract-selector d-none text-center">
                     <h5 class="text-white mb-3">{{ _('اختر نوع اللعبة') }}</h5>
                     <div class="btn-group-vertical">
-                        <button class="btn btn-danger contract-btn mb-1" data-contract="king" onclick="chooseContract('king')">King of Hearts (-75)</button>
-                        <button class="btn btn-danger contract-btn mb-1" data-contract="queens" onclick="chooseContract('queens')">Queens (-25)</button>
-                        <button class="btn btn-danger contract-btn mb-1" data-contract="diamonds" onclick="chooseContract('diamonds')">Diamonds (-10)</button>
-                        <button class="btn btn-danger contract-btn mb-1" data-contract="slapping" onclick="chooseContract('slapping')">Slapping (-15)</button>
-                        <button class="btn btn-success contract-btn" data-contract="trix" onclick="chooseContract('trix')">Trix (+0)</button>
+                        <button class="btn btn-danger contract-btn mb-1" data-contract="king" onclick="chooseContract('king')">{{ _('ملك القلوب') }} (-75)</button>
+                        <button class="btn btn-danger contract-btn mb-1" data-contract="queens" onclick="chooseContract('queens')">{{ _('بنات') }} (-25)</button>
+                        <button class="btn btn-danger contract-btn mb-1" data-contract="diamonds" onclick="chooseContract('diamonds')">{{ _('ديناري') }} (-10)</button>
+                        <button class="btn btn-danger contract-btn mb-1" data-contract="slapping" onclick="chooseContract('slapping')">{{ _('لطشات') }} (-15)</button>
+                        <button class="btn btn-success contract-btn" data-contract="trix" onclick="chooseContract('trix')">{{ _('تريكس') }} (+0)</button>
                     </div>
                 </div>
 
@@ -111,12 +111,6 @@
         </div>
     </div>
 </div>
-
-<div class="container-fluid fade-in p-0">
-    <!-- Game UI content -->
-</div>
-
-<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
 <script>
     // "Highest Standards": Server-Authoritative State, Client-Side Prediction (Optimistic UI)
     
@@ -132,28 +126,36 @@
     }
 
     function finishGame() {
-        const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
-        fetch("{{ url_for('entertainment.finish_room', room_id=room.id) }}", {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrfToken }
-        }).then(r => r.json()).then(() => location.reload());
+        uiConfirm("{{ _('هل أنت متأكد من إنهاء اللعبة؟') }}", "{{ _('تأكيد') }}").then(ok => {
+            if (!ok) return;
+            const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+            fetch("{{ url_for('entertainment.finish_room', room_id=room.id) }}", {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrfToken }
+            }).then(r => r.json()).then(() => location.reload());
+        });
     }
 
     function deleteRoom() {
-        const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
-        fetch("{{ url_for('entertainment.finish_room', room_id=room.id) }}", {
-             method: 'POST',
-             headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrfToken }
-        }).then(r => r.json()).then(() => window.location.href = "{{ url_for('entertainment.index') }}");
+        uiConfirm("{{ _('هل أنت متأكد من حذف الغرفة؟') }}", "{{ _('تأكيد') }}").then(ok => {
+            if (!ok) return;
+            const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+            fetch("{{ url_for('entertainment.delete_room', room_id=room.id) }}", {
+                 method: 'POST',
+                 headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrfToken }
+            }).then(r => r.json()).then(() => window.location.href = "{{ url_for('entertainment.index') }}");
+        });
     }
 
     function leaveGame() {
-        if(!confirm("{{ _('هل أنت متأكد من المغادرة؟ ستخسر الرهان.') }}")) return;
-        const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
-        fetch("{{ url_for('entertainment.leave_game', room_id=room.id) }}", {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrfToken }
-        }).then(r => r.json()).then(() => window.location.href = "{{ url_for('entertainment.index') }}");
+        uiConfirm("{{ _('هل أنت متأكد من المغادرة؟ ستخسر الرهان.') }}", "{{ _('تأكيد') }}").then(ok => {
+            if (!ok) return;
+            const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+            fetch("{{ url_for('entertainment.leave_game', room_id=room.id) }}", {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrfToken }
+            }).then(r => r.json()).then(() => window.location.href = "{{ url_for('entertainment.index') }}");
+        });
     }
 
     
@@ -167,6 +169,10 @@
     };
     let playersInfo = []; // To store user details
     let lastTrick = [];
+    let lastShownTrickSig = '';
+    let syncTimer = null;
+    let syncInFlight = false;
+    let playInFlight = false;
     
     // Init
     $(document).ready(() => {
@@ -178,7 +184,17 @@
             pollActive = !document.hidden;
             if (pollActive) syncState();
         });
-        setInterval(() => { if (pollActive) syncState(); }, 4000); 
+        const pollLoop = () => {
+            if (pollActive) syncState();
+            const phase = (localState && localState.phase) || 'lobby';
+            const hasBots = !!(localState && (localState.is_solo || ((localState.bot_seats || []).length > 0)));
+            const ms = !hasBots ? 4000
+                : (phase === 'playing' && localState.turn_seat !== mySeat) ? 900
+                : (phase === 'doubling' && !((localState.doubling_confirms || []).includes(mySeat))) ? 1200
+                : 2200;
+            syncTimer = setTimeout(pollLoop, ms);
+        };
+        syncTimer = setTimeout(pollLoop, 1200);
     });
     
     // function startEvents() { ... } REMOVED
@@ -208,9 +224,53 @@
             }
         });
     } catch (e) {}
+
+    function uiToast(icon, message) {
+        const title = (message === undefined || message === null) ? '' : String(message);
+        if (typeof Toast !== 'undefined' && Toast && typeof Toast.fire === 'function') {
+            Toast.fire({ icon: icon, title: title });
+            return;
+        }
+        if (typeof Swal !== 'undefined' && Swal && typeof Swal.fire === 'function') {
+            Swal.fire({
+                icon: icon,
+                title: title,
+                toast: true,
+                position: 'top-end',
+                showConfirmButton: false,
+                timer: 4000,
+                timerProgressBar: true
+            });
+            return;
+        }
+        window.alert(title);
+    }
+
+    function uiError(message) { uiToast('error', message); }
+    function uiWarn(message) { uiToast('warning', message); }
+    function uiInfo(message) { uiToast('info', message); }
+
+    function uiConfirm(message, title) {
+        const msg = (message === undefined || message === null) ? '' : String(message);
+        const ttl = (title === undefined || title === null) ? '' : String(title);
+        if (typeof Swal !== 'undefined' && Swal && typeof Swal.fire === 'function') {
+            return Swal.fire({
+                icon: 'warning',
+                title: ttl,
+                text: msg,
+                showCancelButton: true,
+                confirmButtonText: '{{ _("تأكيد") }}',
+                cancelButtonText: '{{ _("إلغاء") }}',
+                reverseButtons: true
+            }).then(r => !!r.isConfirmed);
+        }
+        return Promise.resolve(window.confirm(msg));
+    }
     
     function syncState() {
-        fetch(`/entertainment/api/room/${roomId}/state`)
+        if (syncInFlight) return;
+        syncInFlight = true;
+        return fetch(`/entertainment/api/room/${roomId}/state`)
             .then(res => res.json())
             .then(data => {
                 if (data.players) {
@@ -232,7 +292,8 @@
                     renderAll();
                 }
             })
-            .catch(err => console.error(err));
+            .catch(err => console.error(err))
+            .finally(() => { syncInFlight = false; });
     }
 
     function renderPlayersInfo() {
@@ -263,6 +324,14 @@
     }
     
     function renderAll() {
+        if (localState.last_trick && localState.last_trick.length === 4) {
+            const sig = localState.last_trick.map(p => `${p.player}-${p.card.suit}-${p.card.rank}`).join('|');
+            if (sig && sig !== lastShownTrickSig) {
+                lastShownTrickSig = sig;
+                const w = computeTrixWinner(localState.last_trick);
+                if (w !== null) { showWinnerOverlay(w); playSfx('win'); }
+            }
+        }
         if ((lastTrick || []).length === 4 && (localState.trick || []).length === 0) {
             const w = computeTrixWinner(lastTrick);
             if (w !== null) { showWinnerOverlay(w); playSfx('win'); }
@@ -278,30 +347,6 @@
         }
         // Timer removed
     }
-    
-    window.passTurn = function() {
-        const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
-        fetch(`/entertainment/api/room/${roomId}/move`, {
-            method: 'POST',
-            headers: { 
-                'Content-Type': 'application/json',
-                'X-CSRFToken': csrfToken
-            },
-            body: JSON.stringify({
-                action: 'play_card',
-                card: {suit: '♥', rank: '2', action: 'pass'} // Dummy card with action pass
-            })
-        })
-        .then(res => res.json())
-        .then(data => {
-            if (data.error) {
-                alert(data.error);
-            } else {
-                localState = data.state;
-                renderAll();
-            }
-        });
-    };
 
     function hasValidMoves(hand, state) {
         if (state.current_contract === 'trix') {
@@ -339,18 +384,21 @@
         }
     }
 
-    function renderHand() {
-        const container = $(`#hand-${mySeat}`);
-        container.empty();
-        
-        let myHand = localState.hands[mySeat] || [];
-        const suitOrder = ['♥','♦','♣','♠'];
-        const rankOrder = ['2','3','4','5','6','7','8','9','10','J','Q','K','A'];
-        myHand = myHand.slice().sort((a,b) => {
+    function sortHand(hand) {
+        const suitOrder = ['♥', '♦', '♣', '♠'];
+        const rankOrder = ['2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K', 'A'];
+        return (hand || []).slice().sort((a, b) => {
             const s = suitOrder.indexOf(a.suit) - suitOrder.indexOf(b.suit);
             if (s !== 0) return s;
             return rankOrder.indexOf(a.rank) - rankOrder.indexOf(b.rank);
         });
+    }
+
+    function renderHand() {
+        const container = $(`#hand-${mySeat}`);
+        container.empty();
+        
+        let myHand = sortHand(localState.hands[mySeat] || []);
         const isMyTurn = localState.turn_seat === mySeat;
         const isDoubling = localState.phase === 'doubling';
         const contract = localState.current_contract;
@@ -512,9 +560,9 @@
     
     function showWinnerOverlay(seat) {
         const el = document.querySelector('#winner-overlay');
-        el.textContent = `{{ _('فاز باللطشة') }}: P${seat+1}`;
+        el.textContent = `{{ _('فاز باللطشة') }}: ${getPlayerName(seat)}`;
         el.style.display = '';
-        setTimeout(() => { el.style.display = 'none'; }, 500);
+        setTimeout(() => { el.style.display = 'none'; }, 1200);
     }
 
 function getPlayerName(seatIndex) {
@@ -699,7 +747,7 @@ function getPlayerName(seatIndex) {
             let data = null;
             try { data = JSON.parse(text); } catch { data = { error: 'ServerError', raw: text }; }
             if (data.error) {
-                alert(data.error);
+                uiError(data.error);
                 return fetch(`/entertainment/api/room/${roomId}/state`).then(r => r.json()).then(s => { if (s.game_state) { localState = s.game_state; renderAll(); }});
             } else { localState = data.state; renderAll(); }
         });
@@ -721,7 +769,7 @@ function getPlayerName(seatIndex) {
         .then(res => res.json())
         .then(data => {
             if (data.error) {
-                alert(data.error);
+                uiError(data.error);
             } else {
                 localState = data.state;
                 renderAll();
@@ -792,7 +840,8 @@ function getPlayerName(seatIndex) {
             const cards = playerDoubles[seat];
             if (cards.length > 0) {
                 const relPos = getRelativePos(seat);
-                let html = `<div class="doubled-group doubled-pos-${relPos}" style="display:flex; gap:5px;">`;
+                let html = `<div class="doubled-group doubled-pos-${relPos}" style="display:flex; gap:5px; align-items:center;">`;
+                html += `<div class="text-light" style="font-size:12px; opacity:0.9;">${getPlayerName(seat)}</div>`;
                 cards.forEach(c => {
                     const colorClass = (c.suit === '♥' || c.suit === '♦') ? 'text-danger' : 'text-dark';
                     html += `
@@ -837,7 +886,7 @@ function getPlayerName(seatIndex) {
                 type: 'king'
             })
         }).then(res => res.json()).then(data => {
-            if (data.error) alert(data.error);
+            if (data.error) uiError(data.error);
             else { localState = data.state; renderAll(); playSfx('play'); }
         });
     };
@@ -859,13 +908,16 @@ function getPlayerName(seatIndex) {
             let data = null;
             try { data = JSON.parse(text); } catch { data = { error: 'ServerError', raw: text }; }
             if (data.error) {
-                alert(data.error);
+                uiError(data.error);
                 return fetch(`/entertainment/api/room/${roomId}/state`).then(r => r.json()).then(s => { if (s.game_state) { localState = s.game_state; renderAll(); }});
             } else { localState = data.state; renderAll(); playSfx('play'); }
         });
     };
     
     window.playCard = function(index) {
+        if (playInFlight) return;
+        playInFlight = true;
+        const done = () => { playInFlight = false; };
         const doSend = (cardObj) => {
             const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
             fetch(`/entertainment/api/room/${roomId}/move`, {
@@ -884,10 +936,11 @@ function getPlayerName(seatIndex) {
                 let data = null;
                 try { data = JSON.parse(text); } catch { data = { error: 'ServerError', raw: text }; }
                 if (data.error) {
-                    alert(data.error);
+                    uiError(data.error);
                     return fetch(`/entertainment/api/room/${roomId}/state`).then(r => r.json()).then(s => { if (s.game_state) { localState = s.game_state; renderAll(); }});
                 } else { localState = data.state; renderAll(); }
-            });
+            })
+            .finally(done);
         };
         
         // Pre-resync to avoid stale local turn state
@@ -899,12 +952,14 @@ function getPlayerName(seatIndex) {
                     renderAll();
                 }
                 if (localState.phase !== 'playing') {
-                    alert('{{ _("ليست مرحلة اللعب الآن") }}');
-                    return;
+                    uiWarn('{{ _("ليست مرحلة اللعب الآن") }}');
+                    done(); return;
                 }
-                if (localState.turn_seat !== mySeat) return; 
+                if (localState.turn_seat !== mySeat) { done(); return; } 
                 
-                const card = localState.hands[mySeat][index];
+                const sortedHand = sortHand(localState.hands[mySeat] || []);
+                const card = sortedHand[index];
+                if (!card) { done(); return; }
                 
                 const trick = localState.trick || [];
                 if (trick.length > 0) {
@@ -912,17 +967,19 @@ function getPlayerName(seatIndex) {
                     const myHand = localState.hands[mySeat] || [];
                     const hasLead = myHand.some(c => c.suit === leadSuit);
                     if (hasLead && card.suit !== leadSuit) {
-                        alert("{{ _('يجب الالتزام بنوع الورقة الأولى إذا كانت متوفرة لديك') }}");
-                        return;
+                        uiWarn("{{ _('يجب الالتزام بنوع الورقة الأولى إذا كانت متوفرة لديك') }}");
+                        done(); return;
                     }
                 }
                 
                 doSend(card);
-            });
+            })
+            .catch(() => done());
     };
     
     window.toggleDouble = function(index) {
-        const card = localState.hands[mySeat][index];
+        const card = sortHand(localState.hands[mySeat] || [])[index];
+        if (!card) return;
         const contract = localState.current_contract;
         const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
         let payload = null;
@@ -943,7 +1000,7 @@ function getPlayerName(seatIndex) {
             let data = null;
             try { data = JSON.parse(text); } catch { data = { error: 'ServerError', raw: text }; }
             if (data.error) {
-                alert(data.error);
+                uiError(data.error);
                 return fetch(`/entertainment/api/room/${roomId}/state`).then(r => r.json()).then(s => { if (s.game_state) { localState = s.game_state; renderAll(); }});
             } else { localState = data.state; renderAll(); }
         });
@@ -965,7 +1022,7 @@ function getPlayerName(seatIndex) {
             let data = null;
             try { data = JSON.parse(text); } catch { data = { error: 'ServerError', raw: text }; }
             if (data.error) {
-                alert(data.error);
+                uiError(data.error);
                 return fetch(`/entertainment/api/room/${roomId}/state`).then(r => r.json()).then(s => { if (s.game_state) { localState = s.game_state; renderAll(); }});
             } else { localState = data.state; renderAll(); }
         });

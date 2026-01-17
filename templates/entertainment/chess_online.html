@@ -147,6 +147,54 @@
     var sfBestMove = null;
     var sfEngineMode = false;
     var isSolo = false;
+    var moveInFlight = false;
+    var connectionState = 'connecting';
+
+    function uiToast(icon, message) {
+        const title = (message === undefined || message === null) ? '' : String(message);
+        if (typeof Toast !== 'undefined' && Toast && typeof Toast.fire === 'function') {
+            Toast.fire({ icon: icon, title: title });
+            return;
+        }
+        if (typeof Swal !== 'undefined' && Swal && typeof Swal.fire === 'function') {
+            Swal.fire({
+                icon: icon,
+                title: title,
+                toast: true,
+                position: 'top-end',
+                showConfirmButton: false,
+                timer: 4000,
+                timerProgressBar: true
+            });
+            return;
+        }
+        window.alert(title);
+    }
+
+    function uiError(message) { uiToast('error', message); }
+    function uiWarn(message) { uiToast('warning', message); }
+
+    function uiConfirm(opts) {
+        const title = (opts && opts.title) ? String(opts.title) : '';
+        const text = (opts && opts.text) ? String(opts.text) : '';
+        const confirmText = (opts && opts.confirmText) ? String(opts.confirmText) : "{{ _('تأكيد') }}";
+        const cancelText = (opts && opts.cancelText) ? String(opts.cancelText) : "{{ _('إلغاء') }}";
+
+        if (typeof Swal !== 'undefined' && Swal && typeof Swal.fire === 'function') {
+            return Swal.fire({
+                icon: (opts && opts.icon) ? String(opts.icon) : 'warning',
+                title: title,
+                text: text,
+                showCancelButton: true,
+                confirmButtonText: confirmText,
+                cancelButtonText: cancelText,
+                reverseButtons: true
+            });
+        }
+
+        const ok = window.confirm([title, text].filter(Boolean).join('\n'));
+        return Promise.resolve({ isConfirmed: ok });
+    }
 
     function startGame() {
         const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
@@ -157,12 +205,19 @@
     }
 
     function leaveGame() {
-        if(!confirm("{{ _('هل أنت متأكد من الانسحاب؟ ستخسر الرهان.') }}")) return;
-        const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
-        fetch("{{ url_for('entertainment.leave_game', room_id=room.id) }}", {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrfToken }
-        }).then(r => r.json()).then(() => window.location.href = "{{ url_for('entertainment.index') }}");
+        uiConfirm({
+            title: "{{ _('تأكيد الانسحاب') }}",
+            text: "{{ _('هل أنت متأكد من الانسحاب؟ ستخسر الرهان.') }}",
+            confirmText: "{{ _('انسحاب') }}",
+            cancelText: "{{ _('إلغاء') }}"
+        }).then(res => {
+            if (!res || !res.isConfirmed) return;
+            const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+            fetch("{{ url_for('entertainment.leave_game', room_id=room.id) }}", {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrfToken }
+            }).then(r => r.json()).then(() => window.location.href = "{{ url_for('entertainment.index') }}");
+        });
     }
 
     // Wait for DOM and libraries
@@ -225,7 +280,14 @@
         if (eventSource) return;
         // Use the existing room events stream which provides game state and messages
         eventSource = new EventSource(`/entertainment/api/room/${roomId}/events`);
-        
+
+        eventSource.onopen = function() {
+            if (connectionState !== 'online') {
+                connectionState = 'online';
+                updateStatus();
+            }
+        };
+
         eventSource.onmessage = function(e) {
             try {
                 const data = JSON.parse(e.data);
@@ -264,28 +326,33 @@
         
         eventSource.onerror = function(err) {
             console.error("SSE Error:", err);
+            if (connectionState !== 'offline') {
+                connectionState = 'offline';
+                updateStatus();
+            }
         };
     }
 
     function renderChat(messages) {
         const container = $('#chat-messages');
-        const wasScrolledToBottom = container[0].scrollHeight - container.scrollTop() <= container[0].clientHeight + 50;
-        
+        const el = container[0];
+        const wasScrolledToBottom = el.scrollHeight - container.scrollTop() <= el.clientHeight + 50;
+
         container.empty();
         messages.forEach(msg => {
-            container.append(`
-                <div class="mb-1">
-                    <small class="text-warning font-weight-bold">${msg.username}:</small>
-                    <span class="text-light">${msg.message}</span>
-                </div>
-            `);
+            const row = $('<div>').addClass('mb-1');
+            const name = $('<small>')
+                .addClass('text-warning font-weight-bold')
+                .text((msg.username || '') + ':');
+            const text = $('<span>').addClass('text-light').text(' ' + (msg.message || ''));
+            row.append(name).append(text);
+            container.append(row);
         });
-        
+
         if (wasScrolledToBottom) {
-             container.scrollTop(container[0].scrollHeight);
+            container.scrollTop(el.scrollHeight);
         }
-        
-        // Initialize SSE once if not already done
+
         initChatSSE();
     }
 
@@ -313,6 +380,7 @@
 
     function onDragStart (source, piece, position, orientation) {
         if (game.game_over()) return false
+        if (moveInFlight) return false
         
         // Only pick up pieces for my color
         if (game.turn() !== myColor) return false;
@@ -366,26 +434,42 @@
 
     function updateStatus () {
         var status = ''
-        var moveColor = (game.turn() === 'b') ? 'Black' : 'White'
+        var moveColor = (game.turn() === 'b') ? "{{ _('الأسود') }}" : "{{ _('الأبيض') }}"
 
         if (game.in_checkmate()) {
-            status = 'Game over, ' + moveColor + ' is in checkmate.'
+            status = "{{ _('انتهت اللعبة') }} — " + moveColor + " {{ _('كش مات') }}"
         } else if (game.in_draw()) {
-            status = 'Game over, drawn position'
+            status = "{{ _('انتهت اللعبة') }} — {{ _('تعادل') }}"
         } else {
-            status = moveColor + ' to move'
+            status = "{{ _('الدور على') }} " + moveColor
             if (game.in_check()) {
-                status += ', ' + moveColor + ' is in check'
+                status += " — {{ _('كش') }}"
             }
         }
 
-        $status.html(status)
-        $pgn.html(game.pgn())
-        
+        $status.text(status)
+        $pgn.text(game.pgn())
+
+        if (connectionState !== 'online') {
+            $turnIndicator
+                .removeClass('alert-success alert-secondary alert-info alert-warning alert-danger')
+                .addClass(connectionState === 'offline' ? 'alert-danger' : 'alert-info')
+                .text(connectionState === 'offline' ? "{{ _('انقطع الاتصال...') }}" : "{{ _('جاري الاتصال...') }}");
+            return;
+        }
+
+        if (moveInFlight) {
+            $turnIndicator
+                .removeClass('alert-success alert-secondary alert-danger alert-info')
+                .addClass('alert-warning')
+                .text("{{ _('جارٍ إرسال الحركة...') }}");
+            return;
+        }
+
         if (game.turn() === myColor) {
-            $turnIndicator.removeClass('alert-secondary').addClass('alert-success').text("{{ _('دورك للعب!') }}");
+            $turnIndicator.removeClass('alert-secondary alert-warning alert-danger alert-info').addClass('alert-success').text("{{ _('دورك للعب!') }}");
         } else {
-            $turnIndicator.removeClass('alert-success').addClass('alert-secondary').text("{{ _('انتظار الخصم...') }}");
+            $turnIndicator.removeClass('alert-success alert-warning alert-danger alert-info').addClass('alert-secondary').text("{{ _('انتظار الخصم...') }}");
         }
     }
 
@@ -395,6 +479,15 @@
 
     // Sync Logic
     function sendMove(move) {
+        if (moveInFlight) {
+            game.undo();
+            board.position(game.fen());
+            updateStatus();
+            return;
+        }
+        moveInFlight = true;
+        updateStatus();
+
         // Convert move to UCI format (e.g. e2e4, e7e8q)
         var uci = move.from + move.to;
         if (move.promotion) {
@@ -418,22 +511,29 @@
                  response.text().then(text => {
                      try {
                         const data = JSON.parse(text);
-                        alert("Move rejected: " + data.error);
+                        uiError("{{ _('تم رفض الحركة:') }} " + (data.error || ''));
                      } catch(e) {
-                        alert("Server Error (" + response.status + ")");
+                        uiError("{{ _('خطأ في السيرفر') }} (" + response.status + ")");
                         console.error("Server Error Body:", text);
                      }
                      game.undo();
                      board.position(game.fen());
                      updateStatus();
                  });
+             } else {
+                 checkState();
              }
         })
         .catch(err => {
              console.error("Move Send Error:", err);
+             uiWarn("{{ _('تعذر إرسال الحركة، حاول مرة أخرى') }}");
              game.undo();
              board.position(game.fen());
              updateStatus();
+        })
+        .finally(() => {
+            moveInFlight = false;
+            updateStatus();
         });
     }
     
@@ -446,6 +546,10 @@
                 return res.json();
             })
             .then(data => {
+                if (connectionState !== 'online') {
+                    connectionState = 'online';
+                    updateStatus();
+                }
                 if (data.messages) {
                     renderChat(data.messages);
                 }
@@ -476,7 +580,10 @@
             })
             .catch(err => {
                 console.error("CheckState Error:", err);
-                // Optionally show connection error in UI, but transient errors shouldn't panic user
+                if (connectionState !== 'offline') {
+                    connectionState = 'offline';
+                    updateStatus();
+                }
             });
     }
     
@@ -545,12 +652,24 @@
     })
     
     function sendEngineMove(uci) {
+        if (moveInFlight) return;
+        moveInFlight = true;
+        updateStatus();
+
         const csrfToken = document.querySelector('meta[name=\"csrf-token\"]').getAttribute('content');
         fetch(`/entertainment/api/room/${roomId}/move`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrfToken },
             body: JSON.stringify({ action: 'engine_move', move: uci })
-        }).then(() => { checkState(); })
+        })
+        .then(() => { checkState(); })
+        .catch(err => {
+            console.error("Engine Move Send Error:", err);
+        })
+        .finally(() => {
+            moveInFlight = false;
+            updateStatus();
+        });
     }
 
 /*

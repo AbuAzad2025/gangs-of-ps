@@ -28,6 +28,7 @@
                     </div>
                     <div class="card-body flex-grow-1">
                         <p class="text-muted">{{ _(crime.description) }}</p>
+                        {% set meta = (crime_meta.get(crime.id) if crime_meta else {}) %}
                         <ul class="list-group list-group-luxury mb-3">
                             <li class="list-group-item">
                                 <b>{{ _('عدد الأعضاء المطلوب') }}</b> <span class="float-right badge badge-info">{{ crime.min_members }}</span>
@@ -38,6 +39,21 @@
                             <li class="list-group-item">
                                 <b>{{ _('وقت الانتظار') }}</b> <span class="float-right">{{ crime.cooldown_hours }} {{ _('ساعة') }}</span>
                             </li>
+                            {% if meta and meta.required_item %}
+                            <li class="list-group-item">
+                                <b>{{ _('أداة مطلوبة') }}</b> <span class="float-right badge badge-warning">{{ _(meta.required_item) }}</span>
+                            </li>
+                            {% endif %}
+                            {% if meta and meta.heat_window_hours %}
+                            <li class="list-group-item">
+                                <b>{{ _('نافذة الحرارة') }}</b> <span class="float-right">{{ meta.heat_window_hours }} {{ _('س') }}</span>
+                            </li>
+                            {% endif %}
+                            {% if meta and meta.lucky_event_pct %}
+                            <li class="list-group-item">
+                                <b>{{ _('حدث نادر') }}</b> <span class="float-right">{{ meta.lucky_event_pct }}%</span>
+                            </li>
+                            {% endif %}
                             <li class="list-group-item">
                                 <b>{{ _('المكافأة (مال)') }}</b> <span class="float-right text-success">${{ "{:,}".format(crime.money_reward_min) }} - ${{ "{:,}".format(crime.money_reward_max) }}</span>
                             </li>

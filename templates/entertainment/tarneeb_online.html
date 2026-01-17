@@ -98,13 +98,62 @@
     </div>
 </div>
 
-<script>
-</script>
 <script src="https://cdn.jsdelivr.net/npm/socket.io-client@4.7.5/dist/socket.io.min.js"></script>
 <script>
 const roomId = {{ room.id }};
 const mySeat = {{ player.seat_index }};
 
+function uiToast(icon, message) {
+    const title = (message === undefined || message === null) ? '' : String(message);
+    if (typeof Toast !== 'undefined' && Toast && typeof Toast.fire === 'function') {
+        Toast.fire({ icon: icon, title: title });
+        return;
+    }
+    if (typeof Swal !== 'undefined' && Swal && typeof Swal.fire === 'function') {
+        Swal.fire({
+            icon: icon,
+            title: title,
+            toast: true,
+            position: 'top-end',
+            showConfirmButton: false,
+            timer: 4000,
+            timerProgressBar: true
+        });
+        return;
+    }
+    window.alert(title);
+}
+
+function uiError(message) { uiToast('error', message); }
+function uiWarn(message) { uiToast('warning', message); }
+
+function uiConfirm(message, title) {
+    const msg = (message === undefined || message === null) ? '' : String(message);
+    const ttl = (title === undefined || title === null) ? '' : String(title);
+    if (typeof Swal !== 'undefined' && Swal && typeof Swal.fire === 'function') {
+        return Swal.fire({
+            icon: 'warning',
+            title: ttl,
+            text: msg,
+            showCancelButton: true,
+            confirmButtonText: '{{ _("تأكيد") }}',
+            cancelButtonText: '{{ _("إلغاء") }}',
+            reverseButtons: true
+        }).then(r => !!r.isConfirmed);
+    }
+    return Promise.resolve(window.confirm(msg));
+}
+
+function sortHand(hand) {
+    const suitOrder = ['♥', '♦', '♣', '♠'];
+    const rankOrder = ['2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K', 'A'];
+    return (hand || []).slice().sort((a, b) => {
+        const s = suitOrder.indexOf(a.suit) - suitOrder.indexOf(b.suit);
+        if (s !== 0) return s;
+        return rankOrder.indexOf(a.rank) - rankOrder.indexOf(b.rank);
+    });
+}
+    
     function startGame() {
         const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
         fetch("{{ url_for('entertainment.start_room', room_id=room.id) }}", {
@@ -114,35 +163,71 @@ const mySeat = {{ player.seat_index }};
         }).then(r => r.json()).then(() => location.reload());
     }
     function finishGame() {
-        const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
-        fetch("{{ url_for('entertainment.finish_room', room_id=room.id) }}", {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrfToken },
-            credentials: 'same-origin'
-        }).then(r => r.json()).then(() => location.reload());
+        uiConfirm("{{ _('هل أنت متأكد من إنهاء اللعبة؟') }}", "{{ _('تأكيد') }}").then(ok => {
+            if (!ok) return;
+            const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+            fetch("{{ url_for('entertainment.finish_room', room_id=room.id) }}", {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrfToken },
+                credentials: 'same-origin'
+            }).then(r => r.json()).then(() => location.reload());
+        });
     }
     function deleteRoom() {
-        const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
-        fetch("{{ url_for('entertainment.delete_room', room_id=room.id) }}", {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrfToken },
-            credentials: 'same-origin'
-        }).then(r => r.json()).then(() => window.location.href = "{{ url_for('entertainment.index') }}");
+        uiConfirm("{{ _('هل أنت متأكد من حذف الغرفة؟') }}", "{{ _('تأكيد') }}").then(ok => {
+            if (!ok) return;
+            const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+            fetch("{{ url_for('entertainment.delete_room', room_id=room.id) }}", {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrfToken },
+                credentials: 'same-origin'
+            }).then(r => r.json()).then(() => window.location.href = "{{ url_for('entertainment.index') }}");
+        });
     }
     function leaveGame() {
-        if(!confirm("{{ _('هل أنت متأكد من المغادرة؟ ستخسر الرهان.') }}")) return;
-        const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
-        fetch("{{ url_for('entertainment.leave_game', room_id=room.id) }}", {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrfToken },
-            credentials: 'same-origin'
-        }).then(r => r.json()).then(() => window.location.href = "{{ url_for('entertainment.index') }}");
+        uiConfirm("{{ _('هل أنت متأكد من المغادرة؟ ستخسر الرهان.') }}", "{{ _('تأكيد') }}").then(ok => {
+            if (!ok) return;
+            const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+            fetch("{{ url_for('entertainment.leave_game', room_id=room.id) }}", {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrfToken },
+                credentials: 'same-origin'
+            }).then(r => r.json()).then(() => window.location.href = "{{ url_for('entertainment.index') }}");
+        });
     }
 
 let localState = {};
 let playersInfo = [];
 let lastTrick = [];
 let socket = null;
+let startRequested = false;
+
+function escapeHtml(value) {
+    const s = (value === undefined || value === null) ? '' : String(value);
+    return s
+        .replaceAll('&', '&amp;')
+        .replaceAll('<', '&lt;')
+        .replaceAll('>', '&gt;')
+        .replaceAll('"', '&quot;')
+        .replaceAll("'", '&#39;');
+}
+
+function getPlayerName(seatIndex) {
+    const p = (playersInfo || []).find(x => x.seat_index === seatIndex);
+    return p ? p.username : `P${seatIndex + 1}`;
+}
+
+function requestStartIfNeeded() {
+    if (startRequested) return;
+    if (mySeat !== 0) return;
+    if (!localState || localState.phase !== 'lobby') return;
+    startRequested = true;
+    try {
+        startGame();
+    } catch (e) {
+        startRequested = false;
+    }
+}
 
 document.addEventListener('DOMContentLoaded', () => {
     try {
@@ -158,9 +243,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (JSON.stringify(serverState) !== JSON.stringify(localState)) {
                     localState = serverState;
                     renderAll();
-                    if (localState.phase === 'lobby' && mySeat === 0) {
-                        startGame();
-                    }
+                    requestStartIfNeeded();
                 }
             }
         });
@@ -197,9 +280,7 @@ function syncState() {
                 if (JSON.stringify(serverState) !== JSON.stringify(localState)) {
                     localState = serverState;
                     renderAll();
-                    if (localState.phase === 'lobby' && mySeat === 0) {
-                        startGame();
-                    }
+                    requestStartIfNeeded();
                 }
             }
         })
@@ -271,13 +352,7 @@ function renderHands() {
         const hand = (localState.hands || [[],[],[],[]])[seat] || [];
         const isMyTurn = localState.turn_seat === mySeat;
         if (seat === mySeat) {
-            const suitOrder = ['♥','♦','♣','♠'];
-            const rankOrder = ['2','3','4','5','6','7','8','9','10','J','Q','K','A'];
-            const sorted = hand.slice().sort((a,b) => {
-                const s = suitOrder.indexOf(a.suit) - suitOrder.indexOf(b.suit);
-                if (s !== 0) return s;
-                return rankOrder.indexOf(a.rank) - rankOrder.indexOf(b.rank);
-            });
+            const sorted = sortHand(hand);
             sorted.forEach((card, idx) => {
                 const colorClass = (card.suit === '♥' || card.suit === '♦') ? 'text-danger' : 'text-dark';
                 const disabledClass = isMyTurn && localState.phase === 'playing' ? '' : 'disabled-card';
@@ -369,7 +444,7 @@ function computeTarneebWinner(trick, trump) {
 
 function showWinnerOverlay(seat) {
     const el = document.querySelector('#winner-overlay');
-    el.textContent = `{{ _('فاز باللطشة') }}: P${seat+1}`;
+    el.textContent = `{{ _('فاز باللطشة') }}: ${getPlayerName(seat)}`;
     el.style.display = '';
     setTimeout(() => { el.style.display = 'none'; }, 500);
 }
@@ -382,20 +457,49 @@ function renderInfo() {
     } else {
         document.querySelector('#turn-badge').classList.remove('badge-success');
         document.querySelector('#turn-badge').classList.add('badge-warning');
-        document.querySelector('#turn-badge').textContent = `{{ _('دور اللاعب') }} P${(localState.turn_seat||0)+1}`;
+        const seat = (localState.turn_seat === undefined || localState.turn_seat === null) ? 0 : localState.turn_seat;
+        document.querySelector('#turn-badge').textContent = `{{ _('دور اللاعب') }} ${getPlayerName(seat)}`;
     }
     const bid = localState.current_bid || {value:0, trump:'—', bidder:null};
-    const declarer = bid.bidder != null ? `P${bid.bidder+1}` : '—';
+    const declarer = bid.bidder != null ? getPlayerName(bid.bidder) : '—';
     const dbl = localState.doubled ? ' ×2' : '';
     const rdbl = localState.redoubled ? ' ×4' : '';
     const mult = rdbl || dbl;
-    document.querySelector('#bid-info').innerHTML = `{{ _('المزايدة الحالية') }}: <b>${bid.value || 0}</b> — <b>${bid.trump || '—'}</b> ${mult} ({{ _('المعلن') }}: ${declarer})`;
+    const dh = Array.isArray(localState.doubling_history) ? localState.doubling_history : [];
+    const findLastSeatByAction = (action) => {
+        for (let i = dh.length - 1; i >= 0; i--) {
+            const h = dh[i];
+            if (h && h.action === action) return h.player;
+        }
+        return null;
+    };
+    const doublerSeat = findLastSeatByAction('double');
+    const redoublerSeat = findLastSeatByAction('redouble');
+    const doublerLabel = (doublerSeat !== undefined && doublerSeat !== null) ? getPlayerName(doublerSeat) : null;
+    const redoublerLabel = (redoublerSeat !== undefined && redoublerSeat !== null) ? getPlayerName(redoublerSeat) : null;
+    const dblLine = (redoublerLabel || doublerLabel)
+        ? ` — ${redoublerLabel ? `{{ _('إعادة التدبيل') }}: ${escapeHtml(redoublerLabel)}` : `{{ _('دبل') }}: ${escapeHtml(doublerLabel)}`}`
+        : '';
+
+    document.querySelector('#bid-info').innerHTML =
+        `{{ _('المزايدة الحالية') }}: <b>${bid.value || 0}</b> — <b>${bid.trump || '—'}</b> ${mult} ({{ _('المعلن') }}: ${escapeHtml(declarer)})${dblLine}`;
     // Render bidding history
     const hist = localState.bidding_history || [];
     if (hist.length) {
         const items = hist.map(h => {
-            if (h.action === 'pass') return `P${h.player+1}: {{ _('تمرير') }}`;
-            return `P${h.player+1}: {{ _('مزايدة') }} ${h.value} — ${h.trump}`;
+            const nm = escapeHtml(getPlayerName(h.player));
+            if (h.action === 'pass') return `${nm}: {{ _('تمرير') }}`;
+            return `${nm}: {{ _('مزايدة') }} ${h.value} — ${h.trump}`;
+        }).join(' | ');
+        document.querySelector('#bid-info').innerHTML += `<div class="mt-1"><small class="text-muted">${items}</small></div>`;
+    }
+    if (dh.length) {
+        const items = dh.map(h => {
+            const nm = escapeHtml(getPlayerName(h.player));
+            if (h.action === 'pass') return `${nm}: {{ _('تمرير') }}`;
+            if (h.action === 'double') return `${nm}: {{ _('دبل') }}`;
+            if (h.action === 'redouble') return `${nm}: {{ _('إعادة التدبيل') }}`;
+            return `${nm}: ${escapeHtml(h.action)}`;
         }).join(' | ');
         document.querySelector('#bid-info').innerHTML += `<div class="mt-1"><small class="text-muted">${items}</small></div>`;
     }
@@ -457,7 +561,7 @@ function submitBid() {
         let data = null;
         try { data = JSON.parse(text); } catch { data = { error: 'ServerError', raw: text }; }
         if (data.error) {
-            alert(data.error);
+            uiError(data.error);
             syncState();
         } else {
             if (data && data.state) {
@@ -484,7 +588,7 @@ function passBid() {
         let data = null;
         try { data = JSON.parse(text); } catch { data = { error: 'ServerError', raw: text }; }
         if (data.error) {
-            alert(data.error);
+            uiError(data.error);
             syncState();
         } else {
             if (data && data.state) {
@@ -511,7 +615,7 @@ function submitDouble() {
         let data = null;
         try { data = JSON.parse(text); } catch { data = { error: 'ServerError', raw: text }; }
         if (data.error) {
-            alert(data.error);
+            uiError(data.error);
             syncState();
         } else {
             if (data && data.state) {
@@ -538,7 +642,7 @@ function submitRedouble() {
         let data = null;
         try { data = JSON.parse(text); } catch { data = { error: 'ServerError', raw: text }; }
         if (data.error) {
-            alert(data.error);
+            uiError(data.error);
             syncState();
         } else {
             if (data && data.state) {
@@ -565,7 +669,7 @@ function passDoubling() {
         let data = null;
         try { data = JSON.parse(text); } catch { data = { error: 'ServerError', raw: text }; }
         if (data.error) {
-            alert(data.error);
+            uiError(data.error);
             syncState();
         } else {
             if (data && data.state) {
@@ -580,14 +684,16 @@ function passDoubling() {
 
 function playCard(index) {
     if (localState.turn_seat !== mySeat || localState.phase !== 'playing') return;
-    const card = localState.hands[mySeat][index];
+    const sortedHand = sortHand((localState.hands || [[], [], [], []])[mySeat] || []);
+    const card = sortedHand[index];
+    if (!card) return;
     const trick = localState.trick || [];
     if (trick.length > 0) {
         const leadSuit = trick[0].card.suit;
         const myHand = localState.hands[mySeat] || [];
         const hasLead = myHand.some(c => c.suit === leadSuit);
         if (hasLead && card.suit !== leadSuit) {
-            alert("{{ _('يجب الالتزام بنوع الورقة الأولى إذا كانت متوفرة لديك') }}");
+            uiWarn("{{ _('يجب الالتزام بنوع الورقة الأولى إذا كانت متوفرة لديك') }}");
             return;
         }
     }
@@ -602,7 +708,7 @@ function playCard(index) {
         let data = null;
         try { data = JSON.parse(text); } catch { data = { error: 'ServerError', raw: text }; }
         if (data.error) {
-            alert(data.error);
+            uiError(data.error);
             return syncState();
         } else { localState = data.state; renderAll(); playSfx('play'); }
     }).catch(() => syncState());
