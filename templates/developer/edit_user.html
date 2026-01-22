@@ -1,60 +1,26 @@
 {% extends "base.html" %}
+{% from "developer/_macros.html" import dev_card_header, csrf_input, link_button, post_button %}
 
 {% block content %}
 <div class="row justify-content-center">
     <div class="col-md-10">
         <div class="luxury-card fade-in-up">
-            <div class="card-header">
-                <div class="d-flex justify-content-between align-items-center w-100">
-                    <h3 class="card-title text-gradient-gold m-0"><i class="fas fa-user-edit mr-2"></i> {{ _('تعديل اللاعب') }}: {{ user.username }}</h3>
-                    <div class="d-flex flex-wrap gap-2">
-                        <a href="{{ url_for('main.dev_user_achievements', user_id=user.id) }}" class="btn btn-outline-warning btn-sm ml-2">
-                            <i class="fas fa-award"></i> {{ _('الإنجازات') }}
-                        </a>
-                        <form method="post" action="{{ url_for('main.dev_user_clear_status', id=user.id) }}" class="d-inline ml-2">
-                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-                            <button type="submit" class="btn btn-outline-light btn-sm" onclick="return confirm('{{ _('تصفير الحالة والكولداون؟') }}')">
-                                <i class="fas fa-broom"></i> {{ _('تصفير الحالة') }}
-                            </button>
-                        </form>
-                        <form method="post" action="{{ url_for('main.dev_user_reset_daily_limit', id=user.id) }}" class="d-inline ml-2">
-                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-                            <button type="submit" class="btn btn-outline-info btn-sm" onclick="return confirm('{{ _('تصفير الحد اليومي للكسب؟') }}')">
-                                <i class="fas fa-sync"></i> {{ _('تصفير الحد اليومي') }}
-                            </button>
-                        </form>
-                        {% if user.is_admin_protected %}
-                        <form method="post" action="{{ url_for('main.dev_user_protection_disable', id=user.id) }}" class="d-inline ml-2">
-                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-                            <button type="submit" class="btn btn-outline-warning btn-sm" onclick="return confirm('{{ _('إلغاء حماية اللاعب؟') }}')">
-                                <i class="fas fa-shield-alt"></i> {{ _('إلغاء الحماية') }}
-                            </button>
-                        </form>
-                        {% else %}
-                        <form method="post" action="{{ url_for('main.dev_user_protection_enable', id=user.id) }}" class="d-inline ml-2">
-                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-                            <button type="submit" class="btn btn-outline-success btn-sm" onclick="return confirm('{{ _('تفعيل حماية اللاعب؟') }}')">
-                                <i class="fas fa-shield-alt"></i> {{ _('حماية اللاعب') }}
-                            </button>
-                        </form>
-                        {% endif %}
-                        <form method="post" action="{{ url_for('main.dev_user_protection_clear_all', id=user.id) }}" class="d-inline ml-2">
-                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-                            <button type="submit" class="btn btn-outline-danger btn-sm" onclick="return confirm('{{ _('إخراج اللاعب من كل الحماية (منزل آمن + حماية مبتدئ + حماية الإدارة)؟') }}')">
-                                <i class="fas fa-user-shield"></i> {{ _('إخراج من كل الحماية') }}
-                            </button>
-                        </form>
-                        <form method="post" action="{{ url_for('main.dev_user_boost', id=user.id) }}" class="d-inline ml-2">
-                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-                            <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('{{ _('تحويل لمطور وترقية لأقصى قوة؟') }}')">
-                                <i class="fas fa-bolt"></i> {{ _('ترقية مطور') }}
-                            </button>
-                        </form>
-                    </div>
-                </div>
-            </div>
+            {% call dev_card_header(_('تعديل اللاعب') ~ ': ' ~ user.username, icon_class='fas fa-user-edit', back_href=url_for('main.dev_users')) %}
+                <a href="{{ url_for('main.dev_user_achievements', user_id=user.id) }}" class="btn btn-outline-warning btn-sm ml-2">
+                    <i class="fas fa-award"></i> {{ _('الإنجازات') }}
+                </a>
+                {{ post_button(url_for('main.dev_user_clear_status', id=user.id), _('تصفير الحالة'), btn_class='btn btn-outline-light btn-sm ml-2', icon_class='fas fa-broom', confirm_text=_('تصفير الحالة والكولداون؟')) }}
+                {{ post_button(url_for('main.dev_user_reset_daily_limit', id=user.id), _('تصفير الحد اليومي'), btn_class='btn btn-outline-info btn-sm ml-2', icon_class='fas fa-sync', confirm_text=_('تصفير الحد اليومي للكسب؟')) }}
+                {% if user.is_admin_protected %}
+                {{ post_button(url_for('main.dev_user_protection_disable', id=user.id), _('إلغاء الحماية'), btn_class='btn btn-outline-warning btn-sm ml-2', icon_class='fas fa-shield-alt', confirm_text=_('إلغاء حماية اللاعب؟')) }}
+                {% else %}
+                {{ post_button(url_for('main.dev_user_protection_enable', id=user.id), _('حماية اللاعب'), btn_class='btn btn-outline-success btn-sm ml-2', icon_class='fas fa-shield-alt', confirm_text=_('تفعيل حماية اللاعب؟')) }}
+                {% endif %}
+                {{ post_button(url_for('main.dev_user_protection_clear_all', id=user.id), _('إخراج من كل الحماية'), btn_class='btn btn-outline-danger btn-sm ml-2', icon_class='fas fa-user-shield', confirm_text=_('إخراج اللاعب من كل الحماية (منزل آمن + حماية مبتدئ + حماية الإدارة)؟')) }}
+                {{ post_button(url_for('main.dev_user_boost', id=user.id), _('ترقية مطور'), btn_class='btn btn-danger btn-sm ml-2', icon_class='fas fa-bolt', confirm_text=_('تحويل لمطور وترقية لأقصى قوة؟')) }}
+            {% endcall %}
             <form method="POST">
-                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                {{ csrf_input() }}
                 <div class="card-body">
                     <div class="row">
                         <div class="col-md-6">
@@ -275,7 +241,7 @@
             </div>
             <div class="card-footer bg-transparent border-top border-secondary">
                 <button type="submit" class="btn btn-luxury-action">{{ _('حفظ التغييرات') }}</button>
-                <a href="{{ url_for('main.dev_users') }}" class="btn btn-outline-secondary float-right">{{ _('إلغاء') }}</a>
+                {{ link_button(url_for('main.dev_users'), _('إلغاء'), btn_class='btn btn-outline-secondary float-right') }}
             </div>
         </form>
     </div>

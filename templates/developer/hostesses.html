@@ -1,21 +1,14 @@
 {% extends "base.html" %}
+{% from "developer/_macros.html" import dev_card_header, link_button, post_icon_button %}
 
 {% block content %}
 <div class="container mt-4">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2>{{ _('إدارة المضيفات') }}</h2>
-        <div>
-            <a href="{{ url_for('main.dev_scenarios') }}" class="btn btn-warning me-2">
-                <i class="fas fa-film"></i> {{ _('مكتبة سيناريوهات الفيديو') }}
-            </a>
-            <a href="{{ url_for('main.dev_hostess_edit') }}" class="btn btn-primary">
-                <i class="fas fa-plus"></i> {{ _('إضافة مضيفة جديدة') }}
-            </a>
-        </div>
-    </div>
-
-    <div class="card bg-dark text-light border-gold">
-        <div class="card-body">
+    <div class="luxury-card fade-in-up">
+        {% call dev_card_header(_('إدارة المضيفات'), icon_class='fas fa-female', back_href=url_for('main.dev_dashboard')) %}
+            {{ link_button(url_for('main.dev_scenarios'), _('مكتبة سيناريوهات الفيديو'), btn_class='btn btn-warning me-2', icon_class='fas fa-film') }}
+            {{ link_button(url_for('main.dev_hostess_edit'), _('إضافة مضيفة جديدة'), btn_class='btn btn-primary', icon_class='fas fa-plus') }}
+        {% endcall %}
+        <div class="card-body p-0">
             <div class="table-responsive">
                 <table class="table table-hover table-dark">
                     <thead>
@@ -34,8 +27,7 @@
                         {% for hostess in hostesses %}
                         <tr>
                             <td>
-                                {% set image_path = hostess.image if hostess.image and ('/' in hostess.image) else 'hostesses/' + (hostess.image or 'default_hostess.jpg') %}
-                                <img src="{{ url_for('static', filename='images/' + image_path) }}" 
+                                <img src="{{ url_for('static', filename='images/' + hostess.image_path) }}" 
                                      class="rounded-circle" width="50" height="50" 
                                      style="object-fit: cover;"
                                      onerror="this.onerror=null; this.src='{{ url_for('static', filename='images/hostesses/default_hostess.jpg') }}'">
@@ -59,23 +51,14 @@
                                 {% endif %}
                             </td>
                             <td>
-                                <a href="{{ url_for('main.dev_hostess_edit', id=hostess.id) }}" class="btn btn-sm btn-info">
-                                    <i class="fas fa-edit"></i>
-                                </a>
-                                <a href="{{ url_for('main.dev_hostess_trainer', id=hostess.id) }}" class="btn btn-sm btn-warning">
-                                    <i class="fas fa-dumbbell"></i>
-                                </a>
-                                <form action="{{ url_for('main.dev_hostess_delete', id=hostess.id) }}" method="post" style="display:inline;" onsubmit="return confirm('{{ _('هل أنت متأكد من حذف المضيفة؟') }}')">
-                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                                    <button type="submit" class="btn btn-sm btn-danger">
-                                        <i class="fas fa-trash"></i>
-                                    </button>
-                                </form>
+                                {{ link_button(url_for('main.dev_hostess_edit', id=hostess.id), _('تعديل'), btn_class='btn btn-sm btn-info', icon_class='fas fa-edit') }}
+                                {{ link_button(url_for('main.dev_hostess_trainer', id=hostess.id), _('تدريب'), btn_class='btn btn-sm btn-warning', icon_class='fas fa-dumbbell') }}
+                                {{ post_icon_button(url_for('main.dev_hostess_delete', id=hostess.id), btn_class='btn btn-sm btn-danger', icon_class='fas fa-trash', confirm_text=_('هل أنت متأكد من حذف المضيفة؟')) }}
                             </td>
                         </tr>
                         {% else %}
                         <tr>
-                            <td colspan="7" class="text-center">{{ _('لا يوجد مضيفات حالياً') }}</td>
+                            <td colspan="8" class="text-center">{{ _('لا يوجد مضيفات حالياً') }}</td>
                         </tr>
                         {% endfor %}
                     </tbody>

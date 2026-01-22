@@ -1,20 +1,18 @@
 {% extends "base.html" %}
+{% from "developer/_macros.html" import dev_card_header, csrf_input, link_button, submit_button %}
 
 {% block content %}
 <div class="row mb-4">
     <div class="col-12">
         <div class="card bg-dark text-white border-info">
-            <div class="card-header border-info d-flex justify-content-between align-items-center">
-                <h3 class="card-title text-info"><i class="fas fa-images mr-2"></i> {{ title }}</h3>
-                <a href="{{ url_for('main.dev_dashboard') }}" class="btn btn-outline-secondary btn-sm">{{ _('عودة') }}</a>
-            </div>
+            {{ dev_card_header(title, icon_class='fas fa-images', back_href=url_for('main.dev_dashboard'), header_class='card-header border-info', title_class='card-title text-info') }}
             <div class="card-body">
                 
                 <!-- Upload Form -->
                 <div class="mb-4 p-3 border border-secondary rounded">
                     <h5>{{ _('رفع صورة جديدة') }}</h5>
                     <form action="{{ url_for('main.dev_upload_image') }}" method="POST" enctype="multipart/form-data" class="form-inline">
-                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                        {{ csrf_input() }}
                         <div class="form-group mr-2">
                             <label class="mr-2">{{ _('الفئة:') }}</label>
                             <select name="category" class="form-control bg-dark text-white">
@@ -26,7 +24,7 @@
                         <div class="form-group mr-2">
                             <input type="file" name="file" class="form-control-file" required>
                         </div>
-                        <button type="submit" class="btn btn-primary">{{ _('رفع') }}</button>
+                        {{ submit_button(_('رفع'), btn_class='btn btn-primary') }}
                     </form>
                 </div>
 
@@ -52,11 +50,11 @@
                                     <div class="mt-1 small text-truncate" title="{{ img }}">{{ img }}</div>
                                     
                                     <!-- Delete Button -->
-                                    <form action="{{ url_for('main.dev_delete_image') }}" method="POST" class="mt-1" onsubmit="return confirm('{{ _('هل أنت متأكد من حذف هذه الصورة؟') }}');">
-                                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                    <form action="{{ url_for('main.dev_delete_image') }}" method="POST" class="mt-1">
+                                        {{ csrf_input() }}
                                         <input type="hidden" name="category" value="{{ category }}">
                                         <input type="hidden" name="filename" value="{{ img }}">
-                                        <button type="submit" class="btn btn-danger btn-sm py-0 px-1" title="{{ _('حذف') }}">&times;</button>
+                                        {{ submit_button('×', btn_class='btn btn-danger btn-sm py-0 px-1', confirm_text=_('هل أنت متأكد من حذف هذه الصورة؟'), title=_('حذف')) }}
                                     </form>
                                 </div>
                             </div>

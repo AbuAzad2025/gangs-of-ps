@@ -1,12 +1,11 @@
 {% extends "developer/dashboard.html" %}
+{% from "developer/_macros.html" import dev_card_header, link_button, post_button %}
 
 {% block content %}
 <div class="row justify-content-center">
     <div class="col-md-10">
         <div class="luxury-card fade-in-up">
-            <div class="card-header">
-                <h3 class="card-title text-gradient-gold"><i class="fas fa-users mr-2"></i> {{ title }}</h3>
-            </div>
+            {{ dev_card_header(title, icon_class='fas fa-users', back_href=url_for('main.dev_gangs')) }}
             <form method="POST" enctype="multipart/form-data">
                 {{ form.hidden_tag() }}
                 <div class="card-body">
@@ -62,16 +61,14 @@
                 </div>
                 <div class="card-footer bg-transparent border-top border-secondary">
                     <button type="submit" class="btn btn-luxury-action">{{ _('حفظ') }}</button>
-                    <a href="{{ url_for('main.dev_gangs') }}" class="btn btn-outline-secondary float-right">{{ _('إلغاء') }}</a>
+                    {{ link_button(url_for('main.dev_gangs'), _('إلغاء'), btn_class='btn btn-outline-secondary float-right') }}
                 </div>
             </form>
         </div>
 
         {% if active_wars %}
         <div class="luxury-card fade-in-up mt-4">
-            <div class="card-header">
-                <h3 class="card-title text-danger"><i class="fas fa-skull-crossbones mr-2"></i> {{ _('الحروب النشطة') }}</h3>
-            </div>
+            {{ dev_card_header(_('الحروب النشطة'), icon_class='fas fa-skull-crossbones', title_class='card-title text-danger m-0') }}
             <div class="card-body p-0">
                 <div class="table-responsive">
                     <table class="table table-hover table-dark mb-0">
@@ -94,12 +91,7 @@
                                 </td>
                                 <td>{{ war.start_time.strftime('%Y-%m-%d %H:%M') }}</td>
                                 <td>
-                                    <form action="{{ url_for('main.dev_gang_war_end', war_id=war.id) }}" method="POST" class="d-inline">
-                                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                                        <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('{{ _('هل أنت متأكد من إنهاء هذه الحرب قسرياً؟') }}')">
-                                            <i class="fas fa-stop-circle"></i> {{ _('إنهاء الحرب') }}
-                                        </button>
-                                    </form>
+                                    {{ post_button(url_for('main.dev_gang_war_end', war_id=war.id), _('إنهاء الحرب'), btn_class='btn btn-sm btn-danger', icon_class='fas fa-stop-circle', confirm_text=_('هل أنت متأكد من إنهاء هذه الحرب قسرياً؟')) }}
                                 </td>
                             </tr>
                             {% endfor %}
@@ -112,9 +104,7 @@
 
         {% if active_alliances %}
         <div class="luxury-card fade-in-up mt-4">
-            <div class="card-header">
-                <h3 class="card-title text-info"><i class="fas fa-handshake mr-2"></i> {{ _('التحالفات النشطة') }}</h3>
-            </div>
+            {{ dev_card_header(_('التحالفات النشطة'), icon_class='fas fa-handshake', title_class='card-title text-info m-0') }}
             <div class="card-body p-0">
                 <div class="table-responsive">
                     <table class="table table-hover table-dark mb-0">
@@ -137,12 +127,7 @@
                                 </td>
                                 <td>{{ alliance.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
                                 <td>
-                                    <form action="{{ url_for('main.dev_gang_alliance_break', alliance_id=alliance.id) }}" method="POST" class="d-inline">
-                                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                                        <button type="submit" class="btn btn-sm btn-warning" onclick="return confirm('{{ _('هل أنت متأكد من فسخ هذا التحالف قسرياً؟') }}')">
-                                            <i class="fas fa-cut"></i> {{ _('فسخ التحالف') }}
-                                        </button>
-                                    </form>
+                                    {{ post_button(url_for('main.dev_gang_alliance_break', alliance_id=alliance.id), _('فسخ التحالف'), btn_class='btn btn-sm btn-warning', icon_class='fas fa-cut', confirm_text=_('هل أنت متأكد من فسخ هذا التحالف قسرياً؟')) }}
                                 </td>
                             </tr>
                             {% endfor %}

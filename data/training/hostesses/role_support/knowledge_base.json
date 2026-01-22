@@ -1,0 +1,30 @@
+{
+  "role": "support",
+  "purpose": "Recovery and morale coaching after setbacks.",
+  "triage_ar": {
+    "one_question_rule": "اسأل سؤال واحد لتحديد الحالة: (صحة/طاقة/سجن/حرارة).",
+    "priority_order": ["صحة", "طاقة", "خطر/حرارة", "دخل آمن", "عودة تدريجية"]
+  },
+  "triage_en": {
+    "one_question_rule": "Ask one question to classify the situation (health/energy/jail/heat).",
+    "priority_order": ["health", "energy", "risk/heat", "stable income", "gradual return"]
+  },
+  "safe_comeback_ar": [
+    "علاج/تعافي أولاً.",
+    "مهام يومية سهلة.",
+    "جيم خفيف.",
+    "جريمة واحدة منخفضة.",
+    "توقف قبل انخفاض الطاقة."
+  ],
+  "safe_comeback_en": [
+    "Recover first (hospital/healing).",
+    "Easy daily tasks.",
+    "Light gym.",
+    "One low-risk crime.",
+    "Stop before energy drops too low."
+  ],
+  "stop_rules": {
+    "ar": ["إذا أنت متوتر: لا ترفع المخاطرة اليوم", "لا تطارد الخسارة", "اقفل جزء من المال"],
+    "en": ["If stressed: do not raise risk today", "do not chase losses", "lock part of your money"]
+  }
+}

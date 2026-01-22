@@ -1,20 +1,18 @@
 {% extends "base.html" %}
+{% from "developer/_macros.html" import dev_card_header, csrf_input, link_button, post_icon_button, submit_button %}
 
 {% block content %}
 <div class="row mb-4">
     <div class="col-12">
         <div class="card bg-dark text-white border-warning">
-            <div class="card-header border-warning d-flex justify-content-between align-items-center">
-                <h3 class="card-title text-warning"><i class="fas fa-gavel mr-2"></i> {{ title }}</h3>
-                <a href="{{ url_for('main.dev_dashboard') }}" class="btn btn-outline-secondary btn-sm">{{ _('عودة') }}</a>
-            </div>
+            {{ dev_card_header(title, icon_class='fas fa-gavel', back_href=url_for('main.dev_dashboard'), header_class='card-header border-warning', title_class='card-title text-warning') }}
             <div class="card-body">
                 
                 <!-- Create Auction Form -->
                 <div class="mb-4 p-3 border border-secondary rounded bg-darker">
                     <h5 class="text-gold mb-3">{{ _('إنشاء مزاد جديد') }}</h5>
                     <form action="{{ url_for('main.dev_create_auction') }}" method="POST" class="form-inline">
-                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                        {{ csrf_input() }}
                         
                         <div class="form-group mr-2 mb-2">
                             <label class="sr-only">{{ _('النوع') }}</label>
@@ -39,7 +37,7 @@
                             <input type="number" name="duration_hours" class="form-control bg-dark text-white border-secondary" placeholder="{{ _('المدة (ساعات)') }}" value="24" required>
                         </div>
 
-                        <button type="submit" class="btn btn-warning mb-2"><i class="fas fa-plus"></i> {{ _('إنشاء') }}</button>
+                        {{ submit_button(_('إنشاء'), btn_class='btn btn-warning mb-2', icon_class='fas fa-plus') }}
                     </form>
                     <small class="text-muted">{{ _('تأكد من إدخال معرف (ID) صحيح من جدول Items أو Vehicles.') }}</small>
                 </div>
@@ -89,10 +87,7 @@
                                     {% endif %}
                                 </td>
                                 <td>
-                                    <form action="{{ url_for('main.dev_delete_auction', auction_id=auction.id) }}" method="POST" class="d-inline" onsubmit="return confirm('{{ _('هل أنت متأكد من حذف هذا المزاد؟') }}');">
-                                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-                                        <button type="submit" class="btn btn-danger btn-sm"><i class="fas fa-trash"></i></button>
-                                    </form>
+                                    {{ post_icon_button(url_for('main.dev_delete_auction', auction_id=auction.id), btn_class='btn btn-danger btn-sm', icon_class='fas fa-trash', confirm_text=_('هل أنت متأكد من حذف هذا المزاد؟')) }}
                                 </td>
                             </tr>
                             {% else %}

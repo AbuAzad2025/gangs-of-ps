@@ -1,4 +1,5 @@
 <!-- Main Sidebar Container -->
+{% from "admin/_macros.html" import dev_dashboard_link %}
 <aside class="main-sidebar sidebar-dark-primary elevation-4">
     <!-- Brand Logo -->
     <a href="/admin/" class="brand-link">
@@ -65,6 +66,7 @@
                 {% endfor %}
 
                 <li class="nav-header">{{ _('روابط سريعة') }}</li>
+                {{ dev_dashboard_link('sidebar') }}
                 <li class="nav-item">
                     <a href="/" class="nav-link">
                         <i class="nav-icon fas fa-home"></i>

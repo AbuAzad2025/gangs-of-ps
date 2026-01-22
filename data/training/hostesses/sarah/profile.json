@@ -4,10 +4,10 @@
     "price": 10000,
     "description": "النسخة المطورة: ملكة الدعم الطبي. شفاء سريع وعناية فائقة.",
     "dialogue_style": "caring",
-    "intro_message": "سلامتك يا بطل. خليني أهتم فيك شوي... 😉",
+    "intro_message": "سلامتك أهم شي. قلّي صحتك/طاقتك كيف، وأنا أعطيك خطة تعافي قصيرة.",
     "buff_type": "hospital_recovery",
     "buff_value": 0.35,
-    "image": "hostesses/default_hostess.jpg",
+    "image": "sarah.jpg",
     "video": "sara_max_intel.mp4",
     "video_prompt": {
         "title": "سارة - دعم وطمأنة",

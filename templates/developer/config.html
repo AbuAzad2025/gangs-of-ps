@@ -1,16 +1,13 @@
 {% extends "base.html" %}
+{% from "developer/_macros.html" import dev_card_header, csrf_input, link_button, post_button, submit_button %}
 
 {% block content %}
 <div class="row justify-content-center">
     <div class="col-md-10">
             <div class="card bg-dark text-white border-secondary shadow-lg">
-                <div class="card-header border-bottom border-secondary d-flex justify-content-between align-items-center">
-                    <h3 class="card-title m-0"><i class="fas fa-cogs text-warning mr-2"></i> {{ _('إعدادات النظام') }}</h3>
-                <div class="d-flex align-items-center" style="gap:.5rem;">
-                    <a href="{{ url_for('main.dev_config_logs') }}" class="btn btn-outline-light btn-sm">{{ _('سجل التغييرات') }}</a>
-                    <a href="{{ url_for('main.dev_dashboard') }}" class="btn btn-secondary btn-sm">{{ _('عودة') }}</a>
-                </div>
-                </div>
+                {% call dev_card_header(_('إعدادات النظام'), icon_class='fas fa-cogs text-warning', back_href=url_for('main.dev_dashboard'), back_btn_class='btn btn-secondary btn-sm', back_icon_class=None, header_class='card-header border-bottom border-secondary', title_class='card-title m-0') %}
+                    {{ link_button(url_for('main.dev_config_logs'), _('سجل التغييرات'), btn_class='btn btn-outline-light btn-sm') }}
+                {% endcall %}
             <div class="card-body">
                 <form action="{{ url_for('main.dev_config') }}" method="GET" class="mb-3">
                     <div class="input-group">
@@ -23,13 +20,12 @@
                 </form>
 
                 <form action="{{ url_for('main.dev_config_save') }}" method="POST" id="devConfigForm">
-                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                    {{ csrf_input() }}
                     
                     <div class="card mb-4 bg-dark border_secondary">
-                        <div class="card-header d-flex align-items-center justify-content-between">
-                            <h4 class="m-0 text-gold"><i class="fas fa-chart-line mr-2"></i> {{ _('إعدادات السوق') }}</h4>
+                        {% call dev_card_header(_('إعدادات السوق'), icon_class='fas fa-chart-line', header_class='card-header d-flex align-items-center justify-content-between', title_class='m-0 text-gold') %}
                             <button type="button" class="btn btn-sm btn-outline-info" data-toggle="collapse" data-target="#marketSettingsCollapse">{{ _('طي/فتح') }}</button>
-                        </div>
+                        {% endcall %}
                         <div class="card-body collapse show" id="marketSettingsCollapse">
                             <div class="row">
                                 <div class="col-md-4 mb-3">
@@ -121,55 +117,39 @@
                         </table>
                     </div>
 
-                    <button type="submit" class="btn btn-warning btn-lg btn-block font-weight-bold shadow mt-4">
-                        <i class="fas fa-save mr-2"></i> {{ _('حفظ التغييرات') }}
-                    </button>
+                    <div class="mt-4">
+                        {{ submit_button(_('حفظ التغييرات'), btn_class='btn btn-warning btn-lg btn-block font-weight-bold shadow', icon_class='fas fa-save mr-2') }}
+                    </div>
                 </form>
 
-                <form action="{{ url_for('main.dev_config_reset_market_defaults') }}" method="POST" class="mt-3">
-                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-                    <button type="submit" class="btn btn-outline-info btn-block font-weight-bold">
-                        <i class="fas fa-sync-alt mr-2"></i> {{ _('إعادة إعدادات السوق الافتراضية') }}
-                    </button>
-                </form>
+                <div class="mt-3">
+                    {{ post_button(url_for('main.dev_config_reset_market_defaults'), _('إعادة إعدادات السوق الافتراضية'), btn_class='btn btn-outline-info btn-block font-weight-bold', icon_class='fas fa-sync-alt mr-2') }}
+                </div>
 
-                <form action="{{ url_for('main.dev_config_reset_gameplay_defaults') }}" method="POST" class="mt-3">
-                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-                    <button type="submit" class="btn btn-outline-warning btn-block font-weight-bold">
-                        <i class="fas fa-gamepad mr-2"></i> {{ _('إعادة إعدادات اللعب الافتراضية') }}
-                    </button>
-                </form>
+                <div class="mt-3">
+                    {{ post_button(url_for('main.dev_config_reset_gameplay_defaults'), _('إعادة إعدادات اللعب الافتراضية'), btn_class='btn btn-outline-warning btn-block font-weight-bold', icon_class='fas fa-gamepad mr-2') }}
+                </div>
 
-                <form action="{{ url_for('main.dev_config_reset_jail_defaults') }}" method="POST" class="mt-3">
-                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-                    <button type="submit" class="btn btn-outline-danger btn-block font-weight-bold">
-                        <i class="fas fa-dungeon mr-2"></i> {{ _('إعادة إعدادات السجن الافتراضية') }}
-                    </button>
-                </form>
+                <div class="mt-3">
+                    {{ post_button(url_for('main.dev_config_reset_jail_defaults'), _('إعادة إعدادات السجن الافتراضية'), btn_class='btn btn-outline-danger btn-block font-weight-bold', icon_class='fas fa-dungeon mr-2') }}
+                </div>
 
-                <form action="{{ url_for('main.dev_config_reset_gym_defaults') }}" method="POST" class="mt-3">
-                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-                    <button type="submit" class="btn btn-outline-light btn-block font-weight-bold">
-                        <i class="fas fa-dumbbell mr-2"></i> {{ _('إعادة إعدادات الجيم الافتراضية') }}
-                    </button>
-                </form>
+                <div class="mt-3">
+                    {{ post_button(url_for('main.dev_config_reset_gym_defaults'), _('إعادة إعدادات الجيم الافتراضية'), btn_class='btn btn-outline-light btn-block font-weight-bold', icon_class='fas fa-dumbbell mr-2') }}
+                </div>
 
                 <div class="card mt-4 bg-secondary border-dark">
-                    <div class="card-header">
-                        <h5 class="m-0 text-dark"><i class="fas fa-plus-circle"></i> {{ _('إضافة إعداد جديد') }}</h5>
-                    </div>
+                    {{ dev_card_header(_('إضافة إعداد جديد'), icon_class='fas fa-plus-circle', header_class='card-header', title_class='m-0 text-dark') }}
                     <div class="card-body bg-dark">
                         <form action="{{ url_for('main.dev_config_add') }}" method="POST" class="form-inline justify-content-between">
-                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                            {{ csrf_input() }}
                             <div class="form-group flex-grow-1 mr-2">
                                 <input type="text" name="key" class="form-control w-100" placeholder="{{ _('Key (e.g. xp_multiplier)') }}" required>
                                 </div>
                                 <div class="col-md-5">
                                 <input type="text" name="value" class="form-control w-100" placeholder="{{ _('Value (e.g. 1.5)') }}" required>
                             </div>
-                            <button type="submit" class="btn btn-success font-weight-bold">
-                                <i class="fas fa-plus"></i> {{ _('إضافة') }}
-                            </button>
+                            {{ submit_button(_('إضافة'), btn_class='btn btn-success font-weight-bold', icon_class='fas fa-plus') }}
                         </form>
                     </div>
                 </div>

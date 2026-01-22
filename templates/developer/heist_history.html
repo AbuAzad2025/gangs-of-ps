@@ -1,12 +1,11 @@
 {% extends "base.html" %}
+{% from "developer/_macros.html" import dev_card_header %}
 
 {% block title %}{{ _('سجل الجرائم المنظمة') }}{% endblock %}
 
 {% block content %}
-<div class="card shadow mb-4">
-    <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
-        <h6 class="m-0 font-weight-bold text-primary">{{ _('سجل الجرائم المنظمة (Heist History)') }}</h6>
-    </div>
+<div class="luxury-card fade-in-up">
+    {{ dev_card_header(_('سجل الجرائم المنظمة (Heist History)'), icon_class='fas fa-clipboard-list', back_href=url_for('main.dev_dashboard')) }}
     <div class="card-body">
         <div class="table-responsive">
             <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">

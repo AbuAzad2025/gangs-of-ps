@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% from "developer/_macros.html" import dev_card_header, link_button, post_button, post_icon_button, csrf_input %}
 
 {% block content %}
 
@@ -18,11 +19,10 @@
 <div class="row mb-4">
     <div class="col-12">
         <div class="card luxury-card">
-            <div class="card-header luxury-header">
-                <h4 class="mb-0 text-gold"><i class="fas fa-gamepad mr-2"></i> {{ _('إعدادات الترفيه والرهانات') }}</h4>
-            </div>
+            {{ dev_card_header(_('إعدادات الترفيه والرهانات'), icon_class='fas fa-gamepad', header_class='card-header luxury-header', title_class='mb-0 text-gold') }}
             <div class="card-body bg-dark">
                 <form action="{{ url_for('main.update_entertainment_settings') }}" method="POST">
+                    {{ csrf_input() }}
                     <div class="form-row">
                         <div class="form-group col-md-3">
                             <label class="text-white">{{ _('تفعيل قسم الترفيه') }}</label>
@@ -91,9 +91,7 @@
     <div class="row mb-4">
         <div class="col-12">
             <div class="card luxury-card">
-                <div class="card-header luxury-header">
-                    <h4 class="mb-0 text-gold"><i class="fas fa-bolt mr-2"></i> {{ _('إجراءات سريعة') }}</h4>
-                </div>
+                {{ dev_card_header(_('إجراءات سريعة'), icon_class='fas fa-bolt', header_class='card-header luxury-header', title_class='mb-0 text-gold') }}
                 <div class="card-body bg-dark">
                     <div class="d-flex flex-wrap justify-content-center gap-3">
                         <a href="{{ url_for('main.dev_alerts') }}" class="btn btn-outline-danger m-2">
@@ -150,30 +148,15 @@
                         <a href="{{ url_for('main.dev_logs') }}" class="btn btn-outline-light m-2">
                             <i class="fas fa-clipboard-list mr-2"></i> {{ _('سجلات النظام') }}
                         </a>
-                        <form action="{{ url_for('main.run_migrations') }}" method="POST" class="d-inline m-2">
-                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-                            <button type="submit" class="btn btn-outline-success font-weight-bold shadow" onclick="return confirm('{{ _('هل أنت متأكد من تحديث قاعدة البيانات؟') }}')">
-                                <i class="fas fa-database"></i> {{ _('تحديث قاعدة البيانات') }}
-                            </button>
-                        </form>
+                        {{ post_button(url_for('main.run_migrations'), _('تحديث قاعدة البيانات'), btn_class='btn btn-outline-success font-weight-bold shadow', icon_class='fas fa-database', confirm_text=_('هل أنت متأكد من تحديث قاعدة البيانات؟'), extra_class='m-2') }}
                         <button type="button" class="btn btn-outline-danger m-2" data-toggle="modal" data-target="#maintenanceModal">
                             <i class="fas fa-tools mr-2"></i> {{ _('وضع الصيانة') }}
                         </button>
                         <button type="button" class="btn btn-outline-warning m-2" data-toggle="modal" data-target="#occupationModal">
                             <i class="fas fa-hand-paper mr-2"></i> {{ _('إدارة الاحتلال') }}
                         </button>
-                        <form action="{{ url_for('main.generate_test_users') }}" method="POST" class="d-inline m-2">
-                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-                            <button type="submit" class="btn btn-info font-weight-bold shadow" onclick="return confirm('{{ _('هل أنت متأكد من إضافة لاعبين وهميين؟') }}')">
-                                <i class="fas fa-robot"></i> {{ _('إضافة بوتات') }}
-                            </button>
-                        </form>
-                        <form action="{{ url_for('main.dev_clear_all_players_protection') }}" method="POST" class="d-inline m-2">
-                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-                            <button type="submit" class="btn btn-outline-danger" onclick="return confirm('{{ _('هل أنت متأكد من إخراج جميع اللاعبين الحاليين من الحماية؟') }}')">
-                                <i class="fas fa-shield-alt mr-2"></i> {{ _('إخراج الكل من الحماية') }}
-                            </button>
-                        </form>
+                        {{ post_button(url_for('main.generate_test_users'), _('إضافة بوتات'), btn_class='btn btn-info font-weight-bold shadow', icon_class='fas fa-robot', confirm_text=_('هل أنت متأكد من إضافة لاعبين وهميين؟'), extra_class='m-2') }}
+                        {{ post_button(url_for('main.dev_clear_all_players_protection'), _('إخراج الكل من الحماية'), btn_class='btn btn-outline-danger', icon_class='fas fa-shield-alt mr-2', confirm_text=_('هل أنت متأكد من إخراج جميع اللاعبين الحاليين من الحماية؟'), extra_class='m-2') }}
                     </div>
                 </div>
             </div>
@@ -294,9 +277,7 @@
 <div class="row mb-4">
     <div class="col-md-12">
         <div class="card luxury-card">
-            <div class="card-header luxury-header">
-                <h4 class="mb-0 text-gold"><i class="fas fa-chart-pie mr-2"></i> {{ _('أكثر قنوات حرق الأموال (توب 5)') }}</h4>
-            </div>
+            {{ dev_card_header(_('أكثر قنوات حرق الأموال (توب 5)'), icon_class='fas fa-chart-pie', header_class='card-header luxury-header', title_class='mb-0 text-gold') }}
             <div class="card-body bg-dark">
                 <div class="table-responsive">
                     <table class="table table-dark table-hover mb-0">
@@ -329,15 +310,9 @@
 <div class="row mb-4">
     <div class="col-12">
         <div class="card luxury-card">
-            <div class="card-header luxury-header d-flex justify-content-between align-items-center">
-                <h4 class="mb-0 text-gold"><i class="fas fa-save mr-2"></i> {{ _('إدارة النسخ الاحتياطية') }}</h4>
-                <form action="{{ url_for('main.create_backup') }}" method="POST" class="d-inline">
-                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-                    <button type="submit" class="btn btn-success font-weight-bold shadow">
-                        <i class="fas fa-plus-circle"></i> {{ _('إنشاء نسخة احتياطية جديدة') }}
-                    </button>
-                </form>
-            </div>
+            {% call dev_card_header(_('إدارة النسخ الاحتياطية'), icon_class='fas fa-save', header_class='card-header luxury-header d-flex justify-content-between align-items-center', title_class='mb-0 text-gold') %}
+                {{ post_button(url_for('main.create_backup'), _('إنشاء نسخة احتياطية جديدة'), btn_class='btn btn-success font-weight-bold shadow', icon_class='fas fa-plus-circle') }}
+            {% endcall %}
             <div class="card-body bg-dark">
                 {% if backups %}
                 <div class="table-responsive">
@@ -357,18 +332,8 @@
                                 <td>{{ "%.2f"|format(backup.size_mb) }} MB</td>
                                 <td>{{ backup.date.strftime('%Y-%m-%d %H:%M:%S') }}</td>
                                 <td class="text-center">
-                                    <form action="{{ url_for('main.restore_backup', filename=backup.name) }}" method="POST" class="d-inline">
-                                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-                                        <button type="submit" class="btn btn-sm btn-warning m-1" onclick="return confirm('{{ _('هل أنت متأكد من استعادة هذه النسخة؟ سيتم فقدان البيانات الحالية!') }}')">
-                                            <i class="fas fa-undo"></i> {{ _('استعادة') }}
-                                        </button>
-                                    </form>
-                                    <form action="{{ url_for('main.delete_backup', filename=backup.name) }}" method="POST" class="d-inline">
-                                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-                                        <button type="submit" class="btn btn-sm btn-danger m-1" onclick="return confirm('{{ _('هل أنت متأكد من حذف هذه النسخة؟') }}')">
-                                            <i class="fas fa-trash"></i> {{ _('حذف') }}
-                                        </button>
-                                    </form>
+                                    {{ post_button(url_for('main.restore_backup', filename=backup.name), _('استعادة'), btn_class='btn btn-sm btn-warning m-1', icon_class='fas fa-undo', confirm_text=_('هل أنت متأكد من استعادة هذه النسخة؟ سيتم فقدان البيانات الحالية!')) }}
+                                    {{ post_button(url_for('main.delete_backup', filename=backup.name), _('حذف'), btn_class='btn btn-sm btn-danger m-1', icon_class='fas fa-trash', confirm_text=_('هل أنت متأكد من حذف هذه النسخة؟')) }}
                                 </td>
                             </tr>
                             {% endfor %}
@@ -386,9 +351,7 @@
 <div class="row mb-4">
     <div class="col-12">
         <div class="card luxury-card">
-            <div class="card-header luxury-header">
-                <h4 class="mb-0 text-gold"><i class="fas fa-layer-group mr-2"></i> {{ _('روابط إدارة النظام') }}</h4>
-            </div>
+            {{ dev_card_header(_('روابط إدارة النظام'), icon_class='fas fa-layer-group', header_class='card-header luxury-header', title_class='mb-0 text-gold') }}
             <div class="card-body bg-dark">
                 <div class="d-flex flex-wrap justify-content-center gap-3">
                     <a href="{{ url_for('main.dev_users') }}" class="btn btn-outline-info m-2"><i class="fas fa-users mr-2"></i>{{ _('اللاعبين') }}</a>
@@ -432,7 +395,7 @@
                 </button>
             </div>
             <form action="{{ url_for('main.dev_maintenance_mode') }}" method="POST">
-                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                {{ csrf_input() }}
                 <div class="modal-body">
                     <div class="custom-control custom-switch">
                         <input type="checkbox" class="custom-control-input" id="maintenanceSwitch" name="mode" value="on" {% if maintenance_mode %}checked{% endif %}>
@@ -470,7 +433,7 @@
             <div class="modal-body">
                 <h6 class="text-warning mb-3">{{ _('مستوى التوتر الأمني والحواجز') }}</h6>
                 <form action="{{ url_for('main.update_occupation_settings') }}" method="POST">
-                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                    {{ csrf_input() }}
                     <div class="form-group">
                         <label class="text-white">{{ _('حالة الحواجز (Checkpoints Level)') }}</label>
                         <select name="occupation_alert_level" class="form-control bg-dark text-light border-gold">
@@ -486,7 +449,7 @@
                 
                 <h6 class="text-danger mb-3">{{ _('حملات الشرطة (Police Campaigns)') }}</h6>
                 <form action="{{ url_for('main.toggle_mashtoub_campaign') }}" method="POST">
-                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                    {{ csrf_input() }}
                     <div class="d-flex justify-content-between align-items-center bg-secondary p-3 rounded">
                         <div>
                             <h6 class="mb-0">{{ _('حملة المشطوب') }}</h6>

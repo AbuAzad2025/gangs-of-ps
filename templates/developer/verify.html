@@ -1,17 +1,16 @@
 {% extends "base.html" %}
+{% from "developer/_macros.html" import dev_card_header, csrf_input, link_button %}
 
 {% block content %}
 <div class="container mt-5">
     <div class="row justify-content-center">
         <div class="col-md-6">
             <div class="card shadow">
-                <div class="card-header bg-danger text-white">
-                    <h4 class="mb-0"><i class="fas fa-shield-alt me-2"></i>{{ _('تحقق أمني مطلوب') }}</h4>
-                </div>
+                {{ dev_card_header(_('تحقق أمني مطلوب'), icon_class='fas fa-shield-alt', header_class='card-header bg-danger text-white', title_class='mb-0 text-white') }}
                 <div class="card-body">
                     <p class="text-muted mb-4">{{ _('يرجى إعادة إدخال كلمة المرور للمتابعة.') }}</p>
                     <form method="POST">
-                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        {{ csrf_input() }}
                         <div class="mb-3">
                             <label for="password" class="form-label">{{ _('كلمة المرور') }}</label>
                             <div class="input-group">
@@ -23,7 +22,7 @@
                         </div>
                         <div class="d-grid gap-2">
                             <button type="submit" class="btn btn-primary">{{ _('تأكيد') }}</button>
-                            <a href="{{ url_for('main.dev_dashboard') }}" class="btn btn-outline-secondary">{{ _('إلغاء') }}</a>
+                            {{ link_button(url_for('main.dev_dashboard'), _('إلغاء'), btn_class='btn btn-outline-secondary') }}
                         </div>
                     </form>
                 </div>

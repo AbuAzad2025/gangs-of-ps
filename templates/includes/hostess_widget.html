@@ -1,6 +1,6 @@
 {% if hostess %}
 <!-- Hostess Chat Widget (Enhanced UI) -->
-{% set hostess_img = hostess.image if hostess.image and ('/' in hostess.image) else ('hostesses/' + (hostess.image or 'default_hostess.jpg')) %}
+{% set hostess_img = hostess.image_path %}
 <div id="hostess-chat-widget" class="hostess-widget-container shadow-lg fade-in">
     
     <!-- Header -->

@@ -1,16 +1,13 @@
 {% extends "base.html" %}
+{% from "developer/_macros.html" import dev_card_header, link_button, post_icon_button %}
 
 {% block content %}
 <div class="row mb-4">
     <div class="col-12">
         <div class="card bg-dark border-gold">
-            <div class="card-header border-gold d-flex justify-content-between align-items-center">
-                <h3 class="card-title text-gold"><i class="fas fa-industry mr-2"></i> {{ _('إدارة المصانع والإنتاج') }}</h3>
-                <div>
-                    <a href="{{ url_for('main.dev_factory_job_edit', id=0) }}" class="btn btn-primary btn-sm mr-2"><i class="fas fa-plus"></i> {{ _('إضافة مهمة جديدة') }}</a>
-                    <a href="{{ url_for('main.dev_dashboard') }}" class="btn btn-secondary btn-sm">{{ _('عودة للوحة التحكم') }}</a>
-                </div>
-            </div>
+            {% call dev_card_header(_('إدارة المصانع والإنتاج'), icon_class='fas fa-industry', back_href=url_for('main.dev_dashboard'), back_text=_('عودة للوحة التحكم'), back_btn_class='btn btn-secondary btn-sm', back_icon_class=None, header_class='card-header border-gold', title_class='card-title text-gold') %}
+                {{ link_button(url_for('main.dev_factory_job_edit', id=0), _('إضافة مهمة جديدة'), btn_class='btn btn-primary btn-sm mr-2', icon_class='fas fa-plus') }}
+            {% endcall %}
             <div class="card-body">
                 <div class="table-responsive">
                     <table class="table table-dark table-hover">
@@ -51,30 +48,15 @@
                                 <td>
                                     <div class="d-flex align-items-center">
                                         {% if job.status == 'running' %}
-                                            <form action="{{ url_for('main.dev_factory_job_complete', id=job.id) }}" method="POST" class="d-inline mr-1">
-                                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-                                                <button type="submit" class="btn btn-sm btn-success" onclick="return confirm('{{ _('هل أنت متأكد من الإنهاء الفوري؟') }}')" title="{{ _('إنهاء فوري') }}">
-                                                    <i class="fas fa-check"></i>
-                                                </button>
-                                            </form>
-                                            <form action="{{ url_for('main.dev_factory_job_cancel', id=job.id) }}" method="POST" class="d-inline mr-1">
-                                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-                                                <button type="submit" class="btn btn-sm btn-warning" onclick="return confirm('{{ _('هل أنت متأكد من الإلغاء؟') }}')" title="{{ _('إلغاء') }}">
-                                                    <i class="fas fa-ban"></i>
-                                                </button>
-                                            </form>
+                                            {{ post_icon_button(url_for('main.dev_factory_job_complete', id=job.id), btn_class='btn btn-sm btn-success', icon_class='fas fa-check', confirm_text=_('هل أنت متأكد من الإنهاء الفوري؟'), title=_('إنهاء فوري'), extra_class='mr-1') }}
+                                            {{ post_icon_button(url_for('main.dev_factory_job_cancel', id=job.id), btn_class='btn btn-sm btn-warning', icon_class='fas fa-ban', confirm_text=_('هل أنت متأكد من الإلغاء؟'), title=_('إلغاء'), extra_class='mr-1') }}
                                         {% endif %}
                                         
                                         <a href="{{ url_for('main.dev_factory_job_edit', id=job.id) }}" class="btn btn-sm btn-info mr-1" title="{{ _('تعديل') }}">
                                             <i class="fas fa-edit"></i>
                                         </a>
                                         
-                                        <form action="{{ url_for('main.dev_factory_job_delete', id=job.id) }}" method="POST" class="d-inline">
-                                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-                                            <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('{{ _('هل أنت متأكد من الحذف؟') }}')" title="{{ _('حذف') }}">
-                                                <i class="fas fa-trash"></i>
-                                            </button>
-                                        </form>
+                                        {{ post_icon_button(url_for('main.dev_factory_job_delete', id=job.id), btn_class='btn btn-sm btn-danger', icon_class='fas fa-trash', confirm_text=_('هل أنت متأكد من الحذف؟'), title=_('حذف')) }}
                                     </div>
                                 </td>
                             </tr>

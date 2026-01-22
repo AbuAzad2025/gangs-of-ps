@@ -1,15 +1,9 @@
 {% extends "base.html" %}
+{% from "developer/_macros.html" import dev_card_header, link_button, post_button %}
 
 {% block content %}
 <div class="luxury-card fade-in-up">
-    <div class="card-header">
-        <h3 class="card-title text-gradient-gold"><i class="fas fa-crosshairs mr-2"></i> {{ _('إدارة المكافآت (Bounties)') }}</h3>
-        <div class="card-tools">
-            <a href="{{ url_for('main.dev_dashboard') }}" class="btn btn-outline-secondary btn-sm ml-2">
-                <i class="fas fa-arrow-right"></i> {{ _('عودة') }}
-            </a>
-        </div>
-    </div>
+    {{ dev_card_header(_('إدارة المكافآت (Bounties)'), icon_class='fas fa-crosshairs', back_href=url_for('main.dev_dashboard')) }}
     <div class="card-body p-0">
         <div class="table-responsive">
             <table class="table luxury-table luxury-table-striped projects">
@@ -44,12 +38,7 @@
                         </td>
                         <td>{{ b.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
                         <td class="project-actions text-right">
-                            <form method="post" action="{{ url_for('main.dev_bounty_delete', id=b.id) }}" style="display:inline;">
-                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-                                <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('{{ _('هل أنت متأكد من الحذف؟') }}')">
-                                    <i class="fas fa-trash"></i> {{ _('حذف') }}
-                                </button>
-                            </form>
+                            {{ post_button(url_for('main.dev_bounty_delete', id=b.id), _('حذف'), btn_class='btn btn-sm btn-danger', icon_class='fas fa-trash', confirm_text=_('هل أنت متأكد من الحذف؟')) }}
                         </td>
                     </tr>
                     {% else %}

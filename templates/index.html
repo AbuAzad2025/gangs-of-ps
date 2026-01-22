@@ -118,13 +118,19 @@
                 <div class="col-lg-5 d-none d-lg-block position-relative">
                      {% if jasmin %}
                     <div class="yasmin-welcome-container text-center animate__animated animate__fadeInUp">
-                        <img src="{{ url_for('static', filename='images/hostesses/' + (jasmin.image or 'default_hostess.jpg')) }}" 
-                             alt="{{ jasmin.name }}" 
+                        <img src="{{ url_for('static', filename='images/' + jasmin.image_path) }}" 
+                             alt="{% if get_locale() == 'ar' %}{{ jasmin.name }}{% else %}Yasmin{% endif %}" 
                              class="img-fluid rounded-lg shadow-lg border-gold glow-effect"
                              style="max-height: 500px; object-fit: cover; border: 2px solid #d4af37;">
-                        <div class="bg-dark border border-gold p-3 rounded mt-n4 position-relative mx-4 shadow-lg">
-                            <h4 class="text-gold mb-1">{{ jasmin.name }}</h4>
-                            <p class="text-white small mb-0">"{{ _(jasmin.intro_message) if jasmin.intro_message else _('أهلاً بك في عالمنا!') }}"</p>
+                        <div class="bg-dark border border-gold p-3 rounded mt-3 position-relative mx-4 shadow-lg">
+                            <h4 class="text-gold mb-1">{% if get_locale() == 'ar' %}{{ jasmin.name }}{% else %}Yasmin{% endif %}</h4>
+                            <p class="text-white small mb-0">
+                                {% if get_locale() == 'ar' %}
+                                    "أهلاً فيك. أنا ياسمين، واجهة اللعبة. بدّك خطة بداية سريعة ولا نحدد هدفك اليوم؟"
+                                {% else %}
+                                    "Welcome. I’m Yasmin, your front desk guide. Want a quick start plan or a goal-based route for today?"
+                                {% endif %}
+                            </p>
                         </div>
                     </div>
                     {% endif %}

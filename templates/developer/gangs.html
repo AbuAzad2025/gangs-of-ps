@@ -1,18 +1,11 @@
 {% extends "base.html" %}
+{% from "developer/_macros.html" import dev_card_header, link_button, post_button %}
 
 {% block content %}
 <div class="luxury-card fade-in-up">
-    <div class="card-header">
-        <h3 class="card-title text-gradient-gold"><i class="fas fa-users mr-2"></i> {{ _('إدارة العصابات') }}</h3>
-        <div class="card-tools">
-            <a href="{{ url_for('main.dev_gang_edit', id=None) }}" class="btn btn-luxury-action btn-sm">
-                <i class="fas fa-plus"></i> {{ _('إضافة عصابة') }}
-            </a>
-            <a href="{{ url_for('main.dev_dashboard') }}" class="btn btn-outline-secondary btn-sm ml-2">
-                <i class="fas fa-arrow-right"></i> {{ _('عودة') }}
-            </a>
-        </div>
-    </div>
+    {% call dev_card_header(_('إدارة العصابات'), icon_class='fas fa-users', back_href=url_for('main.dev_dashboard')) %}
+        {{ link_button(url_for('main.dev_gang_edit', id=None), _('إضافة عصابة'), btn_class='btn btn-luxury-action btn-sm', icon_class='fas fa-plus') }}
+    {% endcall %}
     <div class="card-body p-0">
         <div class="table-responsive">
             <table class="table luxury-table luxury-table-striped projects">
@@ -59,12 +52,7 @@
                             <a class="btn btn-luxury-action btn-sm" href="{{ url_for('main.dev_gang_edit', id=g.id) }}">
                                 <i class="fas fa-pencil-alt"></i> {{ _('تعديل') }}
                             </a>
-                            <form method="post" action="{{ url_for('main.dev_gang_delete', id=g.id) }}" style="display:inline;">
-                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-                                <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('{{ _('هل أنت متأكد من الحذف؟') }}')">
-                                    <i class="fas fa-trash"></i> {{ _('حذف') }}
-                                </button>
-                            </form>
+                            {{ post_button(url_for('main.dev_gang_delete', id=g.id), _('حذف'), btn_class='btn btn-sm btn-danger', icon_class='fas fa-trash', confirm_text=_('هل أنت متأكد من الحذف؟'), extra_class='ml-1') }}
                         </td>
                     </tr>
                     {% else %}

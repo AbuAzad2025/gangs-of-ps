@@ -1,10 +1,9 @@
 {% extends "base.html" %}
+{% from "developer/_macros.html" import dev_card_header %}
 
 {% block content %}
 <div class="luxury-card fade-in-up">
-    <div class="card-header">
-        <h3 class="card-title text-gradient-gold"><i class="fas fa-history mr-2"></i> {{ _('سجلات النظام') }}</h3>
-    </div>
+    {{ dev_card_header(_('سجلات النظام'), icon_class='fas fa-history', back_href=url_for('main.dev_dashboard')) }}
     
     <!-- Filter Form -->
     <div class="card-body bg-dark border-bottom border-secondary">

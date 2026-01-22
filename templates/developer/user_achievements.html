@@ -1,17 +1,9 @@
 {% extends "base.html" %}
+{% from "developer/_macros.html" import dev_card_header, csrf_input, link_button, post_button, submit_button %}
 
 {% block content %}
 <div class="luxury-card fade-in-up mb-4">
-    <div class="card-header">
-        <h3 class="card-title text-gradient-gold">
-            <i class="fas fa-user-shield mr-2"></i> {{ _('إنجازات اللاعب') }}: {{ user.username }}
-        </h3>
-        <div class="card-tools">
-            <a href="{{ url_for('main.dev_user_edit', id=user.id) }}" class="btn btn-outline-secondary btn-sm">
-                <i class="fas fa-arrow-right"></i> {{ _('عودة') }}
-            </a>
-        </div>
-    </div>
+    {{ dev_card_header(_('إنجازات اللاعب') ~ ': ' ~ user.username, icon_class='fas fa-user-shield', back_href=url_for('main.dev_user_edit', id=user.id)) }}
     <div class="card-body">
         <div class="row">
             <div class="col-md-6 mb-3">
@@ -24,7 +16,7 @@
             <div class="col-md-6 mb-3">
                 <div class="p-3 bg-dark rounded border border-secondary">
                     <form method="post" action="{{ url_for('main.dev_user_achievements_grant', user_id=user.id) }}">
-                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                        {{ csrf_input() }}
                         <div class="form-group mb-2">
                             <label class="text-gold">{{ _('إضافة إنجاز') }}</label>
                             <select name="achievement_id" class="form-control form-control-luxury">
@@ -34,9 +26,7 @@
                             </select>
                         </div>
                         <div class="d-flex justify-content-between align-items-center">
-                            <button type="submit" class="btn btn-luxury-action">
-                                <i class="fas fa-plus"></i> {{ _('إضافة') }}
-                            </button>
+                            {{ submit_button(_('إضافة'), btn_class='btn btn-luxury-action', icon_class='fas fa-plus') }}
                             <a href="{{ url_for('main.dev_achievements') }}" class="btn btn-outline-warning">
                                 <i class="fas fa-award"></i> {{ _('إدارة الإنجازات') }}
                             </a>
@@ -49,9 +39,7 @@
 </div>
 
 <div class="luxury-card fade-in-up">
-    <div class="card-header">
-        <h3 class="card-title text-gradient-gold"><i class="fas fa-award mr-2"></i> {{ _('الإنجازات المفتوحة') }}</h3>
-    </div>
+    {{ dev_card_header(_('الإنجازات المفتوحة'), icon_class='fas fa-award') }}
     <div class="card-body p-0">
         <div class="table-responsive">
             <table class="table luxury-table luxury-table-striped projects">
@@ -84,12 +72,7 @@
                             </div>
                         </td>
                         <td class="project-actions text-right">
-                            <form method="post" action="{{ url_for('main.dev_user_achievements_revoke', user_id=user.id, user_achievement_id=ua.id) }}" style="display:inline;">
-                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-                                <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('{{ _('هل أنت متأكد من الإزالة؟') }}')">
-                                    <i class="fas fa-trash"></i> {{ _('إزالة') }}
-                                </button>
-                            </form>
+                            {{ post_button(url_for('main.dev_user_achievements_revoke', user_id=user.id, user_achievement_id=ua.id), _('إزالة'), btn_class='btn btn-sm btn-danger', icon_class='fas fa-trash', confirm_text=_('هل أنت متأكد من الإزالة؟')) }}
                         </td>
                     </tr>
                     {% else %}
@@ -103,4 +86,3 @@
     </div>
 </div>
 {% endblock %}
-

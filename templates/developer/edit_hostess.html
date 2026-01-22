@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% from "developer/_macros.html" import dev_card_header, link_button %}
 
 {% block content %}
 <div class="container-fluid mt-4">
@@ -6,10 +7,9 @@
         <!-- Main Form Column -->
         <div class="col-lg-8">
             <div class="card shadow-lg border-0">
-                <div class="card-header bg-dark text-white d-flex justify-content-between align-items-center">
-                    <h4 class="mb-0">{{ title }}</h4>
+                {% call dev_card_header(title, icon_class='fas fa-female', back_href=url_for('main.dev_hostesses'), back_text=_('عودة'), back_btn_class='btn btn-outline-light btn-sm', back_icon_class=None, header_class='card-header bg-dark text-white', title_class='mb-0 text-white') %}
                     <span class="badge bg-warning text-dark">{{ _('وضع المطور') }}</span>
-                </div>
+                {% endcall %}
                 <div class="card-body bg-light">
                     <form method="POST" enctype="multipart/form-data" id="hostessForm">
                         {{ form.hidden_tag() }}
@@ -85,66 +85,23 @@
                             </div>
                         </div>
 
-                        <!-- AI Training Section -->
                         <div class="mb-4 p-3 bg-dark text-white rounded shadow-sm border border-warning">
-                            <label class="form-label fw-bold text-warning h5 mb-3"><i class="fas fa-brain me-2"></i> {{ _('تدريب الشخصية (AI Training)') }}</label>
-                            
-                            <!-- Training Builder UI -->
-                            <div class="card bg-secondary mb-3 border-0">
-                                <div class="card-header d-flex justify-content-between align-items-center" data-bs-toggle="collapse" data-bs-target="#trainingBuilder" style="cursor: pointer;">
-                                    <span class="text-white fw-bold"><i class="fas fa-dumbbell me-2"></i> {{ _('منشئ التدريب (Interactive Trainer)') }}</span>
-                                    <i class="fas fa-chevron-down text-white"></i>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div class="fw-bold text-warning h5 m-0">
+                                    <i class="fas fa-brain me-2"></i> {{ _('التدريب (Training)') }}
                                 </div>
-                                <div id="trainingBuilder" class="collapse show card-body bg-dark border-top border-secondary">
-                                    <div class="row g-2">
-                                        <div class="col-md-12 mb-2">
-                                            <label class="text-muted small">{{ _('مدخل المستخدم (User Input):') }}</label>
-                                            <input type="text" id="trainUser" class="form-control bg-dark text-white border-secondary" placeholder="{{ _('مثال: كيف حالك؟') }}">
-                                        </div>
-                                        <div class="col-md-12 mb-2">
-                                            <label class="text-muted small">{{ _('رد المضيفة (Hostess Response):') }}</label>
-                                            <textarea id="trainAssist" class="form-control bg-dark text-white border-secondary" rows="2" placeholder="{{ _('مثال: يا هلا بالزين، نورت المكان!') }}"></textarea>
-                                        </div>
-                                        <div class="col-md-12">
-                                            <button type="button" class="btn btn-success w-100" onclick="addTrainingExample()">
-                                                <i class="fas fa-plus-circle me-1"></i> {{ _('إضافة مثال') }}
-                                            </button>
-                                        </div>
-                                    </div>
-                                    <div id="trainingList" class="mt-3 list-group">
-                                        <!-- Items will be added here -->
-                                    </div>
-                                    <div class="mt-3 border-top border-secondary pt-2 d-flex justify-content-end gap-2">
-                                        <input type="file" id="importTrainingFile" accept=".json" style="display:none" onchange="importTrainingData(this)">
-                                        <button type="button" class="btn btn-sm btn-outline-info" onclick="document.getElementById('importTrainingFile').click()">
-                                            <i class="fas fa-file-import me-1"></i> {{ _('استيراد JSON') }}
-                                        </button>
-                                        <button type="button" class="btn btn-sm btn-outline-warning" onclick="exportTrainingData()">
-                                            <i class="fas fa-file-export me-1"></i> {{ _('تصدير JSON') }}
-                                        </button>
-                                    </div>
-                                </div>
+                                {% if hostess.id %}
+                                    {{ link_button(url_for('main.dev_hostess_trainer', id=hostess.id), _('فتح لوحة التدريب'), btn_class='btn btn-warning', icon_class='fas fa-dumbbell') }}
+                                {% else %}
+                                    <span class="text-white-50 small">{{ _('احفظ المضيفة أولاً لفتح لوحة التدريب.') }}</span>
+                                {% endif %}
                             </div>
-
-                            <div class="mb-3">
-                                {{ form.system_prompt.label(class="form-label text-white fw-bold") }}
-                                {{ form.system_prompt(class="form-control bg-dark text-white border-secondary", rows=5) }}
-                            </div>
-
-                            <div class="mb-3">
-                                {{ form.knowledge_base.label(class="form-label text-white fw-bold") }}
-                                {{ form.knowledge_base(class="form-control bg-dark text-white border-secondary", rows=10) }}
-                                <div class="form-text text-white-50">
-                                    {{ _('ضع هنا دليل المستخدم أو المعلومات التي يجب أن تعرفها المضيفة عن اللعبة.') }}
-                                </div>
-                            </div>
-                            
-                            <div class="mb-2 mt-3">
-                                {{ form.training_examples.label(class="form-label text-white fw-bold") }}
-                                {{ form.training_examples(class="form-control bg-dark text-white border-secondary", rows=6, id="training_examples_json", readonly=True) }}
-                                <div class="form-text text-white-50">
-                                    {{ _('يتم تحديث هذا الحقل تلقائياً عبر المنشئ أعلاه.') }}
-                                </div>
+                            <div class="text-white-50 small mt-2">
+                                {% if hostess.last_trained_at %}
+                                    {{ _('آخر تدريب') }}: {{ hostess.last_trained_at.strftime('%Y-%m-%d %H:%M') }}
+                                {% else %}
+                                    {{ _('لم يتم تدريب هذه المضيفة بعد.') }}
+                                {% endif %}
                             </div>
                         </div>
 
@@ -154,10 +111,9 @@
                             
                             <!-- Voice & Personality Builder -->
                             <div class="card bg-secondary mb-3 border-0">
-                                <div class="card-header d-flex justify-content-between align-items-center" data-bs-toggle="collapse" data-bs-target="#voiceBuilder" style="cursor: pointer;">
-                                    <span class="text-white fw-bold"><i class="fas fa-microphone-alt me-2"></i> {{ _('إعدادات الصوت والشخصية (Config)') }}</span>
+                                {% call dev_card_header(_('إعدادات الصوت والشخصية (Config)'), icon_class='fas fa-microphone-alt', title_class='text-white fw-bold m-0 h6', header_attrs='data-bs-toggle="collapse" data-bs-target="#voiceBuilder" style="cursor: pointer;"') %}
                                     <i class="fas fa-chevron-down text-white"></i>
-                                </div>
+                                {% endcall %}
                                 <div id="voiceBuilder" class="collapse card-body bg-dark border-top border-secondary">
                                     <div class="row g-3">
                                         <!-- Voice Settings -->
@@ -292,10 +248,9 @@
 
                             <!-- Video Prompt Builder UI -->
                             <div class="card bg-secondary mb-3 border-0">
-                                <div class="card-header d-flex justify-content-between align-items-center" data-bs-toggle="collapse" data-bs-target="#videoBuilder" style="cursor: pointer;">
-                                    <span class="text-white fw-bold"><i class="fas fa-film me-2"></i> {{ _('منشئ سيناريو الفيديو (Video Prompt Builder)') }}</span>
+                                {% call dev_card_header(_('منشئ سيناريو الفيديو (Video Prompt Builder)'), icon_class='fas fa-film', title_class='text-white fw-bold m-0 h6', header_attrs='data-bs-toggle="collapse" data-bs-target="#videoBuilder" style="cursor: pointer;"') %}
                                     <i class="fas fa-chevron-down text-white"></i>
-                                </div>
+                                {% endcall %}
                                 <div id="videoBuilder" class="collapse card-body bg-dark border-top border-secondary p-0">
                                     <ul class="nav nav-tabs nav-fill bg-secondary border-bottom-0" id="videoTabs" role="tablist">
                                         <li class="nav-item"><button class="nav-link active text-white rounded-0" data-bs-toggle="tab" data-bs-target="#v-general" type="button">{{ _('عام (General)') }}</button></li>
@@ -391,7 +346,8 @@
                             {{ form.image(class="form-control") }}
                             {% if form.image.data and form.image.data is string %}
                             <div class="mt-2">
-                                <img src="{{ url_for('static', filename='images/hostesses/' + form.image.data) }}" width="100" class="rounded">
+                                {% set form_image_path = form.image.data if ('/' in form.image.data) else 'hostesses/' + form.image.data %}
+                                <img src="{{ url_for('static', filename='images/' + form_image_path) }}" width="100" class="rounded" onerror="this.onerror=null; this.src='{{ url_for('static', filename='images/hostesses/default_hostess.jpg') }}';">
                             </div>
                             {% endif %}
                         </div>
@@ -416,9 +372,7 @@
                 
                 <!-- Style Presets -->
                 <div class="card shadow-sm border-0 mb-3 bg-dark text-white">
-                    <div class="card-header bg-gradient-purple text-white border-bottom border-secondary">
-                        <h5 class="mb-0"><i class="fas fa-magic me-2"></i> {{ _('أنماط جاهزة (Style Presets)') }}</h5>
-                    </div>
+                    {{ dev_card_header(_('أنماط جاهزة (Style Presets)'), icon_class='fas fa-magic', header_class='card-header bg-gradient-purple text-white border-bottom border-secondary', title_class='mb-0 text-white h5') }}
                     <div class="card-body">
                         <div class="d-grid gap-2">
                             <button type="button" class="btn btn-outline-light btn-sm text-start" onclick="applyStylePreset('casual')">
@@ -442,14 +396,13 @@
 
                 <!-- Preview Card -->
                 <div class="card shadow-lg border-0 overflow-hidden">
-                    <div class="card-header bg-primary text-white text-center py-2">
-                        <small class="fw-bold text-uppercase ls-1">{{ _('معاينة حية (Live Preview)') }}</small>
-                    </div>
+                    {{ dev_card_header(_('معاينة حية (Live Preview)'), header_class='card-header bg-primary text-white text-center py-2', title_class='fw-bold text-uppercase ls-1 mb-0 small text-white') }}
                     <div class="position-relative">
                         <!-- Image Placeholder -->
                         <div class="ratio ratio-1x1 bg-secondary d-flex align-items-center justify-content-center overflow-hidden">
                             {% if hostess.image %}
-                            <img src="{{ url_for('static', filename='images/hostesses/' + hostess.image) }}" id="preview_image" class="w-100 h-100 object-fit-cover" onerror="this.src='{{ url_for('static', filename='images/hostesses/default_hostess.jpg') }}'">
+                            {% set preview_image_path = hostess.image if hostess.image and ('/' in hostess.image) else 'hostesses/' + (hostess.image or 'default_hostess.jpg') %}
+                            <img src="{{ url_for('static', filename='images/' + preview_image_path) }}" id="preview_image" class="w-100 h-100 object-fit-cover" onerror="this.src='{{ url_for('static', filename='images/hostesses/default_hostess.jpg') }}'">
                             {% else %}
                             <div id="preview_placeholder" class="text-white text-center p-3">
                                 <i class="fas fa-user-circle fa-4x mb-2 opacity-50"></i>
@@ -519,120 +472,11 @@
             </div>
         </div>
 
-        <!-- Live Preview Column -->
-        <div class="col-lg-4">
-            <div class="sticky-top" style="top: 20px; z-index: 100;">
-                
-                <!-- Style Presets -->
-                <div class="card shadow-sm border-0 mb-3 bg-dark text-white">
-                    <div class="card-header bg-gradient-purple text-white border-bottom border-secondary">
-                        <h5 class="mb-0"><i class="fas fa-magic me-2"></i> {{ _('أنماط جاهزة (Style Presets)') }}</h5>
-                    </div>
-                    <div class="card-body">
-                        <div class="d-grid gap-2">
-                            <button type="button" class="btn btn-outline-light btn-sm text-start" onclick="applyStylePreset('casual')">
-                                <i class="fas fa-tshirt me-2 text-info"></i> {{ _('كاجوال شيك (Casual Chic)') }}
-                            </button>
-                            <button type="button" class="btn btn-outline-light btn-sm text-start" onclick="applyStylePreset('evening')">
-                                <i class="fas fa-glass-cheers me-2 text-warning"></i> {{ _('سهرة فاخرة (Elegant Evening)') }}
-                            </button>
-                            <button type="button" class="btn btn-outline-light btn-sm text-start" onclick="applyStylePreset('lingerie')">
-                                <i class="fas fa-heart me-2 text-danger"></i> {{ _('مثير / لانجري (Sexy Lingerie)') }}
-                            </button>
-                            <button type="button" class="btn btn-outline-light btn-sm text-start" onclick="applyStylePreset('street')">
-                                <i class="fas fa-motorcycle me-2 text-success"></i> {{ _('حرب شوارع (Street Fighter)') }}
-                            </button>
-                            <button type="button" class="btn btn-outline-light btn-sm text-start" onclick="applyStylePreset('cyberpunk')">
-                                <i class="fas fa-robot me-2 text-primary"></i> {{ _('سايبر بانك (Cyberpunk)') }}
-                            </button>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Preview Card -->
-                <div class="card shadow-lg border-0 overflow-hidden">
-                    <div class="card-header bg-primary text-white text-center py-2">
-                        <small class="fw-bold text-uppercase ls-1">{{ _('معاينة حية (Live Preview)') }}</small>
-                    </div>
-                    <div class="position-relative">
-                        <!-- Image Placeholder -->
-                        <div class="ratio ratio-1x1 bg-secondary d-flex align-items-center justify-content-center overflow-hidden">
-                            {% if hostess.image %}
-                            <img src="{{ url_for('static', filename='images/hostesses/' + hostess.image) }}" id="preview_image" class="w-100 h-100 object-fit-cover">
-                            {% else %}
-                            <div id="preview_placeholder" class="text-white text-center p-3">
-                                <i class="fas fa-user-circle fa-4x mb-2 opacity-50"></i>
-                                <p class="small mb-0">{{ _('No Image') }}</p>
-                            </div>
-                            <img id="preview_image" src="" class="w-100 h-100 object-fit-cover d-none">
-                            {% endif %}
-                            
-                            <!-- Video Badge -->
-                            <div id="preview_video_badge" class="position-absolute top-0 end-0 m-2 badge bg-danger rounded-pill shadow-sm {% if not hostess.video %}d-none{% endif %}">
-                                <i class="fas fa-video"></i> {{ _('Video') }}
-                            </div>
-                        </div>
-                        
-                        <!-- Overlay Gradient -->
-                        <div class="position-absolute bottom-0 start-0 w-100 p-3" style="background: linear-gradient(to top, rgba(0,0,0,0.9), transparent);">
-                            <h3 class="text-white fw-bold mb-0 text-shadow" id="preview_name">{{ hostess.name or _('Name') }}</h3>
-                            <div class="d-flex align-items-center mt-1">
-                                <span class="badge bg-warning text-dark me-2" id="preview_role">{{ hostess.role or _('Role') }}</span>
-                                <span class="text-white-50 small" id="preview_style">{{ hostess.clothing_style or _('Style') }}</span>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="card-body bg-white">
-                        <p class="card-text text-muted small fst-italic border-start border-3 border-primary ps-2 mb-3" id="preview_intro">
-                            "{{ hostess.intro_message or _('Intro message will appear here...') }}"
-                        </p>
-                        
-                        <div class="d-flex justify-content-between align-items-center mb-2">
-                            <span class="text-success fw-bold" id="preview_price">
-                                <i class="fas fa-coins me-1"></i> <span id="preview_price_val">{{ hostess.price or 0 }}</span>
-                            </span>
-                            <button class="btn btn-sm btn-dark rounded-pill px-3">
-                                <i class="fas fa-comments me-1"></i> {{ _('تحدث') }}
-                            </button>
-                        </div>
-                        
-                        <hr class="my-2 text-muted">
-                        
-                        <div class="row g-1 small">
-                            <div class="col-4">
-                                <div class="p-1 bg-light rounded text-center border">
-                                    <div class="text-muted xx-small">Flirt</div>
-                                    <div class="fw-bold text-danger" id="preview_flirt">5/10</div>
-                                </div>
-                            </div>
-                            <div class="col-4">
-                                <div class="p-1 bg-light rounded text-center border">
-                                    <div class="text-muted xx-small">Shy</div>
-                                    <div class="fw-bold text-primary" id="preview_shy">2/10</div>
-                                </div>
-                            </div>
-                            <div class="col-4">
-                                <div class="p-1 bg-light rounded text-center border">
-                                    <div class="text-muted xx-small">Dom</div>
-                                    <div class="fw-bold text-dark" id="preview_dom">5/10</div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- Helper Text -->
-                <div class="mt-3 text-center text-muted small">
-                    <i class="fas fa-info-circle me-1"></i> {{ _('هذه المعاينة تقريبية لما سيراه اللاعب.') }}
-                </div>
-            </div>
-        </div>
     </div>
 </div>
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    initTrainingBuilder();
     initVideoBuilder();
     initVoiceBuilder();
 });
@@ -698,105 +542,6 @@ function testVoice() {
     } else {
         alert("Testing external providers requires API integration.");
     }
-}
-
-// --- Training Builder ---
-let trainingData = [];
-
-function initTrainingBuilder() {
-    const el = document.getElementById('training_examples_json');
-    if (el && el.value) {
-        try {
-            trainingData = JSON.parse(el.value);
-            renderTrainingList();
-        } catch(e) { console.error("Error parsing training JSON", e); }
-    }
-}
-
-function addTrainingExample() {
-    const user = document.getElementById('trainUser').value.trim();
-    const assist = document.getElementById('trainAssist').value.trim();
-    
-    if (user && assist) {
-        trainingData.push({role: "user", content: user});
-        trainingData.push({role: "assistant", content: assist});
-        
-        document.getElementById('trainUser').value = '';
-        document.getElementById('trainAssist').value = '';
-        renderTrainingList();
-        updateTrainingJSON();
-    }
-}
-
-function removeTrainingExample(index) {
-    trainingData.splice(index, 1);
-    renderTrainingList();
-    updateTrainingJSON();
-}
-
-function renderTrainingList() {
-    const list = document.getElementById('trainingList');
-    list.innerHTML = '';
-    trainingData.forEach((item, index) => {
-        const bg = item.role === 'user' ? 'bg-primary' : 'bg-success';
-        const icon = item.role === 'user' ? 'fa-user' : 'fa-robot';
-        
-        const html = `
-            <div class="list-group-item bg-dark text-white border-secondary d-flex justify-content-between align-items-center p-2 mb-1 rounded">
-                <div class="d-flex align-items-center overflow-hidden">
-                    <span class="badge ${bg} me-2" style="min-width: 80px;"><i class="fas ${icon}"></i> ${item.role}</span>
-                    <span class="text-truncate">${item.content}</span>
-                </div>
-                <button type="button" class="btn btn-sm btn-outline-danger ms-2" onclick="removeTrainingExample(${index})">
-                    <i class="fas fa-times"></i>
-                </button>
-            </div>
-        `;
-        list.insertAdjacentHTML('beforeend', html);
-    });
-}
-
-function updateTrainingJSON() {
-    document.getElementById('training_examples_json').value = JSON.stringify(trainingData, null, 2);
-}
-
-function importTrainingData(input) {
-    const file = input.files[0];
-    if (!file) return;
-    
-    const reader = new FileReader();
-    reader.onload = function(e) {
-        try {
-            const json = JSON.parse(e.target.result);
-            if (Array.isArray(json)) {
-                // Merge or Replace? Let's just append for safety and notify
-                const countBefore = trainingData.length;
-                // Filter to ensure structure
-                const validItems = json.filter(item => item.role && item.content);
-                trainingData = trainingData.concat(validItems);
-                renderTrainingList();
-                updateTrainingJSON();
-                alert(`Added ${validItems.length} examples.`);
-            } else {
-                alert("Invalid JSON format. Expected an array of objects.");
-            }
-        } catch(err) {
-            console.error(err);
-            alert("Error parsing JSON file.");
-        }
-    };
-    reader.readAsText(file);
-    input.value = ''; // Reset
-}
-
-function exportTrainingData() {
-    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(trainingData, null, 2));
-    const downloadAnchorNode = document.createElement('a');
-    downloadAnchorNode.setAttribute("href", dataStr);
-    downloadAnchorNode.setAttribute("download", "training_examples.json");
-    document.body.appendChild(downloadAnchorNode); // required for firefox
-    downloadAnchorNode.click();
-    downloadAnchorNode.remove();
 }
 
 // --- Video Builder ---

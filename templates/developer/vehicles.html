@@ -1,15 +1,11 @@
 {% extends "base.html" %}
+{% from "developer/_macros.html" import dev_card_header, link_button %}
 
 {% block content %}
 <div class="luxury-card fade-in-up">
-    <div class="card-header">
-        <h3 class="card-title text-gradient-gold"><i class="fas fa-car mr-2"></i> {{ _('إدارة السيارات') }}</h3>
-        <div class="card-tools">
-            <a href="{{ url_for('main.dev_vehicle_edit', id=None) }}" class="btn btn-luxury-action btn-sm">
-                <i class="fas fa-plus"></i> {{ _('إضافة سيارة جديدة') }}
-            </a>
-        </div>
-    </div>
+    {% call dev_card_header(_('إدارة السيارات'), icon_class='fas fa-car', back_href=url_for('main.dev_dashboard')) %}
+        {{ link_button(url_for('main.dev_vehicle_edit', id=None), _('إضافة سيارة جديدة'), btn_class='btn btn-luxury-action btn-sm', icon_class='fas fa-plus') }}
+    {% endcall %}
     <div class="card-body p-0">
         <table class="table luxury-table luxury-table-striped projects">
             <thead>

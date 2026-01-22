@@ -1,14 +1,10 @@
 {% extends "base.html" %}
+{% from "developer/_macros.html" import dev_card_header, link_button, post_button %}
 
 {% block content %}
 <div class="container-fluid mt-4">
     <div class="card luxury-card">
-        <div class="card-header luxury-header d-flex justify-content-between align-items-center">
-            <h3 class="mb-0 text-gold"><i class="fas fa-users-slash mr-2"></i> {{ title }}</h3>
-            <a href="{{ url_for('main.dev_dashboard') }}" class="btn btn-outline-light btn-sm">
-                <i class="fas fa-arrow-right"></i> {{ _('عودة للوحة المطور') }}
-            </a>
-        </div>
+        {{ dev_card_header(title, icon_class='fas fa-users-slash', back_href=url_for('main.dev_dashboard'), back_text=_('عودة للوحة المطور'), back_btn_class='btn btn-outline-light btn-sm', back_icon_class='fas fa-arrow-right', header_class='card-header luxury-header', title_class='mb-0 text-gold') }}
         <div class="card-body bg-dark text-light">
             {% if users %}
             <div class="table-responsive">
@@ -37,18 +33,8 @@
                             </td>
                             <td class="text-center">
                                 <div class="btn-group" role="group">
-                                    <form action="{{ url_for('main.handle_verification', user_id=user.id, action='confirm') }}" method="POST" class="d-inline">
-                                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                                        <button type="submit" class="btn btn-sm btn-success mr-1" onclick="return confirm('{{ _('هل أنت متأكد من تفعيل هذا المستخدم؟') }}')">
-                                            <i class="fas fa-check"></i> {{ _('تفعيل') }}
-                                        </button>
-                                    </form>
-                                    <form action="{{ url_for('main.handle_verification', user_id=user.id, action='reject') }}" method="POST" class="d-inline">
-                                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                                        <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('{{ _('هل أنت متأكد من حذف هذا المستخدم؟ لا يمكن التراجع عن هذا الإجراء.') }}')">
-                                            <i class="fas fa-trash"></i> {{ _('حذف') }}
-                                        </button>
-                                    </form>
+                                    {{ post_button(url_for('main.handle_verification', user_id=user.id, action='confirm'), _('تفعيل'), btn_class='btn btn-sm btn-success mr-1', icon_class='fas fa-check', confirm_text=_('هل أنت متأكد من تفعيل هذا المستخدم؟')) }}
+                                    {{ post_button(url_for('main.handle_verification', user_id=user.id, action='reject'), _('حذف'), btn_class='btn btn-sm btn-danger', icon_class='fas fa-trash', confirm_text=_('هل أنت متأكد من حذف هذا المستخدم؟ لا يمكن التراجع عن هذا الإجراء.')) }}
                                 </div>
                             </td>
                         </tr>

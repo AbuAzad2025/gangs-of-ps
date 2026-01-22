@@ -311,3 +311,85 @@ body {
 .anim-delay-3 { animation-delay: 0.3s; }
 .anim-delay-4 { animation-delay: 0.4s; }
 .anim-delay-5 { animation-delay: 0.5s; }
+
+/* -------------------------------------------------------------------------- */
+/* Flask-Admin / AdminLTE Integration Polish                                  */
+/* -------------------------------------------------------------------------- */
+.content-header {
+  border-bottom: 1px solid var(--admin-gold-dim) !important;
+}
+
+.content-header h1 {
+  color: var(--admin-gold) !important;
+  font-weight: 700 !important;
+  text-shadow: 0 0 10px rgba(212, 175, 55, 0.18);
+}
+
+.content-header .btn,
+.content-header .btn-group .btn {
+  border-color: rgba(255, 255, 255, 0.12) !important;
+}
+
+.content-wrapper a {
+  color: rgba(212, 175, 55, 0.9);
+}
+
+.content-wrapper a:hover {
+  color: var(--admin-gold-hover);
+}
+
+.content-wrapper .dropdown-item {
+  color: rgba(255, 255, 255, 0.9) !important;
+}
+
+.content-wrapper .dropdown-item:hover,
+.content-wrapper .dropdown-item:focus {
+  background-color: rgba(212, 175, 55, 0.12) !important;
+  color: #fff !important;
+}
+
+.content-wrapper .nav-tabs {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.12) !important;
+}
+
+.content-wrapper .nav-tabs .nav-link {
+  color: rgba(255, 255, 255, 0.8) !important;
+  border-color: rgba(255, 255, 255, 0.12) !important;
+  background-color: rgba(0, 0, 0, 0.18) !important;
+}
+
+.content-wrapper .nav-tabs .nav-link:hover {
+  border-color: rgba(212, 175, 55, 0.35) !important;
+  color: #fff !important;
+}
+
+.content-wrapper .nav-tabs .nav-link.active,
+.content-wrapper .nav-tabs .nav-item.show .nav-link {
+  color: #fff !important;
+  background-color: rgba(212, 175, 55, 0.16) !important;
+  border-color: rgba(212, 175, 55, 0.45) !important;
+}
+
+.content-wrapper .navbar:not(.main-header) {
+  background-color: rgba(0, 0, 0, 0.22) !important;
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+}
+
+.content-wrapper .alert {
+  border-color: rgba(255, 255, 255, 0.12) !important;
+}
+
+.content-wrapper .alert-info {
+  background-color: rgba(23, 162, 184, 0.12) !important;
+  color: rgba(255, 255, 255, 0.92) !important;
+}
+
+.content-wrapper .alert-warning {
+  background-color: rgba(255, 193, 7, 0.12) !important;
+  color: rgba(255, 255, 255, 0.92) !important;
+}
+
+.content-wrapper .alert-danger {
+  background-color: rgba(220, 53, 69, 0.12) !important;
+  color: rgba(255, 255, 255, 0.92) !important;
+}

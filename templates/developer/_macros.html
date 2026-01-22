@@ -1,0 +1,51 @@
+{% macro csrf_input() -%}
+<input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+{%- endmacro %}
+
+{% macro link_button(href, text, btn_class='btn btn-sm btn-outline-light', icon_class=None, title=None, extra_class='') -%}
+<a href="{{ href }}" class="{{ btn_class }} {{ extra_class }}" {% if title %}title="{{ title }}"{% endif %}>
+    {% if icon_class %}<i class="{{ icon_class }}"></i>{% endif %} {{ text }}
+</a>
+{%- endmacro %}
+
+{% macro post_button(action, text, btn_class='btn btn-sm btn-outline-danger', icon_class=None, confirm_text=None, title=None, extra_class='') -%}
+<form method="POST" action="{{ action }}" class="d-inline {{ extra_class }}" {% if confirm_text %}onsubmit="return confirm('{{ confirm_text }}');"{% endif %}>
+    {{ csrf_input() }}
+    <button type="submit" class="{{ btn_class }}" {% if title %}title="{{ title }}"{% endif %}>
+        {% if icon_class %}<i class="{{ icon_class }}"></i>{% endif %} {{ text }}
+    </button>
+</form>
+{%- endmacro %}
+
+{% macro post_icon_button(action, btn_class='btn btn-sm btn-outline-danger', icon_class=None, confirm_text=None, title=None, extra_class='') -%}
+<form method="POST" action="{{ action }}" class="d-inline {{ extra_class }}" {% if confirm_text %}onsubmit="return confirm('{{ confirm_text }}');"{% endif %}>
+    {{ csrf_input() }}
+    <button type="submit" class="{{ btn_class }}" {% if title %}title="{{ title }}"{% endif %}>
+        {% if icon_class %}<i class="{{ icon_class }}"></i>{% endif %}
+    </button>
+</form>
+{%- endmacro %}
+
+{% macro submit_button(text, btn_class='btn btn-sm btn-primary', icon_class=None, confirm_text=None, title=None) -%}
+<button type="submit" class="{{ btn_class }}" {% if title %}title="{{ title }}"{% endif %} {% if confirm_text %}onclick="return confirm('{{ confirm_text }}')"{% endif %}>
+    {% if icon_class %}<i class="{{ icon_class }}"></i>{% endif %} {{ text }}
+</button>
+{%- endmacro %}
+
+{% macro submit_action_button(action_name, action_value, text, btn_class='btn btn-sm btn-primary', icon_class=None, confirm_text=None, title=None) -%}
+<button type="submit" name="{{ action_name }}" value="{{ action_value }}" class="{{ btn_class }}" {% if title %}title="{{ title }}"{% endif %} {% if confirm_text %}onclick="return confirm('{{ confirm_text }}')"{% endif %}>
+    {% if icon_class %}<i class="{{ icon_class }}"></i>{% endif %} {{ text }}
+</button>
+{%- endmacro %}
+
+{% macro dev_card_header(title, icon_class=None, back_href=None, back_text=None, back_btn_class='btn btn-outline-secondary btn-sm ml-2', back_icon_class='fas fa-arrow-right', header_class='card-header', title_class='card-title text-gradient-gold m-0', header_attrs=None) -%}
+<div class="{{ header_class }}"{% if header_attrs %} {{ header_attrs|safe }}{% endif %}>
+    <div class="d-flex justify-content-between align-items-center w-100">
+        <h3 class="{{ title_class }}">{% if icon_class %}<i class="{{ icon_class }} mr-2"></i>{% endif %} {{ title }}</h3>
+        <div class="card-tools">
+            {% if caller is defined %}{{ caller() }}{% endif %}
+            {% if back_href %}{{ link_button(back_href, back_text or _('عودة'), btn_class=back_btn_class, icon_class=back_icon_class) }}{% endif %}
+        </div>
+    </div>
+</div>
+{%- endmacro %}

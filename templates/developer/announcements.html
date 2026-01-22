@@ -1,15 +1,11 @@
 {% extends "base.html" %}
+{% from "developer/_macros.html" import dev_card_header, link_button, post_button %}
 
 {% block content %}
 <div class="luxury-card fade-in-up">
-    <div class="card-header">
-        <h3 class="card-title text-gradient-gold"><i class="fas fa-bullhorn mr-2"></i> {{ _('إدارة الإعلانات') }}</h3>
-        <div class="card-tools">
-            <a href="{{ url_for('main.dev_announcement_edit') }}" class="btn btn-luxury-action btn-sm">
-                <i class="fas fa-plus"></i> {{ _('إضافة إعلان') }}
-            </a>
-        </div>
-    </div>
+    {% call dev_card_header(_('إدارة الإعلانات'), icon_class='fas fa-bullhorn', back_href=url_for('main.dev_dashboard')) %}
+        {{ link_button(url_for('main.dev_announcement_edit'), _('إضافة إعلان'), btn_class='btn btn-luxury-action btn-sm', icon_class='fas fa-plus') }}
+    {% endcall %}
     <div class="card-body p-0">
         <table class="table luxury-table luxury-table-striped projects">
             <thead>
@@ -38,12 +34,7 @@
                         <a class="btn btn-luxury-action btn-sm" href="{{ url_for('main.dev_announcement_edit', id=announcement.id) }}">
                             <i class="fas fa-pencil-alt"></i> {{ _('تعديل') }}
                         </a>
-                        <form action="{{ url_for('main.dev_announcement_delete', id=announcement.id) }}" method="POST" style="display:inline;">
-                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                            <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('{{ _('هل أنت متأكد؟') }}')">
-                                <i class="fas fa-trash"></i> {{ _('حذف') }}
-                            </button>
-                        </form>
+                        {{ post_button(url_for('main.dev_announcement_delete', id=announcement.id), _('حذف'), btn_class='btn btn-danger btn-sm', icon_class='fas fa-trash', confirm_text=_('هل أنت متأكد؟'), extra_class='ml-1') }}
                     </td>
                 </tr>
                 {% endfor %}

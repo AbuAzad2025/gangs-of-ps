@@ -104,6 +104,29 @@ class Hostess(db.Model):
             'is_hired': self.current_player_id is not None
         }
 
+    @property
+    def image_path(self):
+        img = (self.image or '').strip()
+        name = (self.name or '').strip()
+        name_l = name.lower()
+
+        if img and ('/' in img) and (not img.endswith('default_hostess.jpg')):
+            return img
+
+        filename = img.split('/')[-1] if img else 'default_hostess.jpg'
+
+        if filename == 'default_hostess.jpg':
+            if ('ياسمين' in name) or ('jasmin' in name_l):
+                filename = 'jasmin.jpg'
+            elif ('سارة' in name) or ('sarah' in name_l) or ('sara' in name_l):
+                filename = 'sarah.jpg'
+            elif ('ليلى' in name) or ('layla' in name_l):
+                filename = 'layla.jpg'
+            elif ('روبي' in name) or ('ruby' in name_l):
+                filename = 'ruby.webp'
+
+        return f'hostesses/{filename}'
+
 
 class VideoScenario(db.Model):
     __tablename__ = 'video_scenarios'

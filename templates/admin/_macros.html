@@ -1,0 +1,16 @@
+{% macro dev_dashboard_link(location='header') -%}
+{% if current_user.is_authenticated and current_user.is_admin %}
+    {% if location == 'header' %}
+        <li class="nav-item d-none d-sm-inline-block">
+            <a href="{{ url_for('main.dev_dashboard') }}" class="nav-link text-warning">{{ _('لوحة المطور') }}</a>
+        </li>
+    {% elif location == 'sidebar' %}
+        <li class="nav-item">
+            <a href="{{ url_for('main.dev_dashboard') }}" class="nav-link">
+                <i class="nav-icon fas fa-tools text-warning"></i>
+                <p>{{ _('لوحة المطور') }}</p>
+            </a>
+        </li>
+    {% endif %}
+{% endif %}
+{%- endmacro %}

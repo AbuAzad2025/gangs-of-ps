@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% from "developer/_macros.html" import link_button, post_icon_button %}
 
 {% block content %}
 <div class="container-fluid">
@@ -10,9 +11,7 @@
             <a href="{{ url_for('main.add_forum_category') }}" class="btn btn-success">
                 <i class="fas fa-plus"></i> {{ _('إضافة قسم جديد') }}
             </a>
-            <a href="{{ url_for('main.dev_dashboard') }}" class="btn btn-secondary">
-                <i class="fas fa-arrow-right"></i> {{ _('عودة') }}
-            </a>
+            {{ link_button(url_for('main.dev_dashboard'), _('عودة'), btn_class='btn btn-secondary', icon_class='fas fa-arrow-right') }}
         </div>
     </div>
 
@@ -42,11 +41,7 @@
                                 <a href="{{ url_for('main.edit_forum_category', id=category.id) }}" class="btn btn-sm btn-primary">
                                     <i class="fas fa-edit"></i>
                                 </a>
-                                <form action="{{ url_for('main.delete_forum_category', id=category.id) }}" method="post" class="d-inline" onsubmit="return confirm('{{ _('هل أنت متأكد من حذف هذا القسم؟') }}');">
-                                    <button type="submit" class="btn btn-sm btn-danger">
-                                        <i class="fas fa-trash"></i>
-                                    </button>
-                                </form>
+                                {{ post_icon_button(url_for('main.delete_forum_category', id=category.id), btn_class='btn btn-sm btn-danger', icon_class='fas fa-trash', confirm_text=_('هل أنت متأكد من حذف هذا القسم؟')) }}
                             </td>
                         </tr>
                         {% else %}

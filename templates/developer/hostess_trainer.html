@@ -1,46 +1,40 @@
 {% extends "base.html" %}
+{% from "developer/_macros.html" import dev_card_header, csrf_input, submit_button, submit_action_button, link_button %}
 
 {% block content %}
 <div class="container-fluid mt-4">
-  <div class="d-flex justify-content-between align-items-center mb-3">
-    <div>
-      <h2 class="mb-1">{{ _('تدريب المضيفة') }}: {{ hostess.name }}</h2>
+  <div class="luxury-card fade-in-up mb-3">
+    {% call dev_card_header(_('تدريب المضيفة') ~ ': ' ~ hostess.name, icon_class='fas fa-dumbbell', back_href=url_for('main.dev_hostesses')) %}
+      {{ link_button(url_for('main.dev_hostess_edit', id=hostess.id), _('تعديل كامل'), btn_class='btn btn-info') }}
+    {% endcall %}
+    <div class="card-body bg-dark">
       <div class="text-muted small">
         {{ _('الدور') }}: {{ hostess.role }} • {{ _('الأسلوب') }}: {{ hostess.dialogue_style }}
         {% if hostess.last_trained_at %} • {{ _('آخر تدريب') }}: {{ hostess.last_trained_at.strftime('%Y-%m-%d %H:%M') }}{% endif %}
       </div>
-    </div>
-    <div class="d-flex" style="gap:10px;">
-      <a href="{{ url_for('main.dev_hostesses') }}" class="btn btn-secondary">{{ _('رجوع') }}</a>
-      <a href="{{ url_for('main.dev_hostess_edit', id=hostess.id) }}" class="btn btn-info">{{ _('تعديل كامل') }}</a>
     </div>
   </div>
 
   <div class="row">
     <div class="col-lg-7 mb-3">
       <div class="card bg-dark text-light border-gold">
-        <div class="card-header d-flex justify-content-between align-items-center">
-          <div class="fw-bold">{{ _('لوحة التدريب') }}</div>
+        {% call dev_card_header(_('لوحة التدريب'), header_class='card-header d-flex justify-content-between align-items-center', title_class='fw-bold') %}
           <form method="post" class="m-0">
-            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            {{ csrf_input() }}
             <input type="hidden" name="action" value="train">
             <div class="d-flex align-items-center" style="gap:12px;">
-              <div class="form-check form-switch m-0">
-                <input class="form-check-input" type="checkbox" id="sl1" name="self_learning_enabled" {{ 'checked' if hostess.self_learning_enabled else '' }}>
-                <label class="form-check-label" for="sl1">{{ _('تعلم ذاتي') }}</label>
-              </div>
-              <div class="form-check form-switch m-0">
-                <input class="form-check-input" type="checkbox" id="mem1" name="memory_enabled" {{ 'checked' if hostess.memory_enabled else '' }}>
-                <label class="form-check-label" for="mem1">{{ _('ذاكرة') }}</label>
-              </div>
-              <button class="btn btn-warning"><i class="fas fa-dumbbell"></i> {{ _('تدريب الآن') }}</button>
+              {{ submit_button(_('إعادة توليد حزمة التدريب'), btn_class='btn btn-warning', icon_class='fas fa-dumbbell') }}
             </div>
           </form>
-        </div>
+        {% endcall %}
         <div class="card-body">
           <form method="post">
-            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            {{ csrf_input() }}
             <input type="hidden" name="action" value="save">
+
+            <div class="text-muted small mb-3">
+              {{ _('الحفظ يحدّث النصوص والإعدادات. إعادة التوليد تستخرج حزمة افتراضية حسب الدور/الملفات.') }}
+            </div>
 
             <div class="row">
               <div class="col-md-6 mb-3">
@@ -73,7 +67,7 @@
             </div>
 
             <div class="d-flex justify-content-end" style="gap:10px;">
-              <button class="btn btn-success"><i class="fas fa-save"></i> {{ _('حفظ') }}</button>
+              {{ submit_button(_('حفظ'), btn_class='btn btn-success', icon_class='fas fa-save') }}
             </div>
           </form>
         </div>
@@ -82,14 +76,13 @@
 
     <div class="col-lg-5 mb-3">
       <div class="card bg-dark text-light border-gold mb-3">
-        <div class="card-header d-flex justify-content-between align-items-center">
-          <div class="fw-bold">{{ _('الذاكرة') }}</div>
-          <form method="post" class="m-0" onsubmit="return confirm('{{ _('مسح الذاكرة بالكامل؟') }}')">
-            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        {% call dev_card_header(_('الذاكرة'), header_class='card-header d-flex justify-content-between align-items-center', title_class='fw-bold') %}
+          <form method="post" class="m-0">
+            {{ csrf_input() }}
             <input type="hidden" name="action" value="clear_memory">
-            <button class="btn btn-sm btn-danger"><i class="fas fa-trash"></i> {{ _('مسح') }}</button>
+            {{ submit_button(_('مسح'), btn_class='btn btn-sm btn-danger', icon_class='fas fa-trash', confirm_text=_('مسح الذاكرة بالكامل؟')) }}
           </form>
-        </div>
+        {% endcall %}
         <div class="card-body" style="max-height: 340px; overflow:auto;">
           {% if memories %}
             {% for m in memories %}
@@ -97,10 +90,10 @@
                 <div class="d-flex justify-content-between align-items-center">
                   <div class="text-gold small">{{ m.key }} <span class="text-muted">#{{ m.user_id }}</span></div>
                   <form method="post" class="m-0">
-                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    {{ csrf_input() }}
                     <input type="hidden" name="action" value="delete_memory">
                     <input type="hidden" name="memory_id" value="{{ m.id }}">
-                    <button class="btn btn-sm btn-outline-danger"><i class="fas fa-times"></i></button>
+                    {{ submit_button('', btn_class='btn btn-sm btn-outline-danger', icon_class='fas fa-times', title=_('حذف')) }}
                   </form>
                 </div>
                 <div class="text-light small mt-1">{{ m.value }}</div>
@@ -114,14 +107,13 @@
       </div>
 
       <div class="card bg-dark text-light border-gold mb-3">
-        <div class="card-header d-flex justify-content-between align-items-center">
-          <div class="fw-bold">{{ _('تعلم ذاتي من المحادثات') }}</div>
-          <a href="{{ url_for('main.dev_knowledge') }}" class="btn btn-sm btn-outline-light">{{ _('قاعدة المعرفة') }}</a>
-        </div>
+        {% call dev_card_header(_('تعلم ذاتي من المحادثات'), header_class='card-header d-flex justify-content-between align-items-center', title_class='fw-bold') %}
+          {{ link_button(url_for('main.dev_knowledge'), _('قاعدة المعرفة'), btn_class='btn btn-sm btn-outline-light') }}
+        {% endcall %}
         <div class="card-body">
           {% if pairs %}
           <form method="post" class="m-0">
-            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            {{ csrf_input() }}
             <div class="text-muted small mb-2">{{ _('اختر محادثات لتحويلها إلى أمثلة تدريب أو عناصر معرفة. يتم تنظيف التكرار والردود القصيرة والأسئلة العامة تلقائياً.') }}</div>
             <div style="max-height: 260px; overflow:auto;">
               {% for p in pairs %}
@@ -137,12 +129,8 @@
               {% endfor %}
             </div>
             <div class="d-flex" style="gap:10px;">
-              <button class="btn btn-sm btn-warning flex-fill" name="action" value="learn_examples" onclick="return confirm('{{ _('إضافة المحادثات المختارة إلى أمثلة التدريب؟') }}')">
-                <i class="fas fa-plus-circle"></i> {{ _('إضافة لأمثلة التدريب') }}
-              </button>
-              <button class="btn btn-sm btn-outline-info flex-fill" name="action" value="learn_knowledge" onclick="return confirm('{{ _('إضافة المحادثات المختارة إلى قاعدة المعرفة؟') }}')">
-                <i class="fas fa-book"></i> {{ _('إضافة لقاعدة المعرفة') }}
-              </button>
+              {{ submit_action_button('action', 'learn_examples', _('إضافة لأمثلة التدريب'), btn_class='btn btn-sm btn-warning flex-fill', icon_class='fas fa-plus-circle', confirm_text=_('إضافة المحادثات المختارة إلى أمثلة التدريب؟')) }}
+              {{ submit_action_button('action', 'learn_knowledge', _('إضافة لقاعدة المعرفة'), btn_class='btn btn-sm btn-outline-info flex-fill', icon_class='fas fa-book', confirm_text=_('إضافة المحادثات المختارة إلى قاعدة المعرفة؟')) }}
             </div>
           </form>
           {% else %}
@@ -152,7 +140,7 @@
       </div>
 
       <div class="card bg-dark text-light border-gold">
-        <div class="card-header fw-bold">{{ _('آخر المحادثات') }}</div>
+        {{ dev_card_header(_('آخر المحادثات'), header_class='card-header', title_class='fw-bold') }}
         <div class="card-body" style="max-height: 340px; overflow:auto;">
           {% if chats %}
             {% for c in chats %}

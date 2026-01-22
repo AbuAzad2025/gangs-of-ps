@@ -363,6 +363,191 @@ def dev_users():
         title=_('إدارة اللاعبين'))
 
 
+@bp.route('/developer/user/delete/<int:id>', methods=['POST'])
+@developer_required
+@double_verification_required
+def dev_user_delete(id):
+    user = db.session.get(User, id)
+    if not user:
+        abort(404)
+
+    if int(user.id) == int(current_user.id):
+        flash(_('لا يمكنك حذف حسابك من لوحة المطور.'), 'danger')
+        return redirect(url_for('main.dev_users'))
+
+    if user.gang and user.gang.leader_id == user.id:
+        flash(
+            _(
+                'لا يمكن حذف المستخدم %(username)s لأنه قائد عصابة %(gang_name)s. '
+                'يرجى نقل القيادة أو حذف العصابة أولاً.',
+                username=user.username,
+                gang_name=user.gang.name,
+            ),
+            'danger',
+        )
+        return redirect(url_for('main.dev_users'))
+
+    try:
+        from models import (
+            UserItem, UserVehicle, UserDailyTask, UserCrimeCooldown,
+            Message, Notification, Bounty, CombatLog, UserInvestment,
+            UserProgress, ResurrectionRequest, PaymentTransaction,
+            GangInvite, LobbyParticipant, CrimeLobby, ForumTopic,
+            ForumPost, Referral, RaceParticipant
+        )
+
+        UserItem.query.filter_by(user_id=user.id).delete()
+        uv_ids = [
+            row[0]
+            for row in db.session.query(UserVehicle.id)
+            .filter_by(user_id=user.id)
+            .all()
+        ]
+        if uv_ids:
+            RaceParticipant.query.filter(
+                RaceParticipant.user_vehicle_id.in_(uv_ids)
+            ).delete(synchronize_session=False)
+        RaceParticipant.query.filter_by(user_id=user.id).delete(
+            synchronize_session=False
+        )
+        UserVehicle.query.filter_by(user_id=user.id).delete()
+        UserDailyTask.query.filter_by(user_id=user.id).delete()
+        UserCrimeCooldown.query.filter_by(user_id=user.id).delete()
+        UserInvestment.query.filter_by(user_id=user.id).delete()
+        UserProgress.query.filter_by(user_id=user.id).delete()
+        ResurrectionRequest.query.filter_by(user_id=user.id).delete()
+        PaymentTransaction.query.filter_by(user_id=user.id).delete()
+        GangInvite.query.filter_by(user_id=user.id).delete()
+
+        ForumPost.query.filter_by(user_id=user.id).delete()
+        ForumTopic.query.filter_by(user_id=user.id).delete()
+
+        Referral.query.filter(
+            (Referral.referrer_id == user.id) | (
+                Referral.referred_id == user.id)).delete()
+
+        Message.query.filter(
+            (Message.sender_id == user.id) | (
+                Message.receiver_id == user.id)).delete()
+        Notification.query.filter_by(user_id=user.id).delete()
+
+        Bounty.query.filter(
+            (Bounty.placer_id == user.id) | (
+                Bounty.target_id == user.id)).delete()
+        CombatLog.query.filter(
+            (CombatLog.attacker_id == user.id) | (
+                CombatLog.defender_id == user.id)).delete()
+
+        lobbies_led = CrimeLobby.query.filter_by(leader_id=user.id).all()
+        for lobby in lobbies_led:
+            LobbyParticipant.query.filter_by(lobby_id=lobby.id).delete()
+
+        LobbyParticipant.query.filter_by(user_id=user.id).delete()
+        CrimeLobby.query.filter_by(leader_id=user.id).delete()
+
+        db.session.flush()
+        db.session.delete(user)
+        db.session.commit()
+        flash(_('تم حذف اللاعب نهائياً.'), 'success')
+    except Exception as e:
+        db.session.rollback()
+        flash(_('فشل حذف اللاعب. %(error)s', error=str(e)), 'danger')
+
+    return redirect(url_for('main.dev_users'))
+
+
+@bp.route('/developer/user/disable/<int:id>', methods=['POST'])
+@developer_required
+@double_verification_required
+def dev_user_disable(id):
+    user = db.session.get(User, id)
+    if not user:
+        abort(404)
+
+    if int(user.id) == int(current_user.id):
+        flash(_('لا يمكنك تعطيل حسابك من لوحة المطور.'), 'danger')
+        return redirect(url_for('main.dev_users'))
+
+    now_naive = datetime.now(timezone.utc).replace(tzinfo=None)
+    user.banned_until = now_naive + timedelta(days=3650)
+    user.ban_reason = _('تم تعطيل الحساب من قبل المطور.')
+    db.session.commit()
+    flash(_('تم تعطيل اللاعب.'), 'success')
+    return redirect(url_for('main.dev_users'))
+
+
+@bp.route('/developer/user/enable/<int:id>', methods=['POST'])
+@developer_required
+@double_verification_required
+def dev_user_enable(id):
+    user = db.session.get(User, id)
+    if not user:
+        abort(404)
+
+    user.banned_until = None
+    user.ban_reason = None
+    db.session.commit()
+    flash(_('تم تفعيل اللاعب.'), 'success')
+    return redirect(url_for('main.dev_users'))
+
+
+@bp.route('/developer/user/kill/<int:id>', methods=['POST'])
+@developer_required
+@double_verification_required
+def dev_user_kill(id):
+    user = db.session.get(User, id)
+    if not user:
+        abort(404)
+
+    if int(user.id) == int(current_user.id):
+        flash(_('لا يمكنك قتل نفسك من لوحة المطور.'), 'danger')
+        return redirect(url_for('main.dev_users'))
+
+    if user.health <= 0:
+        flash(_('اللاعب ميت بالفعل.'), 'warning')
+        return redirect(url_for('main.dev_users'))
+
+    now_naive = datetime.now(timezone.utc).replace(tzinfo=None)
+    user.health = 0
+    user.hospital_until = now_naive + timedelta(minutes=10)
+    db.session.commit()
+    flash(_('تم قتل اللاعب ونقله للمقبرة.'), 'success')
+    return redirect(url_for('main.dev_users'))
+
+
+@bp.route('/developer/user/resurrect/<int:id>', methods=['POST'])
+@developer_required
+@double_verification_required
+def dev_user_resurrect(id):
+    user = db.session.get(User, id)
+    if not user:
+        abort(404)
+
+    if user.health > 0:
+        flash(_('اللاعب ليس ميتاً.'), 'warning')
+        return redirect(url_for('main.dev_users'))
+
+    now = datetime.now(timezone.utc)
+    user.health = user.max_health
+    user.energy = user.max_energy
+    user.hospital_until = None
+    try:
+        user.is_dead = False
+        user.death_time = None
+    except Exception:
+        pass
+    try:
+        from models.user import clear_elite_title_reservation_on_resurrect
+        clear_elite_title_reservation_on_resurrect(user.id, now=now)
+        db.session.flush()
+    except Exception:
+        pass
+
+    db.session.commit()
+    flash(_('تم إحياء اللاعب.'), 'success')
+    return redirect(url_for('main.dev_users'))
+
+
 @bp.route('/developer/resources/distribute', methods=['GET', 'POST'])
 @developer_required
 @double_verification_required
@@ -1155,7 +1340,17 @@ def dev_hostess_edit(id=None):
         form.video_choice.choices = [('', _('بدون فيديو'))]
 
     if form.validate_on_submit():
+        prev_system_prompt = hostess.system_prompt if id else None
+        prev_knowledge_base = hostess.knowledge_base if id else None
+        prev_training_examples = hostess.training_examples if id else None
         form.populate_obj(hostess)
+        if id:
+            if 'system_prompt' not in request.form:
+                hostess.system_prompt = prev_system_prompt
+            if 'knowledge_base' not in request.form:
+                hostess.knowledge_base = prev_knowledge_base
+            if 'training_examples' not in request.form:
+                hostess.training_examples = prev_training_examples
 
         # Handle Image
         if form.image.data:
@@ -1208,6 +1403,47 @@ def dev_hostess_delete(id):
     return redirect(url_for('main.dev_hostesses'))
 
 
+_HOSTESS_PROFILE_FOLDER_CACHE = {}
+_HOSTESS_PROFILE_FOLDER_CACHE_BUILT = False
+
+
+def _resolve_hostess_folder_by_profile(hostess_name: str):
+    global _HOSTESS_PROFILE_FOLDER_CACHE_BUILT
+    if not _HOSTESS_PROFILE_FOLDER_CACHE_BUILT:
+        _HOSTESS_PROFILE_FOLDER_CACHE = {}
+        try:
+            root = os.path.join(
+                current_app.root_path,
+                'data',
+                'training',
+                'hostesses')
+            for entry in os.listdir(root):
+                if entry.startswith('role_') or entry.startswith('id_'):
+                    continue
+                folder = os.path.join(root, entry)
+                if not os.path.isdir(folder):
+                    continue
+                profile_path = os.path.join(folder, 'profile.json')
+                if not os.path.exists(profile_path):
+                    continue
+                try:
+                    with open(profile_path, 'r', encoding='utf-8') as f:
+                        data = json.load(f)
+                    nm = (data.get('name') or '').strip()
+                    if nm:
+                        _HOSTESS_PROFILE_FOLDER_CACHE[nm] = entry
+                except Exception:
+                    continue
+        except Exception:
+            _HOSTESS_PROFILE_FOLDER_CACHE = {}
+        _HOSTESS_PROFILE_FOLDER_CACHE_BUILT = True
+
+    name_key = (hostess_name or '').strip()
+    if not name_key:
+        return None
+    return _HOSTESS_PROFILE_FOLDER_CACHE.get(name_key)
+
+
 def _build_hostess_role_pack(hostess: Hostess):
     role = (hostess.role or 'companion').lower()
     name = hostess.name or 'مضيفة'
@@ -1220,28 +1456,42 @@ def _build_hostess_role_pack(hostess: Hostess):
         'روبي': 'ruby'
     }
     folder_name = name_map.get(hostess.name, None)
+    profile_folder = _resolve_hostess_folder_by_profile(hostess.name)
+    folder_candidates = []
+    try:
+        if getattr(hostess, 'id', None):
+            folder_candidates.append(f"id_{int(hostess.id)}")
+    except Exception:
+        folder_candidates = []
+    if profile_folder:
+        folder_candidates.append(profile_folder)
+    if folder_name:
+        folder_candidates.append(folder_name)
+    folder_candidates.append(f"role_{role}")
 
     prompt = ""
     examples = []
 
     # 1. Try to load system_prompt.txt from file
     system_prompt_loaded = False
-    if folder_name:
+    for cand in folder_candidates:
         prompt_path = os.path.join(
             current_app.root_path,
             'data',
             'training',
             'hostesses',
-            folder_name,
+            cand,
             'system_prompt.txt')
-        if os.path.exists(prompt_path):
-            try:
-                with open(prompt_path, 'r', encoding='utf-8') as f:
-                    prompt = f.read()
-                    system_prompt_loaded = True
-            except Exception as e:
-                current_app.logger.error(
-                    f"Error loading system_prompt for {hostess.name}: {e}")
+        if not os.path.exists(prompt_path):
+            continue
+        try:
+            with open(prompt_path, 'r', encoding='utf-8') as f:
+                prompt = f.read()
+                system_prompt_loaded = True
+                break
+        except Exception as e:
+            current_app.logger.error(
+                f"Error loading system_prompt for {hostess.name}: {e}")
 
     # 2. If not loaded, generate default based on role
     if not system_prompt_loaded:
@@ -1333,44 +1583,48 @@ def _build_hostess_role_pack(hostess: Hostess):
                 ]
 
     # 2.5 Load training examples from file if present
-    if folder_name:
+    for cand in folder_candidates:
         ex_path = os.path.join(
             current_app.root_path,
             'data',
             'training',
             'hostesses',
-            folder_name,
+            cand,
             'training_examples.json')
-        if os.path.exists(ex_path):
-            try:
-                with open(ex_path, 'r', encoding='utf-8') as f:
-                    ex_data = json.load(f)
-                if isinstance(ex_data, list):
-                    examples = ex_data
-            except Exception as e:
-                current_app.logger.error(
-                    f"Error loading training_examples for {hostess.name}: {e}")
+        if not os.path.exists(ex_path):
+            continue
+        try:
+            with open(ex_path, 'r', encoding='utf-8') as f:
+                ex_data = json.load(f)
+            if isinstance(ex_data, list):
+                examples = ex_data
+                break
+        except Exception as e:
+            current_app.logger.error(
+                f"Error loading training_examples for {hostess.name}: {e}")
 
     # 3. Inject Knowledge Base from File (Always check, even if prompt loaded
     # from file)
-    if folder_name:
+    for cand in folder_candidates:
         kb_path = os.path.join(
             current_app.root_path,
             'data',
             'training',
             'hostesses',
-            folder_name,
+            cand,
             'knowledge_base.json')
-        if os.path.exists(kb_path):
-            try:
-                with open(kb_path, 'r', encoding='utf-8') as f:
-                    kb_data = json.load(f)
-                    prompt += "\n\n# قاعدة المعرفة (Knowledge Base):\n"
-                    prompt += "استخدمي المعلومات التالية للإجابة على أسئلة اللاعب بدقة:\n"
-                    prompt += json.dumps(kb_data, ensure_ascii=False, indent=2)
-            except Exception as e:
-                current_app.logger.error(
-                    f"Error loading knowledge base for {hostess.name}: {e}")
+        if not os.path.exists(kb_path):
+            continue
+        try:
+            with open(kb_path, 'r', encoding='utf-8') as f:
+                kb_data = json.load(f)
+                prompt += "\n\n# قاعدة المعرفة (Knowledge Base):\n"
+                prompt += "استخدمي المعلومات التالية للإجابة على أسئلة اللاعب بدقة:\n"
+                prompt += json.dumps(kb_data, ensure_ascii=False, indent=2)
+                break
+        except Exception as e:
+            current_app.logger.error(
+                f"Error loading knowledge base for {hostess.name}: {e}")
 
     return prompt, examples
 
@@ -1733,8 +1987,6 @@ def dev_hostess_trainer_post(id):
         hostess.training_examples = json.dumps(examples, ensure_ascii=False)
         hostess.last_trained_at = datetime.now(
             timezone.utc).replace(tzinfo=None)
-        hostess.self_learning_enabled = 'self_learning_enabled' in request.form
-        hostess.memory_enabled = 'memory_enabled' in request.form
         db.session.commit()
         flash(_('تم تدريب المضيفة وحفظ الحزمة بنجاح'), 'success')
         return redirect(url_for('main.dev_hostess_trainer', id=id))

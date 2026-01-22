@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% from "developer/_macros.html" import csrf_input, post_icon_button %}
 
 {% block content %}
 <div class="container mt-4">
@@ -38,18 +39,13 @@
                                     <div class="dropdown-menu dropdown-menu-dark">
                                         {% for h in hostesses %}
                                         <form action="{{ url_for('main.dev_scenario_apply', scenario_id=scenario.id, hostess_id=h.id) }}" method="post">
-                                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                            {{ csrf_input() }}
                                             <button type="submit" class="dropdown-item">{{ h.name }}</button>
                                         </form>
                                         {% endfor %}
                                     </div>
                                 </div>
-                                <form action="{{ url_for('main.dev_scenario_delete', id=scenario.id) }}" method="post" style="display:inline;" onsubmit="return confirm('{{ _('هل أنت متأكد؟') }}')">
-                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                                    <button type="submit" class="btn btn-sm btn-danger">
-                                        <i class="fas fa-trash"></i>
-                                    </button>
-                                </form>
+                                {{ post_icon_button(url_for('main.dev_scenario_delete', id=scenario.id), btn_class='btn btn-sm btn-danger', icon_class='fas fa-trash', confirm_text=_('هل أنت متأكد؟')) }}
                             </td>
                         </tr>
                         {% else %}

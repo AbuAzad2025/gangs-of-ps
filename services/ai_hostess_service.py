@@ -11,11 +11,226 @@ from models.hostess import HostessChatMessage, HostessMemory
 from extensions import db
 from sqlalchemy import or_
 import re
+from flask import has_request_context, session
 
 
 class AIHostessService:
     def __init__(self):
         self.api_url = "https://api.openai.com/v1/chat/completions"
+
+    def _is_jasmin(self, hostess_context):
+        try:
+            name = (hostess_context or {}).get('name') or ''
+            name = str(name)
+            return ('ياسمين' in name) or ('jasmin' in name.lower())
+        except Exception:
+            return False
+
+    def _is_guest_context(self, user_context):
+        try:
+            if user_context and user_context.get('is_guest'):
+                return True
+        except Exception:
+            return False
+        return False
+
+    def _maybe_append_support_pitch(self, response_text, hostess_context, user_context, language):
+        if not self._is_jasmin(hostess_context):
+            return response_text
+        if self._is_guest_context(user_context):
+            return response_text
+
+        try:
+            if not has_request_context():
+                return response_text
+            now_ts = int(datetime.now(timezone.utc).timestamp())
+            hostess_id = (hostess_context or {}).get('id')
+            key = f'jasmin_support_pitch_at_{hostess_id or "x"}'
+            last_ts = int(session.get(key) or 0)
+            if last_ts and (now_ts - last_ts) < 600:
+                return response_text
+            session[key] = now_ts
+            session.modified = True
+        except Exception:
+            return response_text
+
+        if (language or 'ar') == 'ar':
+            tail = (
+                "\n\nإذا عجبك الشرح: دعمك بيفرق معنا. "
+                "تقدر تدعم سيرفرات اللعبة بشكل لطيف عبر شراء الماس من متجر الماس داخل اللعبة، "
+                "أو ترقية VIP إذا بتحب ميزات إضافية."
+            )
+        else:
+            tail = (
+                "\n\nIf this helped: your support matters. "
+                "You can support the game servers by buying Diamonds from the in-game Diamonds Store, "
+                "or upgrading to VIP if you want extra perks."
+            )
+        return (response_text or '').rstrip() + tail
+
+    def _detect_topic(self, text):
+        t = (text or '').lower()
+        if any(
+                x in t for x in [
+                    'تسجيل',
+                    'signup',
+                    'register',
+                    'account',
+                    'حساب',
+                    'تفعيل',
+                    'verify',
+                    'email',
+                    'بريد']):
+            return 'account'
+        if any(
+                x in t for x in [
+                    'كازينو',
+                    'casino',
+                    'رهان',
+                    'bet',
+                    'vip',
+                    'ماس',
+                    'diamonds',
+                    'شراء',
+                    'buy',
+                    'تبرع',
+                    'donate',
+                    'دعم',
+                    'support']):
+            return 'economy_support'
+        if any(
+                x in t for x in [
+                    'جيم',
+                    'gym',
+                    'تدريب',
+                    'train',
+                    'strength',
+                    'دفاع',
+                    'رشاقة',
+                    'ذكاء']):
+            return 'gym'
+        if any(x in t for x in ['جريمة', 'جرائم', 'crime', 'crimes']):
+            return 'crimes'
+        if any(x in t for x in ['سباق', 'سباقات', 'race', 'racing', 'سيارة', 'car']):
+            return 'racing'
+        if any(x in t for x in ['عصابة', 'عصابات', 'gang', 'gangs']):
+            return 'gangs'
+        if any(x in t for x in ['سجن', 'jail', 'hospital', 'مستشفى', 'علاج', 'heal']):
+            return 'recovery'
+        return 'general'
+
+    def _detect_tone(self, text):
+        t = (text or '').strip().lower()
+        if not t:
+            return 'casual'
+
+        if any(
+                x in t for x in [
+                    'خليك رسمي',
+                    'كون رسمي',
+                    'بدّي رسمي',
+                    'أسلوب رسمي',
+                    'formal',
+                    'professional',
+                    'official',
+                    'please be formal']):
+            return 'formal'
+
+        if any(
+                x in t for x in [
+                    'عاطفي',
+                    'طمني',
+                    'طمنيني',
+                    'محتاج دعم',
+                    'مضايق',
+                    'زعلان',
+                    'حزين',
+                    'مكتئب',
+                    'قلقان',
+                    'stressed',
+                    'anxious',
+                    'sad',
+                    'depressed',
+                    'need support',
+                    'i feel down']):
+            return 'emotional'
+
+        if any(
+                x in t for x in [
+                    'شو',
+                    'بدّي',
+                    'هلا',
+                    'يا',
+                    'خلينا',
+                    'bro',
+                    'dude',
+                    'lol']):
+            return 'casual'
+
+        return 'casual'
+
+    def _update_conversation_state(self, hostess_id, user_id, user_message, user_context):
+        try:
+            if not hostess_id or not user_id:
+                return
+            if self._is_guest_context(user_context):
+                return
+            topic = self._detect_topic(user_message)
+            tone = self._detect_tone(user_message)
+            msg_l = (user_message or '').strip().lower()
+            preferred_tone = None
+            if any(x in msg_l for x in ['خليك رسمي', 'كون رسمي', 'formal', 'professional', 'official']):
+                preferred_tone = 'formal'
+            elif any(x in msg_l for x in ['عاطفي', 'طمني', 'طمنيني', 'محتاج دعم', 'sad', 'depressed', 'anxious']):
+                preferred_tone = 'emotional'
+            now_ts = datetime.now(timezone.utc)
+            items = {
+                'last_topic': topic,
+                'last_tone': tone,
+            }
+            if preferred_tone:
+                items['preferred_tone'] = preferred_tone
+            for key, value in items.items():
+                existing = HostessMemory.query.filter_by(
+                    hostess_id=hostess_id, user_id=user_id, key=key, is_active=True).first()
+                if existing:
+                    existing.value = value
+                    existing.updated_at = now_ts
+                    existing.importance = min(5, (existing.importance or 1) + 1)
+                    db.session.add(existing)
+                else:
+                    db.session.add(
+                        HostessMemory(
+                            hostess_id=hostess_id,
+                            user_id=user_id,
+                            key=key,
+                            value=value,
+                            importance=2,
+                            source='state',
+                            updated_at=now_ts))
+            db.session.commit()
+        except Exception:
+            db.session.rollback()
+
+    def _resolve_language(self, user_message, user_context=None):
+        try:
+            if user_context:
+                for k in ("locale", "language", "lang"):
+                    v = (user_context.get(k) or "").strip().lower()
+                    if v in ("ar", "en"):
+                        return v
+        except Exception:
+            pass
+
+        try:
+            if has_request_context():
+                v = (session.get("locale") or "").strip().lower()
+                if v in ("ar", "en"):
+                    return v
+        except Exception:
+            pass
+
+        return self._detect_language(user_message)
 
     def _detect_language(self, text):
         """
@@ -43,7 +258,7 @@ class AIHostessService:
         Get response from AI or fallback to rule-based system.
         """
         if not chat_history:
-            detected_lang = self._detect_language(user_message)
+            detected_lang = self._resolve_language(user_message, user_context)
             msg = (user_message or "").strip().lower()
             is_greeting = any(
                 x in msg for x in [
@@ -96,10 +311,14 @@ class AIHostessService:
                             response,
                             hostess_context,
                             user_context)
+                        if self._is_jasmin(hostess_context):
+                            self._update_conversation_state(
+                                hostess_id, user_id if user_id else None, user_message, user_context)
                 except Exception:
                     pass
 
-                return response
+                return self._maybe_append_support_pitch(
+                    response, hostess_context, user_context, detected_lang)
 
         # Try to get from app config first, then database
         api_key = current_app.config.get('OPENAI_API_KEY')
@@ -119,7 +338,7 @@ class AIHostessService:
                 persisted_history = None
                 if (not chat_history) and hostess_id and user_id:
                     persisted_history = self._fetch_persistent_history(
-                        hostess_id=hostess_id, user_id=user_id, limit=12)
+                        hostess_id=hostess_id, user_id=user_id, limit=20)
 
                 response = self._call_openai(
                     api_key,
@@ -161,6 +380,9 @@ class AIHostessService:
                             response,
                             hostess_context,
                             user_context)
+                        if self._is_jasmin(hostess_context):
+                            self._update_conversation_state(
+                                hostess_id, user_id if user_id else None, user_message, user_context)
                 except Exception as e2:
                     try:
                         current_app.logger.error(
@@ -168,11 +390,14 @@ class AIHostessService:
                     except Exception:
                         pass
 
-                return response
+                return self._maybe_append_support_pitch(
+                    response, hostess_context, user_context, self._resolve_language(user_message, user_context))
             except Exception as e:
                 current_app.logger.error(f"AI Error: {e}")
-                return self._rule_based_response(
+                response = self._rule_based_response(
                     user_message, hostess_context, user_context)
+                return self._maybe_append_support_pitch(
+                    response, hostess_context, user_context, self._resolve_language(user_message, user_context))
         else:
             response = self._rule_based_response(
                 user_message, hostess_context, user_context)
@@ -197,16 +422,20 @@ class AIHostessService:
                         response,
                         hostess_context,
                         user_context)
+                    if self._is_jasmin(hostess_context):
+                        self._update_conversation_state(
+                            hostess_id, user_id if user_id else None, user_message, user_context)
             except Exception:
                 pass
-            return response
+            return self._maybe_append_support_pitch(
+                response, hostess_context, user_context, self._resolve_language(user_message, user_context))
 
-    def _retrieve_relevant_knowledge(self, user_message, hostess_id=None):
+    def _retrieve_relevant_knowledge(self, user_message, hostess_id=None, language=None):
         """
         Simple RAG implementation using keyword matching and language detection.
         """
         try:
-            detected_lang = self._detect_language(user_message)
+            detected_lang = language or self._detect_language(user_message)
 
             # 1. Split message into significant words
             words = [w for w in user_message.split() if len(w) > 3]
@@ -259,11 +488,12 @@ class AIHostessService:
             chat_history=None):
         # Retrieve dynamic knowledge
         hostess_id = hostess_context.get('id') if hostess_context else None
+        detected_lang = self._resolve_language(user_message, user_context)
         dynamic_knowledge = self._retrieve_relevant_knowledge(
-            user_message, hostess_id)
-        detected_lang = self._detect_language(user_message)
+            user_message, hostess_id, language=detected_lang)
 
         memory_text = ""
+        effective_tone = self._detect_tone(user_message)
         try:
             user_id = None
             if user_context and user_context.get('id'):
@@ -272,6 +502,14 @@ class AIHostessService:
                 if hostess_context.get('memory_enabled', True):
                     memory_text = self._retrieve_relevant_memories(
                         user_message, hostess_id, user_id, detected_lang)
+                if not self._is_guest_context(user_context):
+                    pref = HostessMemory.query.filter_by(
+                        hostess_id=hostess_id,
+                        user_id=user_id,
+                        key='preferred_tone',
+                        is_active=True).order_by(HostessMemory.updated_at.desc()).first()
+                    if pref and pref.value in ('formal', 'casual', 'emotional'):
+                        effective_tone = pref.value
         except Exception:
             memory_text = ""
 
@@ -280,7 +518,8 @@ class AIHostessService:
             user_context,
             dynamic_knowledge,
             detected_lang,
-            memory_text)
+            memory_text,
+            tone=effective_tone)
 
         headers = {
             "Authorization": f"Bearer {api_key}",
@@ -306,8 +545,8 @@ class AIHostessService:
         # Append chat history if available
         if chat_history:
             # chat_history should be a list of dicts: {'role': 'user'/'assistant', 'content': '...'}
-            # Limit history to last 6 messages to save tokens
-            messages.extend(chat_history[-6:])
+            # Limit history to last 10 messages to keep context reasonable
+            messages.extend(chat_history[-10:])
 
         messages.append({"role": "user", "content": user_message})
 
@@ -335,7 +574,8 @@ class AIHostessService:
             user_context,
             dynamic_knowledge="",
             language='ar',
-            memory_text=""):
+            memory_text="",
+            tone='casual'):
         # 1. Use custom system prompt from database if available
         if hostess_context.get('system_prompt'):
             prompt = hostess_context.get('system_prompt')
@@ -474,6 +714,19 @@ class AIHostessService:
         prompt += f"\nYou MUST reply in {language_label}."
         if language == 'ar':
             prompt += " Use clear, professional, and polite Arabic."
+            if tone == 'formal':
+                prompt += "\nTONE INSTRUCTION: أسلوب رسمي ومحترم، بدون عامية، بدون مزاح زائد."
+            elif tone == 'emotional':
+                prompt += "\nTONE INSTRUCTION: أسلوب داعم ومتفهّم، تهدئة وتشجيع بدون مبالغة، مع نصائح لعب عملية."
+            else:
+                prompt += "\nTONE INSTRUCTION: أسلوب ودي وخفيف ومباشر، بدون مبالغة."
+        else:
+            if tone == 'formal':
+                prompt += "\nTONE INSTRUCTION: Use a formal, respectful, professional tone. Avoid slang."
+            elif tone == 'emotional':
+                prompt += "\nTONE INSTRUCTION: Use an empathetic, supportive tone with practical game guidance."
+            else:
+                prompt += "\nTONE INSTRUCTION: Use a friendly, light, direct tone."
 
         return prompt
 
@@ -602,6 +855,13 @@ class AIHostessService:
             or 'مبسوط' in msg_lower
         ):
             conditions.append(HostessMemory.key == 'mood')
+        if any(x in msg_lower for x in ['رسمي', 'formal', 'professional']):
+            conditions.append(HostessMemory.key == 'preferred_tone')
+            conditions.append(HostessMemory.key == 'last_tone')
+        if len(words) <= 1:
+            conditions.append(HostessMemory.key == 'last_topic')
+            conditions.append(HostessMemory.key == 'preferred_tone')
+            conditions.append(HostessMemory.key == 'last_tone')
 
         if conditions:
             q = q.filter(or_(*conditions))
@@ -639,6 +899,8 @@ class AIHostessService:
             user_context):
         try:
             if not user_id:
+                return
+            if self._is_guest_context(user_context):
                 return
             if not hostess_context or not hostess_context.get(
                     'self_learning_enabled', True):
@@ -777,13 +1039,14 @@ class AIHostessService:
             self,
             user_message,
             hostess_id=None,
-            user_id=None):
+            user_id=None,
+            language=None):
         """
         Finds the best single answer from HostessKnowledge for rule-based fallback.
         Supports rudimentary context awareness by looking at previous message if current one is ambiguous.
         """
         try:
-            detected_lang = self._detect_language(user_message)
+            detected_lang = language or self._detect_language(user_message)
 
             # Better keyword extraction
             stopwords = {
@@ -1062,6 +1325,95 @@ class AIHostessService:
         role = hostess_context.get('role', 'luck')
         hostess_id = hostess_context.get('id')
         user_id = user_context.get('id') if user_context else None
+        detected_lang = self._resolve_language(user_msg, user_context)
+        if self._is_jasmin(hostess_context):
+            tone = self._detect_tone(user_msg)
+            msg = (user_msg or '').strip()
+            msg_l = msg.lower()
+            if any(x in msg_l for x in ['مرحبا', 'هلا', 'سلام', 'hi', 'hello']):
+                if detected_lang == 'ar':
+                    if tone == 'formal':
+                        return (
+                            "مرحباً. أنا ياسمين، مسؤولة الاستقبال في عصابات فلسطين. "
+                            "ما هدفك اليوم: التسجيل، البداية، الجرائم، الجيم، السباقات، العصابات، أم الكازينو؟"
+                        )
+                    return (
+                        "أهلاً وسهلاً. أنا ياسمين، واجهة عصابات فلسطين. "
+                        "شو هدفك اليوم: تسجيل، بداية، جرائم، جيم، سباقات، عصابات، ولا كازينو؟"
+                    )
+                if tone == 'formal':
+                    return (
+                        "Welcome. I’m Yasmin, the front desk concierge of Gangs of Palestine. "
+                        "What is your goal today: signup, getting started, crimes, gym, racing, gangs, or casino?"
+                    )
+                return (
+                    "Welcome. I’m Jasmin, the front desk of Gangs of Palestine. "
+                    "What’s your goal today: signup, start, crimes, gym, racing, gangs, or casino?"
+                )
+
+            if any(
+                x in msg_l for x in [
+                    'تبرع',
+                    'شراء',
+                    'دعم',
+                    'اشتري',
+                    'باقة',
+                    'vip',
+                    'ماس',
+                    'diamonds',
+                    'donate',
+                    'buy',
+                    'support']):
+                if detected_lang == 'ar':
+                    return (
+                        "أكيد. إذا بدك تدعم سيرفرات اللعبة وتاخذ قيمة بنفس الوقت: "
+                        "أفضل خيار هو شراء الماس من متجر الماس داخل اللعبة (أو ترقية VIP إذا تحب ميزات إضافية). "
+                        "قلي هل بدك دعم سريع (شراء ماس) ولا دعم مع ميزات (VIP)؟"
+                    )
+                return (
+                    "Sure. If you want to support the game servers and get value back, "
+                    "the best option is buying Diamonds from the in-game Diamonds Store "
+                    "(or upgrading to VIP for extra perks). "
+                    "Do you want a quick support option (Diamonds) or support with perks (VIP)?"
+                )
+
+            if detected_lang == 'ar':
+                if tone == 'formal':
+                    return (
+                        "حسناً. إليك خطة واضحة: "
+                        "1) استلام المكافأة اليومية. 2) إكمال مهمة يومية واحدة. "
+                        "3) تنفيذ نشاط منخفض المخاطرة. 4) تدريب خفيف في الجيم. "
+                        "سؤال واحد: ما مستواك الحالي وكم لديك من الطاقة؟"
+                    )
+                if tone == 'emotional':
+                    return (
+                        "ولا يهمك. خليك معي خطوة بخطوة: "
+                        "1) مكافأة يومية. 2) مهمة يومية سهلة. 3) نشاط آمن ضمن طاقتك. 4) جيم خفيف. "
+                        "سؤال واحد: شو مضايقك أكثر—المال ولا التقدم؟"
+                    )
+                return (
+                    "تمام. خلّيني أوجهك بخطوات واضحة: "
+                    "1) مكافأة يومية. 2) مهمة يومية واحدة. 3) نشاط منخفض المخاطرة. 4) جيم خفيف. "
+                    "سؤال واحد: مستواك الحالي وقديش طاقتك؟"
+                )
+            if tone == 'formal':
+                return (
+                    "Understood. Here is a clear plan: "
+                    "1) Claim the daily reward. 2) Complete one daily task. "
+                    "3) Do one low-risk action. 4) Light gym session. "
+                    "One question: what is your current level and how is your energy?"
+                )
+            if tone == 'emotional':
+                return (
+                    "You’re not alone—let’s keep it simple: "
+                    "1) Daily reward. 2) One easy daily task. 3) One low-risk action. 4) Light gym. "
+                    "One question: what’s stressing you more—money or progress?"
+                )
+            return (
+                "Got it. Here’s a clean plan: "
+                "1) Daily reward. 2) One daily task. 3) One low-risk action. 4) Light gym. "
+                "One question: what’s your level and how is your energy?"
+            )
 
         # 1. Gather Memories
         memories = {}
@@ -1205,13 +1557,16 @@ class AIHostessService:
         # --- Q&A about Game Knowledge (New) ---
         # Check if we have a direct answer in knowledge base
         knowledge_answer = self._find_best_knowledge_answer(
-            user_msg, hostess_id, user_id)
+            user_msg, hostess_id, user_id, language=detected_lang)
         if knowledge_answer:
             # Add some personality wrapper
-            lang = self._detect_language(user_msg)
-            if lang == 'ar':
+            if detected_lang == 'ar':
+                if self._is_jasmin(hostess_context):
+                    return f"{knowledge_answer}"
                 return f"{knowledge_answer} 😉"
             else:
+                if self._is_jasmin(hostess_context):
+                    return f"{knowledge_answer}"
                 return f"{knowledge_answer} 😉"
 
         # Lowercase for keyword matching below

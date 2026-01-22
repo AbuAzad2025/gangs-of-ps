@@ -1,12 +1,11 @@
 {% extends "base.html" %}
+{% from "developer/_macros.html" import dev_card_header, post_icon_button %}
 
 {% block title %}{{ _('المجموعات النشطة') }}{% endblock %}
 
 {% block content %}
-<div class="card shadow mb-4">
-    <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
-        <h6 class="m-0 font-weight-bold text-primary">{{ _('مجموعات الجرائم المنظمة النشطة (Active Lobbies)') }}</h6>
-    </div>
+<div class="luxury-card fade-in-up">
+    {{ dev_card_header(_('مجموعات الجرائم المنظمة النشطة (Active Lobbies)'), icon_class='fas fa-users', back_href=url_for('main.dev_dashboard')) }}
     <div class="card-body">
         <div class="table-responsive">
             <table class="table table-bordered" width="100%" cellspacing="0">
@@ -37,12 +36,7 @@
                         </td>
                         <td>{{ lobby.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
                         <td>
-                            <form action="{{ url_for('main.dev_delete_lobby', lobby_id=lobby.id) }}" method="POST" onsubmit="return confirm('{{ _('هل أنت متأكد من حذف هذه المجموعة؟') }}');">
-                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-                                <button type="submit" class="btn btn-danger btn-sm">
-                                    <i class="fas fa-trash"></i>
-                                </button>
-                            </form>
+                            {{ post_icon_button(url_for('main.dev_delete_lobby', lobby_id=lobby.id), btn_class='btn btn-danger btn-sm', icon_class='fas fa-trash', confirm_text=_('هل أنت متأكد من حذف هذه المجموعة؟')) }}
                         </td>
                     </tr>
                     {% else %}

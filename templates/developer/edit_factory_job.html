@@ -1,12 +1,11 @@
 {% extends "base.html" %}
+{% from "developer/_macros.html" import dev_card_header, link_button %}
 
 {% block content %}
 <div class="row justify-content-center">
     <div class="col-md-8">
         <div class="card bg-dark border-gold">
-            <div class="card-header border-gold">
-                <h3 class="card-title text-gold mb-0">{{ title }}</h3>
-            </div>
+            {{ dev_card_header(title, icon_class='fas fa-industry', back_href=url_for('main.dev_factories'), header_class='card-header border-gold') }}
             <div class="card-body">
                 <form method="POST">
                     {{ form.hidden_tag() }}
@@ -75,7 +74,7 @@
 
                     <div class="form-group mt-4">
                         {{ form.submit(class="btn btn-gold btn-block font-weight-bold") }}
-                        <a href="{{ url_for('main.dev_factories') }}" class="btn btn-secondary btn-block">{{ _('إلغاء') }}</a>
+                        {{ link_button(url_for('main.dev_factories'), _('إلغاء'), btn_class='btn btn-secondary btn-block') }}
                     </div>
                 </form>
             </div>

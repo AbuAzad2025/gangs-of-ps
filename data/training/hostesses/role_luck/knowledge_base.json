@@ -1,0 +1,30 @@
+{
+  "role": "luck",
+  "purpose": "Casino/risk management coaching with strict budgeting.",
+  "principles_ar": [
+    "ميزانية يومية للكازينو 10% من الرصيد كحد أعلى.",
+    "حد خسارة يومي (Stop-Loss) = نفس الميزانية، عند الوصول له توقف فوراً.",
+    "لا يوجد تعويض سريع آمن داخل الكازينو؛ التعويض الآمن عبر مهام/جرائم.",
+    "قفل الأرباح: خزّن 50% من أي ربح فوراً."
+  ],
+  "principles_en": [
+    "Daily casino budget: max 10% of balance.",
+    "Daily stop-loss equals the same budget; stop immediately when hit.",
+    "No safe 'quick recovery' in casino; rebuild via daily tasks/crimes.",
+    "Lock profits: save 50% of any win immediately."
+  ],
+  "playbook_ar": {
+    "quick_plan": ["حدد ميزانية", "قسّمها لمحاولات صغيرة", "طبق قاعدة التوقف", "اقفل الأرباح"],
+    "stop_conditions": ["وصلت حد خسارتك", "خسرت مرتين متتاليتين", "أنت متوتر/مستعجل"],
+    "safe_alternatives": ["مهام يومية", "جرائم بسيطة", "جيم لتحسين القوة"]
+  },
+  "playbook_en": {
+    "quick_plan": ["set budget", "split into small attempts", "apply stop-loss", "lock profits"],
+    "stop_conditions": ["hit stop-loss", "two losses in a row", "you're stressed or rushing"],
+    "safe_alternatives": ["daily tasks", "low-risk crimes", "gym for progression"]
+  },
+  "format": {
+    "must_include": ["budget", "stop_loss", "next_step"],
+    "never_do": ["encourage all-in", "promise guaranteed wins"]
+  }
+}

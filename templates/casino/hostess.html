@@ -47,8 +47,7 @@
                                 <video src="{{ url_for('static', filename='videos/hostesses/' + active_h.video) }}" autoplay loop muted playsinline class="h-100-cover"></video>
                               {% endif %}
                             {% else %}
-                            {% set active_image_path = active_h.image if active_h.image and ('/' in active_h.image) else 'hostesses/' + (active_h.image or 'default_hostess.jpg') %}
-                            <img src="{{ url_for('static', filename='images/' + active_image_path) }}" class="h-100-cover" onerror="this.onerror=null; this.src='{{ url_for('static', filename='images/hostesses/default_hostess.jpg') }}';">
+                            <img src="{{ url_for('static', filename='images/' + active_h.image_path) }}" class="h-100-cover" onerror="this.onerror=null; this.src='{{ url_for('static', filename='images/hostesses/default_hostess.jpg') }}';">
                             {% endif %}
                         </div>
                         <h4 class="mt-2 text-gold">{{ _(active_h.name) }}</h4>
@@ -65,7 +64,7 @@
                             <button class="btn btn-gold btn-lg pulse-btn" data-toggle="modal" data-target="#chatModal">
                                 <i class="fas fa-comments"></i> {{ _('تحدث معها الآن') }}
                             </button>
-                            <button class="btn btn-danger btn-lg rounded-pill shadow-lg" onclick="startCall('{{ active_h.name }}', '{{ active_h.image or '' }}', '{{ active_h.video if active_h.is_avatar_active else '' }}')">
+                            <button class="btn btn-danger btn-lg rounded-pill shadow-lg" onclick="startCall('{{ active_h.name }}', '{{ active_h.image_path }}', '{{ active_h.video if active_h.is_avatar_active else '' }}')">
                                 <i class="fas fa-phone-alt"></i> {{ _('مكالمة صوتية (Voice Call)') }}
                             </button>
                         </div>
@@ -100,8 +99,7 @@
                           <video src="{{ url_for('static', filename='videos/hostesses/' + h.video) }}" autoplay loop muted playsinline class="h-100-cover opacity-80"></video>
                         {% endif %}
                     {% else %}
-                        {% set image_path = h.image if h.image and ('/' in h.image) else 'hostesses/' + (h.image or 'default_hostess.jpg') %}
-                        <img src="{{ url_for('static', filename='images/' + image_path) }}" class="h-100-cover opacity-80" onerror="this.onerror=null; this.src='{{ url_for('static', filename='images/hostesses/default_hostess.jpg') }}';">
+                        <img src="{{ url_for('static', filename='images/' + h.image_path) }}" class="h-100-cover opacity-80" onerror="this.onerror=null; this.src='{{ url_for('static', filename='images/hostesses/default_hostess.jpg') }}';">
                     {% endif %}
                     
                     <span class="hostess-badge badge-{{ h.role }}">

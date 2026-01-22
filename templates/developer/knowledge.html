@@ -1,18 +1,11 @@
 {% extends "base.html" %}
+{% from "developer/_macros.html" import dev_card_header, link_button, post_icon_button %}
 
 {% block content %}
 <div class="luxury-card fade-in-up">
-    <div class="card-header">
-        <h3 class="card-title text-gradient-gold"><i class="fas fa-brain mr-2"></i> {{ _('قاعدة معرفة المضيفات') }}</h3>
-        <div class="card-tools">
-            <a href="{{ url_for('main.dev_knowledge_edit', id=None) }}" class="btn btn-luxury-action btn-sm">
-                <i class="fas fa-plus"></i> {{ _('إضافة معرفة') }}
-            </a>
-            <a href="{{ url_for('main.dev_dashboard') }}" class="btn btn-outline-secondary btn-sm ml-2">
-                <i class="fas fa-arrow-right"></i> {{ _('عودة') }}
-            </a>
-        </div>
-    </div>
+    {% call dev_card_header(_('قاعدة معرفة المضيفات'), icon_class='fas fa-brain', back_href=url_for('main.dev_dashboard')) %}
+        {{ link_button(url_for('main.dev_knowledge_edit', id=None), _('إضافة معرفة'), btn_class='btn btn-luxury-action btn-sm', icon_class='fas fa-plus') }}
+    {% endcall %}
     <div class="card-body p-0">
         <div class="table-responsive">
             <table class="table luxury-table luxury-table-striped projects">
@@ -47,12 +40,7 @@
                             <a class="btn btn-luxury-action btn-sm" href="{{ url_for('main.dev_knowledge_edit', id=k.id) }}">
                                 <i class="fas fa-pencil-alt"></i>
                             </a>
-                            <form method="post" action="{{ url_for('main.dev_knowledge_delete', id=k.id) }}" style="display:inline;">
-                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-                                <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('{{ _('هل أنت متأكد من الحذف؟') }}')">
-                                    <i class="fas fa-trash"></i>
-                                </button>
-                            </form>
+                            {{ post_icon_button(url_for('main.dev_knowledge_delete', id=k.id), btn_class='btn btn-sm btn-danger', icon_class='fas fa-trash', confirm_text=_('هل أنت متأكد من الحذف؟')) }}
                         </td>
                     </tr>
                     {% else %}

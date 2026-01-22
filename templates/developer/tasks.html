@@ -1,15 +1,11 @@
 {% extends "developer/dashboard.html" %}
+{% from "developer/_macros.html" import dev_card_header, link_button %}
 
 {% block content %}
 <div class="luxury-card fade-in-up">
-    <div class="card-header">
-        <h3 class="card-title text-gradient-gold"><i class="fas fa-tasks mr-2"></i> {{ _('قائمة المهام اليومية') }}</h3>
-        <div class="card-tools">
-            <a href="{{ url_for('main.dev_task_edit', id=None) }}" class="btn btn-luxury-action btn-sm">
-                <i class="fas fa-plus"></i> {{ _('إضافة مهمة جديدة') }}
-            </a>
-        </div>
-    </div>
+    {% call dev_card_header(_('قائمة المهام اليومية'), icon_class='fas fa-tasks', back_href=url_for('main.dev_dashboard')) %}
+        {{ link_button(url_for('main.dev_task_edit', id=None), _('إضافة مهمة جديدة'), btn_class='btn btn-luxury-action btn-sm', icon_class='fas fa-plus') }}
+    {% endcall %}
     <div class="card-body p-0">
         <table class="table luxury-table luxury-table-striped projects">
             <thead>

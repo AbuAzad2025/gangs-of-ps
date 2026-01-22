@@ -1,20 +1,18 @@
 {% extends "base.html" %}
+{% from "developer/_macros.html" import dev_card_header, link_button, post_button %}
 
 {% block content %}
 <div class="luxury-card fade-in-up">
-    <div class="card-header">
-        <h3 class="card-title text-gradient-gold"><i class="fas fa-users mr-2"></i> {{ _('إدارة اللاعبين') }}</h3>
-        <div class="card-tools">
-            <form action="{{ url_for('main.dev_users') }}" method="GET">
-                <div class="input-group input-group-sm" style="width: 250px;">
-                    <input type="text" name="q" class="form-control form-control-luxury float-right" placeholder="{{ _('بحث عن لاعب...') }}" value="{{ search_query }}">
-                    <div class="input-group-append">
-                        <button type="submit" class="btn btn-default"><i class="fas fa-search text-gold"></i></button>
-                    </div>
+    {% call dev_card_header(_('إدارة اللاعبين'), icon_class='fas fa-users', back_href=url_for('main.dev_dashboard')) %}
+        <form action="{{ url_for('main.dev_users') }}" method="GET">
+            <div class="input-group input-group-sm" style="width: 250px;">
+                <input type="text" name="q" class="form-control form-control-luxury float-right" placeholder="{{ _('بحث عن لاعب...') }}" value="{{ search_query }}">
+                <div class="input-group-append">
+                    <button type="submit" class="btn btn-default"><i class="fas fa-search text-gold"></i></button>
                 </div>
-            </form>
-        </div>
-    </div>
+            </div>
+        </form>
+    {% endcall %}
     <div class="card-body table-responsive p-0">
         <table class="table luxury-table luxury-table-hover text-nowrap">
             <thead>
@@ -43,7 +41,12 @@
                         </div>
                     </td>
                     <td><span class="badge bg-dark border border-secondary">{{ user.level }}</span></td>
-                    <td><span class="badge badge-{{ 'danger' if user.is_admin else ('warning' if user.is_moderator else 'primary') }}">{{ user.role.name }}</span></td>
+                    <td>
+                        <span class="badge badge-{{ 'danger' if user.is_admin else ('warning' if user.is_moderator else 'primary') }}">{{ user.role.name }}</span>
+                        {% if user.banned_until %}
+                        <span class="badge badge-secondary ml-1">{{ _('معطل') }}</span>
+                        {% endif %}
+                    </td>
                     <td class="text-success font-weight-bold">${{ "{:,.0f}".format(user.money) }}</td>
                     <td><small class="text-muted">{{ user.last_daily_reward.strftime('%Y-%m-%d') if user.last_daily_reward else '-' }}</small></td>
                     <td>
@@ -53,6 +56,17 @@
                         <a href="{{ url_for('main.dev_user_achievements', user_id=user.id) }}" class="btn btn-sm btn-outline-warning ml-1">
                             <i class="fas fa-award"></i> {{ _('الإنجازات') }}
                         </a>
+                        {% if user.health <= 0 %}
+                        {{ post_button(url_for('main.dev_user_resurrect', id=user.id), _('إحياء'), btn_class='btn btn-sm btn-success ml-1', icon_class='fas fa-heartbeat', confirm_text=_('تأكيد إحياء اللاعب؟')) }}
+                        {% else %}
+                        {{ post_button(url_for('main.dev_user_kill', id=user.id), _('قتل'), btn_class='btn btn-sm btn-outline-danger ml-1', icon_class='fas fa-skull', confirm_text=_('تأكيد قتل اللاعب؟')) }}
+                        {% endif %}
+
+                        {% if user.banned_until %}
+                        {{ post_button(url_for('main.dev_user_enable', id=user.id), _('تفعيل'), btn_class='btn btn-sm btn-outline-success ml-1', icon_class='fas fa-unlock', confirm_text=_('تأكيد تفعيل اللاعب؟')) }}
+                        {% else %}
+                        {{ post_button(url_for('main.dev_user_disable', id=user.id), _('تعطيل'), btn_class='btn btn-sm btn-outline-secondary ml-1', icon_class='fas fa-ban', confirm_text=_('تأكيد تعطيل اللاعب؟')) }}
+                        {% endif %}
                     </td>
                 </tr>
                 {% endfor %}

@@ -1,21 +1,19 @@
 {% extends "base.html" %}
+{% from "developer/_macros.html" import dev_card_header, post_icon_button %}
 
 {% block content %}
 <div class="container-fluid">
     <div class="row mb-4">
         <div class="col-12">
             <div class="card bg-dark border-gold">
-                <div class="card-header d-flex justify-content-between align-items-center">
-                    <h5 class="mb-0 text-gold"><i class="fas fa-envelope mr-2"></i>{{ _('رسائل النظام') }}</h5>
-                    <div class="d-flex">
-                        <form action="{{ url_for('main.admin_messages') }}" method="GET" class="input-group input-group-sm w-250">
-                            <input type="text" name="search" class="form-control bg-dark text-light border-secondary" placeholder="{{ _('بحث...') }}" value="{{ request.args.get('search', '') }}">
-                            <div class="input-group-append">
-                                <button class="btn btn-outline-warning" type="submit"><i class="fas fa-search"></i></button>
-                            </div>
-                        </form>
-                    </div>
-                </div>
+                {% call dev_card_header(_('رسائل النظام'), icon_class='fas fa-envelope', back_href=url_for('main.dev_dashboard'), header_class='card-header', title_class='mb-0 text-gold') %}
+                    <form action="{{ url_for('main.admin_messages') }}" method="GET" class="input-group input-group-sm w-250">
+                        <input type="text" name="search" class="form-control bg-dark text-light border-secondary" placeholder="{{ _('بحث...') }}" value="{{ request.args.get('search', '') }}">
+                        <div class="input-group-append">
+                            <button class="btn btn-outline-warning" type="submit"><i class="fas fa-search"></i></button>
+                        </div>
+                    </form>
+                {% endcall %}
                 <div class="card-body p-0 table-responsive">
                     <table class="table table-dark table-hover mb-0 text-center">
                         <thead>
@@ -67,12 +65,7 @@
                                     <button type="button" class="btn btn-sm btn-info" data-toggle="modal" data-target="#viewMsg{{ msg.id }}">
                                         <i class="fas fa-eye"></i>
                                     </button>
-                                    <form action="{{ url_for('main.admin_delete_message', msg_id=msg.id) }}" method="POST" class="d-inline">
-                                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-                                        <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('{{ _('هل أنت متأكد من حذف هذه الرسالة نهائياً من قاعدة البيانات؟') }}')">
-                                            <i class="fas fa-trash"></i>
-                                        </button>
-                                    </form>
+                                    {{ post_icon_button(url_for('main.admin_delete_message', msg_id=msg.id), btn_class='btn btn-sm btn-danger', icon_class='fas fa-trash', confirm_text=_('هل أنت متأكد من حذف هذه الرسالة نهائياً من قاعدة البيانات؟')) }}
                                 </td>
                             </tr>
 

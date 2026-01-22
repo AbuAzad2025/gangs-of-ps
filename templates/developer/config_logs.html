@@ -1,13 +1,9 @@
 {% extends "base.html" %}
+{% from "developer/_macros.html" import dev_card_header %}
 
 {% block content %}
 <div class="luxury-card fade-in-up">
-    <div class="card-header">
-        <div class="d-flex align-items-center justify-content-between flex-wrap">
-            <h3 class="card-title text-gradient-gold m-0"><i class="fas fa-sliders-h mr-2"></i> {{ _('سجل تغييرات الإعدادات') }}</h3>
-            <a href="{{ url_for('main.dev_dashboard') }}" class="btn btn-sm btn-outline-light">{{ _('لوحة المطور') }}</a>
-        </div>
-    </div>
+    {{ dev_card_header(_('سجل تغييرات الإعدادات'), icon_class='fas fa-sliders-h', back_href=url_for('main.dev_dashboard'), back_text=_('لوحة المطور'), back_btn_class='btn btn-sm btn-outline-light', back_icon_class=None) }}
     
     <div class="card-body bg-dark border-bottom border-secondary">
         <form method="GET" action="{{ url_for('main.dev_config_logs') }}" class="row align-items-end">
@@ -77,4 +73,3 @@
     </div>
 </div>
 {% endblock %}
-

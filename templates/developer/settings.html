@@ -1,31 +1,24 @@
 {% extends "base.html" %}
+{% from "developer/_macros.html" import dev_card_header, link_button, post_icon_button %}
 
 {% block content %}
 <div class="luxury-card fade-in-up">
-    <div class="card-header">
-        <h3 class="card-title text-gradient-gold"><i class="fas fa-cogs mr-2"></i> {{ _('إعدادات النظام') }}</h3>
-        <div class="card-tools">
-            <div class="btn-group ml-2">
-                <button type="button" class="btn btn-outline-warning btn-sm dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                    <i class="fas fa-bolt"></i> {{ _('إضافة سريعة') }}
-                </button>
-                <div class="dropdown-menu dropdown-menu-right bg-dark border-gold">
-                    <a class="dropdown-item text-white hover-gold" href="{{ url_for('main.dev_settings_edit', id=0, key='OPENAI_API_KEY', description=_('مفتاح API الخاص بـ OpenAI لتشغيل المحادثة الذكية')) }}">
-                        <i class="fas fa-key mr-2"></i> {{ _('إضافة مفتاح OpenAI') }}
-                    </a>
-                    <a class="dropdown-item text-white hover-gold" href="{{ url_for('main.dev_settings_edit', id=0, key='OPENAI_MODEL', description=_('موديل الذكاء الاصطناعي (مثال: gpt-3.5-turbo, gpt-4)')) }}">
-                        <i class="fas fa-robot mr-2"></i> {{ _('تحديد موديل AI') }}
-                    </a>
-                </div>
+    {% call dev_card_header(_('إعدادات النظام'), icon_class='fas fa-cogs', back_href=url_for('main.dev_dashboard')) %}
+        <div class="btn-group ml-2">
+            <button type="button" class="btn btn-outline-warning btn-sm dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                <i class="fas fa-bolt"></i> {{ _('إضافة سريعة') }}
+            </button>
+            <div class="dropdown-menu dropdown-menu-right bg-dark border-gold">
+                <a class="dropdown-item text-white hover-gold" href="{{ url_for('main.dev_settings_edit', id=0, key='OPENAI_API_KEY', description=_('مفتاح API الخاص بـ OpenAI لتشغيل المحادثة الذكية')) }}">
+                    <i class="fas fa-key mr-2"></i> {{ _('إضافة مفتاح OpenAI') }}
+                </a>
+                <a class="dropdown-item text-white hover-gold" href="{{ url_for('main.dev_settings_edit', id=0, key='OPENAI_MODEL', description=_('موديل الذكاء الاصطناعي (مثال: gpt-3.5-turbo, gpt-4)')) }}">
+                    <i class="fas fa-robot mr-2"></i> {{ _('تحديد موديل AI') }}
+                </a>
             </div>
-            <a href="{{ url_for('main.dev_settings_edit', id=0) }}" class="btn btn-luxury-action btn-sm">
-                <i class="fas fa-plus"></i> {{ _('إضافة إعداد جديد') }}
-            </a>
-            <a href="{{ url_for('main.dev_dashboard') }}" class="btn btn-outline-secondary btn-sm ml-2">
-                <i class="fas fa-arrow-right"></i> {{ _('عودة') }}
-            </a>
         </div>
-    </div>
+        {{ link_button(url_for('main.dev_settings_edit', id=0), _('إضافة إعداد جديد'), btn_class='btn btn-luxury-action btn-sm', icon_class='fas fa-plus') }}
+    {% endcall %}
     <div class="card-body p-0">
         <div class="table-responsive">
             <table class="table luxury-table luxury-table-striped projects">
@@ -51,12 +44,7 @@
                             <a class="btn btn-luxury-action btn-sm" href="{{ url_for('main.dev_settings_edit', id=setting.id) }}">
                                 <i class="fas fa-pencil-alt"></i>
                             </a>
-                            <form method="post" action="{{ url_for('main.dev_settings_delete', id=setting.id) }}" style="display:inline;">
-                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-                                <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('{{ _('هل أنت متأكد من الحذف؟') }}')">
-                                    <i class="fas fa-trash"></i>
-                                </button>
-                            </form>
+                            {{ post_icon_button(url_for('main.dev_settings_delete', id=setting.id), btn_class='btn btn-sm btn-danger', icon_class='fas fa-trash', confirm_text=_('هل أنت متأكد من الحذف؟')) }}
                         </td>
                     </tr>
                     {% else %}

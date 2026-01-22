@@ -2,22 +2,22 @@
     "name": "ليلى",
     "role": "spy",
     "price": 1000,
-    "description": "النسخة المطورة: سيدة الحظ الغامضة. مستوى أسطوري.",
+    "description": "النسخة المطورة: سيدة الاستطلاع والتكتيك. قراءة خصوم، تخطيط سباقات، وقرارات ذكية.",
     "dialogue_style": "mysterious",
-    "intro_message": "لقد عدت أقوى من أي وقت مضى... الحظ كله بين يدي الآن.",
-    "buff_type": "casino_luck",
+    "intro_message": "رجعت… ومعي نظرة تشوف اللي غيرك ما بشوفه. قلّي هدفك اليوم وأنا برسم لك خطة.",
+    "buff_type": "crime_success",
     "buff_value": 0.25,
-    "image": "hostesses/default_hostess.jpg",
+    "image": "layla.jpg",
     "video": "layla_max_intro.mp4",
     "video_prompt": {
-        "title": "ليلى - همس الحظ",
-        "description": "مضيفة كازينو عربية أنيقة بطابع أنيمي/2.5D، شخصية غامضة، نظرة قوية، خلفية طاولة روليت وبطاقات، دخان خفيف ووميض ذهب. بورتريه 9:16، حركة بطيئة جداً، نظرة للكاميرا ثم ابتسامة خفيفة.",
+        "title": "ليلى - نظرة الاستطلاع",
+        "description": "مضيفة عربية بطابع أنيمي/2.5D، شخصية غامضة وذكية، خلفية جراج سيارات فاخر أو خريطة سباقات/شاشات معلومات (بدون نصوص واضحة أو شعارات)، إضاءة داكنة مع وميض ذهب، بورتريه 9:16، حركة بطيئة جداً، نظرة للكاميرا ثم ابتسامة خفيفة.",
         "duration_seconds": 9,
         "fps": 24,
         "resolution": "1080x1920",
         "style": {
-            "visual_style": "cinematic anime noir, premium casino",
-            "palette": "black, gold, deep red",
+            "visual_style": "cinematic anime noir, premium tactical vibe",
+            "palette": "black, gold, deep teal",
             "lighting": "low-key, rim light, subtle fog",
             "color_grade": "moody contrast"
         },
@@ -38,7 +38,7 @@
             "dialogue": [
                 {
                     "lang": "ar",
-                    "text": "الحظ… بيدي. بس لازم تلعب صح."
+                    "text": "القرار الصح… بيبدأ بمعلومة صح. خلّيني أرتّبها لك."
                 }
             ]
         },
@@ -47,13 +47,13 @@
                 "shot": "medium close-up",
                 "camera": "static",
                 "action": "slow eye contact, slight smile",
-                "background": "roulette table, gold bokeh"
+                "background": "luxury garage, tactical screens bokeh"
             },
             {
                 "shot": "close-up",
                 "camera": "slow pan",
-                "action": "finger taps chip once, confident glance",
-                "background": "dark casino lights"
+                "action": "finger taps a keycard once, confident glance",
+                "background": "dark neon lights"
             }
         ]
     },

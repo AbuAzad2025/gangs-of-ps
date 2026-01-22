@@ -1,15 +1,11 @@
 {% extends "base.html" %}
+{% from "developer/_macros.html" import dev_card_header, link_button, csrf_input, submit_button %}
 
 {% block content %}
 <div class="luxury-card fade-in-up">
-    <div class="card-header">
-        <h3 class="card-title text-gradient-gold"><i class="fas fa-users-slash mr-2"></i> {{ _('إدارة الجرائم المنظمة') }}</h3>
-        <div class="card-tools">
-            <a href="{{ url_for('main.dev_organized_crime_edit', id=None) }}" class="btn btn-luxury-action btn-sm">
-                <i class="fas fa-plus"></i> {{ _('إضافة جريمة منظمة جديدة') }}
-            </a>
-        </div>
-    </div>
+    {% call dev_card_header(_('إدارة الجرائم المنظمة'), icon_class='fas fa-users-slash', back_href=url_for('main.dev_dashboard')) %}
+        {{ link_button(url_for('main.dev_organized_crime_edit', id=None), _('إضافة جريمة منظمة جديدة'), btn_class='btn btn-luxury-action btn-sm', icon_class='fas fa-plus') }}
+    {% endcall %}
     <div class="card-body p-0">
         <div class="table-responsive">
             <table class="table luxury-table luxury-table-striped projects">
@@ -90,7 +86,7 @@
                         <td colspan="9" class="p-3">
                             <div class="collapse" id="reqsEditor{{ crime.id }}">
                                 <form action="{{ url_for('main.dev_organized_crime_update', id=crime.id) }}" method="POST" class="bg-dark p-3 rounded border border-secondary">
-                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                    {{ csrf_input() }}
                                     {% set reqs = reqs_map.get(crime.id, {}) %}
                                     <div class="form-row">
                                         <div class="form-group col-md-3">
@@ -161,9 +157,7 @@
                                         </div>
                                     </div>
                                     <div class="text-right">
-                                        <button type="submit" class="btn btn-success btn-sm">
-                                            <i class="fas fa-save"></i> {{ _('حفظ الإعدادات') }}
-                                        </button>
+                                        {{ submit_button(_('حفظ الإعدادات'), btn_class='btn btn-success btn-sm', icon_class='fas fa-save') }}
                                     </div>
                                 </form>
                                 <!-- Visual Summary -->

@@ -1,4 +1,5 @@
 {% extends 'admin/master.html' %}
+{% from "developer/_macros.html" import link_button %}
 
 {% block head %}
     {{ super() }}
@@ -14,9 +15,8 @@
             </h1>
         </div>
         <div class="col-md-6 text-left">
-            <a href="/" class="btn btn-luxury-gold btn-lg shadow-sm text-dark font-weight-bold">
-                <i class="fas fa-home ml-2"></i> {{ _('العودة للحارة') }}
-            </a>
+            {{ link_button(url_for('main.hara'), _('العودة للحارة'), btn_class='btn btn-luxury-gold btn-lg shadow-sm text-dark font-weight-bold', icon_class='fas fa-home ml-2') }}
+            {{ link_button(url_for('main.dev_dashboard'), _('لوحة المطور'), btn_class='btn btn-outline-warning btn-lg shadow-sm ml-2') }}
         </div>
     </div>
 
