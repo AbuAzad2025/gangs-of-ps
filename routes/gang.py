@@ -9,7 +9,7 @@ from models.economy import Asset
 from models.item import UserItem, Item
 from models.system import SystemConfig
 from datetime import datetime, timedelta, timezone
-from .utils import save_image, send_notification
+from .utils import save_image, send_notification, update_daily_task_progress
 from sqlalchemy import or_
 
 from services.resource_service import ResourceService
@@ -20,6 +20,7 @@ bp = Blueprint('gang', __name__, url_prefix='/gang')
 @bp.route('/')
 @login_required
 def index():
+    update_daily_task_progress(current_user, 'gang')
     gangs = Gang.query.order_by(
         Gang.level.desc(),
         Gang.exp.desc()).limit(100).all()
@@ -655,6 +656,8 @@ def broadcast_invite_all():
 @bp.route('/view/<int:gang_id>')
 @limiter.limit("20 per minute")
 def view(gang_id):
+    from extensions import seo_manager
+
     gang = db.session.get(Gang, gang_id)
     if not gang:
         abort(404)
@@ -665,6 +668,18 @@ def view(gang_id):
         name=gang.name,
         level=gang.level,
         count=members_count)
+
+    seo_manager.set(
+        title=_("%(name)s - صفحة العصابة", name=gang.name),
+        description=meta_description,
+        keywords=_(
+            "عصابة, عصابات فلسطين, حرب عصابات, تحالفات, ترتيب العصابات, gangs, clan, Gangs of Palestine"
+        ),
+        type="website",
+    )
+    seo_manager.add_breadcrumb(_("الرئيسية"), url_for("main.index"))
+    seo_manager.add_breadcrumb(_("العصابات"), url_for("main.index") + "#gangs")
+    seo_manager.add_breadcrumb(gang.name, url_for("gang.view", gang_id=gang.id))
 
     return render_template(
         'gang/view.html',

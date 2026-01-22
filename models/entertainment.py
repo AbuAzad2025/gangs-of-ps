@@ -13,7 +13,7 @@ class GameRoom(db.Model):
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
     # JSON field to store game state (board FEN, cards, turn, etc.)
-    game_state = db.Column(db.JSON, default={})
+    game_state = db.Column(db.JSON, default=dict)
 
     # Betting Logic
     currency_type = db.Column(db.String(20),

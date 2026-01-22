@@ -51,7 +51,14 @@ def start():
 
         now = datetime.now(timezone.utc)
         if now - last_chase < timedelta(minutes=5):
-            flash(_('عليك الانتظار قبل المطاردة التالية!'), 'danger')
+            flash(
+                random.choice([
+                    _('عليك الانتظار قبل المطاردة التالية!'),
+                    _('لسه بدري على مطاردة جديدة… استنى شوي.'),
+                    _('اهدأ شوي… المطاردة الجاية بعد كم دقيقة.'),
+                ]),
+                'danger',
+            )
             return redirect(url_for('police_chase.index'))
 
     # Start Active Chase Session
@@ -101,19 +108,31 @@ def escape(method):
         # Intelligence Check
         user_score = current_user.intelligence * 2 + random.randint(1, 50)
         # Bonus if in own neighborhood/location (concept)
-        msg = _('حاولت الاختباء في الأزقة الضيقة...')
+        msg = random.choice([
+            _('حاولت الاختباء في الأزقة الضيقة...'),
+            _('تخبّيت بين الحارات وحاولت تضيعهم...'),
+            _('لفّيت بين الزواريب… يمكن يخسروا أثرك...'),
+        ])
 
     elif method == 'run':
         # Agility + Vehicle Check
         user_score = current_user.agility * 2 + random.randint(1, 50)
         # Vehicle bonus could be added here
-        msg = _('دعست بنزين وحاولت تسبقهم...')
+        msg = random.choice([
+            _('دعست بنزين وحاولت تسبقهم...'),
+            _('طلعت بأقصى سرعة… بدك تفلت منهم!'),
+            _('فتحت خط… والهدف تضيعهم قبل ما يطوّقوك.'),
+        ])
 
     elif method == 'fight':
         # Strength Check
         user_score = current_user.strength * 2 + random.randint(1, 50)
         # Weapon bonus could be added here
-        msg = _('قررت تواجههم وتفتح النار!')
+        msg = random.choice([
+            _('قررت تواجههم وتفتح النار!'),
+            _('ما في هروب… واجهتهم وجهاً لوجه!'),
+            _('رفعت سلاحك وقلت: "اليوم مش رايح!"'),
+        ])
         required_score += 20  # Fighting is harder/riskier
 
     else:
@@ -127,7 +146,10 @@ def escape(method):
         _('⛔ دخلت في شارع عكس السير!'),
         _('💨 رميت عليهم قنبلة دخانية!'),
         _('🚕 استخدمت زحمة السير لصالحك!'),
-        _('🚓 صدمت سيارة دورية على الماشي!')
+        _('🚓 صدمت سيارة دورية على الماشي!'),
+        _('🛻 دخلت بين شاحنات واقفة وضيّعتهم!'),
+        _('🔦 طفيت الأنوار لحظة… ومشيت بخفة!'),
+        _('🛣️ غيّرت طريقك ثلاث مرات ورا بعض!'),
     ]
     random_event = random.choice(events)
     msg += " " + random_event
@@ -167,7 +189,11 @@ def escape(method):
         session['story'] = {
             'title': _('مطاردة الشرطة'),
             'subtitle': _('هروب ناجح'),
-            'text': msg + " " + _('ونجحت! هربت منهم وكسبت %(money)s شيكل.', money=winnings),
+            'text': msg + " " + random.choice([
+                _('ونجحت! هربت منهم وكسبت %(money)s شيكل.', money=winnings),
+                _('وفلّتت! كسبت %(money)s شيكل وأفلتّ بآخر لحظة.', money=winnings),
+                _('نجاة! ضيّعتهم وربحت %(money)s شيكل.', money=winnings),
+            ]),
             'image': image,
             'animation': animation,
             'status': 'success',
@@ -209,7 +235,11 @@ def escape(method):
             session['story'] = {
                 'title': _('مطاردة الشرطة'),
                 'subtitle': _('تدخل العصابة'),
-                'text': msg + " " + _('مسكوك الشرطة، بس فرقة الحماية تدخلت وهربوك بآخر لحظة! نفذت بريشك.'),
+                'text': msg + " " + random.choice([
+                    _('مسكوك الشرطة، بس فرقة الحماية تدخلت وهربوك بآخر لحظة! نفذت بريشك.'),
+                    _('كانت رايحة عليك… بس شباب الحماية شتتوا الشرطة وهربوك.'),
+                    _('انطوقت… وبآخر ثانية تدخلت فرقة العصابة وطلّعتك.'),
+                ]),
                 'image': image,
                 'animation': 'shield',
                 'status': 'warning',
@@ -249,7 +279,11 @@ def escape(method):
         session['story'] = {
             'title': _('مطاردة الشرطة'),
             'subtitle': _('انتهت بسجن'),
-            'text': msg + " " + _('لكنهم مسكوك! رايح عالحبس يا معلم.'),
+            'text': msg + " " + random.choice([
+                _('لكنهم مسكوك! رايح عالحبس يا معلم.'),
+                _('انمسكت… التحقيق والسجن بانتظارك.'),
+                _('خلصت… طوقتوك ومسكوّك. طريقك عالسجن.'),
+            ]),
             'image': image,
             'animation': animation,
             'status': 'danger',

@@ -166,6 +166,7 @@
 
     <!-- Custom Luxury CSS -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/palestine_luxury.css') }}?v=3.1">
+    {% block extra_css %}{% endblock %}
 </head>
 <body class="hold-transition sidebar-mini layout-fixed theme-palestine {{ body_extra_class|default('') }}">
 <div class="bg-keffiyeh-overlay"></div>
@@ -1096,6 +1097,7 @@
     });
 })();
 </script>
+{% block extra_scripts %}{% endblock %}
 {% block scripts %}{% endblock %}
 <!-- YouTube Widget -->
 <div id="youtube-widget" class="youtube-widget">

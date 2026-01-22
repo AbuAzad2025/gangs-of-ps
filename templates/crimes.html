@@ -46,17 +46,14 @@
 
 <div class="row">
     {% for crime in crimes %}
-    {# New Professional Difficulty Logic in Template #}
-    {% set difficulty_ratio = user.level / [crime.min_level, 1]|max %}
-    {% set success_chance = (60 * difficulty_ratio)|int %}
-    {% if success_chance > 95 %} {% set success_chance = 95 %} {% endif %}
-    {% if success_chance < 15 %} {% set success_chance = 15 %} {% endif %}
+    {% set success_chance = (success_chance_map.get(crime.id) if success_chance_map else 50) %}
 
     {# Check Requirements #}
     {% set is_level_ok = user.level >= crime.min_level %}
-    {% set is_str_ok = user.strength >= (crime.min_strength or 0) %}
-    {% set is_agl_ok = user.agility >= (crime.min_agility or 0) %}
-    {% set is_locked = not (is_level_ok and is_str_ok and is_agl_ok) %}
+    {% set is_str_ok = effective_strength >= (crime.min_strength or 0) %}
+    {% set is_agl_ok = effective_agility >= (crime.min_agility or 0) %}
+    {% set is_int_ok = effective_intelligence >= (crime.min_intelligence or 0) %}
+    {% set is_locked = not (is_level_ok and is_str_ok and is_agl_ok and is_int_ok) %}
     
     <div class="col-lg-3 col-md-6 mb-4 fade-in-up anim-delay-{{ loop.index if loop.index <= 20 else 20 }}">
         <div class="crime-card {{ 'locked' if is_locked else '' }}">
@@ -91,12 +88,7 @@
                 {% if crime.daily_limit and crime.daily_limit > 0 %}
                     <div class="crime-stat-row">
                         <span class="crime-stat-label"><i class="fas fa-calendar-day text-info mr-1"></i> {{ _('الحد اليومي') }}</span>
-                        {% set daily_count = 0 %}
-                        {% for c in user.crime_cooldowns %}
-                            {% if c.crime_id == crime.id and c.last_reset_date == now.date() %}
-                                {% set daily_count = c.daily_count %}
-                            {% endif %}
-                        {% endfor %}
+                        {% set daily_count = (daily_count_map.get(crime.id, 0) if daily_count_map else 0) %}
                         <span class="crime-stat-value {{ 'text-danger' if daily_count >= crime.daily_limit else 'text-info' }}">
                             {{ daily_count }} / {{ crime.daily_limit }}
                         </span>
@@ -126,6 +118,7 @@
                                 {% if not is_level_ok %}{{ _('مستوى') }} {{ crime.min_level }}{% endif %}
                                 {% if not is_str_ok %}{% if not is_level_ok %} — {% endif %}{{ _('قوة') }} {{ crime.min_strength or 0 }}{% endif %}
                                 {% if not is_agl_ok %}{% if not is_level_ok or not is_str_ok %} — {% endif %}{{ _('رشاقة') }} {{ crime.min_agility or 0 }}{% endif %}
+                                {% if not is_int_ok %}{% if not is_level_ok or not is_str_ok or not is_agl_ok %} — {% endif %}{{ _('ذكاء') }} {{ crime.min_intelligence or 0 }}{% endif %}
                             </span>
                         </div>
                     {% endif %}
@@ -176,7 +169,7 @@
                     </div>
                     
                     <!-- Requirements Section -->
-                    {% if (crime.min_strength and crime.min_strength > 0) or (crime.min_agility and crime.min_agility > 0) %}
+                    {% if (crime.min_strength and crime.min_strength > 0) or (crime.min_agility and crime.min_agility > 0) or (crime.min_intelligence and crime.min_intelligence > 0) %}
                     <div class="crime-stat-row crime-req-row">
                         <span class="crime-stat-label text-light">{{ _('المتطلبات') }}</span>
                         <div class="text-right">
@@ -188,6 +181,11 @@
                             {% if crime.min_agility and crime.min_agility > 0 %}
                                 <span class="badge {{ 'badge-success' if is_agl_ok else 'badge-danger' }} ml-1" title="{{ _('الخفة المطلوبة') }}">
                                     <i class="fas fa-running"></i> {{ crime.min_agility }}
+                                </span>
+                            {% endif %}
+                            {% if crime.min_intelligence and crime.min_intelligence > 0 %}
+                                <span class="badge {{ 'badge-success' if is_int_ok else 'badge-danger' }} ml-1" title="{{ _('الذكاء المطلوب') }}">
+                                    <i class="fas fa-brain"></i> {{ crime.min_intelligence }}
                                 </span>
                             {% endif %}
                         </div>
@@ -213,9 +211,12 @@
                         <span class="crime-countdown" data-until-ms="{{ (cooldown_end.timestamp() * 1000)|int }}">{{ _('متبقي...') }}</span>
                     </button>
                 {% elif not is_locked %}
-                    <a href="{{ url_for('main.do_crime', crime_id=crime.id) }}" class="btn btn-crime btn-block btn-lg shadow-sm shine-effect">
-                        <i class="fas fa-mask mr-2"></i> {{ _('نفذ العملية') }}
-                    </a>
+                    <form action="{{ url_for('main.do_crime', crime_id=crime.id) }}" method="POST">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                        <button type="submit" class="btn btn-crime btn-block btn-lg shadow-sm shine-effect">
+                            <i class="fas fa-mask mr-2"></i> {{ _('نفذ العملية') }}
+                        </button>
+                    </form>
                     {% if crime.reward_type == 'item' %}
                         <a href="{{ url_for('black_market.index') }}" class="btn btn-outline-info btn-block mt-2">
                             <i class="fas fa-sack-dollar mr-2"></i> {{ _('تصليح/بيع المسروقات') }}
@@ -231,6 +232,7 @@
                         {% if not is_level_ok %} {{ _('مستوى') }} {{ crime.min_level }} {% endif %}
                         {% if not is_str_ok %} {{ _('قوة') }} {{ crime.min_strength }} {% endif %}
                         {% if not is_agl_ok %} {{ _('خفة') }} {{ crime.min_agility }} {% endif %}
+                        {% if not is_int_ok %} {{ _('ذكاء') }} {{ crime.min_intelligence }} {% endif %}
                     </button>
                     <div class="mt-2 text-info small">
                         {% if not is_level_ok %}

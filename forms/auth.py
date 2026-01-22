@@ -1,5 +1,5 @@
 from flask_wtf import FlaskForm
-from wtforms import StringField, PasswordField, SubmitField, BooleanField, DateField
+from wtforms import StringField, PasswordField, SubmitField, BooleanField, DateField, SelectField
 from wtforms.validators import DataRequired, Length, EqualTo, ValidationError, Optional
 from flask_babel import lazy_gettext as _l
 from models import User
@@ -23,6 +23,16 @@ class RegistrationForm(FlaskForm):
         validators=[
             DataRequired()],
         format='%Y-%m-%d')
+    playstyle = SelectField(
+        _l('أسلوبك'),
+        choices=[
+            ('fighter', _l('مقاتل')),
+            ('trader', _l('تاجر')),
+            ('planner', _l('مخطط')),
+        ],
+        default='fighter',
+        validators=[DataRequired()],
+    )
     password = PasswordField(_l('كلمة المرور'), validators=[
         DataRequired(),
         Length(min=8, message=_l('كلمة المرور يجب أن تكون 8 خانات على الأقل')),

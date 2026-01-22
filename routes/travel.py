@@ -163,9 +163,14 @@ def fly(location_id):
             db.session.commit()
 
             flash(
-                _(
-                    '🚔 كبسة! الشرطة فتشت السيارة ولقت المهربات. تمت مصادرة البضاعة وسجنك 30 دقيقة وغرامة %(fine)s$.',
-                    fine=fine_amount),
+                random.choice([
+                    _('🚔 كبسة! فتشوا السيارة ولقوا تهريب. مصادرة + سجن 30 دقيقة + غرامة %(fine)s$.',
+                      fine=fine_amount),
+                    _('🚔 انمسكت! تفتيش مفاجئ وتهريب مكشوف. سجن 30 دقيقة وغرامة %(fine)s$.',
+                      fine=fine_amount),
+                    _('🚔 وقفوّك للتفتيش… ولقوا تهريب. سجن 30 دقيقة + غرامة %(fine)s$.',
+                      fine=fine_amount),
+                ]),
                 'danger')
             return redirect(url_for('jail.index'))
 
@@ -180,7 +185,11 @@ def fly(location_id):
                                             expected_version=None):
             db.session.commit()
             flash(
-                _('🚧 حاجز طيار فجأة طلعلك! وقفوك نص ساعة وفي الآخر رجعوك. راحت عليك أجرة الطريق.'),
+                random.choice([
+                    _('🚧 حاجز طيار فجأة طلعلك! وقفوك نص ساعة وفي الآخر رجعوك. راحت عليك أجرة الطريق.'),
+                    _('🚧 حاجز طيار! لفّوك على جنب وتدقيق… وبعدها رجّعوك. أجرة الطريق راحت.'),
+                    _('🚧 طلّعوك على حاجز طيار وتفتيش مطوّل… آخر شي رجّعوك. خسرت أجرة الطريق.'),
+                ]),
                 'danger')
             return redirect(url_for('travel.index'))
 
@@ -194,7 +203,11 @@ def fly(location_id):
         if random.random() < 0.08:  # 8% Chance
             # Strict Checkpoint
             flash(
-                _('🚧 حاجز للأمن الداخلي (حماس): "هات هويتك وشو بتعمل هون؟" تحقيق سريع ومضيت.'),
+                random.choice([
+                    _('🚧 حاجز للأمن الداخلي (حماس): "هات هويتك وشو بتعمل هون؟" تحقيق سريع ومضيت.'),
+                    _('🚧 نقطة تفتيش للأمن الداخلي: "وين رايح؟" كم سؤال وكم دقيقة ومرقت.'),
+                    _('🚧 وقفوك حاجز للأمن الداخلي… تدقيق بسيط وبعدين مشّوك.'),
+                ]),
                 'warning')
             # Potential for future expansion: Check for specific "immoral"
             # items
@@ -202,11 +215,16 @@ def fly(location_id):
     # 2. West Bank - PA Security Forces (Al-Sulta)
     elif target_name in ['رام الله', 'نابلس', 'الخليل', 'جنين', 'أريحا', 'بيت لحم', 'طولكرم']:
         if random.random() < 0.08:  # 8% Chance
-            security_branch = random.choice(['الوقائي', 'المخابرات'])
+            security_branch = random.choice([_('الوقائي'), _('المخابرات')])
             flash(
-                _(
-                    '🚓 دورية للأمن %(branch)s وقفتك: "ممنوع التجول بالسلاح هون يا شب". تفتيش وتدقيق أمني.',
-                    branch=security_branch),
+                random.choice([
+                    _('🚓 دورية للأمن %(branch)s وقفتك: "ممنوع التجول بالسلاح هون يا شب". تفتيش وتدقيق أمني.',
+                      branch=security_branch),
+                    _('🚓 طلعلك حاجز للأمن %(branch)s: تدقيق أسماء وتفتيش خفيف… وبالأخير مشّوك.',
+                      branch=security_branch),
+                    _('🚓 الأمن %(branch)s وقفك على جنب: "افتح الشنطة". تدقيق سريع وبعدين طريقك.',
+                      branch=security_branch),
+                ]),
                 'warning')
             # Potential: Confiscate weapons if we want to be harsh, but for now
             # just flavor/delay.
@@ -216,7 +234,11 @@ def fly(location_id):
         # The Wall is the main obstacle to Jerusalem
         if random.random() < 0.12:  # 12% Chance
             flash(
-                _('🧱 جدار الفصل العنصري مسكر المنطقة. اضطريت تلف طريق طويلة وتستنى "الفتحة" لتمر.'),
+                random.choice([
+                    _('🧱 جدار الفصل العنصري مسكر المنطقة. اضطريت تلف طريق طويلة وتستنى "الفتحة" لتمر.'),
+                    _('🧱 سكروا الطريق باتجاه القدس… لفيت لفّة طويلة واستنيت لحد ما فتحت.'),
+                    _('🧱 على بوابة الجدار… ازدحام وتأخير. بالأخير مرقت بعد لفّة طويلة.'),
+                ]),
                 'danger')
             # Maybe add delay?
 
@@ -254,8 +276,11 @@ def fly(location_id):
         if not is_permanent:
             # Flying Checkpoint
             if random.random() > 0.4:  # 60% chance to pass
-                msg_extra = _(
-                    " 🚧 صادفك حاجز طيار، لكن الجندي كان ملتهي بالجوال ومرقت عخير.")
+                msg_extra = random.choice([
+                    _(' 🚧 صادفك حاجز طيار، لكن الجندي كان ملتهي بالجوال ومرقت عخير.'),
+                    _(' 🚧 حاجز طيار… الجندي مشغول وخلصتها بسرعة.'),
+                    _(' 🚧 وقفوك لحظة على حاجز طيار وبعدين مشّوك.'),
+                ])
             else:
                 # Bribe logic
                 bribe = int(travel_cost * 0.5)
@@ -263,9 +288,14 @@ def fly(location_id):
                     if ResourceService.modify_resources(
                         user.id, {
                             'money': -bribe}, 'travel_bribe', auto_commit=False, expected_version=None):
-                        msg_extra = _(
-                            " 🛑 حاجز طيار! الجندي طلب هويتك وتصريح، دفعت %(bribe)s رشوة لتمشي.",
-                            bribe=bribe)
+                        msg_extra = random.choice([
+                            _(' 🛑 حاجز طيار! الجندي طلب هويتك وتصريح، دفعت %(bribe)s رشوة لتمشي.',
+                              bribe=bribe),
+                            _(' 🛑 حاجز طيار… شدّوا عليك شوي. دفعت %(bribe)s وكمّلت طريقك.',
+                              bribe=bribe),
+                            _(' 🛑 طلبوا تصريح/هوية… حلّيتها برشوة %(bribe)s ومشيت.',
+                              bribe=bribe),
+                        ])
                     else:
                         flash(_('حدث خطأ أثناء دفع الرشوة!'), 'danger')
                         return redirect(url_for('travel.index'))
@@ -279,7 +309,11 @@ def fly(location_id):
                         timezone.utc) + timedelta(minutes=jail_time)
                     db.session.commit()
                     flash(
-                        _('👮 مسكوك عالمانع! معكش تدفع الرشوة. 15 دقيقة تحقيق ميداني.'),
+                        random.choice([
+                            _('👮 مسكوك عالمانع! معكش تدفع الرشوة. 15 دقيقة تحقيق ميداني.'),
+                            _('👮 ما معكش ترشي… سحبوك عالتحقيق 15 دقيقة.'),
+                            _('👮 "وين تصريحك؟" ما قدرت تدفع… 15 دقيقة تحقيق ميداني.'),
+                        ]),
                         'danger')
                     return redirect(url_for('jail.index'))
         else:
@@ -293,15 +327,23 @@ def fly(location_id):
                     timezone.utc) + timedelta(minutes=jail_time)
                 db.session.commit()
                 flash(
-                    _(
-                        '👮 الجندي عالحاجز شاف اسمك بالقائمة السوداء! تحولت للاعتقال الإداري لمدة %(time)s دقيقة.',
-                        time=jail_time),
+                    random.choice([
+                        _('👮 الجندي عالحاجز شاف اسمك بالقائمة السوداء! تحولت للاعتقال الإداري لمدة %(time)s دقيقة.',
+                          time=jail_time),
+                        _('👮 على الحاجز: "اسمك طالع!" أخذوك اعتقال إداري %(time)s دقيقة.',
+                          time=jail_time),
+                        _('👮 تدقيق طويل… وبالأخير طلع اسمك. اعتقال إداري %(time)s دقيقة.',
+                          time=jail_time),
+                    ]),
                     'danger')
                 return redirect(url_for('jail.index'))
             else:
                 # Just delay/annoyance
-                msg_extra = _(
-                    " 🛂 أزمة عالحاجز وتفتيش دقيق، بس مرقت بعد ما طلعوا روحك.")
+                msg_extra = random.choice([
+                    _(' 🛂 أزمة عالحاجز وتفتيش دقيق، بس مرقت بعد ما طلعوا روحك.'),
+                    _(' 🛂 طابور وتفتيش… أخذ وقت، بس بالنهاية مشيت.'),
+                    _(' 🛂 دقّقوا عليك كثير وتأخرت… بس عدّت.'),
+                ])
 
     # 2. Settler Attack (5% chance) -> 16-20
     elif 16 <= event_roll <= 20:
@@ -393,9 +435,14 @@ def fly(location_id):
                                              expected_version=None)
             db.session.commit()
             flash(
-                _(
-                    '🚔 اقتحام واسع! حاصروك في الحارة وأخذوك اعتقال إداري لمدة %(time)s دقيقة.',
-                    time=jail_time),
+                random.choice([
+                    _('🚔 اقتحام واسع! حاصروك في الحارة وأخذوك اعتقال إداري لمدة %(time)s دقيقة.',
+                      time=jail_time),
+                    _('🚔 اقتحام بالمدينة… لقطوك من الشارع واعتقلوك إداريًا %(time)s دقيقة.',
+                      time=jail_time),
+                    _('🚔 الجيش مقتحم… ما لحقت تهرب. اعتقال إداري %(time)s دقيقة.',
+                      time=jail_time),
+                ]),
                 'danger')
             return redirect(url_for('jail.index'))
 
@@ -475,13 +522,22 @@ def fly(location_id):
                 timezone.utc) + timedelta(minutes=jail_time)
             db.session.commit()
             flash(
-                _(
-                    '👮 تفتيش مفاجئ! لقوا معك مهربات. "عوفر" بانتظارك لمدة %(time)s دقيقة.',
-                    time=jail_time),
+                random.choice([
+                    _('👮 تفتيش مفاجئ! لقوا معك مهربات. "عوفر" بانتظارك لمدة %(time)s دقيقة.',
+                      time=jail_time),
+                    _('👮 فتشوا السيارة ولِقوا تهريب… حولّوك عالتحقيق %(time)s دقيقة.',
+                      time=jail_time),
+                    _('👮 تفتيش دقيق… والتهريب مكشوف. سجن %(time)s دقيقة.',
+                      time=jail_time),
+                ]),
                 'danger')
             return redirect(url_for('jail.index'))
         else:
-            msg_extra = _(" 🔍 تفتيش مفاجئ ودقيق للسيارات، بس وضعك بالسليم.")
+            msg_extra = random.choice([
+                _(' 🔍 تفتيش مفاجئ ودقيق للسيارات، بس وضعك بالسليم.'),
+                _(' 🔍 فتشوا الكل… الحمد لله وضعك نظيف.'),
+                _(' 🔍 تدقيق وتفتيش… مرقت بدون مشاكل.'),
+            ])
 
     # 6. Cousin Driver (5% chance)
     elif event_roll >= 96:

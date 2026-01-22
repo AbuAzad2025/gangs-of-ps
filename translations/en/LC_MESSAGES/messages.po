@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PROJECT VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-01-17 22:22+0200\n"
+"POT-Creation-Date: 2026-01-22 10:07+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: en\n"
@@ -120,14 +120,15 @@ msgid "تفعيل الأفاتار"
 msgstr "Enable Avatar"
 
 #: admin_views.py:77 admin_views.py:128 admin_views.py:186 admin_views.py:508
-#: admin_views.py:549 admin_views.py:908 routes/black_market.py:1563
-#: templates/black_market.html:57 templates/developer/announcements.html:31
-#: templates/developer/assets.html:51 templates/developer/auctions.html:84
-#: templates/developer/crimes.html:51
+#: admin_views.py:549 admin_views.py:908 routes/black_market.py:1572
+#: routes/gameplay.py:1853 templates/black_market.html:57
+#: templates/developer/announcements.html:31 templates/developer/assets.html:51
+#: templates/developer/auctions.html:84 templates/developer/crimes.html:51
 #: templates/developer/edit_announcement.html:24
 #: templates/developer/hostesses.html:56
 #: templates/developer/organized_crimes.html:78
 #: templates/developer/tasks.html:40 templates/developer/vehicles.html:49
+#: templates/intel_report.html:52
 msgid "نشط"
 msgstr "Active"
 
@@ -216,14 +217,14 @@ msgstr "Creation Date"
 msgid "اسم المستخدم"
 msgstr "Username"
 
-#: admin_views.py:180 templates/admin/index.html:133 templates/base.html:358
+#: admin_views.py:180 templates/admin/index.html:133 templates/base.html:359
 #: templates/developer/resurrection_requests.html:20
-#: templates/leaderboard.html:31
+#: templates/leaderboard.html:69
 msgid "الرتبة"
 msgstr "Rank"
 
 #: admin_views.py:181 admin_views.py:575 templates/admin/index.html:134
-#: templates/base.html:350 templates/combat/index.html:41
+#: templates/base.html:351 templates/combat/index.html:41
 #: templates/developer/edit_user.html:74 templates/developer/gangs.html:24
 #: templates/developer/heat.html:21 templates/developer/hostesses.html:26
 #: templates/developer/user_achievements.html:19
@@ -231,7 +232,7 @@ msgstr "Rank"
 #: templates/fight.html:211 templates/gang/dashboard.html:29
 #: templates/gang/index.html:32 templates/gang/view.html:10
 #: templates/graveyard.html:135 templates/hara.html:18
-#: templates/leaderboard.html:30 templates/login.html:58
+#: templates/leaderboard.html:68 templates/login.html:58
 #: templates/login.html:76 templates/profile.html:53 templates/search.html:49
 #: templates/search.html:94
 msgid "المستوى"
@@ -267,11 +268,11 @@ msgstr "Banned Until"
 msgid "سبب الحظر"
 msgstr "reason ban"
 
-#: admin_views.py:189 templates/base.html:415
+#: admin_views.py:189 templates/base.html:416
 msgid "المخزون"
 msgstr "Inventory"
 
-#: admin_views.py:190 factory.py:934 templates/developer/dashboard.html:397
+#: admin_views.py:190 factory.py:1000 templates/developer/dashboard.html:397
 msgid "المركبات"
 msgstr "Vehicles"
 
@@ -361,7 +362,7 @@ msgid "الغرض"
 msgstr "Item/Purpose"
 
 #: admin_views.py:439 admin_views.py:991 templates/black_market.html:297
-#: templates/black_market.html:462 templates/black_market.html:476
+#: templates/black_market.html:480 templates/black_market.html:494
 #: templates/developer/distribute_resources.html:37
 #: templates/developer/factories.html:22 templates/empire.html:133
 #: templates/gang/dashboard.html:72 templates/gang/dashboard.html:90
@@ -499,6 +500,7 @@ msgstr "Leader"
 #: templates/developer/achievements.html:24
 #: templates/developer/user_achievements.html:21
 #: templates/developer/user_achievements.html:63 templates/gym.html:140
+#: templates/leaderboard.html:35
 msgid "النقاط"
 msgstr "Points"
 
@@ -535,11 +537,11 @@ msgstr "Member"
 msgid "الحدث"
 msgstr "Event"
 
-#: admin_views.py:623 routes/gang.py:84
+#: admin_views.py:623 routes/gang.py:85
 msgid "انضم للعصابة عبر دعوة"
 msgstr "Joined gang via invite"
 
-#: admin_views.py:624 routes/gang.py:145
+#: admin_views.py:624 routes/gang.py:146
 msgid "غادر العصابة"
 msgstr "Left the gang"
 
@@ -662,9 +664,9 @@ msgstr "Target"
 msgid "المبلغ"
 msgstr "Amount"
 
-#: admin_views.py:837 factory.py:612 factory.py:615 factory.py:617
-#: factory.py:659 factory.py:660 templates/bounties.html:97
-#: templates/profile.html:244
+#: admin_views.py:837 factory.py:678 factory.py:681 factory.py:683
+#: factory.py:725 factory.py:726 routes/combat.py:804 routes/combat.py:926
+#: templates/bounties.html:97 templates/profile.html:244
 msgid "مجهول"
 msgstr "Unknown"
 
@@ -789,209 +791,210 @@ msgstr "This feature is temporarily disabled for maintenance."
 msgid "لا يُسمح للإداريين بالمشاركة في اللعب لضمان النزاهة."
 msgstr "Admins are not allowed to play to ensure integrity."
 
-#: factory.py:481
+#: factory.py:547
 #, python-format
 msgid "عليك الانتظار %(seconds)s ثانية قبل القيام بمهمة أخرى!"
 msgstr "You must wait %(seconds)s seconds before doing another mission!"
 
-#: factory.py:501
+#: factory.py:567
 msgid "لقد قُتلت! أنت الآن في المقبرة."
 msgstr "You were killed! You're now in the graveyard."
 
-#: factory.py:507
+#: factory.py:573
 msgid "أنت في المستشفى! عليك العلاج أو الانتظار."
 msgstr "You're in the hospital! Heal or wait."
 
-#: factory.py:516 routes/black_market.py:991 routes/black_market.py:1076
+#: factory.py:582 routes/black_market.py:991 routes/black_market.py:1076
 #: routes/casino.py:693
 msgid "أنت في السجن!"
 msgstr "You're in jail!"
 
-#: factory.py:658
+#: factory.py:724
 #, python-format
 msgid "⚔️ %(attacker)s هاجم %(defender)s"
 msgstr "⚔️ %(attacker)s attacked %(defender)s"
 
-#: factory.py:667
+#: factory.py:733
 msgid "💡 نصيحة: قم بزيارة الجيم لزيادة قوتك!"
 msgstr "💡 Tip: Visit the gym to increase your strength!"
 
-#: factory.py:834 templates/admin/index.html:18
+#: factory.py:900 templates/admin/index.html:18
 msgid "العودة للحارة"
 msgstr "Back to the Alley"
 
-#: factory.py:839
+#: factory.py:905
 msgid "المدفوعات"
 msgstr "Payments"
 
 # Sidebar / Base
-#: factory.py:840 factory.py:846 factory.py:852 factory.py:858
-#: templates/base.html:372 templates/gang/dashboard.html:113
+#: factory.py:906 factory.py:912 factory.py:918 factory.py:924
+#: templates/base.html:373 templates/gang/dashboard.html:113
 msgid "الإدارة"
 msgstr "Administration"
 
-#: factory.py:845
+#: factory.py:911
 msgid "سجل اللعبة"
 msgstr "Game Log"
 
-#: factory.py:851 routes/developer.py:1998 routes/developer.py:2650
+#: factory.py:917 routes/developer.py:1998 routes/developer.py:2650
 #: templates/developer/config.html:8 templates/developer/dashboard.html:130
 #: templates/developer/settings.html:6
 msgid "إعدادات النظام"
 msgstr "System Settings"
 
-#: factory.py:857 templates/developer/dashboard.html:410
+#: factory.py:923 templates/developer/dashboard.html:410
 msgid "الإعلانات"
 msgstr "announcements"
 
-#: factory.py:865
+#: factory.py:931
 msgid "المستخدمين"
 msgstr "Users"
 
-#: factory.py:866 factory.py:872 factory.py:878 factory.py:885 factory.py:891
-#: factory.py:897 factory.py:903 templates/developer/dashboard.html:394
+#: factory.py:932 factory.py:938 factory.py:944 factory.py:951 factory.py:957
+#: factory.py:963 factory.py:969 templates/developer/dashboard.html:394
 #: templates/profile.html:497 templates/search.html:36
 msgid "اللاعبين"
 msgstr "Players"
 
-#: factory.py:871
+#: factory.py:937
 msgid "رتب اللاعبين"
 msgstr "Player Ranks"
 
-#: factory.py:877 routes/gang.py:26 templates/base.html:571
-#: templates/base.html:690 templates/developer/dashboard.html:407
+#: factory.py:943 routes/gang.py:27 routes/gang.py:681 templates/base.html:572
+#: templates/base.html:691 templates/developer/dashboard.html:407
 #: templates/gang/index.html:8 templates/guide.html:30 templates/hara.html:140
 #: templates/search.html:72
 msgid "العصابات"
 msgstr "Gangs"
 
-#: factory.py:884
+#: factory.py:950
 msgid "حروب العصابات"
 msgstr "Gang Wars"
 
-#: factory.py:890 templates/casino/index.html:88
+#: factory.py:956 templates/casino/index.html:88
 #: templates/developer/dashboard.html:414 templates/guide.html:191
 msgid "المضيفات"
 msgstr "Hostesses"
 
-#: factory.py:896 templates/developer/hostess_trainer.html:66
+#: factory.py:962 templates/developer/hostess_trainer.html:66
 #: templates/developer/hostess_trainer.html:119
 msgid "قاعدة المعرفة"
 msgstr "Knowledge Base"
 
-#: factory.py:902
+#: factory.py:968
 msgid "سجل التعلم"
 msgstr "Learning Log"
 
-#: factory.py:910 templates/base.html:429 templates/base.html:688
+#: factory.py:976 templates/base.html:430 templates/base.html:689
 #: templates/developer/dashboard.html:405 templates/hara.html:122
 msgid "الجرائم"
 msgstr "Crimes"
 
-#: factory.py:911 factory.py:917 factory.py:923 factory.py:929 factory.py:935
-#: factory.py:941 factory.py:947
+#: factory.py:977 factory.py:983 factory.py:989 factory.py:995 factory.py:1001
+#: factory.py:1007 factory.py:1013
 msgid "عالم اللعبة"
 msgstr "Game World"
 
-#: factory.py:916 templates/base.html:435
+#: factory.py:982 routes/gameplay.py:61 templates/base.html:436
 #: templates/developer/dashboard.html:406 templates/gang/dashboard.html:46
 #: templates/gang/organized_crimes.html:13 templates/guide.html:80
 #: templates/organized_crimes.html:3 templates/organized_crimes.html:8
 msgid "الجرائم المنظمة"
 msgstr "Organized Crimes"
 
-#: factory.py:922 templates/developer/dashboard.html:396
+#: factory.py:988 templates/developer/dashboard.html:396
 msgid "الأغراض"
 msgstr "Items"
 
-#: factory.py:928
+#: factory.py:994
 msgid "المناطق"
 msgstr "Zones"
 
-#: factory.py:940 templates/gang/dashboard.html:107
+#: factory.py:1006 templates/gang/dashboard.html:107
 msgid "الممتلكات"
 msgstr "Properties"
 
-#: factory.py:946 routes/developer.py:2475 templates/base.html:447
+#: factory.py:1012 routes/developer.py:2475 templates/base.html:448
 #: templates/daily_tasks.html:8 templates/developer/dashboard.html:409
 msgid "المهام اليومية"
 msgstr "Daily Tasks"
 
-#: factory.py:954
+#: factory.py:1020
 msgid "الأسهم والعملات"
 msgstr "Stocks & Currencies"
 
-#: factory.py:955 factory.py:961 factory.py:967 factory.py:973
+#: factory.py:1021 factory.py:1027 factory.py:1033 factory.py:1039
 msgid "الاقتصاد"
 msgstr "Economy"
 
-#: factory.py:960
+#: factory.py:1026
 msgid "استثمارات اللاعبين"
 msgstr "Player Investments"
 
-#: factory.py:966
+#: factory.py:1032
 msgid "أوامر السبوت"
 msgstr "commands spot"
 
-#: factory.py:972
+#: factory.py:1038
 msgid "صفقات الفيوتشر"
 msgstr "trades futures"
 
-#: factory.py:980
+#: factory.py:1046
 msgid "مخزون اللاعبين"
 msgstr "inventory Players"
 
-#: factory.py:981 factory.py:987 factory.py:993 factory.py:999 factory.py:1005
-#: factory.py:1011 factory.py:1017 factory.py:1023 factory.py:1029
+#: factory.py:1047 factory.py:1053 factory.py:1059 factory.py:1065
+#: factory.py:1071 factory.py:1077 factory.py:1083 factory.py:1089
+#: factory.py:1095
 msgid "المراقبة"
 msgstr "Monitoring"
 
-#: factory.py:986 templates/developer/dashboard.html:408
+#: factory.py:1052 templates/developer/dashboard.html:408
 msgid "المكافآت"
 msgstr "rewards"
 
-#: factory.py:992
+#: factory.py:1058
 msgid "الفائزين"
 msgstr "Winners"
 
-#: factory.py:998
+#: factory.py:1064
 msgid "سجل القتال"
 msgstr "log Combat"
 
-#: factory.py:1004
+#: factory.py:1070
 msgid "سجل اللاعبين"
 msgstr "Players Log"
 
-#: factory.py:1010 templates/index.html:304
+#: factory.py:1076 templates/index.html:304
 msgid "سجل العصابات"
 msgstr "log Gangs"
 
-#: factory.py:1016
+#: factory.py:1082
 msgid "مركبات المستخدمين"
 msgstr "User Vehicles"
 
-#: factory.py:1022
+#: factory.py:1088
 msgid "الإحالات"
 msgstr "Referrals"
 
-#: factory.py:1028
+#: factory.py:1094
 msgid "الرسائل"
 msgstr "Messages"
 
-#: factory.py:1036
+#: factory.py:1102
 msgid "أقسام المنتدى"
 msgstr "sections forum"
 
-#: factory.py:1037 factory.py:1043 factory.py:1049 templates/base.html:567
+#: factory.py:1103 factory.py:1109 factory.py:1115 templates/base.html:568
 msgid "المجتمع"
 msgstr "Community"
 
-#: factory.py:1042 templates/developer/forum/index.html:29
+#: factory.py:1108 templates/developer/forum/index.html:29
 #: templates/forum/index.html:21
 msgid "المواضيع"
 msgstr "Topics"
 
-#: factory.py:1048
+#: factory.py:1114
 msgid "الردود"
 msgstr "Replies"
 
@@ -1011,68 +1014,78 @@ msgstr "Combat"
 msgid "تسوق"
 msgstr "Shopping"
 
-#: models/gameplay.py:212 templates/casino/bar.html:36
+#: models/gameplay.py:195
+#, fuzzy
+msgid "استخبارات"
+msgstr "Intelligence"
+
+#: models/gameplay.py:196
+#, fuzzy
+msgid "عصابات"
+msgstr "Gangs"
+
+#: models/gameplay.py:214 templates/casino/bar.html:36
 #: templates/casino/racing/index.html:296
 #: templates/casino/racing/index.html:301 templates/intel_center.html:25
-#: templates/intel_center.html:88 templates/story.html:187
+#: templates/intel_center.html:88 templates/story.html:191
 msgid "شيكل"
 msgstr "Shekel"
 
-#: models/gameplay.py:214 templates/developer/organized_crimes.html:178
+#: models/gameplay.py:216 templates/developer/organized_crimes.html:178
 msgid "خبرة"
 msgstr "Experience"
 
-#: models/user.py:899 models/user.py:951 models/user.py:1000
+#: models/user.py:900 models/user.py:952 models/user.py:1001
 msgid "عراب"
 msgstr "Godfather"
 
-#: models/user.py:904 models/user.py:914 models/user.py:956 models/user.py:966
-#: models/user.py:998
+#: models/user.py:905 models/user.py:915 models/user.py:957 models/user.py:967
+#: models/user.py:999
 msgid "زعيم"
 msgstr "Leader"
 
-#: models/user.py:908 models/user.py:918 models/user.py:960 models/user.py:970
-#: models/user.py:996
+#: models/user.py:909 models/user.py:919 models/user.py:961 models/user.py:971
+#: models/user.py:997
 msgid "وكيل"
 msgstr "Underboss"
 
-#: models/user.py:976
+#: models/user.py:977
 msgid "متشرد"
 msgstr "Hobo"
 
-#: models/user.py:978
+#: models/user.py:979
 msgid "نشال"
 msgstr "Pickpocket"
 
-#: models/user.py:980
+#: models/user.py:981
 msgid "لص"
 msgstr "Thief"
 
-#: models/user.py:982
+#: models/user.py:983
 msgid "بلطجي"
 msgstr "Thug"
 
-#: models/user.py:984
+#: models/user.py:985
 msgid "مجرم"
 msgstr "Criminal"
 
-#: models/user.py:986
+#: models/user.py:987
 msgid "قاتل مأجور"
 msgstr "Hitman"
 
-#: models/user.py:988
+#: models/user.py:989
 msgid "جندي"
 msgstr "Soldier"
 
-#: models/user.py:990
+#: models/user.py:991
 msgid "كابتن"
 msgstr "Captain"
 
-#: models/user.py:992
+#: models/user.py:993
 msgid "محترف"
 msgstr "Professional"
 
-#: models/user.py:994
+#: models/user.py:995
 msgid "مستشار"
 msgstr "Consigliere"
 
@@ -1139,8 +1152,8 @@ msgstr "No specific reason"
 msgid "هذا الحساب محظور مؤقتاً حتى %(date)s. السبب: %(reason)s"
 msgstr "This account is temporarily banned until %(date)s. Reason: %(reason)s"
 
-#: routes/auth.py:360 routes/auth.py:391 routes/auth.py:429
-#: templates/base.html:306 templates/social/chat_room.html:98
+#: routes/auth.py:360 routes/auth.py:391 routes/auth.py:430
+#: templates/base.html:307 templates/social/chat_room.html:98
 msgid "إنشاء حساب"
 msgstr "Register"
 
@@ -1153,44 +1166,44 @@ msgstr "Thanks for registering in Gangs of Palestine."
 msgid "رمز التحقق غير صحيح! حاول مرة أخرى."
 msgstr "Incorrect verification code! Try again."
 
-#: routes/auth.py:418
+#: routes/auth.py:419
 msgid "حصلت على 10 ماسات مكافأة تسجيل عبر دعوة!"
 msgstr "You got 10 diamonds referral reward!"
 
-#: routes/auth.py:423
+#: routes/auth.py:424
 msgid "تم إنشاء الحساب بنجاح! يمكنك تسجيل الدخول الآن."
 msgstr "Account created successfully! You can login now."
 
-#: routes/auth.py:437 routes/auth.py:441
+#: routes/auth.py:438 routes/auth.py:442
 msgid "رابط التفعيل غير صالح أو منتهي الصلاحية."
 msgstr "Activation link is invalid or expired."
 
-#: routes/auth.py:447
+#: routes/auth.py:448
 msgid "الحساب مفعل مسبقاً! قم بتسجيل الدخول."
 msgstr "Account already activated! Please login."
 
-#: routes/auth.py:452
+#: routes/auth.py:453
 msgid "تم تفعيل حسابك بنجاح! شكراً لك."
 msgstr "Account activated successfully! Thank you."
 
-#: routes/auth.py:462
+#: routes/auth.py:463
 #, fuzzy
 msgid "حساب غير مفعل"
 msgstr "Account Unconfirmed"
 
-#: routes/auth.py:463
+#: routes/auth.py:464
 msgid "هذه الصفحة خاصة بتفعيل الحساب."
 msgstr ""
 
-#: routes/auth.py:487
+#: routes/auth.py:488
 msgid "تفعيل حسابك في Gangs of Palestine"
 msgstr "Activate your account in Gangs of Palestine"
 
-#: routes/auth.py:490
+#: routes/auth.py:491
 msgid "تم إعادة إرسال رابط التفعيل إلى بريدك الإلكتروني."
 msgstr "Activation link resent to your email."
 
-#: routes/auth.py:494
+#: routes/auth.py:495
 msgid "الرجاء تسجيل الدخول أولاً لإعادة إرسال التفعيل."
 msgstr "Please login first to resend activation."
 
@@ -1207,7 +1220,7 @@ msgid "أنت تتدرب ولا يمكنك استخدام البنك!"
 msgstr "You training and cannot you can Use Bank!"
 
 #: routes/bank.py:52 routes/bank.py:56 routes/bank.py:110 routes/bank.py:171
-#: routes/bank.py:179 routes/gang.py:886 routes/gang.py:959
+#: routes/bank.py:179 routes/gang.py:901 routes/gang.py:974
 msgid "مبلغ غير صالح!"
 msgstr "Invalid amount!"
 
@@ -1233,7 +1246,7 @@ msgstr "Done withdraw %(amount)s from Bank."
 msgid "يجب تحديد اسم المستلم!"
 msgstr "Recipient name required!"
 
-#: routes/bank.py:189 routes/bounties.py:43 routes/social.py:284
+#: routes/bank.py:189 routes/bounties.py:43 routes/social.py:294
 msgid "المستخدم غير موجود!"
 msgstr "User not found!"
 
@@ -1396,9 +1409,9 @@ msgstr "Invalid quantity!"
 msgid "ليس لديك مال كافي!"
 msgstr "You don't have enough money!"
 
-#: routes/black_market.py:1031 routes/black_market.py:1241
-#: routes/black_market.py:1288 routes/black_market.py:1450
-#: routes/black_market.py:1644
+#: routes/black_market.py:1031 routes/black_market.py:1242
+#: routes/black_market.py:1291 routes/black_market.py:1459
+#: routes/black_market.py:1652
 msgid "حدث خطأ أثناء الشراء. حاول مرة أخرى."
 msgstr "Error processing purchase. Please try again."
 
@@ -1411,7 +1424,7 @@ msgstr "Bought %(qty)s of %(name)s for %(price)s each."
 msgid "لا تملك هذا الغرض!"
 msgstr "You don't own this item!"
 
-#: routes/black_market.py:1129 routes/black_market.py:1714
+#: routes/black_market.py:1129 routes/black_market.py:1722
 msgid "حدث خطأ أثناء البيع. حاول مرة أخرى."
 msgstr "Error processing sale. Please try again."
 
@@ -1443,87 +1456,87 @@ msgstr "You are in the hospital and cannot access the Black Market!"
 msgid "أنت تتدرب ولا يمكنك التعامل مع السوق السوداء!"
 msgstr "You are training and cannot access the Black Market!"
 
-#: routes/black_market.py:1210 routes/black_market.py:1493
+#: routes/black_market.py:1210 routes/black_market.py:1502
 #: routes/factory.py:467 routes/farm.py:812
 #, python-format
 msgid "طور نفسك لفتحها: %(reason)s"
 msgstr "Develop yourself to unlock: %(reason)s"
 
-#: routes/black_market.py:1229
+#: routes/black_market.py:1230
 #, python-format
 msgid "تحتاج إلى %(cost)s$ لاستئجار منزل آمن!"
 msgstr "You need %(cost)s$ to rent a safe house!"
 
-#: routes/black_market.py:1258
+#: routes/black_market.py:1260
 msgid "تم استئجار المنزل الآمن لمدة 24 ساعة! لا يمكن لأحد مهاجمتك الآن."
 msgstr "Safe house rented for 24 hours! No one can attack you now."
 
-#: routes/black_market.py:1276
+#: routes/black_market.py:1279
 #, python-format
 msgid "تحتاج إلى %(cost)s$ لشراء تنكر!"
 msgstr "You need %(cost)s$ to buy a disguise!"
 
-#: routes/black_market.py:1299
+#: routes/black_market.py:1308
 msgid "تم تفعيل التخفي لمدة ساعة! سيظهر اسمك كمجهول عند الهجوم."
 msgstr ""
 "Disguise activated for one hour! Your name will appear as Unknown when "
 "attacking."
 
-#: routes/black_market.py:1308
+#: routes/black_market.py:1317
 msgid "حرارتك صفر… خليك هادي."
 msgstr "Your heat is zero... Stay cool."
 
-#: routes/black_market.py:1313
+#: routes/black_market.py:1322
 #, python-format
 msgid "تحتاج إلى %(cost)s$ لتخفيف الحرارة الحالية."
 msgstr "You need %(cost)s$ to lower your heat."
 
-#: routes/black_market.py:1321 routes/black_market.py:1547
+#: routes/black_market.py:1330 routes/black_market.py:1556
 msgid "حدث خطأ أثناء العملية. حاول مرة أخرى."
 msgstr "An error occurred. Please try again."
 
-#: routes/black_market.py:1328
+#: routes/black_market.py:1337
 msgid "دفعت رشوة ونظفت آثارك. الحرارة انخفضت."
 msgstr "You paid a bribe and cleaned your tracks. Heat decreased."
 
-#: routes/black_market.py:1331
+#: routes/black_market.py:1340
 msgid "خدمة غير معروفة!"
 msgstr "Unknown service!"
 
-#: routes/black_market.py:1347
+#: routes/black_market.py:1356
 msgid "الكمية غير صحيحة!"
 msgstr "Invalid quantity!"
 
-#: routes/black_market.py:1357
+#: routes/black_market.py:1366
 msgid "أنت في السجن ولا يمكنك شراء الرصاص!"
 msgstr "You are in jail and cannot buy bullets!"
 
-#: routes/black_market.py:1365
+#: routes/black_market.py:1374
 msgid "أنت في المستشفى ولا يمكنك شراء الرصاص!"
 msgstr "You are in the hospital and cannot buy bullets!"
 
-#: routes/black_market.py:1373
+#: routes/black_market.py:1382
 msgid "أنت تتدرب ولا يمكنك شراء الرصاص!"
 msgstr "You are training and cannot buy bullets!"
 
-#: routes/black_market.py:1384 routes/black_market.py:1874
+#: routes/black_market.py:1393 routes/black_market.py:1882
 #: routes/factory.py:482 routes/factory.py:653 routes/farm.py:520
 #: routes/farm.py:692 routes/farm.py:723 routes/farm.py:835 routes/farm.py:958
-#: routes/graveyard.py:102
+#: routes/graveyard.py:112
 #, python-format
 msgid "ليس لديك ما يكفي من الماس! تحتاج إلى %(cost)s ماسة."
 msgstr "Not enough diamonds! You need %(cost)s diamonds."
 
-#: routes/black_market.py:1391
+#: routes/black_market.py:1400
 #, python-format
 msgid "تم شراء %(qty)s رصاصة مقابل %(cost)s ماسة!"
 msgstr "Purchased %(qty)s bullets for %(cost)s diamonds!"
 
-#: routes/black_market.py:1401
+#: routes/black_market.py:1410
 msgid "الذخيرة يتم إنتاجها من المصانع فقط (أو شراؤها بالماس)."
 msgstr "Ammo is produced in factories only (or bought with diamonds)."
 
-#: routes/black_market.py:1423
+#: routes/black_market.py:1432
 #, python-format
 msgid ""
 "لقد تجاوزت الحد اليومي لشراء الرصاص بالكاش! (%(limit)s). المتبقي لك "
@@ -1532,197 +1545,199 @@ msgstr ""
 "You have exceeded the daily limit for buying bullets with cash! "
 "(%(limit)s). Remaining for today: %(rem)s"
 
-#: routes/black_market.py:1433 routes/racing.py:302 routes/racing.py:319
+#: routes/black_market.py:1442 routes/racing.py:302 routes/racing.py:319
 #: routes/racing.py:749 routes/racing.py:762
 msgid "معكش مصاري كفاية!"
 msgstr "You don't have enough money!"
 
-#: routes/black_market.py:1438
+#: routes/black_market.py:1447
 #, python-format
 msgid "تم شراء %(qty)s رصاصة بنجاح!"
 msgstr "Purchased %(qty)s bullets successfully!"
 
-#: routes/black_market.py:1470
+#: routes/black_market.py:1479
 msgid "أنت في السجن ولا يمكنك إرسال مخبرين!"
 msgstr "You are in jail and cannot send informants!"
 
-#: routes/black_market.py:1478
+#: routes/black_market.py:1487
 msgid "أنت في المستشفى ولا يمكنك إرسال مخبرين!"
 msgstr "You are in the hospital and cannot send informants!"
 
-#: routes/black_market.py:1486
+#: routes/black_market.py:1495
 msgid "أنت تتدرب ولا يمكنك إرسال مخبرين!"
 msgstr "You are training and cannot send informants!"
 
-#: routes/black_market.py:1499
+#: routes/black_market.py:1508
 msgid "يرجى إدخال اسم اللاعب!"
 msgstr "Please enter a player name!"
 
-#: routes/black_market.py:1504
+#: routes/black_market.py:1513
 msgid "اللاعب غير موجود!"
 msgstr "Player not found!"
 
-#: routes/black_market.py:1508
+#: routes/black_market.py:1517
 msgid "لا يمكنك التجسس على نفسك!"
 msgstr "You cannot spy on yourself!"
 
-#: routes/black_market.py:1531
+#: routes/black_market.py:1540
 #, python-format
 msgid "تحتاج إلى %(cost)s$ لعملية التجسس هذه!"
 msgstr "You need %(cost)s$ for this spy operation!"
 
-#: routes/black_market.py:1559 routes/combat.py:199 templates/travel.html:20
+#: routes/black_market.py:1568 routes/combat.py:204 templates/travel.html:20
 msgid "غير معروف"
 msgstr "Unknown"
 
-#: routes/black_market.py:1564 templates/black_market.html:59
-#: templates/developer/announcements.html:33 templates/developer/assets.html:53
-#: templates/developer/crimes.html:53 templates/developer/hostesses.html:58
+#: routes/black_market.py:1573 routes/gameplay.py:1853
+#: templates/black_market.html:59 templates/developer/announcements.html:33
+#: templates/developer/assets.html:53 templates/developer/crimes.html:53
+#: templates/developer/hostesses.html:58
 #: templates/developer/organized_crimes.html:80
 #: templates/developer/tasks.html:42 templates/developer/vehicles.html:51
+#: templates/intel_report.html:52
 msgid "غير نشط"
 msgstr "Inactive"
 
-#: routes/black_market.py:1567
+#: routes/black_market.py:1576
 msgid "تقرير استخباراتي عن الهدف:"
 msgstr "Intelligence report on target:"
 
-#: routes/black_market.py:1569
+#: routes/black_market.py:1578
 msgid "الموقع الحالي:"
 msgstr "Current Location:"
 
-#: routes/black_market.py:1570
+#: routes/black_market.py:1579 routes/gameplay.py:1867
 msgid "المنزل الآمن:"
 msgstr "Safe House:"
 
-#: routes/black_market.py:1571
+#: routes/black_market.py:1580 routes/gameplay.py:1860
 msgid "المستوى:"
 msgstr "Level:"
 
-#: routes/black_market.py:1572
+#: routes/black_market.py:1581
 msgid "الصحة المقدرة:"
 msgstr "Estimated Health:"
 
-#: routes/black_market.py:1573
+#: routes/black_market.py:1582 routes/gameplay.py:1863
 msgid "الدفاع:"
 msgstr "Defense:"
 
-#: routes/black_market.py:1574
+#: routes/black_market.py:1583
 msgid "رصاصات للقتل (تقريبي):"
 msgstr "Bullets to kill (approx):"
 
-#: routes/black_market.py:1574 templates/black_market.html:285
+#: routes/black_market.py:1583 templates/black_market.html:285
 #: templates/black_market.html:299 templates/black_market.html:320
 #: templates/black_market.html:321 templates/black_market.html:322
 #: templates/black_market.html:323
 msgid "رصاصة"
 msgstr "Bullet"
 
-#: routes/black_market.py:1575
+#: routes/black_market.py:1584 routes/gameplay.py:1865
 msgid "الكاش:"
 msgstr "Cash:"
 
-#: routes/black_market.py:1578
+#: routes/black_market.py:1586
 msgid "ملاحظة: هذه المعلومات دقيقة وقت طلب التقرير وقد تتغير."
 msgstr "Note: Information accurate at time of report and may change."
 
-#: routes/black_market.py:1585
-#, python-format
-msgid "تقرير سري: %(name)s"
+#: routes/black_market.py:1593
+#, fuzzy, python-format
+msgid "استخبارات: تقرير مخبر عن %(name)s"
 msgstr "Secret Report: %(name)s"
 
-#: routes/black_market.py:1604
+#: routes/black_market.py:1612
 #, python-format
 msgid "بدأ المخبر العمل. التكلفة: %(cost)s$. سيصل التقرير خلال %(time)s دقيقة."
 msgstr "Informant dispatched. Cost: %(cost)s$. Report arrives in %(time)s minutes."
 
-#: routes/black_market.py:1618
+#: routes/black_market.py:1626
 msgid "هذا الغرض غير متوفر في السوق السوداء!"
 msgstr "This item is not available in the Black Market!"
 
-#: routes/black_market.py:1633 routes/economy.py:237
+#: routes/black_market.py:1641 routes/economy.py:237
 msgid "معكش مصاري كفاية يا معلم!"
 msgstr "Not enough money, boss!"
 
-#: routes/black_market.py:1679
+#: routes/black_market.py:1687
 #, python-format
 msgid "تم شراء %(name)s من السوق السوداء بنجاح!"
 msgstr "Successfully bought %(name)s from the Black Market!"
 
-#: routes/black_market.py:1692 routes/black_market.py:1777
-#: routes/gameplay.py:1427 routes/gameplay.py:1458
+#: routes/black_market.py:1700 routes/black_market.py:1785
+#: routes/gameplay.py:1629 routes/gameplay.py:1660
 msgid "هذا الغرض ليس ملكك!"
 msgstr "This item is not yours!"
 
-#: routes/black_market.py:1696
+#: routes/black_market.py:1704
 msgid "لا يمكنك بيع هذا الغرض هنا! فقط المسروقات."
 msgstr "You can't sell this item here! Only loot."
 
-#: routes/black_market.py:1700
+#: routes/black_market.py:1708
 msgid "لا يمكن بيع مسروقات متضررة! قم بإصلاحها أولاً."
 msgstr "Cannot sell damaged loot! Repair it first."
 
-#: routes/black_market.py:1739
+#: routes/black_market.py:1747
 #, python-format
 msgid "تم بيع %(name)s مقابل %(price)s شيكل."
 msgstr "Sold %(name)s for %(price)s shekels."
 
-#: routes/black_market.py:1754
+#: routes/black_market.py:1762
 msgid "أنت في السجن ولا يمكنك إصلاح المسروقات!"
 msgstr "You in jail and cannot you can repair Loot!"
 
-#: routes/black_market.py:1762
+#: routes/black_market.py:1770
 msgid "أنت في المستشفى ولا يمكنك إصلاح المسروقات!"
 msgstr "You are in the hospital and cannot repair loot!"
 
-#: routes/black_market.py:1770
+#: routes/black_market.py:1778
 msgid "أنت تتدرب ولا يمكنك إصلاح المسروقات!"
 msgstr "You are training and cannot repair loot!"
 
-#: routes/black_market.py:1780
+#: routes/black_market.py:1788
 msgid "فقط المسروقات يمكن إصلاحها هنا."
 msgstr "Only loot can be repaired here."
 
-#: routes/black_market.py:1784
+#: routes/black_market.py:1792
 msgid "الغرض سليم ولا يحتاج لإصلاح."
 msgstr "Item is intact and does not need repair."
 
-#: routes/black_market.py:1795
+#: routes/black_market.py:1803
 #, python-format
 msgid "تحتاج %(cost)s شيكل لإصلاح المسروقات!"
 msgstr "You need %(cost)s shekels to repair loot!"
 
-#: routes/black_market.py:1802 routes/black_market.py:1847
+#: routes/black_market.py:1810 routes/black_market.py:1855
 msgid "حدث خطأ أثناء الإصلاح. حاول مرة أخرى."
 msgstr "Error processing repair. Please try again."
 
-#: routes/black_market.py:1808
+#: routes/black_market.py:1816
 msgid "تم إصلاح المسروقات وأصبحت جاهزة للبيع."
 msgstr "Loot repaired and ready for sale."
 
-#: routes/black_market.py:1824
+#: routes/black_market.py:1832
 msgid "لا يوجد مسروقات متضررة لإصلاحها."
 msgstr "No damaged loot to repair."
 
-#: routes/black_market.py:1834
+#: routes/black_market.py:1842
 #, python-format
 msgid "تحتاج %(cost)s شيكل لإصلاح كل المسروقات! لديك %(money)s فقط."
 msgstr "You need %(cost)s shekels to repair all loot! You only have %(money)s."
 
-#: routes/black_market.py:1855
+#: routes/black_market.py:1863
 #, python-format
 msgid "تم إصلاح كل المسروقات (%(count)d قطعة) بتكلفة %(cost)s شيكل."
 msgstr "Repaired all loot (%(count)d items) for %(cost)s shekels."
 
-#: routes/black_market.py:1866 routes/farm.py:659 templates/farm.html:224
+#: routes/black_market.py:1874 routes/farm.py:659 templates/farm.html:246
 msgid "طور مرافقك لفتح عقد التوريد."
 msgstr "Upgrade your facilities to unlock supply contracts."
 
-#: routes/black_market.py:1886
+#: routes/black_market.py:1894
 msgid "حدث خطأ أثناء التمديد. حاول مرة أخرى."
 msgstr "Error extending contract. Please try again."
 
-#: routes/black_market.py:1939
+#: routes/black_market.py:1947
 #, python-format
 msgid "تم تمديد عقد التوريد. +%(pct)s%% لمدة %(min)s دقيقة."
 msgstr "Supply contract extended. +%(pct)s%% for %(min)s minutes."
@@ -2005,105 +2020,126 @@ msgstr "Our time is up, dear. Renew the contract if you want more."
 msgid "من انت؟"
 msgstr "Who are you?"
 
-#: routes/combat.py:110
+#: routes/combat.py:111
 msgid "لا يمكنك مهاجمة نفسك!"
 msgstr "You cannot attack yourself!"
 
-#: routes/combat.py:121
+#: routes/combat.py:122
 msgid "أنت في السجن ولا يمكنك القتال!"
 msgstr "You are in jail and cannot fight!"
 
-#: routes/combat.py:129
+#: routes/combat.py:130
 msgid "أنت في المستشفى ولا يمكنك القتال!"
 msgstr "You are in the hospital and cannot fight!"
 
-#: routes/combat.py:137
+#: routes/combat.py:138
 msgid "أنت تتدرب ولا يمكنك القتال!"
 msgstr "You are training and cannot fight!"
 
-#: routes/combat.py:147
+#: routes/combat.py:148
 msgid "انتظر قليلاً قبل الهجوم التالي!"
 msgstr "Wait a bit before the next attack!"
 
-#: routes/combat.py:154
+#: routes/combat.py:155
 msgid "صحتك منخفضة جداً للقتال!"
 msgstr "Your health is too low to fight!"
 
-#: routes/combat.py:167
+#: routes/combat.py:168
 msgid "هذا اللاعب تحت حماية الإدارة ولا يمكن مهاجمته!"
 msgstr "This player is under admin protection and cannot be attacked!"
 
-#: routes/combat.py:176
+#: routes/combat.py:177
 msgid "هذا اللاعب تحت حماية \"العراب\" (لاعب جديد لمدة أسبوع) ولا يمكن مهاجمته!"
 msgstr ""
 "This player is under 'Godfather' protection (new player for a week) and "
 "cannot be attacked!"
 
-#: routes/combat.py:191
+#: routes/combat.py:194
+#, fuzzy
 msgid ""
 "لا يمكنك الهجوم على هذا اللاعب دون معلومات استخباراتية! استأجر مخبراً من "
-"السوق السوداء أولاً."
+"السوق السوداء أو نفّذ تحريات ناجحة أولاً."
 msgstr "Cannot attack without intel! Hire a spy from the Black Market first."
 
-#: routes/combat.py:200
+#: routes/combat.py:205
 #, python-format
 msgid "يجب أن تكون في نفس المدينة لتنفيذ الهجوم! الهدف متواجد في %(city)s."
 msgstr "You must be in the same city to attack! The target is in %(city)s."
 
-#: routes/combat.py:222
+#: routes/combat.py:227
 msgid "تحتاج إلى متفجرات C4 لتفجير المنزل الآمن!"
 msgstr "You need C4 explosives to blow up the safe house!"
 
-#: routes/combat.py:236
+#: routes/combat.py:241
 msgid "حدث خطأ أثناء استخدام C4!"
 msgstr "Error using C4!"
 
-#: routes/combat.py:246
+#: routes/combat.py:284
 msgid "تم تفجير المنزل الآمن بنجاح! الهدف مكشوف الآن."
 msgstr "Safe house blown up successfully! Target is now exposed."
 
-#: routes/combat.py:252
+#: routes/combat.py:289
+#, fuzzy
+msgid "تم اقتحام منزلك الآمن"
+msgstr "Safe House:"
+
+#: routes/combat.py:290
+#, fuzzy
+msgid "تم تفجير منزلك الآمن وأصبحت مكشوفاً للهجوم."
+msgstr "Safe house blown up successfully! Target is now exposed."
+
+#: routes/combat.py:299
+#, fuzzy
+msgid "تفجير منزل آمن"
+msgstr "Breach Safe House (requires C4)"
+
+#: routes/combat.py:300
+#, fuzzy, python-format
+msgid "فجّرت المنزل الآمن لـ %(target)s."
+msgstr "Breach Safe House (requires C4)"
+
+#: routes/combat.py:310
 msgid "الهدف يحتمي داخل منزل آمن! تحتاج لتفجيره أولاً باستخدام C4."
 msgstr "Target is hiding in a safe house! You need to blow it up with C4 first."
 
-#: routes/combat.py:262
+#: routes/combat.py:320
 msgid "هذا اللاعب في المستشفى حالياً"
 msgstr "This player is currently in the hospital"
 
-#: routes/combat.py:271
+#: routes/combat.py:329
 msgid "هذا اللاعب في السجن حالياً"
 msgstr "This player is currently in jail"
 
-#: routes/combat.py:281
+#: routes/combat.py:339
 msgid "لا يمكنك مهاجمة عضو في نفس العصابة!"
 msgstr "You cannot attack a member of the same gang!"
 
-#: routes/combat.py:293
+#: routes/combat.py:351
 msgid "لا يمكنك مهاجمة حليف! بينكما معاهدة سلام."
 msgstr "Cannot attack an ally! You have a peace treaty."
 
-#: routes/combat.py:311
+#: routes/combat.py:369
 #, python-format
 msgid "ما معك رصاص كافي لسلاحك! تحتاج %(ammo)s رصاصة."
 msgstr "You don't have enough ammo for your weapon! You need %(ammo)s bullets."
 
-#: routes/combat.py:324
+#: routes/combat.py:382
 msgid "ما معك رصاص كافي لسلاحك!"
 msgstr "Not enough ammo for your weapon!"
 
-#: routes/combat.py:434
+#: routes/combat.py:492
 #, python-format
 msgid " ووجدت في جيوبه %(bullets)s رصاصة!"
 msgstr " and found %(bullets)s bullets in their pockets!"
 
-#: routes/combat.py:475 routes/gameplay.py:389 routes/gym.py:212
+#: routes/combat.py:533 routes/gameplay.py:413 routes/gym.py:212
 #, python-format
 msgid "أصبحت زعيم مستوى %(level)s في عصابات فلسطين! هل تجرؤ على تحديي؟ %(url)s"
 msgstr ""
 "I became a level %(level)s boss in Gangs of Palestine! Dare to challenge "
 "me? %(url)s"
 
-#: routes/combat.py:481 routes/gameplay.py:395 routes/gym.py:219
+#: routes/combat.py:539 routes/gameplay.py:419 routes/gym.py:219
 #, python-format
 msgid ""
 "مبروك! وصلت للمستوى %(level)s! <a href=\"%(url)s\" target=\"_blank\" "
@@ -2114,85 +2150,106 @@ msgstr ""
 "target=\"_blank\" class=\"btn btn-sm btn-success ml-2\"><i class=\"fab "
 "fa-whatsapp\"></i> Share</a>"
 
-#: routes/combat.py:507
+#: routes/combat.py:565
 msgid "لقد قضيت على خصمك وأرسلته للمقبرة!"
 msgstr "You finished off your opponent and sent them to the graveyard!"
 
-#: routes/combat.py:535
+#: routes/combat.py:593
 #, python-format
 msgid "مبروك! لقد قبضت على مكافآت بقيمة %(amount)s$ كانت على رأس هذا اللاعب!"
 msgstr "Congrats! You collected a bounty worth %(amount)s$ on this player!"
 
-#: routes/combat.py:602
+#: routes/combat.py:661
 msgid "لقد تسببت هجمتك في اندلاع حرب عصابات!"
 msgstr "Your attack triggered a gang war!"
 
-#: routes/combat.py:607
+#: routes/combat.py:666
 msgid "تجنبت اندلاع حرب لأن عصابتك أقوى بكثير من الخصم (نظام اللعب النظيف)."
 msgstr "War avoided because your gang is much stronger (Fair Play System)."
 
-#: routes/combat.py:611
+#: routes/combat.py:670
 msgid "لم تندلع حرب جديدة لوجود هدنة مؤقتة بعد الحرب الأخيرة."
 msgstr "No new war triggered due to temporary truce."
 
-#: routes/combat.py:632
+#: routes/combat.py:691
 #, python-format
 msgid "هاجم %(target)s وكسب %(exp)s خبرة"
 msgstr "Attacked %(target)s and gained %(exp)s XP"
 
-#: routes/combat.py:636
+#: routes/combat.py:695
 msgid "(متخفي)"
 msgstr "(Stealth)"
 
-#: routes/combat.py:660 templates/gang/dashboard.html:132
+#: routes/combat.py:727 templates/gang/dashboard.html:132
 msgid "الزعيم"
 msgstr "Boss"
 
-#: routes/combat.py:663 templates/gang/dashboard.html:134
+#: routes/combat.py:730 templates/gang/dashboard.html:134
 msgid "النائب"
 msgstr "Deputy"
 
-#: routes/combat.py:666
+#: routes/combat.py:733
 msgid "عضو"
 msgstr "Member"
 
-#: routes/combat.py:673
+#: routes/combat.py:740
 #, python-format
 msgid "انتصار في حرب العصابات! +%(points)s نقطة (إسقاط %(role)s)"
 msgstr "Gang war victory! +%(points)s points (Dropped %(role)s)"
 
-#: routes/combat.py:683
+#: routes/combat.py:750
 #, python-format
 msgid "ترقت العصابة للمستوى %(level)s!"
 msgstr "The gang leveled up to %(level)s!"
 
-#: routes/combat.py:686
+#: routes/combat.py:753
 #, python-format
 msgid "مبروك! ترقت عصابتك للمستوى %(level)s!"
 msgstr "Congrats! Your gang leveled up to %(level)s!"
 
-#: routes/combat.py:739
+#: routes/combat.py:807 templates/bounties.html:116
+#: templates/combat/index.html:94 templates/profile.html:119
+#: templates/search.html:57 templates/search.html:58
+msgid "هجوم"
+msgstr "Attack"
+
+#: routes/combat.py:808
+#, python-format
+msgid "%(attacker)s هاجمك. خسرت %(money)s$ وتعرضت لإصابة (%(dmg)s صحة)."
+msgstr ""
+
+#: routes/combat.py:821
 #, python-format
 msgid "لقد انتصرت! سرقت %(money)s$ وحصلت على %(exp)s خبرة."
 msgstr "You won! You stole %(money)s$ and gained %(exp)s XP."
 
-#: routes/combat.py:745
+#: routes/combat.py:827
 msgid "😡 حالة هيجان (Berserk)!"
 msgstr "😡 Berserk Mode!"
 
-#: routes/combat.py:747
+#: routes/combat.py:829
 msgid "🎯 ضربة حرجة (Critical Hit)!"
 msgstr "🎯 Critical Hit!"
 
-#: routes/combat.py:749
+#: routes/combat.py:831
 msgid "الخصم حاول يتفادى الضربة لكنك جبت أجله!"
 msgstr "Opponent tried to dodge but you got them!"
 
-#: routes/combat.py:795
+#: routes/combat.py:877
 msgid "لقد قُضي عليك وذهبت للمستشفى!"
 msgstr "You were defeated and sent to the hospital!"
 
-#: routes/combat.py:843
+#: routes/combat.py:929
+#, fuzzy
+msgid "دفاع ناجح"
+msgstr "Bonus Defense"
+
+#: routes/combat.py:930
+#, python-format
+msgid "تعرضت لهجوم من %(attacker)s لكنك صدّيته وربحت %(money)s$."
+msgstr ""
+
+#: routes/combat.py:941
 #, python-format
 msgid "لقد خسرت المعركة! خسرت %(money)s$."
 msgstr "You lost the fight! You lost %(money)s$."
@@ -2217,8 +2274,9 @@ msgid ""
 msgstr ""
 
 #: routes/core.py:279 routes/forum.py:59 routes/forum.py:94 routes/forum.py:179
-#: routes/gameplay.py:669 templates/admin/header.html:9 templates/base.html:183
-#: templates/base.html:677 templates/errors/500.html:22
+#: routes/gameplay.py:60 routes/gameplay.py:717 routes/gang.py:680
+#: routes/graveyard.py:58 templates/admin/header.html:9 templates/base.html:184
+#: templates/base.html:678 templates/errors/500.html:22
 msgid "الرئيسية"
 msgstr "Home"
 
@@ -2544,7 +2602,7 @@ msgstr "Reject resurrection request"
 msgid "عذراً، تم رفض طلب الإحياء الخاص بك."
 msgstr "Sorry, your resurrection request has been rejected."
 
-#: routes/developer.py:1105 routes/social.py:662
+#: routes/developer.py:1105 routes/social.py:705
 msgid "تم رفض الطلب."
 msgstr "Request rejected."
 
@@ -3082,7 +3140,7 @@ msgstr "Error during deletion: %(error)s"
 msgid "الصورة غير موجودة"
 msgstr "Vehicle not found!"
 
-#: routes/developer.py:3831 routes/social.py:377
+#: routes/developer.py:3831 routes/social.py:420
 msgid "بيانات غير صالحة"
 msgstr "Invalid data"
 
@@ -3504,15 +3562,15 @@ msgstr "Process finished immediately for %(cost)s diamonds."
 
 #: routes/forum.py:52 routes/forum.py:60 routes/forum.py:87 routes/forum.py:95
 #: routes/forum.py:128 routes/forum.py:180 routes/forum.py:236
-#: templates/base.html:589 templates/developer/dashboard.html:413
+#: templates/base.html:590 templates/developer/dashboard.html:413
 #: templates/forum/category.html:2 templates/forum/index.html:2
 #: templates/forum/index.html:7 templates/forum/topic.html:2
 msgid "المنتدى"
 msgstr "Forum"
 
 #: routes/forum.py:52 routes/forum.py:87 routes/forum.py:143
-#: templates/base.html:47 templates/base.html:84 templates/base.html:323
-#: templates/base.html:661 templates/base.html:951 templates/index.html:22
+#: templates/base.html:47 templates/base.html:84 templates/base.html:324
+#: templates/base.html:662 templates/base.html:952 templates/index.html:22
 #: utils/seo.py:20
 msgid "عصابات فلسطين"
 msgstr "Gangs of Palestine"
@@ -3596,11 +3654,12 @@ msgstr "Topic pin status changed to %(status)s"
 msgid "تم حذف الرد بنجاح"
 msgstr "Reply deleted successfully"
 
-#: routes/gameplay.py:48 routes/gameplay.py:146
-msgid "الجرائم المنظمة غير مفعلة حالياً."
-msgstr "Organized crimes are currently disabled."
+#: routes/gameplay.py:51
+#, fuzzy
+msgid "الجرائم المنظمة - خطط نفذ وسيطر"
+msgstr "Organized Crimes"
 
-#: routes/gameplay.py:55
+#: routes/gameplay.py:53 routes/gameplay.py:74
 msgid ""
 "سيناريوهات الجرائم المنظمة في عصابات فلسطين. خطط ونفذ عمليات سطو مسلح مع "
 "فريقك."
@@ -3608,75 +3667,89 @@ msgstr ""
 "Organized crime scenarios in Gangs of Palestine. Plan and execute armed "
 "robberies with your team."
 
-#: routes/gameplay.py:61
+#: routes/gameplay.py:67 routes/gameplay.py:165
+msgid "الجرائم المنظمة غير مفعلة حالياً."
+msgstr "Organized crimes are currently disabled."
+
+#: routes/gameplay.py:80
 msgid "يجب تسجيل الدخول للعب"
 msgstr "You must log in to play"
 
-#: routes/gameplay.py:62
+#: routes/gameplay.py:81
 msgid "سجل دخولك الآن"
 msgstr "Log in now"
 
-#: routes/gameplay.py:189
+#: routes/gameplay.py:208
 #, python-format
 msgid "انتظار: %(h)sس %(m)sد"
 msgstr "Wait: %(h)sh %(m)sm"
 
-#: routes/gameplay.py:203
+#: routes/gameplay.py:222
 msgid "انضم لعصابة لفتحها."
 msgstr "Join a gang to unlock."
 
-#: routes/gameplay.py:204
+#: routes/gameplay.py:223
 msgid "نصيحة: افتح صفحة العصابات وانضم لواحدة."
 msgstr "Tip: Open the gangs page and join one."
 
-#: routes/gameplay.py:211
+#: routes/gameplay.py:230
 #, python-format
 msgid "تحتاج مستوى عصابة %(n)s."
 msgstr "You need gang level %(n)s."
 
-#: routes/gameplay.py:212
+#: routes/gameplay.py:231
 msgid "نصيحة: طوّر عصابتك عبر التبرعات والنشاط."
 msgstr "Tip: Upgrade your gang through donations and activity."
 
-#: routes/gameplay.py:252
+#: routes/gameplay.py:271
 msgid "طور مهاراتك لفتحها."
 msgstr "Upgrade your skills to unlock."
 
-#: routes/gameplay.py:253 templates/crimes.html:239
+#: routes/gameplay.py:272 templates/crimes.html:241
 msgid "نصيحة: روح الجيم وطور مهاراتك."
 msgstr "Tip: Go to the gym and upgrade your skills."
 
-#: routes/gameplay.py:356
+#: routes/gameplay.py:380
 msgid "هذه المهمة ليست لك!"
 msgstr "This mission is not for you!"
 
-#: routes/gameplay.py:360
+#: routes/gameplay.py:384
 msgid "تم استلام المكافأة مسبقاً."
 msgstr "Reward already claimed."
 
-#: routes/gameplay.py:364
+#: routes/gameplay.py:388
 msgid "لم تكمل المهمة بعد!"
 msgstr "Mission not completed yet!"
 
-#: routes/gameplay.py:379 routes/gym.py:201 routes/gym.py:236
+#: routes/gameplay.py:403 routes/gym.py:201 routes/gym.py:236
 msgid "حدث خطأ أثناء استلام المكافأة."
 msgstr "Error claiming reward."
 
-#: routes/gameplay.py:405
+#: routes/gameplay.py:429
 #, python-format
 msgid "مبروك! حصلت على المكافأة: %(money)s شيكل و %(exp)s خبرة."
 msgstr "Congrats! You received: %(money)s shekels and %(exp)s XP."
 
-#: routes/gameplay.py:434
+#: routes/gameplay.py:460
 #, python-format
 msgid "لسه بدري يا كبير! ارجع بعد %(hours)s ساعة و %(minutes)s دقيقة."
 msgstr "Too early! Come back in %(hours)s hours and %(minutes)s minutes."
 
-#: routes/gameplay.py:486
+#: routes/gameplay.py:462
+#, fuzzy, python-format
+msgid "المكافأة لسه مش جاهزة… ارجع بعد %(hours)s ساعة و %(minutes)s دقيقة."
+msgstr "Too early! Come back in %(hours)s hours and %(minutes)s minutes."
+
+#: routes/gameplay.py:464
+#, fuzzy, python-format
+msgid "استنى شوي! باقي %(hours)s ساعة و %(minutes)s دقيقة على المكافأة."
+msgstr "%(hours)s hours and %(minutes)s minutes"
+
+#: routes/gameplay.py:518
 msgid "حدث خطأ أثناء استلام المكافأة. حاول مرة أخرى."
 msgstr "Error claiming reward. Try again."
 
-#: routes/gameplay.py:497
+#: routes/gameplay.py:531
 #, python-format
 msgid ""
 "أخذت مكافأتك اليومية (ستريك %(streak)s): %(money)s شيكل و %(energy)s طاقة"
@@ -3685,349 +3758,656 @@ msgstr ""
 "You claimed your daily reward (Streak %(streak)s): %(money)s shekels, "
 "%(energy)s energy, and %(d)s diamonds!"
 
-#: routes/gameplay.py:500
+#: routes/gameplay.py:533
+#, fuzzy, python-format
+msgid ""
+"مبروك! مكافأة اليوم (ستريك %(streak)s): %(money)s شيكل + %(energy)s طاقة "
+"+ %(d)s ماس."
+msgstr ""
+"You claimed your daily reward (Streak %(streak)s): %(money)s shekels, "
+"%(energy)s energy, and %(d)s diamonds!"
+
+#: routes/gameplay.py:535
+#, fuzzy, python-format
+msgid ""
+"تم استلام المكافأة (ستريك %(streak)s): %(money)s شيكل، %(energy)s طاقة، "
+"%(d)s ماس."
+msgstr ""
+"You claimed your daily reward (Streak %(streak)s): %(money)s shekels, "
+"%(energy)s energy, and %(d)s diamonds!"
+
+#: routes/gameplay.py:543
 #, python-format
 msgid "أخذت مكافأتك اليومية (ستريك %(streak)s): %(money)s شيكل و %(energy)s طاقة!"
 msgstr ""
 "You claimed your daily reward (Streak %(streak)s): %(money)s shekels and "
 "%(energy)s energy!"
 
-#: routes/gameplay.py:524
+#: routes/gameplay.py:545
+#, fuzzy, python-format
+msgid "مكافأة اليوم وصلت (ستريك %(streak)s): %(money)s شيكل + %(energy)s طاقة."
+msgstr ""
+"You claimed your daily reward (Streak %(streak)s): %(money)s shekels and "
+"%(energy)s energy!"
+
+#: routes/gameplay.py:547
+#, fuzzy, python-format
+msgid ""
+"تم استلام المكافأة اليومية (ستريك %(streak)s): %(money)s شيكل و "
+"%(energy)s طاقة."
+msgstr ""
+"You claimed your daily reward (Streak %(streak)s): %(money)s shekels and "
+"%(energy)s energy!"
+
+#: routes/gameplay.py:574
 #, python-format
 msgid "%(hours)s ساعة و %(minutes)s دقيقة"
 msgstr "%(hours)s hours and %(minutes)s minutes"
 
-#: routes/gameplay.py:648 templates/base.html:409 templates/empire.html:3
+#: routes/gameplay.py:696 templates/base.html:410 templates/empire.html:3
 msgid "إمبراطوريتك"
 msgstr "Your Empire"
 
-#: routes/gameplay.py:656
+#: routes/gameplay.py:704
 msgid "دليل عصابات فلسطين | شرح اللعبة والجرائم والعصابات والمدن"
 msgstr ""
 
-#: routes/gameplay.py:658
+#: routes/gameplay.py:706
 msgid ""
 "دليل شامل للعبة عصابات فلسطين: الجرائم والجرائم المنظمة، العصابات وحروب "
 "الشوارع، الاقتصاد والمصانع والمزارع، السوق السوداء والمزادات، المدينة "
 "والخدمات، والدردشة."
 msgstr ""
 
-#: routes/gameplay.py:670
+#: routes/gameplay.py:718
 #, fuzzy
 msgid "الدليل"
 msgstr "Edit"
 
-#: routes/gameplay.py:825
+#: routes/gameplay.py:957
 msgid "أنت في السجن ولا يمكنك القيام بجرائم!"
 msgstr "You are in jail and cannot commit crimes!"
 
-#: routes/gameplay.py:833
+#: routes/gameplay.py:965
 msgid "أنت في المستشفى ولا يمكنك القيام بجرائم!"
 msgstr "You are in hospital and cannot commit crimes!"
 
-#: routes/gameplay.py:841
+#: routes/gameplay.py:973
 msgid "أنت تتدرب في الجيم ولا يمكنك القيام بجرائم!"
 msgstr "You are training in the gym and cannot commit crimes!"
 
-#: routes/gameplay.py:865
+#: routes/gameplay.py:1000
 msgid "مستواك لا يسمح بتنفيذ هذه الجريمة بعد!"
 msgstr "Your level does not allow this crime yet!"
 
-#: routes/gameplay.py:869
+#: routes/gameplay.py:1004
 #, python-format
 msgid "عضلاتك ضعيفة! تحتاج قوة %(str)s (مع العتاد) لتنفيذ هذه الجريمة"
 msgstr ""
 "You are too weak! You need %(str)s strength (with gear) to commit this "
 "crime."
 
-#: routes/gameplay.py:874
+#: routes/gameplay.py:1009
 #, python-format
 msgid "حركتك بطيئة! تحتاج خفة حركة %(agl)s (مع العتاد) لتنفيذ هذه الجريمة"
 msgstr ""
 "You are too slow! You need %(agl)s agility (with gear) to commit this "
 "crime."
 
-#: routes/gameplay.py:880 routes/gameplay.py:1526 routes/gameplay.py:1629
+#: routes/gameplay.py:1014
+#, fuzzy, python-format
+msgid "ذكاءك لا يكفي! تحتاج ذكاء %(intel)s لتنفيذ هذه الجريمة"
+msgstr "Your intelligence is not enough! You need %(intel)s intelligence to commit this crime."
+
+#: routes/gameplay.py:1020 routes/gameplay.py:1774 routes/gameplay.py:2000
+#: routes/gameplay.py:2338
 msgid "ما عندك طاقة كافية!"
 msgstr "Not enough energy!"
 
-#: routes/gameplay.py:893
+#: routes/gameplay.py:1033
 #, python-format
 msgid "لقد وصلت للحد اليومي لهذه الجريمة! (%(limit)s مرة يومياً)"
 msgstr "You have reached the daily limit for this crime! (%(limit)s times daily)"
 
-#: routes/gameplay.py:906
+#: routes/gameplay.py:1046
 #, python-format
 msgid "عليك الانتظار %(time)s ثانية قبل القيام بهذه الجريمة مرة أخرى!"
 msgstr "You must wait %(time)s seconds before doing this crime again!"
 
-#: routes/gameplay.py:916
+#: routes/gameplay.py:1063
 msgid "لا تملك طاقة كافية!"
 msgstr "You don't have enough energy!"
 
-#: routes/gameplay.py:1048
+#: routes/gameplay.py:1202
 msgid "🕵️ جاسوس بلغ عنك! قوات خاصة حاصرتك قبل ما تبدأ. أخذوك تحقيق 60 دقيقة."
 msgstr ""
 "🕵️ A spy reported you! Special forces surrounded you before you started. "
 "Taken for interrogation for 60 mins.🕵️ A spy reported you! Special forces"
 " surrounded you before you started. Taken for interrogation for 60 mins."
 
-#: routes/gameplay.py:1061
+#: routes/gameplay.py:1203
+#, fuzzy
+msgid "🕵️ انفضحت! واحد وداك للشرطة قبل ما تبدأ… تحقيق 60 دقيقة."
+msgstr ""
+"🕵️ A spy reported you! Special forces surrounded you before you started. "
+"Taken for interrogation for 60 mins.🕵️ A spy reported you! Special forces"
+" surrounded you before you started. Taken for interrogation for 60 mins."
+
+#: routes/gameplay.py:1204
+msgid "🕵️ حد باعك! كمين جاهز قبل التنفيذ… سحبوك على تحقيق 60 دقيقة."
+msgstr ""
+
+#: routes/gameplay.py:1219
 msgid "👮 كنت ماشي في حالك، وقفتك دورية واعتقلوك عشوائياً (اعتقال إداري)."
 msgstr ""
 "👮 You were minding your business, a patrol stopped you and arrested you "
 "randomly (Administrative Detention).👮 You were minding your business, a "
 "patrol stopped you and arrested you randomly (Administrative Detention)."
 
-#: routes/gameplay.py:1072
+#: routes/gameplay.py:1220
+msgid "👮 دورية وقفتك فجأة… تدقيق وتحقيق وبالأخير اعتقال إداري."
+msgstr ""
+
+#: routes/gameplay.py:1221
+msgid "👮 \"تعال هون!\" مسكوك من الشارع بدون سبب… اعتقال إداري."
+msgstr ""
+
+#: routes/gameplay.py:1234
 msgid "🧗 علقت بالسلك وأجت دورية حرس حدود لقطتك. \"تهريب عمال؟ تعال هون!\""
 msgstr ""
 "🧗 You got stuck on the fence and a border patrol caught you. \"Smuggling "
 "workers? Come here!\""
 
-#: routes/gameplay.py:1445
+#: routes/gameplay.py:1235
+msgid "🧗 وأنت بتتهرب… انمسكت بالسلك. دورية حدود وصلت واعتقلتك."
+msgstr "🧗 While smuggling… you got caught on the wire. Border patrol arrived and arrested you."
+
+#: routes/gameplay.py:1236
+msgid "🧗 خطوة غلط… انكشف التهريب! حرس الحدود مسكوك وسحبوك عالتحقيق."
+msgstr "🧗 One wrong step… the smuggling was exposed! Border guards caught you and dragged you for questioning."
+
+#: routes/gameplay.py:1432
+msgid "تسللت بهدوء…"
+msgstr "You slipped in quietly…"
+
+#: routes/gameplay.py:1433
+msgid "راقبت المكان دقيقة…"
+msgstr "You watched the place for a minute…"
+
+#: routes/gameplay.py:1434
+msgid "خططت بسرعة ونفّذت…"
+msgstr "You planned fast and executed…"
+
+#: routes/gameplay.py:1435
+msgid "قلّبتها مزبوط وما خليت أثر…"
+msgstr "You did it clean—no traces left…"
+
+#: routes/gameplay.py:1438 routes/police_chase.py:147
+msgid "💨 رميت عليهم قنبلة دخانية!"
+msgstr "💨 Threw a smoke grenade at them!"
+
+#: routes/gameplay.py:1439
+#, fuzzy
+msgid "🚧 قفزت فوق حاجز بسرعة!"
+msgstr "🚧 Jumped over a police roadblock!"
+
+#: routes/gameplay.py:1440
+msgid "🕶️ غيّرت مسارك من الزحمة!"
+msgstr "🕶️ You changed route to avoid traffic!"
+
+#: routes/gameplay.py:1441
+msgid "⚡ كانت حركة سريعة وخاطفة!"
+msgstr "⚡ A quick, lightning-fast move!"
+
+#: routes/gameplay.py:1442
+msgid "🔇 اشتغلت بصمت…"
+msgstr "🔇 You moved in silence…"
+
+#: routes/gameplay.py:1454
+msgid "🚗 دعست بنزين وطلعت زي الرصاصة!"
+msgstr "🚗 You floored it and shot out like a bullet!"
+
+#: routes/gameplay.py:1455
+msgid "🛞 لفّيت الدركسيون وهربت!"
+msgstr "🛞 You turned hard and escaped!"
+
+#: routes/gameplay.py:1456
+msgid "💨 غيّرت شارع بآخر لحظة!"
+msgstr "💨 You switched streets at the last second!"
+
+#: routes/gameplay.py:1461
+msgid "🧤 لبست كفوف وخطفت الغنيمة!"
+msgstr "🧤 You put on gloves and snatched the loot!"
+
+#: routes/gameplay.py:1462
+msgid "🧰 فتحت القفل بحركة سريعة!"
+msgstr "🧰 You picked the lock in one quick move!"
+
+#: routes/gameplay.py:1463
+msgid "🕳️ خبّيتها قبل ما ينتبهوا!"
+msgstr "🕳️ You hid it before they noticed!"
+
+#: routes/gameplay.py:1578
+msgid "😱 كارثة! فشلت الجريمة بشكل مريع والشرطة مستنفرة جداً!"
+msgstr "😱 Disaster! You failed badly and the police are on full alert!"
+
+#: routes/gameplay.py:1579
+msgid "😱 مصيبة! خربت من أولها… الشرطة صارت فوق راسك!"
+msgstr "😱 Disaster! It fell apart from the start… the cops are all over you!"
+
+#: routes/gameplay.py:1580
+msgid "😱 سقوط مدوّي! تركت أثر كبير… والشرطة شادة حيلها!"
+msgstr "😱 A loud crash! You left big traces… the police are fully mobilized!"
+
+#: routes/gameplay.py:1584
+msgid "فشلت الجريمة والشرطة تلاحقك! اهرب بسرعة!"
+msgstr ""
+
+#: routes/gameplay.py:1585
+msgid "انكشف الموضوع… الشرطة وراك! بدك تهرب فوراً!"
+msgstr ""
+
+#: routes/gameplay.py:1586
+msgid "الشغلة ما زبطت… مطاردة شغّالة! تحرّك بسرعة!"
+msgstr ""
+
+#: routes/gameplay.py:1647
 #, python-format
 msgid "تم تجهيز %(item)s."
 msgstr "Equipped %(item)s."
 
-#: routes/gameplay.py:1462
+#: routes/gameplay.py:1664
 msgid "هذا الغرض غير مجهز أصلاً."
 msgstr "This item is not equipped anyway."
 
-#: routes/gameplay.py:1468
+#: routes/gameplay.py:1670
 #, python-format
 msgid "تم خلع %(name)s."
 msgstr "Unequipped %(name)s."
 
-#: routes/gameplay.py:1491
-msgid "أنت في السجن ولا يمكنك إجراء تحريات!"
-msgstr "You are in jail and cannot conduct investigations!"
-
-#: routes/gameplay.py:1499
-msgid "أنت في المستشفى ولا يمكنك إجراء تحريات!"
-msgstr "You are in hospital and cannot conduct investigations!"
-
-#: routes/gameplay.py:1507
-msgid "أنت تتدرب ولا يمكنك إجراء تحريات!"
-msgstr "You are training and cannot conduct investigations!"
-
-#: routes/gameplay.py:1514 routes/gameplay.py:1611
+#: routes/gameplay.py:1762 routes/gameplay.py:1982
 msgid "لم يتم العثور على هذا اللاعب!"
 msgstr "Player not found!"
 
-#: routes/gameplay.py:1518
+#: routes/gameplay.py:1766
 msgid "بدك تتجسس على حالك يا عبيط؟"
 msgstr "Trying to spy on yourself?"
 
-#: routes/gameplay.py:1530
+#: routes/gameplay.py:1778
 msgid "ما معك كاش كافي! العملية بدها 500 شيكل."
 msgstr "Not enough cash! Operation costs 500 shekels."
 
-#: routes/gameplay.py:1542 routes/gameplay.py:1693 routes/gameplay.py:1730
+#: routes/gameplay.py:1790 routes/gameplay.py:2125 routes/gameplay.py:2191
 msgid "حدث خطأ أثناء العملية."
 msgstr "Error during operation."
 
-#: routes/gameplay.py:1580
+#: routes/gameplay.py:1858
+#, fuzzy
+msgid "تقرير تجسس"
+msgstr "report Spy:"
+
+#: routes/gameplay.py:1859
+#, fuzzy
+msgid "الهدف:"
+msgstr "Target"
+
+#: routes/gameplay.py:1861
+#, fuzzy
+msgid "القوة:"
+msgstr "Strength"
+
+#: routes/gameplay.py:1862
+#, fuzzy
+msgid "المرونة:"
+msgstr "participants:"
+
+#: routes/gameplay.py:1864
+#, fuzzy
+msgid "الذكاء:"
+msgstr "Intelligence"
+
+#: routes/gameplay.py:1866
+#, fuzzy
+msgid "الصحة:"
+msgstr "Health"
+
+#: routes/gameplay.py:1871
+#, fuzzy, python-format
+msgid "استخبارات: تقرير تجسس عن %(name)s"
+msgstr "Secret Report: %(name)s"
+
+#: routes/gameplay.py:1911
 msgid "تطورت مهاراتك الاستخباراتية! (+1 ذكاء)"
 msgstr "Intelligence skills improved! (+1 Intelligence)"
 
-#: routes/gameplay.py:1583
-msgid "تمت العملية بنجاح! جاري عرض التقرير..."
-msgstr "Operation successful! Displaying report..."
+#: routes/gameplay.py:1937
+#, fuzzy, python-format
+msgid "استخبارات: فشل التجسس على %(name)s"
+msgstr "Done declare war on %(name)s!"
 
-#: routes/gameplay.py:1599
+#: routes/gameplay.py:1938
+msgid "فشلت محاولة التجسس وتم إفشال العملية."
+msgstr ""
+
+#: routes/gameplay.py:1950 routes/gameplay.py:2102 routes/gameplay.py:2154
+#, fuzzy
+msgid "تحذير أمني"
+msgstr "Security Verification"
+
+#: routes/gameplay.py:1951
+msgid "حاول أحدهم جمع معلومات عنك مؤخراً."
+msgstr ""
+
+#: routes/gameplay.py:1963
 msgid "فشلت العملية! كشفوك وهربت بصعوبة."
 msgstr "Operation failed! You were spotted and barely escaped."
 
-#: routes/gameplay.py:1615
+#: routes/gameplay.py:1964
+msgid "انكشف وجودك… فشلت ورجعت بصعوبة."
+msgstr ""
+
+#: routes/gameplay.py:1965
+msgid "ما زبطت! حسّوا فيك واضطريت تهرب."
+msgstr ""
+
+#: routes/gameplay.py:1986
 msgid "بدك تسرق حالك؟"
 msgstr "Trying to rob yourself?"
 
-#: routes/gameplay.py:1636
+#: routes/gameplay.py:2013 routes/gameplay.py:2141
+#, python-format
+msgid "استخبارات: فشل قرصنة %(name)s"
+msgstr ""
+
+#: routes/gameplay.py:2014 routes/gameplay.py:2142
+msgid "فشلت عملية القرصنة ولم تحصل على شيء."
+msgstr "The hacking attempt failed and you gained nothing."
+
+#: routes/gameplay.py:2026
 msgid "نظام الحماية عنده قوي جداً! فشلت العملية."
 msgstr "Their security system is too strong! Operation failed."
 
-#: routes/gameplay.py:1670
+#: routes/gameplay.py:2027
+#, fuzzy
+msgid "جدار حماية قوي… ما قدرت تخترق. فشلت العملية."
+msgstr "Their security system is too strong! Operation failed."
+
+#: routes/gameplay.py:2028
+msgid "الحماية ماسكة… المحاولة فشلت."
+msgstr "Security held strong… the attempt failed."
+
+#: routes/gameplay.py:2085
+#, fuzzy, python-format
+msgid "نجحت عملية القرصنة وسرقت %(amount)s شيكل."
+msgstr "Hacking succeeded! You stole %(amount)s shekels."
+
+#: routes/gameplay.py:2087
 msgid "تطورت مهارتك في القرصنة! (+1 ذكاء)"
 msgstr "Hacking skill improved! (+1 Intelligence)"
 
-#: routes/gameplay.py:1689
+#: routes/gameplay.py:2090
+#, python-format
+msgid "استخبارات: قرصنة ناجحة ضد %(name)s"
+msgstr ""
+
+#: routes/gameplay.py:2103
+msgid "تم رصد محاولة اختراق وسرقة من حسابك."
+msgstr ""
+
+#: routes/gameplay.py:2113
 #, python-format
 msgid "تم اختراق الحساب! سرقت %(amount)s شيكل من %(user)s"
 msgstr "Account hacked! You stole %(amount)s shekels from %(user)s"
 
-#: routes/gameplay.py:1705
+#: routes/gameplay.py:2115
+#, fuzzy, python-format
+msgid "نجحت القرصنة! طلعت منك غنيمة %(amount)s شيكل من %(user)s"
+msgstr "Account hacked! You stole %(amount)s shekels from %(user)s"
+
+#: routes/gameplay.py:2117
+#, fuzzy, python-format
+msgid "عملية ناجحة: سحبت %(amount)s شيكل من %(user)s"
+msgstr "Account hacked! You stole %(amount)s shekels from %(user)s"
+
+#: routes/gameplay.py:2155
+msgid "تم رصد محاولة اختراق فاشلة ضد حسابك."
+msgstr ""
+
+#: routes/gameplay.py:2164
 msgid "فشل الاختراق! الحماية كشفتك."
 msgstr "Hacking failed! Security detected you."
 
-#: routes/gameplay.py:1719
+#: routes/gameplay.py:2180
 msgid "تحتاج 50 طاقة لقرصنة البنك!"
 msgstr "You need 50 energy to hack the bank!"
 
-#: routes/gameplay.py:1737
+#: routes/gameplay.py:2198
 msgid "ذكاؤك لا يكفي لاختراق البنك المركزي! تحتاج 50 ذكاء على الأقل."
 msgstr "Intelligence not high enough to hack Central Bank! Need 50+ Intelligence."
 
-#: routes/gameplay.py:1767
+#: routes/gameplay.py:2228
 msgid "حدث خطأ أثناء إضافة المكافأة. اتصل بالدعم الفني."
 msgstr "Error adding reward. Contact support."
 
-#: routes/gameplay.py:1780
+#: routes/gameplay.py:2244
+msgid "استخبارات: قرصنة البنك (نجاح)"
+msgstr ""
+
+#: routes/gameplay.py:2245
+#, python-format
+msgid "نجحت قرصنة البنك وحصلت على %(amt)s شيكل."
+msgstr ""
+
+#: routes/gameplay.py:2256
 #, python-format
 msgid "عملية أسطورية! اخترقت البنك وسرقت %(amt)s شيكل!"
 msgstr "Legendary job! You hacked the bank and stole %(amt)s shekels!"
 
-#: routes/gameplay.py:1792
+#: routes/gameplay.py:2272
+msgid "استخبارات: قرصنة البنك (فشل)"
+msgstr ""
+
+#: routes/gameplay.py:2273
+msgid "فشلت قرصنة البنك ولم تحصل على شيء."
+msgstr ""
+
+#: routes/gameplay.py:2284
 msgid "نظام الحماية كشفك! هربت بأعجوبة ولم تحصل على شيء."
 msgstr "Security detected you! You barely escaped and got nothing."
 
-#: routes/gameplay.py:1803 routes/gameplay.py:1937 routes/gameplay.py:2155
-#: routes/gameplay.py:2379
+#: routes/gameplay.py:2322
+#, fuzzy, python-format
+msgid "عليك الانتظار %(m)s دقيقة و %(s)s ثانية قبل استخدام مركز البحث مرة أخرى."
+msgstr "You must wait %(m)s minutes and %(s)s seconds before using the research center again."
+
+#: routes/gameplay.py:2348
+#, fuzzy
+msgid "حدث خطأ أثناء خصم تكلفة العملية."
+msgstr "Error during operation."
+
+#: routes/gameplay.py:2382 routes/gameplay.py:2526 routes/police_chase.py:200
+#: templates/developer/heist_history.html:32
+#: templates/developer/user_logs.html:58 templates/heist_report.html:30
+msgid "نجاح"
+msgstr "Success"
+
+#: routes/gameplay.py:2382 routes/gameplay.py:2526 routes/police_chase.py:290
+#: templates/developer/heist_history.html:34
+#: templates/developer/user_logs.html:60 templates/heist_report.html:32
+#: templates/heist_report.html:103
+msgid "فشل"
+msgstr "Failure"
+
+#: routes/gameplay.py:2505
+#, fuzzy
+msgid "حدث خطأ أثناء معالجة نتائج العملية."
+msgstr "Error starting chase."
+
+#: routes/gameplay.py:2514
+#, python-format
+msgid "تم تفعيل معلومات هجومية مؤقتة ضد: %(t)s"
+msgstr ""
+
+#: routes/gameplay.py:2519
+msgid "نجحت العملية لكن لم تظهر أهداف مفيدة اليوم."
+msgstr ""
+
+#: routes/gameplay.py:2521
+msgid "فشلت العملية وارتفعت عليك حرارة المطاردة."
+msgstr ""
+
+#: routes/gameplay.py:2525
+#, python-format
+msgid "استخبارات: مركز البحث (%(s)s)"
+msgstr ""
+
+#: routes/gameplay.py:2561 routes/gameplay.py:2695 routes/gameplay.py:2913
+#: routes/gameplay.py:3137
 msgid "يجب تفعيل الحساب قبل المشاركة في الجرائم المنظمة."
 msgstr "You must confirm your account before joining organized crimes."
 
-#: routes/gameplay.py:1820 routes/gameplay.py:2165
+#: routes/gameplay.py:2578 routes/gameplay.py:2923
 msgid "أنت في السجن ولا يمكنك المشاركة في الجرائم!"
 msgstr "You're in jail and can't participate in crimes!"
 
-#: routes/gameplay.py:1828 routes/gameplay.py:2173
+#: routes/gameplay.py:2586 routes/gameplay.py:2931
 msgid "أنت في المستشفى ولا يمكنك المشاركة في الجرائم!"
 msgstr "You're in the hospital and can't participate in crimes!"
 
-#: routes/gameplay.py:1836 routes/gameplay.py:2181
+#: routes/gameplay.py:2594 routes/gameplay.py:2939
 msgid "أنت تتدرب في الجيم ولا يمكنك المشاركة في الجرائم!"
 msgstr "You're training and can't participate in crimes!"
 
-#: routes/gameplay.py:1852 routes/gameplay.py:2216
+#: routes/gameplay.py:2610 routes/gameplay.py:2974
 #, python-format
 msgid "عليك الانتظار %(hours)s ساعة و %(minutes)s دقيقة قبل تكرار هذه الجريمة!"
 msgstr ""
 "You must wait %(hours)s hours and %(minutes)s minutes before "
 "participating in another organized crime!"
 
-#: routes/gameplay.py:1865 routes/gameplay.py:2191
+#: routes/gameplay.py:2623 routes/gameplay.py:2949
 msgid "أنت مشارك بالفعل في جريمة منظمة أخرى!"
 msgstr "You're already participating in another organized crime!"
 
-#: routes/gameplay.py:1882
+#: routes/gameplay.py:2640
 msgid "رتبتك لا تسمح بإنشاء مجموعة!"
 msgstr "Your rank doesn't allow creating a group!"
 
-#: routes/gameplay.py:1886 routes/gang.py:1120 routes/gang.py:1145
+#: routes/gameplay.py:2644 routes/gang.py:1135 routes/gang.py:1160
 msgid "لا تملك طاقة كافية لبدء العملية."
 msgstr "You don't have enough energy to start the operation."
 
-#: routes/gameplay.py:1924
+#: routes/gameplay.py:2682
 msgid "فشلت العملية! ربما تغيرت بياناتك أو لا تملك طاقة كافية."
 msgstr ""
 "Operation failed! Your data might have changed or you don't have enough "
 "energy."
 
-#: routes/gameplay.py:1929
+#: routes/gameplay.py:2687
 msgid "تم إنشاء المجموعة بنجاح!"
 msgstr "Group created successfully!"
 
-#: routes/gameplay.py:1945
+#: routes/gameplay.py:2703
 msgid "انتهت صلاحية هذه العملية المنظمة لعدم اكتمال الفريق خلال 24 ساعة."
 msgstr ""
 "This organized crime operation has expired because the team was not "
 "completed within 24 hours."
 
-#: routes/gameplay.py:2063 routes/gameplay.py:2223 routes/gameplay.py:2391
+#: routes/gameplay.py:2821 routes/gameplay.py:2981 routes/gameplay.py:3149
 msgid "انتهت صلاحية هذه العملية المنظمة."
 msgstr "This organized crime operation has expired."
 
-#: routes/gameplay.py:2066 routes/gameplay.py:2118 routes/gameplay.py:2200
-#: routes/gameplay.py:2227
+#: routes/gameplay.py:2824 routes/gameplay.py:2876 routes/gameplay.py:2958
+#: routes/gameplay.py:2985
 msgid "المجموعة غير متاحة!"
 msgstr "This group isn't available!"
 
-#: routes/gameplay.py:2078
+#: routes/gameplay.py:2836
 #, python-format
 msgid "تم إرسال الدعوات بالفعل. انتظر حوالي %(m)d دقيقة قبل التجديد."
 msgstr "Invitations already sent. Wait about %(m)d minutes before renewing."
 
-#: routes/gameplay.py:2088 routes/gang.py:1197
+#: routes/gameplay.py:2846 routes/gang.py:1212
 msgid "دعوة للمشاركة في جريمة منظمة"
 msgstr "invite to participate in crime organized"
 
-#: routes/gameplay.py:2091 routes/gang.py:1200
+#: routes/gameplay.py:2849 routes/gang.py:1215
 #, python-format
 msgid "القائد %(leader)s دعاك للمشاركة في \"%(crime)s\". سارع لاختيار دورك!"
 msgstr "%(leader)s invited you to join \"%(crime)s\". Hurry up and pick your role!"
 
-#: routes/gameplay.py:2101
+#: routes/gameplay.py:2859
 msgid "تم إرسال الدعوات لجميع اللاعبين. صلاحية الدعوات ساعة واحدة تقريباً."
 msgstr "Invitations sent to all players. Invitations are valid for about one hour."
 
-#: routes/gameplay.py:2136
+#: routes/gameplay.py:2894
 msgid "لا يمكنك طرد نفسك."
 msgstr "You cannot kick yourself."
 
-#: routes/gameplay.py:2146
+#: routes/gameplay.py:2904
 msgid "تم طرد العضو من المجموعة."
 msgstr "Member kicked from the group."
 
-#: routes/gameplay.py:2235
+#: routes/gameplay.py:2993
 msgid "المجموعة ممتلئة!"
 msgstr "The group is full!"
 
-#: routes/gameplay.py:2241
+#: routes/gameplay.py:2999
 msgid "يجب اختيار دور للانضمام."
 msgstr "You must choose a role to join."
 
-#: routes/gameplay.py:2248
+#: routes/gameplay.py:3006
 msgid "هذا الدور غير متاح."
 msgstr "This role is not available."
 
-#: routes/gameplay.py:2253
+#: routes/gameplay.py:3011
 msgid "هذا الدور مأخوذ بالفعل!"
 msgstr "This role is already taken!"
 
-#: routes/gameplay.py:2264
+#: routes/gameplay.py:3022
 #, python-format
 msgid "مهاراتك لا تسمح بهذا الدور! مطلوب %(stat)s: %(req)s وأنت لديك %(val)s."
 msgstr ""
 "Your skills do not allow for this role! Required %(stat)s: %(req)s and "
 "you have %(val)s."
 
-#: routes/gameplay.py:2277
+#: routes/gameplay.py:3035
 msgid "تم الانضمام للمجموعة!"
 msgstr "Joined the group!"
 
-#: routes/gameplay.py:2299
+#: routes/gameplay.py:3057
 msgid "تم حل المجموعة لأن القائد غادر."
 msgstr "The group was disbanded because the leader left."
 
-#: routes/gameplay.py:2369
+#: routes/gameplay.py:3127
 #, python-format
 msgid "انسحبت من المجموعة وتكبدت خسائر: -%(m)s$، -%(xp)s XP، -%(en)s طاقة."
 msgstr "You left the group and took losses: -%(m)s$, -%(xp)s XP, -%(en)s Energy."
 
-#: routes/gameplay.py:2397
+#: routes/gameplay.py:3155
 msgid "العدد غير مكتمل!"
 msgstr "Team is not full!"
 
-#: routes/gameplay.py:2401
+#: routes/gameplay.py:3159
 msgid "جميع الأعضاء يجب أن يكونوا مستعدين!"
 msgstr "All members must be ready!"
 
-#: routes/gameplay.py:2415
+#: routes/gameplay.py:3173
 #, python-format
 msgid "لا يمكن بدء العملية! العضو %(user)s في السجن."
 msgstr "Can't start the operation! %(user)s is in jail."
 
-#: routes/gameplay.py:2425
+#: routes/gameplay.py:3183
 #, python-format
 msgid "لا يمكن بدء العملية! العضو %(user)s في المستشفى."
 msgstr "Can't start the operation! %(user)s is in the hospital."
 
-#: routes/gameplay.py:2435
+#: routes/gameplay.py:3193
 #, python-format
 msgid "لا يمكن بدء العملية! العضو %(user)s يتدرب في الجيم."
 msgstr "Can't start the operation! %(user)s is training."
 
-#: routes/gameplay.py:2452
+#: routes/gameplay.py:3210
 #, python-format
 msgid ""
 "لا يمكن بدء العملية! العضو %(user)s لا يملك المهارات الكافية لدور "
@@ -4036,12 +4416,12 @@ msgstr ""
 "Cannot start operation! Member %(user)s does not have enough skills for "
 "role %(role)s (Required %(stat)s: %(req)s)."
 
-#: routes/gameplay.py:2486
+#: routes/gameplay.py:3250
 #, python-format
 msgid "يجب التخطيط جيداً! انتظروا %(sec)s ثانية للمراجعة قبل البدء."
 msgstr "Plan carefully! Wait %(sec)s seconds for review before starting."
 
-#: routes/gameplay.py:2513
+#: routes/gameplay.py:3277
 #, python-format
 msgid ""
 "تحتاجون إلى \"%(item)s\" لتنفيذ هذه العملية! يمكنكم شراؤها من السوق "
@@ -4050,377 +4430,397 @@ msgstr ""
 "You need \"%(item)s\" for this operation! You can buy it from the Black "
 "Market."
 
-#: routes/gameplay.py:2525
+#: routes/gameplay.py:3289
 #, python-brace-format
 msgid "بدأت عملية {crime} بقيادة {leader}..."
 msgstr "The operation {crime} has started under {leader}'s lead..."
 
-#: routes/gameplay.py:2549
+#: routes/gameplay.py:3313
 #, python-brace-format
 msgid "تم استخدام {item} من قبل {user}."
 msgstr "{user} used {item}."
 
-#: routes/gameplay.py:2576
+#: routes/gameplay.py:3340
 #, python-brace-format
 msgid "استهلك {user} أداة {item} للدور."
 msgstr "{user} consumed {item} for the role."
 
-#: routes/gameplay.py:2604
+#: routes/gameplay.py:3368
 #, python-brace-format
 msgid "✅ {role} ({user}): أدى دوره بذكاء خارق! (+{bonus}%)"
 msgstr "✅ {role} ({user}): Performed brilliantly! (+{bonus}%)"
 
-#: routes/gameplay.py:2609
+#: routes/gameplay.py:3373
 #, python-brace-format
 msgid "⚠️ {role} ({user}): واجه صعوبات تقنية. (-10%)"
 msgstr "⚠️ {role} ({user}): Hit technical issues. (-10%)"
 
-#: routes/gameplay.py:2620
+#: routes/gameplay.py:3384
 #, python-brace-format
 msgid "💪 {role} ({user}): سيطر على الوضع بقوة! (+{bonus}%)"
 msgstr "💪 {role} ({user}): Took control with force! (+{bonus}%)"
 
-#: routes/gameplay.py:2625
+#: routes/gameplay.py:3389
 #, python-brace-format
 msgid "⚠️ {role} ({user}): لم يستطع كسر الدفاعات بسرعة. (-10%)"
 msgstr "⚠️ {role} ({user}): Couldn't break defenses fast enough. (-10%)"
 
-#: routes/gameplay.py:2636
+#: routes/gameplay.py:3400
 #, python-brace-format
 msgid "🚗 {role} ({user}): قاد الفريق ببراعة وسرعة! (+{bonus}%)"
 msgstr "🚗 {role} ({user}): Drove flawlessly and fast! (+{bonus}%)"
 
-#: routes/gameplay.py:2641
+#: routes/gameplay.py:3405
 #, python-brace-format
 msgid "⚠️ {role} ({user}): تأخر في الوصول لنقطة الهروب. (-10%)"
 msgstr "⚠️ {role} ({user}): Arrived late to the escape point. (-10%)"
 
-#: routes/gameplay.py:2651
+#: routes/gameplay.py:3415
 #, python-brace-format
 msgid "🛡️ {role} ({user}): صدّ الضغط وحمى الفريق! (+{bonus}%)"
 msgstr ""
 "🛡️ {role} ({user}): Withstood the pressure and protected the team! "
 "(+{bonus}%)"
 
-#: routes/gameplay.py:2656
+#: routes/gameplay.py:3420
 #, python-brace-format
 msgid "⚠️ {role} ({user}): انهك من الضغط وتباطأ. (-8%)"
 msgstr "⚠️ {role} ({user}): Exhausted from pressure and slowed down. (-8%)"
 
-#: routes/gameplay.py:2683
+#: routes/gameplay.py:3447
 #, python-brace-format
 msgid "🏎️ السائق {user} يستخدم سيارة {car} المعدلة! (+{bonus}%)"
 msgstr "🏎️ Driver {user} is using the modified car {car}! (+{bonus}%)"
 
-#: routes/gameplay.py:2690
+#: routes/gameplay.py:3454
 #, python-brace-format
 msgid "⚠️ السائق {user} لا يملك سيارة مجهزة! الهروب سيكون صعباً. (-10%)"
 msgstr ""
 "⚠️ Driver {user} does not have an equipped car! Escape will be difficult."
 " (-10%)"
 
-#: routes/gameplay.py:2711
+#: routes/gameplay.py:3475
 #, python-brace-format
 msgid "🚗 الفريق يستخدم سيارة {user} ({car}) للهروب! (+{bonus}%)"
 msgstr "🚗 Team is using {user}'s car ({car}) for escape! (+{bonus}%)"
 
-#: routes/gameplay.py:2721
+#: routes/gameplay.py:3485
 msgid "🚨 كارثة! الشرطة نصبت كميناً محكماً! (-15%)"
 msgstr "🚨 Disaster! The police set up a tight ambush! (-15%)"
 
-#: routes/gameplay.py:2729
+#: routes/gameplay.py:3502
 #, python-brace-format
 msgid "🚑 {user} أصيب بطلق ناري! تم نقله للمستشفى."
 msgstr "🚑 {user} was hit by a bullet! Taken to the hospital."
 
-#: routes/gameplay.py:2734
+#: routes/gameplay.py:3507
 msgid "🍀 حظ لا يصدق: وجدتم باباً خلفياً مفتوحاً! (+15%)"
 msgstr "🍀 Unbelievable luck: You found a back door open! (+15%)"
 
-#: routes/gameplay.py:2762
+#: routes/gameplay.py:3520
+#, python-brace-format
+msgid "🧩 أسلوب الفريق منح أفضلية: +{pct}% فرصة نجاح"
+msgstr ""
+
+#: routes/gameplay.py:3549
 #, python-brace-format
 msgid "🚨 حرارة الساحة مرتفعة: فرص النجاح انخفضت بنسبة {pct}%"
 msgstr "🚨 Area heat is high: success chances dropped by {pct}%"
 
-#: routes/gameplay.py:2783
+#: routes/gameplay.py:3570
 msgid "🚓 دورية مزدوجة في المنطقة! انخفضت فرص النجاح وزادت المخاطر."
 msgstr "🚓 Double patrol in the area! Success chances dropped and risk increased."
 
-#: routes/gameplay.py:2790
+#: routes/gameplay.py:3577
 #, python-brace-format
 msgid "--- النتيجة النهائية: نسبة النجاح {prob}% (الرقم العشوائي: {roll}) ---"
 msgstr "--- Final result: success chance {prob}% (random roll: {roll}) ---"
 
-#: routes/gameplay.py:2823
+#: routes/gameplay.py:3610
 msgid "🎁 مفاجأة نادرة! حصل الفريق على مكافآت إضافية بفضل فرصة ذهبية."
 msgstr ""
 "🎁 Rare surprise! The team gained extra rewards thanks to a golden "
 "opportunity."
 
-#: routes/gameplay.py:2832
+#: routes/gameplay.py:3619
 #, python-brace-format
 msgid "💰 نجحت العملية! الغنيمة الكلية: {money} شيكل."
 msgstr "💰 Operation succeeded! Total loot: {money} shekels."
 
-#: routes/gameplay.py:2865
+#: routes/gameplay.py:3639
+#, python-brace-format
+msgid "📈 {user} (تاجر): مكافأة تجارة +{m} شيكل"
+msgstr ""
+
+#: routes/gameplay.py:3646
+#, python-brace-format
+msgid "⚔️ {user} (مقاتل): مكافأة خبرة +{e}"
+msgstr ""
+
+#: routes/gameplay.py:3654
+#, fuzzy, python-brace-format
+msgid "🧠 {user} (مخطط): مكافأة تخطيط +{m} شيكل و +{e} خبرة"
+msgstr "🏅 Role {role} granted a special bonus to a member: +{m} money, +{e} XP"
+
+#: routes/gameplay.py:3678
 #, python-brace-format
 msgid "🏅 دور {role} منح مكافأة خاصة لعضو: +{m} مال، +{e} خبرة"
 msgstr "🏅 Role {role} granted a special bonus to a member: +{m} money, +{e} XP"
 
-#: routes/gameplay.py:2893
+#: routes/gameplay.py:3706
 #, python-brace-format
 msgid "🔥 سلسلة انتصارات: مكافآت إضافية بنسبة {pct}% للاعب {user}"
 msgstr "🔥 Win streak: extra rewards +{pct}% for {user}"
 
-#: routes/gameplay.py:2909
+#: routes/gameplay.py:3722
 #, python-brace-format
 msgid "🌟 {user} كان الأفضل أداءً! (+{m} مال، +{e} خبرة)"
 msgstr "🌟 {user} was the top performer! (+{m} Money, +{e} XP)"
 
-#: routes/gameplay.py:2917
+#: routes/gameplay.py:3730
 #, python-brace-format
 msgid "👑 القائد {user} حصل على مكافأة القيادة: {bonus} شيكل."
 msgstr "👑 Leader {user} received a leadership bonus: {bonus} shekels."
 
-#: routes/gameplay.py:2957
+#: routes/gameplay.py:3780
 msgid "حدث خطأ أثناء توزيع الجوائز. حاول مرة أخرى."
 msgstr "Error distributing rewards. Please try again."
 
-#: routes/gameplay.py:2994
+#: routes/gameplay.py:3849
 msgid "❌ فشلت العملية! الفوضى عارمة."
 msgstr "❌ The operation failed! Chaos everywhere."
 
-#: routes/gameplay.py:3064
+#: routes/gameplay.py:3929
 #, python-brace-format
 msgid "👮 {user} تم القبض عليه! ({time} دقيقة سجن)"
 msgstr "👮 {user} was arrested! ({time} minutes in jail)"
 
-#: routes/gameplay.py:3073
+#: routes/gameplay.py:3938
 #, python-brace-format
 msgid "🚔 {user} الشرطة تطاردك! استعد للهروب!"
 msgstr "🚔 {user}, the police are chasing you! Get ready to escape!"
 
-#: routes/gameplay.py:3077
+#: routes/gameplay.py:3942
 #, python-brace-format
 msgid "🏃 {user} تمكن من الهروب بأعجوبة."
 msgstr "🏃 {user} barely managed to escape."
 
-#: routes/gameplay.py:3090
+#: routes/gameplay.py:3955
 msgid "حدث خطأ أثناء معالجة النتائج. حاول مرة أخرى."
 msgstr "Error processing results. Please try again."
 
-#: routes/gang.py:36 templates/gang/dashboard.html:549
+#: routes/gang.py:37 templates/gang/dashboard.html:549
 #: templates/gang/index.html:12 templates/gang/invites.html:101
 msgid "دعوات الانضمام"
 msgstr "Join Requests"
 
-#: routes/gang.py:59 routes/gang.py:100
+#: routes/gang.py:60 routes/gang.py:101
 msgid "هذه الدعوة ليست لك!"
 msgstr "This invitation is not for you!"
 
-#: routes/gang.py:63 routes/gang.py:158 routes/gang.py:286
+#: routes/gang.py:64 routes/gang.py:159 routes/gang.py:287
 msgid "أنت بالفعل عضو في عصابة!"
 msgstr "You are already a member of a gang!"
 
-#: routes/gang.py:70
+#: routes/gang.py:71
 msgid "العصابة لم تعد موجودة!"
 msgstr "Gang does not exist!"
 
-#: routes/gang.py:75 routes/gang.py:320
+#: routes/gang.py:76 routes/gang.py:321
 msgid "العصابة ممتلئة!"
 msgstr "The gang is full!"
 
-#: routes/gang.py:88 routes/gang.py:332
+#: routes/gang.py:89 routes/gang.py:333
 msgid "تم الانضمام للعصابة بنجاح!"
 msgstr "Joined the gang successfully!"
 
-#: routes/gang.py:106
+#: routes/gang.py:107
 msgid "تم رفض الدعوة."
 msgstr "Invitation rejected."
 
-#: routes/gang.py:136
+#: routes/gang.py:137
 msgid "لا يمكنك مغادرة العصابة وأنت الزعيم! يجب عليك نقل الزعامة أو حل العصابة."
 msgstr "Cannot leave as leader! Transfer leadership or disband gang."
 
-#: routes/gang.py:149
+#: routes/gang.py:150
 msgid "لقد غادرت العصابة."
 msgstr "You have left the gang."
 
-#: routes/gang.py:174
+#: routes/gang.py:175
 msgid "أنت في السجن ولا يمكنك إنشاء عصابة!"
 msgstr "You are in jail and cannot create a gang!"
 
-#: routes/gang.py:182
+#: routes/gang.py:183
 msgid "أنت في المستشفى ولا يمكنك إنشاء عصابة!"
 msgstr "You are in the hospital and cannot create a gang!"
 
-#: routes/gang.py:190
+#: routes/gang.py:191
 msgid "أنت تتدرب ولا يمكنك إنشاء عصابة!"
 msgstr "You are training and cannot create a gang!"
 
-#: routes/gang.py:198
+#: routes/gang.py:199
 msgid "اسم العصابة مطلوب"
 msgstr "Gang name required"
 
-#: routes/gang.py:202
+#: routes/gang.py:203
 msgid "هذا الاسم مستخدم من قبل"
 msgstr "This name is already taken"
 
-#: routes/gang.py:206
+#: routes/gang.py:207
 #, python-format
 msgid "لا تملك كاش كافي لإنشاء عصابة! المطلوب: %(cost)s"
 msgstr "Not enough cash to create a gang! Required: %(cost)s"
 
-#: routes/gang.py:219
+#: routes/gang.py:220
 msgid "لا تملك كاش كافي لإنشاء عصابة!"
 msgstr "Not enough cash to create a gang!"
 
-#: routes/gang.py:239
+#: routes/gang.py:240
 msgid "تم إنشاء العصابة بنجاح!"
 msgstr "Gang created successfully!"
 
-#: routes/gang.py:244 templates/gang/index.html:15
+#: routes/gang.py:245 templates/gang/index.html:15
 msgid "إنشاء عصابة"
 msgstr "create gang"
 
-#: routes/gang.py:266
+#: routes/gang.py:267
 msgid "أنت في السجن ولا يمكنك الانضمام لعصابة!"
 msgstr "You are in jail and cannot join a gang!"
 
-#: routes/gang.py:274
+#: routes/gang.py:275
 msgid "أنت في المستشفى ولا يمكنك الانضمام لعصابة!"
 msgstr "You are in the hospital and cannot join a gang!"
 
-#: routes/gang.py:282
+#: routes/gang.py:283
 msgid "أنت تتدرب ولا يمكنك الانضمام لعصابة!"
 msgstr "You are training and cannot join a gang!"
 
-#: routes/gang.py:298
+#: routes/gang.py:299
 msgid "هذه العصابة لا تقبل أعضاء جدد حالياً."
 msgstr "This gang is not accepting new members currently."
 
-#: routes/gang.py:302
+#: routes/gang.py:303
 msgid "الانضمام لهذه العصابة يتطلب دعوة خاصة."
 msgstr "Joining this gang requires a special invitation."
 
-#: routes/gang.py:306
+#: routes/gang.py:307
 #, python-format
 msgid "مستواك أقل من الحد الأدنى المطلوب للانضمام (مستوى %(level)s)."
 msgstr "Your level is below the minimum requirement (Level %(level)s)."
 
-#: routes/gang.py:314
+#: routes/gang.py:315
 msgid "هذه العصابة تقبل أعضاء من دول محددة فقط."
 msgstr "This gang accepts members from specific countries only."
 
-#: routes/gang.py:347
+#: routes/gang.py:348
 msgid "أنت في السجن ولا يمكنك طرد الأعضاء!"
 msgstr "You are in jail and cannot kick members!"
 
-#: routes/gang.py:355
+#: routes/gang.py:356
 msgid "أنت في المستشفى ولا يمكنك طرد الأعضاء!"
 msgstr "You are in the hospital and cannot kick members!"
 
-#: routes/gang.py:363
+#: routes/gang.py:364
 msgid "أنت تتدرب ولا يمكنك طرد الأعضاء!"
 msgstr "You are training and cannot kick members!"
 
-#: routes/gang.py:373
+#: routes/gang.py:374
 msgid "ليس لديك صلاحية لطرد الأعضاء."
 msgstr "You do not have permission to kick members."
 
-#: routes/gang.py:383
+#: routes/gang.py:384
 msgid "هذا اللاعب ليس في عصابتك."
 msgstr "This player is not in your gang."
 
-#: routes/gang.py:387
+#: routes/gang.py:388
 msgid "لا يمكنك طرد الزعيم! يجب نقل الزعامة أولاً."
 msgstr "You cannot kick the leader! Transfer leadership first."
 
-#: routes/gang.py:391
+#: routes/gang.py:392
 msgid "لا يمكنك طرد النائب!"
 msgstr "No you can kick Deputy!"
 
-#: routes/gang.py:405
+#: routes/gang.py:406
 #, python-format
 msgid "خزينة العصابة لا تكفي لدفع مستحقات الطرد! (%(cost)s$)"
 msgstr "Gang treasury is not enough to pay kick dues! (%(cost)s $)"
 
-#: routes/gang.py:414
+#: routes/gang.py:415
 msgid "خزينة العصابة لا تكفي لدفع مستحقات الطرد!"
 msgstr "Gang treasury is not enough to pay kick dues!"
 
-#: routes/gang.py:440
+#: routes/gang.py:441
 msgid "تم طرد العضو ودفع المستحقات. خسرت العصابة بعض الخبرة."
 msgstr "Member kicked and dues paid. Gang lost some experience."
 
-#: routes/gang.py:448 routes/gang.py:515 routes/gang.py:592 routes/gang.py:1015
+#: routes/gang.py:449 routes/gang.py:516 routes/gang.py:593 routes/gang.py:1030
 msgid "لست عضواً في أي عصابة!"
 msgstr "You are not a member of any gang!"
 
-#: routes/gang.py:511
+#: routes/gang.py:512
 msgid "مستوى غير صحيح."
 msgstr "Invalid price!"
 
-#: routes/gang.py:521 routes/gang.py:599
+#: routes/gang.py:522 routes/gang.py:600
 msgid "العصابة غير موجودة."
 msgstr "Gang does not exist."
 
-#: routes/gang.py:526 routes/gang.py:1235
+#: routes/gang.py:527 routes/gang.py:1250
 msgid "فقط الزعيم يمكنه تطوير العصابة!"
 msgstr "Only the boss can upgrade the gang!"
 
-#: routes/gang.py:536
+#: routes/gang.py:537
 msgid "التطوير غير موجود."
 msgstr "Item not found."
 
-#: routes/gang.py:544
+#: routes/gang.py:545
 msgid "المستوى المطلوب غير موجود."
 msgstr "Required Level"
 
-#: routes/gang.py:556
+#: routes/gang.py:557
 msgid "لا يمكنك شراء هذا المستوى حالياً."
 msgstr "You cannot smelt this item."
 
-#: routes/gang.py:564 routes/gang.py:571
+#: routes/gang.py:565 routes/gang.py:572
 msgid "لا يوجد مال كافٍ في خزينة العصابة!"
 msgstr "Not enough money in the treasury!"
 
-#: routes/gang.py:583
+#: routes/gang.py:584
 msgid "تم شراء التطوير بنجاح."
 msgstr "Stocks bought successfully!"
 
-#: routes/gang.py:605
+#: routes/gang.py:606
 msgid "فقط القيادة يمكنها إرسال دعوات عامة!"
 msgstr "Only leadership can send public invitations!"
 
-#: routes/gang.py:610 routes/gang.py:619
+#: routes/gang.py:611 routes/gang.py:620
 #, python-format
 msgid "لا يوجد رصيد كافي في خزينة العصابة! التكلفة: %(cost)s$"
 msgstr "Not enough money in treasury! Cost: %(cost)s$"
 
-#: routes/gang.py:632
+#: routes/gang.py:633
 msgid "دعوة للانضمام للعصابة"
 msgstr "Invitation to join the gang"
 
-#: routes/gang.py:633
+#: routes/gang.py:634
 #, python-format
 msgid "العصابة \"%(gang)s\" تبحث عن أعضاء جدد. ادخل وشوف إذا تناسبك."
 msgstr "Gang \"%(gang)s\" is looking for new members. Check it out."
 
-#: routes/gang.py:644
+#: routes/gang.py:645
 #, python-format
 msgid "أرسل دعوة عامة (تكلفة %(cost)s$)"
 msgstr ""
 
-#: routes/gang.py:649
+#: routes/gang.py:650
 msgid "تم إرسال دعوة عامة لعدد من اللاعبين!"
 msgstr "Public invitation sent to multiple players!"
 
-#: routes/gang.py:651
+#: routes/gang.py:652
 msgid "لا يوجد لاعبين متاحين لاستقبال الدعوة حالياً."
 msgstr "No players available to receive invitation currently."
 
-#: routes/gang.py:664
+#: routes/gang.py:667
 #, python-format
 msgid ""
 "تفاصيل عصابة %(name)s. المستوى: %(level)s, الأعضاء: %(count)s. انضم الآن "
@@ -4429,320 +4829,331 @@ msgstr ""
 "Gang %(name)s details. Level: %(level)s, Members: %(count)s. Join now and"
 " dominate!"
 
-#: routes/gang.py:703
+#: routes/gang.py:673
+#, fuzzy, python-format
+msgid "%(name)s - صفحة العصابة"
+msgstr "View Gang Page"
+
+#: routes/gang.py:676
+msgid ""
+"عصابة, عصابات فلسطين, حرب عصابات, تحالفات, ترتيب العصابات, gangs, clan, "
+"Gangs of Palestine"
+msgstr ""
+
+#: routes/gang.py:718
 msgid "فقط الزعيم يمكنه إعلان الحرب"
 msgstr "only boss he can declare war"
 
-#: routes/gang.py:716
+#: routes/gang.py:731
 msgid "أنتم بالفعل في حرب مع هذه العصابة!"
 msgstr "you already in war with this gang!"
 
-#: routes/gang.py:728
+#: routes/gang.py:743
 msgid "لا يمكنك إعلان الحرب على حليف! بينكما معاهدة سلام."
 msgstr "Cannot declare war on an ally! You have a peace treaty."
 
-#: routes/gang.py:735
+#: routes/gang.py:750
 msgid "عصابتك قوية جداً مقارنة بالخصم! لا يمكن إعلان الحرب (نظام اللعب النظيف)."
 msgstr ""
 "Your gang is too strong compared to the opponent! Cannot declare war "
 "(Fair Play System)."
 
-#: routes/gang.py:754
+#: routes/gang.py:769
 msgid "لا يمكن إعلان الحرب الآن! توجد هدنة مؤقتة (24 ساعة) بعد الحرب الأخيرة."
 msgstr "Cannot declare war now! Temporary truce (24 hours) after the last war."
 
-#: routes/gang.py:766
+#: routes/gang.py:781
 #, python-format
 msgid "أعلن الحرب على %(gang)s"
 msgstr "Declare war on %(gang)s"
 
-#: routes/gang.py:771
+#: routes/gang.py:786
 #, python-format
 msgid "تم إعلان الحرب على %(name)s!"
 msgstr "Done declare war on %(name)s!"
 
-#: routes/gang.py:790
+#: routes/gang.py:805
 msgid "هذه الحرب غير نشطة أو غير موجودة."
 msgstr "This war is inactive or does not exist."
 
-#: routes/gang.py:806 routes/gang.py:812
+#: routes/gang.py:821 routes/gang.py:827
 msgid "عصابتك ليست طرفاً في هذه الحرب!"
 msgstr "Your gang is not a party to this war!"
 
-#: routes/gang.py:818
+#: routes/gang.py:833
 msgid "فقط القيادة يمكنها الاستسلام!"
 msgstr "Only leadership can surrender!"
 
-#: routes/gang.py:862
+#: routes/gang.py:877
 #, python-format
 msgid "استسلم في الحرب ضد %(opp)s ودفع تعويضات %(amount)s$"
 msgstr "Surrendered in war against %(opp)s and paid reparations %(amount)s$"
 
-#: routes/gang.py:868
+#: routes/gang.py:883
 #, python-format
 msgid "انتصر في الحرب بعد استسلام %(loser)s وحصل على تعويضات %(amount)s$"
 msgstr ""
 "Won the war after %(loser)s surrendered and received reparations "
 "%(amount)s$"
 
-#: routes/gang.py:877
+#: routes/gang.py:892
 msgid "تم الاستسلام ودفع التعويضات. انتهت الحرب."
 msgstr "Surrendered and paid reparations. The war is over."
 
-#: routes/gang.py:890 routes/gang.py:903
+#: routes/gang.py:905 routes/gang.py:918
 msgid "لا تملك هذا المبلغ!"
 msgstr "You don't have this amount!"
 
-#: routes/gang.py:894
+#: routes/gang.py:909
 msgid "لست في عصابة!"
 msgstr "You are not in a gang!"
 
-#: routes/gang.py:916
+#: routes/gang.py:931
 #, python-format
 msgid "تبرع بـ %(amount)s$"
 msgstr "Donate %(amount)s$"
 
-#: routes/gang.py:921
+#: routes/gang.py:936
 #, python-format
 msgid "تم التبرع بـ %(amount)s$ لخزينة العصابة!"
 msgstr "Donated %(amount)s$ to gang treasury!"
 
-#: routes/gang.py:938
+#: routes/gang.py:953
 msgid "أنت في السجن ولا يمكنك سحب الأموال!"
 msgstr "You are in jail and cannot withdraw money!"
 
-#: routes/gang.py:946
+#: routes/gang.py:961
 msgid "أنت في المستشفى ولا يمكنك سحب الأموال!"
 msgstr "You are in the hospital and cannot withdraw money!"
 
-#: routes/gang.py:954
+#: routes/gang.py:969
 msgid "أنت تتدرب ولا يمكنك سحب الأموال!"
 msgstr "You are training and cannot withdraw money!"
 
-#: routes/gang.py:975
+#: routes/gang.py:990
 msgid "فقط الزعيم يمكنه سحب الأموال!"
 msgstr "Only the boss can withdraw money!"
 
-#: routes/gang.py:979 routes/gang.py:987 routes/gang.py:1259
-#: routes/gang.py:1778 routes/gang.py:1787
+#: routes/gang.py:994 routes/gang.py:1002 routes/gang.py:1274
+#: routes/gang.py:1793 routes/gang.py:1802
 msgid "لا يوجد مال كافٍ في الخزينة!"
 msgstr "Not enough money in the treasury!"
 
-#: routes/gang.py:994
+#: routes/gang.py:1009
 msgid "حدث خطأ أثناء سحب الأموال."
 msgstr "Error withdrawing money."
 
-#: routes/gang.py:1002
+#: routes/gang.py:1017
 #, python-format
 msgid "سحب %(amount)s$"
 msgstr "Withdrew %(amount)s$"
 
-#: routes/gang.py:1007
+#: routes/gang.py:1022
 #, python-format
 msgid "تم سحب %(amount)s$ من الخزينة!"
 msgstr "Withdrew %(amount)s$ from the treasury!"
 
-#: routes/gang.py:1089
+#: routes/gang.py:1104
 msgid "فقط الزعيم أو نائبه يمكنهم بدء عملية منظمة"
 msgstr "Only the boss or deputy can start an organized operation"
 
-#: routes/gang.py:1095
+#: routes/gang.py:1110
 #, python-format
 msgid "عدد أعضاء العصابة غير كافي لهذه العملية. المطلوب: %(min)s"
 msgstr "Not enough gang members for this operation. Required: %(min)s"
 
-#: routes/gang.py:1101
+#: routes/gang.py:1116
 msgid "مستوى العصابة منخفض جداً لهذه العملية."
 msgstr "Gang level is too low for this operation."
 
-#: routes/gang.py:1114
+#: routes/gang.py:1129
 #, python-format
 msgid "العصابة في فترة راحة. يجب الانتظار %(hours).1f ساعة."
 msgstr "Gang is resting. You must wait %(hours).1f hours."
 
-#: routes/gang.py:1210
+#: routes/gang.py:1225
 #, python-format
 msgid "أنشأ مجموعة لجريمة منظمة: %(crime)s وأرسل دعوات عامة"
 msgstr "Created organized crime group: %(crime)s and sent public invites"
 
-#: routes/gang.py:1214
+#: routes/gang.py:1229
 msgid "تم إنشاء المجموعة وإرسال الدعوات!"
 msgstr "Group created and invites sent!"
 
-#: routes/gang.py:1250 routes/gang.py:1315
+#: routes/gang.py:1265 routes/gang.py:1330
 #, python-format
 msgid "لا يوجد مال كافٍ في الخزينة! التكلفة: %(cost)s$"
 msgstr "Not enough money in treasury! Cost: %(cost)s$"
 
-#: routes/gang.py:1273
+#: routes/gang.py:1288
 #, python-format
 msgid "تم زيادة سعة العصابة إلى %(num)s عضو!"
 msgstr "Gang capacity increased to %(num)s members!"
 
-#: routes/gang.py:1318
+#: routes/gang.py:1333
 #, python-format
 msgid "لا يوجد خبرة كافية للعصابة! المطلوب: %(cost)s XP"
 msgstr "Not enough gang experience! Required: %(cost)s XP"
 
-#: routes/gang.py:1321
+#: routes/gang.py:1336
 msgid "حدث خطأ أثناء التطوير."
 msgstr "An error occurred during upgrade."
 
-#: routes/gang.py:1331
+#: routes/gang.py:1346
 #, python-format
 msgid "طوّر مستوى العصابة إلى %(num)s"
 msgstr "Upgraded gang level to %(num)s"
 
-#: routes/gang.py:1336
+#: routes/gang.py:1351
 #, python-format
 msgid "تم تطوير مستوى العصابة إلى المستوى %(num)s!"
 msgstr "Gang level upgraded to Level %(num)s!"
 
-#: routes/gang.py:1352
+#: routes/gang.py:1367
 msgid "فقط الزعيم يمكنه تعديل إعدادات العصابة!"
 msgstr "Only the boss can edit gang settings!"
 
-#: routes/gang.py:1381
+#: routes/gang.py:1396
 msgid "تم تحديث إعدادات العصابة بنجاح!"
 msgstr "Gang settings updated successfully!"
 
-#: routes/gang.py:1397
+#: routes/gang.py:1412
 msgid "فقط القيادة يمكنها طلب التحالف!"
 msgstr "only driving it can request alliance!"
 
-#: routes/gang.py:1411
+#: routes/gang.py:1426
 msgid "يوجد طلب أو تحالف مسبق بينكما."
 msgstr "Existing request or alliance between you."
 
-#: routes/gang.py:1423
+#: routes/gang.py:1438
 #, python-format
 msgid "لقد وصلت عصابتك للحد الأقصى من التحالفات (%(max)s)."
 msgstr "Your gang has reached the maximum number of alliances (%(max)s)."
 
-#: routes/gang.py:1433
+#: routes/gang.py:1448
 msgid "العصابة المستهدفة وصلت للحد الأقصى من التحالفات."
 msgstr "The target gang has reached the maximum number of alliances."
 
-#: routes/gang.py:1448
+#: routes/gang.py:1463
 #, python-format
 msgid "طلب تحالف مع %(gang)s"
 msgstr "Request alliance with %(gang)s"
 
-#: routes/gang.py:1453
+#: routes/gang.py:1468
 msgid "تم إرسال طلب التحالف!"
 msgstr "Alliance request sent!"
 
-#: routes/gang.py:1487 routes/gang.py:1518
+#: routes/gang.py:1502 routes/gang.py:1533
 msgid "غير مصرح لك!"
 msgstr "You are not authorized!"
 
-#: routes/gang.py:1493
+#: routes/gang.py:1508
 msgid "فقط القيادة تملك صلاحية قبول التحالفات!"
 msgstr "Only leadership has permission to accept alliances!"
 
-#: routes/gang.py:1506
+#: routes/gang.py:1521
 msgid "تم تفعيل التحالف!"
 msgstr "Alliance activated!"
 
-#: routes/gang.py:1524
+#: routes/gang.py:1539
 msgid "فقط القيادة تملك صلاحية رفض التحالفات!"
 msgstr "Only leadership has permission to reject alliances!"
 
-#: routes/gang.py:1530
+#: routes/gang.py:1545
 msgid "تم رفض التحالف."
 msgstr "Alliance rejected."
 
-#: routes/gang.py:1546
+#: routes/gang.py:1561
 msgid "فقط الزعيم يمكنه حل العصابة!"
 msgstr "Only the boss can disband the gang!"
 
-#: routes/gang.py:1561
+#: routes/gang.py:1576
 msgid "تم حل العصابة نهائياً."
 msgstr "Gang disbanded permanently."
 
-#: routes/gang.py:1579
+#: routes/gang.py:1594
 msgid "فقط الزعيم يمكنه نقل القيادة!"
 msgstr "Only the boss can transfer leadership!"
 
-#: routes/gang.py:1584
+#: routes/gang.py:1599
 msgid "يجب اختيار عضو لنقل القيادة إليه."
 msgstr "You must select a member to transfer leadership to."
 
-#: routes/gang.py:1589
+#: routes/gang.py:1604
 msgid "العضو المختار ليس في هذه العصابة."
 msgstr "Selected member is not in this gang."
 
-#: routes/gang.py:1593
+#: routes/gang.py:1608
 msgid "أنت الزعيم بالفعل!"
 msgstr "You are already the leader!"
 
-#: routes/gang.py:1606
+#: routes/gang.py:1621
 #, python-format
 msgid "نقل الزعامة إلى %(user)s"
 msgstr "Transfer leadership to %(user)s"
 
-#: routes/gang.py:1612
+#: routes/gang.py:1627
 #, python-format
 msgid "تم نقل زعامة العصابة إلى %(user)s بنجاح."
 msgstr "Gang leadership transferred to %(user)s successfully."
 
-#: routes/gang.py:1627 routes/gang.py:1690 routes/gang.py:1768
+#: routes/gang.py:1642 routes/gang.py:1705 routes/gang.py:1783
 msgid "بيانات غير صحيحة."
 msgstr "Incorrect data."
 
-#: routes/gang.py:1633
+#: routes/gang.py:1648
 msgid "لا تملك هذه الكمية!"
 msgstr "You don't have this amount!"
 
-#: routes/gang.py:1660
+#: routes/gang.py:1675
 #, python-format
 msgid "تبرع بـ %(qty)s x %(item)s للعصابة"
 msgstr "Donated %(qty)s x %(item)s to the gang"
 
-#: routes/gang.py:1666
+#: routes/gang.py:1681
 msgid "تم التبرع بنجاح!"
 msgstr "Donation successful!"
 
-#: routes/gang.py:1682
+#: routes/gang.py:1697
 msgid "فقط القيادة يمكنها توزيع العتاد!"
 msgstr "Only leadership can distribute equipment!"
 
-#: routes/gang.py:1696 routes/gang.py:1774
+#: routes/gang.py:1711 routes/gang.py:1789
 msgid "العضو غير موجود في العصابة!"
 msgstr "Member is not in the gang!"
 
-#: routes/gang.py:1709
+#: routes/gang.py:1724
 msgid "لا يوجد كمية كافية في مخزون العصابة!"
 msgstr "Not enough quantity in gang inventory!"
 
-#: routes/gang.py:1738
+#: routes/gang.py:1753
 #, python-format
 msgid "أعطى %(qty)s x %(item)s للعضو %(user)s"
 msgstr "Gave %(qty)s x %(item)s to member %(user)s"
 
-#: routes/gang.py:1745
+#: routes/gang.py:1760
 msgid "تم توزيع العتاد بنجاح!"
 msgstr "Equipment distributed successfully!"
 
-#: routes/gang.py:1761
+#: routes/gang.py:1776
 msgid "فقط القيادة يمكنها توزيع الأموال!"
 msgstr "Only leadership can distribute money!"
 
-#: routes/gang.py:1803
+#: routes/gang.py:1818
 msgid "حدث خطأ أثناء تحويل الأموال."
 msgstr "An error occurred during money transfer."
 
-#: routes/gang.py:1811
+#: routes/gang.py:1826
 #, python-format
 msgid "حول %(amount)s$ للعضو %(user)s"
 msgstr "Transferred %(amount)s$ to member %(user)s"
 
-#: routes/gang.py:1817
+#: routes/gang.py:1832
 #, python-format
 msgid "تم تحويل %(amount)s$ للعضو %(user)s بنجاح!"
 msgstr "Successfully transferred %(amount)s$ to member %(user)s!"
 
-#: routes/gang.py:1855 routes/social.py:1327
+#: routes/gang.py:1870 routes/social.py:1479
 #, fuzzy
 msgid "أنت مكتوم لا يمكنك التحدث!"
 msgstr "You are training and cannot fight!"
@@ -4863,30 +5274,43 @@ msgstr "Cannot modify damaged car! Repair it first."
 msgid "تم تعديل محرك %(vehicle_name)s! السرعة والأداء زادوا."
 msgstr "Engine of %(vehicle_name)s modified! Speed and performance increased."
 
-#: routes/graveyard.py:49
+#: routes/graveyard.py:51
 msgid "مقبرة الشهداء والضحايا في عصابات فلسطين. هنا يرقد من خسروا المعركة."
 msgstr ""
 "Cemetery of martyrs and victims in Gangs of Palestine. Here lie those who"
 " lost the battle."
 
-#: routes/graveyard.py:121
+#: routes/graveyard.py:54
+#, fuzzy
+msgid "مقبرة الضحايا - عصابات فلسطين"
+msgstr "Gangs of Palestine Guide"
+
+#: routes/graveyard.py:56
+msgid "مقبرة, ضحايا, قتلى, عصابات فلسطين, معارك, graveyard, victims"
+msgstr ""
+
+#: routes/graveyard.py:59 templates/base.html:542
+msgid "المقبرة"
+msgstr "Graveyard"
+
+#: routes/graveyard.py:131
 msgid "تم إحياؤك بنجاح!"
 msgstr "Resurrected successfully!"
 
-#: routes/graveyard.py:135
+#: routes/graveyard.py:145
 msgid "لديك طلب قيد الانتظار بالفعل!"
 msgstr "You already have a pending request!"
 
-#: routes/graveyard.py:148
+#: routes/graveyard.py:158
 msgid "طلب إحياء جديد"
 msgstr "New resurrection request"
 
-#: routes/graveyard.py:150
+#: routes/graveyard.py:160
 #, python-format
 msgid "اللاعب %(user)s قدم طلب إحياء."
 msgstr "Player %(user)s submitted a resurrection request."
 
-#: routes/graveyard.py:155
+#: routes/graveyard.py:165
 msgid "تم إرسال طلب الإحياء للمطور. سيتم مراجعة طلبك قريباً."
 msgstr ""
 "Resurrection request sent to developer. Your request will be reviewed "
@@ -4988,7 +5412,7 @@ msgstr "Escape system currently disabled!"
 msgid "لا يوجد تدريب فعّال."
 msgstr "No messages"
 
-#: routes/gym.py:495 routes/jail.py:677
+#: routes/gym.py:495 routes/jail.py:683
 #, fuzzy, python-format
 msgid "لا تملك ألماس كافٍ. تحتاج %(cost)s ماسة."
 msgstr "You don't have enough diamonds currently."
@@ -5348,7 +5772,7 @@ msgstr ""
 msgid "تغيير الحكم: %(sign)s%(min)s دقيقة"
 msgstr ""
 
-#: routes/jail.py:152 templates/base.html:215 templates/crimes.html:108
+#: routes/jail.py:152 templates/base.html:216 templates/crimes.html:100
 #: templates/developer/edit_user.html:171 templates/empire.html:40
 #: templates/hara.html:315
 msgid "الطاقة"
@@ -5365,11 +5789,11 @@ msgstr "Health"
 msgid "الشجاعة"
 msgstr "Bravery"
 
-#: routes/jail.py:155 templates/combat/result.html:31 templates/crimes.html:174
+#: routes/jail.py:155 templates/combat/result.html:31 templates/crimes.html:167
 #: templates/empire.html:20 templates/gang/dashboard.html:32
 #: templates/gang/index.html:33 templates/gang/view.html:34
 #: templates/hara.html:337 templates/heist_report.html:86
-#: templates/leaderboard.html:32 templates/lobby.html:29
+#: templates/leaderboard.html:70 templates/lobby.html:29
 #: templates/profile.html:60
 msgid "الخبرة"
 msgstr "Experience"
@@ -5387,7 +5811,7 @@ msgstr ""
 "⚖️ Administrative detention renewed for another %(min)s minutes. \"Secret"
 " file\"!"
 
-#: routes/jail.py:335 templates/base.html:535 templates/guide.html:165
+#: routes/jail.py:335 templates/base.html:536 templates/guide.html:165
 msgid "السجن"
 msgstr "Jail"
 
@@ -5396,9 +5820,9 @@ msgstr "Jail"
 msgid "محاولة الهروب غير مفعلة حالياً."
 msgstr "Escape system currently disabled!"
 
-#: routes/jail.py:378 routes/jail.py:504 routes/jail.py:648 routes/jail.py:710
-#: routes/jail.py:817 routes/jail.py:934 routes/jail.py:996 routes/jail.py:1073
-#: routes/jail.py:1143
+#: routes/jail.py:378 routes/jail.py:510 routes/jail.py:654 routes/jail.py:716
+#: routes/jail.py:823 routes/jail.py:940 routes/jail.py:1002
+#: routes/jail.py:1079 routes/jail.py:1149
 msgid "أنت لست في السجن!"
 msgstr "You're not in jail!"
 
@@ -5425,91 +5849,105 @@ msgstr "An error occurred during money transfer."
 msgid "نجحت بخطف لحظة فوضى والهروب من السجن!"
 msgstr ""
 
-#: routes/jail.py:486
+#: routes/jail.py:488
 #, fuzzy, python-format
 msgid "فشلت المحاولة وتم كشفك. زادت عقوبتك %(min)s دقيقة."
 msgstr ""
 "Riot failed! Your plan was discovered and you were put in solitary. Your "
 "sentence increased by %(min)s minutes."
 
-#: routes/jail.py:496
+#: routes/jail.py:489
+#, fuzzy, python-format
+msgid "انكشف أمرك… فشل الهروب وزادت العقوبة %(min)s دقيقة."
+msgstr ""
+"Riot failed! Your plan was discovered and you were put in solitary. Your "
+"sentence increased by %(min)s minutes."
+
+#: routes/jail.py:490
+#, fuzzy, python-format
+msgid "ما زبطت! كشفوك وزادوا عليك %(min)s دقيقة."
+msgstr ""
+"Riot failed! Your plan was discovered and you were put in solitary. Your "
+"sentence increased by %(min)s minutes."
+
+#: routes/jail.py:502
 #, fuzzy
 msgid "مغامرة جلبوع غير مفعلة حالياً."
 msgstr "Escape system currently disabled!"
 
-#: routes/jail.py:512
+#: routes/jail.py:518
 msgid "لا يمكنك تكرار مغامرة جلبوع أكثر اليوم."
 msgstr ""
 
-#: routes/jail.py:527
+#: routes/jail.py:533
 #, python-format
 msgid "لا تزال المغامرة تحت التبريد. انتظر %(m)s دقيقة."
 msgstr ""
 
-#: routes/jail.py:534
+#: routes/jail.py:540
 #, fuzzy, python-format
 msgid "تحتاج إلى %(cost)s طاقة."
 msgstr "You need %(cost)s$ to buy a disguise!"
 
-#: routes/jail.py:537
+#: routes/jail.py:543
 #, fuzzy, python-format
 msgid "تحتاج إلى %(cost)s ماسة لهذه المغامرة."
 msgstr "You need %(cost)s$ to lower your heat."
 
-#: routes/jail.py:580 routes/jail.py:620
+#: routes/jail.py:586 routes/jail.py:626
 #, fuzzy
 msgid "حدث خطأ أثناء المغامرة."
 msgstr "Error during operation."
 
-#: routes/jail.py:586
+#: routes/jail.py:592
 msgid "ملحمة جلبوع"
 msgstr ""
 
-#: routes/jail.py:587
+#: routes/jail.py:593
 msgid "نجحت في هروب أسطوري من السجن."
 msgstr ""
 
-#: routes/jail.py:598
+#: routes/jail.py:604
 msgid "نجحت مغامرة جلبوع! خرجت من السجن رغم التشديد."
 msgstr ""
 
-#: routes/jail.py:630
+#: routes/jail.py:636
 #, fuzzy, python-format
 msgid "فشلت مغامرة جلبوع. تم تشديد الإجراءات وزادت عقوبتك %(min)s دقيقة."
 msgstr ""
 "Riot failed! Your plan was discovered and you were put in solitary. Your "
 "sentence increased by %(min)s minutes."
 
-#: routes/jail.py:640
+#: routes/jail.py:646
 #, fuzzy
 msgid "الكفالة بالماس غير مفعلة حالياً."
 msgstr "Organized crimes are currently disabled."
 
-#: routes/jail.py:671
+#: routes/jail.py:677
 #, python-format
 msgid "لا يمكنك تكرار الكفالة الآن. انتظر %(m)s دقيقة."
 msgstr ""
 
-#: routes/jail.py:691
+#: routes/jail.py:697
 #, fuzzy
 msgid "فشلت العملية."
 msgstr "Execute"
 
-#: routes/jail.py:700
+#: routes/jail.py:706
 #, fuzzy
 msgid "تمت الكفالة بالماس. أنت حر الآن."
 msgstr "Bribe paid successfully! You are free now.%(msg)s"
 
-#: routes/jail.py:718 routes/jail.py:825 routes/jail.py:942 routes/jail.py:1151
+#: routes/jail.py:724 routes/jail.py:831 routes/jail.py:948 routes/jail.py:1157
 msgid "لقد انتهت فترة عقوبتك!"
 msgstr "Your sentence is over!"
 
-#: routes/jail.py:751
+#: routes/jail.py:757
 #, python-format
 msgid "تحتاج إلى %(cost)s طاقة للتحريض على التمرد! أو حدث خطأ في التزامن."
 msgstr "You need %(cost)s energy to incite a riot! Or a sync error occurred."
 
-#: routes/jail.py:782
+#: routes/jail.py:788
 #, python-format
 msgid ""
 "نجح التمرد! عمت الفوضى وتم تخفيض عقوبة الجميع بمقدار %(min)s دقيقة! وحصلت"
@@ -5518,24 +5956,24 @@ msgstr ""
 "Riot successful! Chaos erupted and everyone's sentence was reduced by "
 "%(min)s minutes! You gained %(xp)s XP."
 
-#: routes/jail.py:796
+#: routes/jail.py:802
 #, python-format
 msgid "فشل التمرد! تم كشف خطتك ووضعك في الانفرادي. زادت عقوبتك %(min)s دقيقة."
 msgstr ""
 "Riot failed! Your plan was discovered and you were put in solitary. Your "
 "sentence increased by %(min)s minutes."
 
-#: routes/jail.py:834
+#: routes/jail.py:840
 msgid "صحتك متدهورة جداً! لا يمكنك بدء إضراب الكرامة وأنت في هذه الحالة."
 msgstr ""
 "Your health is too low! You cannot start a hunger strike in this "
 "condition."
 
-#: routes/jail.py:889
+#: routes/jail.py:895
 msgid "حدث خطأ أثناء معالجة الإضراب. قد تكون حالتك تغيرت."
 msgstr "Error processing strike. Your status may have changed."
 
-#: routes/jail.py:895
+#: routes/jail.py:901
 #, python-format
 msgid ""
 "✌️ انتصار الأمعاء الخاوية! رضخت إدارة السجون لمطالبك وتم تخفيض حكمك "
@@ -5544,13 +5982,13 @@ msgstr ""
 "✌️ Hunger Strike Victory! Prison administration yielded to your demands "
 "and your sentence was reduced by %(min)s minutes."
 
-#: routes/jail.py:905
+#: routes/jail.py:911
 msgid "استمر الإضراب ولكن إدارة السجون ترفض التفاوض. فقدت صحتك بلا نتيجة."
 msgstr ""
 "Strike continued but administration refuses to negotiate. You lost health"
 " for nothing."
 
-#: routes/jail.py:915
+#: routes/jail.py:921
 #, python-format
 msgid ""
 "عاقبتك الإدارة بالعزل الانفرادي وتجديد الاعتقال الإداري لمدة %(min)s "
@@ -5559,75 +5997,75 @@ msgstr ""
 "Administration punished you with solitary confinement and renewed "
 "administrative detention for an extra %(min)s minutes."
 
-#: routes/jail.py:964
+#: routes/jail.py:970
 #, python-format
 msgid "لا تملك تكاليف المحامي! تحتاج إلى %(cost)d$."
 msgstr "You don't have enough cash for a lawyer! You need %(cost)d$."
 
-#: routes/jail.py:980
+#: routes/jail.py:986
 #, python-format
 msgid "قام المحامي بتقديم استئناف عاجل! تم تخفيض الحكم %(min)s دقيقة."
 msgstr "Lawyer filed an urgent appeal! Sentence reduced by %(min)s minutes."
 
-#: routes/jail.py:990
+#: routes/jail.py:996
 #, fuzzy
 msgid "ميزة التوثيق غير مفعلة حالياً."
 msgstr "Escape system currently disabled!"
 
-#: routes/jail.py:1011
+#: routes/jail.py:1017
 #, python-format
 msgid "يمكنك استخدام التوثيق مرة كل %(h)s ساعات."
 msgstr ""
 
-#: routes/jail.py:1017
+#: routes/jail.py:1023
 #, fuzzy, python-format
 msgid "تحتاج إلى %(cost)s طاقة للتوثيق."
 msgstr "You need %(cost)s$ to buy a disguise!"
 
-#: routes/jail.py:1051
+#: routes/jail.py:1057
 #, fuzzy
 msgid "حدث خطأ أثناء التوثيق. حاول مرة أخرى."
 msgstr "Error extending contract. Please try again."
 
-#: routes/jail.py:1055
+#: routes/jail.py:1061
 #, python-format
 msgid "تم توثيق الانتهاكات وإيصالها للخارج. تم تخفيض حكمك %(min)s دقيقة."
 msgstr ""
 
-#: routes/jail.py:1058
+#: routes/jail.py:1064
 msgid "تم توثيق الانتهاكات، لكن لم يحدث تأثير فوري على ملفك."
 msgstr ""
 
-#: routes/jail.py:1067
+#: routes/jail.py:1073
 #, fuzzy
 msgid "ميزة الزيارة غير مفعلة حالياً."
 msgstr "Bribery system currently disabled!"
 
-#: routes/jail.py:1088
+#: routes/jail.py:1094
 #, python-format
 msgid "يمكنك طلب الزيارة مرة كل %(h)s ساعات."
 msgstr ""
 
-#: routes/jail.py:1125
+#: routes/jail.py:1131
 #, fuzzy
 msgid "حدث خطأ أثناء معالجة طلب الزيارة."
 msgstr "Error starting chase."
 
-#: routes/jail.py:1129
+#: routes/jail.py:1135
 #, fuzzy, python-format
 msgid "تمت الزيارة. ثباتك أقوى! تم تخفيض حكمك %(min)s دقيقة."
 msgstr "Lawyer filed an urgent appeal! Sentence reduced by %(min)s minutes."
 
-#: routes/jail.py:1132
+#: routes/jail.py:1138
 msgid "تم رفض الزيارة اليوم. حاول لاحقاً."
 msgstr ""
 
-#: routes/jail.py:1181
+#: routes/jail.py:1187
 #, python-format
 msgid "تحتاج إلى %(cost)s طاقة للقيام بالأعمال الشاقة! أو حدث خطأ في التزامن."
 msgstr "You need %(cost)s energy to do hard labor! Or a sync error occurred."
 
-#: routes/jail.py:1187
+#: routes/jail.py:1193
 #, python-format
 msgid ""
 "قمت بعمل شاق في المغسلة! تم تخفيض عقوبتك %(min)s دقيقة وحصلت على "
@@ -5636,88 +6074,124 @@ msgstr ""
 "You did hard labor in the laundry! Sentence reduced by %(min)s minutes "
 "and you earned %(money)s$."
 
-#: routes/jail.py:1198
+#: routes/jail.py:1204
 msgid "نظام الرشوة غير مفعل حالياً!"
 msgstr "Bribery system currently disabled!"
 
-#: routes/jail.py:1221 routes/jail.py:1308
+#: routes/jail.py:1227 routes/jail.py:1314
 #, python-format
 msgid " (خصم %(percent)s%% من العصابة)"
 msgstr " (%(percent)s%% Gang discount)"
 
-#: routes/jail.py:1236 routes/jail.py:1323
+#: routes/jail.py:1242 routes/jail.py:1329
 #, python-format
 msgid " (خصم %(percent)s%% من المضيفة)"
 msgstr " (%(percent)s%% Hostess discount)"
 
-#: routes/jail.py:1261
+#: routes/jail.py:1267
 #, python-format
 msgid "تم دفع الرشوة بنجاح! أنت حر الآن.%(msg)s"
 msgstr "Bribe paid successfully! You are free now.%(msg)s"
 
-#: routes/jail.py:1265
+#: routes/jail.py:1271
 #, python-format
 msgid "ليس لديك مال كافٍ لدفع الرشوة! تحتاج %(cost)s$.%(msg)s"
 msgstr "You don't have enough money for the bribe! You need %(cost)s$. %(msg)s"
 
-#: routes/jail.py:1277
+#: routes/jail.py:1283
 msgid "نظام الرشوة/الكفالة غير مفعل حالياً!"
 msgstr "Bribery/Bail system currently disabled!"
 
-#: routes/jail.py:1288 routes/jail.py:1401
+#: routes/jail.py:1294 routes/jail.py:1407
 msgid "هذا اللاعب ليس في السجن!"
 msgstr "This player is not in jail!"
 
-#: routes/jail.py:1293
+#: routes/jail.py:1299
 msgid "لا يمكنك دفع كفالة لنفسك بالماس، استخدم خيار الرشوة بالمال!"
 msgstr "You can't bail yourself out with diamonds; use the money bribe option!"
 
-#: routes/jail.py:1348
+#: routes/jail.py:1354
 #, python-format
 msgid "تم دفع الكفالة بنجاح! تم إخراج %(name)s من السجن.%(msg)s"
 msgstr "Bail paid successfully! %(name)s has been released from jail.%(msg)s"
 
-#: routes/jail.py:1351
+#: routes/jail.py:1357
 #, python-format
 msgid "ليس لديك ما يكفي من الماس! تحتاج إلى %(cost)s ماسة.%(msg)s"
 msgstr "You don't have enough diamonds! You need %(cost)s diamonds.%(msg)s"
 
-#: routes/jail.py:1368
+#: routes/jail.py:1374
 msgid "أنت في السجن ولا يمكنك تهريب الآخرين!"
 msgstr "You are in jail and cannot smuggle others!"
 
-#: routes/jail.py:1376
+#: routes/jail.py:1382
 msgid "أنت في المستشفى ولا يمكنك تهريب الآخرين!"
 msgstr "You are in hospital and cannot smuggle others!"
 
-#: routes/jail.py:1384
+#: routes/jail.py:1390
 msgid "أنت تتدرب ولا يمكنك تهريب الآخرين!"
 msgstr "You are training and cannot smuggle others!"
 
-#: routes/jail.py:1390
+#: routes/jail.py:1396
 msgid "نظام الهروب غير مفعل حالياً!"
 msgstr "Escape system currently disabled!"
 
-#: routes/jail.py:1405
+#: routes/jail.py:1411
 msgid "لا يمكنك تهريب نفسك بهذه الطريقة!"
 msgstr "You cannot smuggle yourself this way!"
 
-#: routes/jail.py:1433
+#: routes/jail.py:1441
 msgid "تطورت مهاراتك في التخطيط! (+1 ذكاء)"
 msgstr "Your planning skills improved! (+1 Intelligence)"
 
-#: routes/jail.py:1453
+#: routes/jail.py:1442
+msgid "تعلمت حركة جديدة… (+1 ذكاء)"
+msgstr ""
+
+#: routes/jail.py:1443
+#, fuzzy
+msgid "صار عندك خبرة بالتخطيط أكثر! (+1 ذكاء)"
+msgstr "Your planning skills improved! (+1 Intelligence)"
+
+#: routes/jail.py:1467
 msgid "تحتاج إلى 50 طاقة لمحاولة التهريب! أو حدث خطأ في التزامن."
 msgstr "You need 50 energy to attempt smuggling! Or a sync error occurred."
 
-#: routes/jail.py:1467
+#: routes/jail.py:1468
+#, fuzzy
+msgid "بدك 50 طاقة عشان التهريب… أو صار خلل بالتزامن."
+msgstr "You need 50 energy to attempt smuggling! Or a sync error occurred."
+
+#: routes/jail.py:1469
+msgid "التهريب بدّه 50 طاقة… أو في مشكلة تزامن."
+msgstr ""
+
+#: routes/jail.py:1486
 #, python-format
 msgid "نجحت العملية! تم تهريب %(name)s وحصلت على %(xp)s خبرة."
 msgstr "Operation successful! Busted out %(name)s and gained %(xp)s XP."
 
-#: routes/jail.py:1470
+#: routes/jail.py:1488
+#, fuzzy, python-format
+msgid "عملية التهريب نجحت! طلّعت %(name)s وكسبت %(xp)s خبرة."
+msgstr "Operation successful! Busted out %(name)s and gained %(xp)s XP."
+
+#: routes/jail.py:1490
+#, fuzzy, python-format
+msgid "نفّذت التهريب! %(name)s صار حر… وأنت ربحت %(xp)s خبرة."
+msgstr "Operation successful! Busted out %(name)s and gained %(xp)s XP."
+
+#: routes/jail.py:1498
 msgid "فشلت العملية! تم القبض عليك وإيداعك السجن لمدة 5 دقائق."
 msgstr "Operation failed! You were arrested and put in jail for 5 minutes."
+
+#: routes/jail.py:1499
+msgid "انمسكت وأنت بتحاول… 5 دقائق سجن زيادة."
+msgstr ""
+
+#: routes/jail.py:1500
+msgid "ما زبطت التهريب… قبضوا عليك وسجنوك 5 دقائق."
+msgstr ""
 
 #: routes/market.py:80
 #, python-format
@@ -5911,7 +6385,7 @@ msgstr ""
 "Follow the latest news and updates of Gangs of Palestine. Be the first to"
 " know about events and new features."
 
-#: routes/news.py:18 routes/news.py:43 templates/base.html:577
+#: routes/news.py:18 routes/news.py:43 templates/base.html:578
 msgid "الأخبار"
 msgstr "News"
 
@@ -5924,105 +6398,161 @@ msgid "تم استلام طلبك! سيتم مراجعة الدفع وإضافة
 msgstr "Order received! Payment will be reviewed and diamonds added shortly."
 
 #: routes/payment.py:62 templates/buy_diamonds.html:3
-#: templates/register.html:124 templates/social/_chat_sidebar.html:53
+#: templates/register.html:134 templates/social/_chat_sidebar.html:53
 #: templates/social/chat_lobby.html:49 templates/social/chat_room.html:56
 msgid "شراء الماس"
 msgstr "Buy Diamonds"
 
-#: routes/police_chase.py:54
+#: routes/police_chase.py:56
 msgid "عليك الانتظار قبل المطاردة التالية!"
 msgstr "You must wait before the next chase!"
 
-#: routes/police_chase.py:73
+#: routes/police_chase.py:57
+msgid "لسه بدري على مطاردة جديدة… استنى شوي."
+msgstr ""
+
+#: routes/police_chase.py:58
+msgid "اهدأ شوي… المطاردة الجاية بعد كم دقيقة."
+msgstr ""
+
+#: routes/police_chase.py:80
 msgid "حدث خطأ أثناء بدء المطاردة."
 msgstr "Error starting chase."
 
-#: routes/police_chase.py:104
+#: routes/police_chase.py:112
 msgid "حاولت الاختباء في الأزقة الضيقة..."
 msgstr "You tried hiding in the narrow alleys..."
 
-#: routes/police_chase.py:110
+#: routes/police_chase.py:113
+#, fuzzy
+msgid "تخبّيت بين الحارات وحاولت تضيعهم..."
+msgstr "You floored it and tried to outrun them..."
+
+#: routes/police_chase.py:114
+msgid "لفّيت بين الزواريب… يمكن يخسروا أثرك..."
+msgstr ""
+
+#: routes/police_chase.py:122
 msgid "دعست بنزين وحاولت تسبقهم..."
 msgstr "You floored it and tried to outrun them..."
 
-#: routes/police_chase.py:116
+#: routes/police_chase.py:123
+msgid "طلعت بأقصى سرعة… بدك تفلت منهم!"
+msgstr ""
+
+#: routes/police_chase.py:124
+msgid "فتحت خط… والهدف تضيعهم قبل ما يطوّقوك."
+msgstr ""
+
+#: routes/police_chase.py:132
 msgid "قررت تواجههم وتفتح النار!"
 msgstr "You decided to face them and open fire!"
 
-#: routes/police_chase.py:126
+#: routes/police_chase.py:133
+msgid "ما في هروب… واجهتهم وجهاً لوجه!"
+msgstr ""
+
+#: routes/police_chase.py:134
+msgid "رفعت سلاحك وقلت: \"اليوم مش رايح!\""
+msgstr ""
+
+#: routes/police_chase.py:145
 msgid "🚧 قفزت فوق حاجز شرطة!"
 msgstr "🚧 Jumped over a police roadblock!"
 
-#: routes/police_chase.py:127
+#: routes/police_chase.py:146
 msgid "⛔ دخلت في شارع عكس السير!"
 msgstr "⛔ Drove down a one-way street!"
 
-#: routes/police_chase.py:128
-msgid "💨 رميت عليهم قنبلة دخانية!"
-msgstr "💨 Threw a smoke grenade at them!"
-
-#: routes/police_chase.py:129
+#: routes/police_chase.py:148
 msgid "🚕 استخدمت زحمة السير لصالحك!"
 msgstr "🚕 Used traffic to your advantage!"
 
-#: routes/police_chase.py:130
+#: routes/police_chase.py:149
 msgid "🚓 صدمت سيارة دورية على الماشي!"
 msgstr "🚓 Rammed a patrol car on the go!"
 
-#: routes/police_chase.py:168 routes/police_chase.py:210
-#: routes/police_chase.py:250 templates/base.html:465
+#: routes/police_chase.py:150
+msgid "🛻 دخلت بين شاحنات واقفة وضيّعتهم!"
+msgstr ""
+
+#: routes/police_chase.py:151
+msgid "🔦 طفيت الأنوار لحظة… ومشيت بخفة!"
+msgstr ""
+
+#: routes/police_chase.py:152
+msgid "🛣️ غيّرت طريقك ثلاث مرات ورا بعض!"
+msgstr ""
+
+#: routes/police_chase.py:190 routes/police_chase.py:236
+#: routes/police_chase.py:280 templates/base.html:466
 #: templates/police_chase.html:3 templates/police_chase.html:13
 msgid "مطاردة الشرطة"
 msgstr "Police Chase"
 
-#: routes/police_chase.py:169
+#: routes/police_chase.py:191
 msgid "هروب ناجح"
 msgstr "Successful Escape"
 
-#: routes/police_chase.py:170
+#: routes/police_chase.py:193
 #, python-format
 msgid "ونجحت! هربت منهم وكسبت %(money)s شيكل."
 msgstr "And you made it! You escaped and earned %(money)s shekels."
 
-#: routes/police_chase.py:174 templates/developer/heist_history.html:32
-#: templates/developer/user_logs.html:58 templates/heist_report.html:30
-msgid "نجاح"
-msgstr "Success"
+#: routes/police_chase.py:194
+#, python-format
+msgid "وفلّتت! كسبت %(money)s شيكل وأفلتّ بآخر لحظة."
+msgstr ""
 
-#: routes/police_chase.py:177 routes/police_chase.py:219
-#: templates/developer/hostess_trainer.html:14 templates/story.html:217
+#: routes/police_chase.py:195
+#, fuzzy, python-format
+msgid "نجاة! ضيّعتهم وربحت %(money)s شيكل."
+msgstr "And you made it! You escaped and earned %(money)s shekels."
+
+#: routes/police_chase.py:203 routes/police_chase.py:249
+#: templates/developer/hostess_trainer.html:14 templates/story.html:226
 msgid "رجوع"
 msgstr "Back"
 
-#: routes/police_chase.py:211
+#: routes/police_chase.py:237
 msgid "تدخل العصابة"
 msgstr "Gang Intervention"
 
-#: routes/police_chase.py:212
+#: routes/police_chase.py:239
 msgid "مسكوك الشرطة، بس فرقة الحماية تدخلت وهربوك بآخر لحظة! نفذت بريشك."
 msgstr ""
 "Police caught you, but the protection squad intervened and busted you out"
 " at the last second! You made it."
 
-#: routes/police_chase.py:216
+#: routes/police_chase.py:240
+msgid "كانت رايحة عليك… بس شباب الحماية شتتوا الشرطة وهربوك."
+msgstr ""
+
+#: routes/police_chase.py:241
+msgid "انطوقت… وبآخر ثانية تدخلت فرقة العصابة وطلّعتك."
+msgstr ""
+
+#: routes/police_chase.py:246
 msgid "نجاة"
 msgstr "Survival"
 
-#: routes/police_chase.py:251
+#: routes/police_chase.py:281
 msgid "انتهت بسجن"
 msgstr "Ended in Jail"
 
-#: routes/police_chase.py:252
+#: routes/police_chase.py:283
 msgid "لكنهم مسكوك! رايح عالحبس يا معلم."
 msgstr "But they caught you! You're going to jail."
 
-#: routes/police_chase.py:256 templates/developer/heist_history.html:34
-#: templates/developer/user_logs.html:60 templates/heist_report.html:32
-#: templates/heist_report.html:103
-msgid "فشل"
-msgstr "Failure"
+#: routes/police_chase.py:284
+msgid "انمسكت… التحقيق والسجن بانتظارك."
+msgstr ""
 
-#: routes/police_chase.py:259
+#: routes/police_chase.py:285
+msgid "خلصت… طوقتوك ومسكوّك. طريقك عالسجن."
+msgstr ""
+
+#: routes/police_chase.py:293
 msgid "رجوع للجرائم"
 msgstr "Back to Crimes"
 
@@ -6153,8 +6683,8 @@ msgstr "No results found"
 msgid "الرجاء إدخال اسم للبحث"
 msgstr "Please enter a name to search"
 
-#: routes/social.py:55 routes/social.py:811 routes/social.py:892
-#: routes/social.py:988 routes/social.py:1398
+#: routes/social.py:55 routes/social.py:963 routes/social.py:1044
+#: routes/social.py:1140 routes/social.py:1574
 #, fuzzy
 msgid "هذه الغرفة تتطلب تسجيل الدخول."
 msgstr "Back to Login"
@@ -6172,158 +6702,190 @@ msgstr ""
 msgid "هذه الغرفة متاحة لمن عمره 18+ فقط."
 msgstr ""
 
-#: routes/social.py:152
+#: routes/social.py:162
 msgid "تم تحديد الكل كمقروء."
 msgstr "All marked as read."
 
-#: routes/social.py:165
+#: routes/social.py:175
 msgid "تم حذف الإشعار."
 msgstr "Notification deleted."
 
-#: routes/social.py:187 templates/messages.html:37
+#: routes/social.py:197 templates/messages.html:37
 msgid "البريد الصادر"
 msgstr "Sent"
 
-#: routes/social.py:196 templates/messages.html:34
+#: routes/social.py:206 templates/messages.html:34
 msgid "البريد الوارد"
 msgstr "Inbox"
 
-#: routes/social.py:258
+#: routes/social.py:268
 #, python-format
 msgid "انضم لعصابة %(user)s في عصابات فلسطين"
 msgstr "Join %(user)s's gang in Gangs of Palestine"
 
-#: routes/social.py:260
+#: routes/social.py:270
 msgid "ساعدني في السيطرة على المدينة! سجل الآن واحصل على مكافآت حصرية."
 msgstr "Help me take over the city! Sign up now and get exclusive rewards."
 
-#: routes/social.py:288
+#: routes/social.py:298
 msgid "لا يمكنك مراسلة نفسك!"
 msgstr "You cannot message yourself!"
 
-#: routes/social.py:300
+#: routes/social.py:302
+msgid "يرجى تعبئة العنوان والمحتوى."
+msgstr ""
+
+#: routes/social.py:306
+#, fuzzy
+msgid "عنوان الرسالة طويل جداً."
+msgstr "Message Title"
+
+#: routes/social.py:310
+#, fuzzy
+msgid "محتوى الرسالة طويل جداً."
+msgstr "Gang does not exist."
+
+#: routes/social.py:314 routes/social.py:1054 routes/social.py:1493
+msgid "عذراً، يمنع إرسال الروابط أو الإيميلات أو أرقام الهواتف."
+msgstr ""
+
+#: routes/social.py:318
+#, fuzzy
+msgid "لا يمكن إرسال رسالة لهذا المستخدم."
+msgstr "You cannot smelt this item."
+
+#: routes/social.py:334 routes/social.py:1520 templates/messages.html:23
+msgid "رسالة جديدة"
+msgstr "New Message"
+
+#: routes/social.py:335 routes/social.py:1521
+#, python-format
+msgid "وصلتك رسالة جديدة من %(u)s."
+msgstr ""
+
+#: routes/social.py:343
 msgid "تم إرسال الرسالة بنجاح!"
 msgstr "Message sent successfully!"
 
-#: routes/social.py:332 routes/social.py:1133
+#: routes/social.py:375 routes/social.py:1285
 msgid "تم حذف الرسالة."
 msgstr "Message deleted."
 
-#: routes/social.py:348
+#: routes/social.py:391
 msgid "لم يتم تحديد أي رسالة!"
 msgstr "No message selected!"
 
-#: routes/social.py:375
+#: routes/social.py:418
 #, python-format
 msgid "تم حذف %(count)d رسالة."
 msgstr "%(count)d messages deleted."
 
-#: routes/social.py:525
+#: routes/social.py:568
 #, fuzzy
 msgid "لا يمكنك إضافة نفسك."
 msgstr "You cannot kick yourself."
 
-#: routes/social.py:547
+#: routes/social.py:590
 #, fuzzy
 msgid "طلب صداقة"
 msgstr "Most Wanted"
 
-#: routes/social.py:548
+#: routes/social.py:591
 #, python-format
 msgid "%(u)s أرسل لك طلب صداقة."
 msgstr ""
 
-#: routes/social.py:552
+#: routes/social.py:595
 #, fuzzy
 msgid "تم إرسال طلب الصداقة."
 msgstr "Alliance request sent!"
 
-#: routes/social.py:559
+#: routes/social.py:602
 #, fuzzy
 msgid "أنتما أصدقاء بالفعل."
 msgstr "You are already here!"
 
-#: routes/social.py:566
+#: routes/social.py:609
 #, fuzzy
 msgid "لا يمكن إرسال طلب صداقة."
 msgstr "Cannot start race!"
 
-#: routes/social.py:574
+#: routes/social.py:617
 #, fuzzy
 msgid "طلب الصداقة قيد الانتظار."
 msgstr "Pending"
 
-#: routes/social.py:583 routes/social.py:629
+#: routes/social.py:626 routes/social.py:672
 #, fuzzy
 msgid "تمت الصداقة"
 msgstr "Promoted!"
 
-#: routes/social.py:584 routes/social.py:630
+#: routes/social.py:627 routes/social.py:673
 #, python-format
 msgid "%(u)s قبل طلب صداقتك."
 msgstr ""
 
-#: routes/social.py:588
+#: routes/social.py:631
 #, fuzzy
 msgid "تم قبول الطلب وأصبحتما أصدقاء."
 msgstr "Request accepted and player resurrected."
 
-#: routes/social.py:594
+#: routes/social.py:637
 #, fuzzy
 msgid "حالة غير معروفة."
 msgstr "Unknown"
 
-#: routes/social.py:613
+#: routes/social.py:656
 #, fuzzy
 msgid "لا يوجد طلب صداقة صالح."
 msgstr "No incoming requests currently."
 
-#: routes/social.py:619 routes/social.py:654
+#: routes/social.py:662 routes/social.py:697
 #, fuzzy
 msgid "لا يوجد طلب وارد من هذا المستخدم."
 msgstr "No topics in this section."
 
-#: routes/social.py:634
+#: routes/social.py:677
 #, fuzzy
 msgid "تم قبول طلب الصداقة."
 msgstr "Resurrection request accepted"
 
-#: routes/social.py:681
+#: routes/social.py:724
 #, fuzzy
 msgid "لا توجد علاقة لإزالتها."
 msgstr "No active contracts currently."
 
-#: routes/social.py:689
+#: routes/social.py:732
 #, fuzzy
 msgid "تمت الإزالة."
 msgstr "Message deleted."
 
-#: routes/social.py:724
+#: routes/social.py:767
 #, fuzzy
 msgid "تم تحديث المعلومات الشخصية بنجاح"
 msgstr "Profile picture updated successfully"
 
-#: routes/social.py:738
+#: routes/social.py:781
 msgid "تم رفع الصورة الشخصية بنجاح"
 msgstr "Profile picture uploaded successfully"
 
-#: routes/social.py:744
+#: routes/social.py:787
 msgid "نوع الملف غير مدعوم (فقط صور)"
 msgstr "File type not supported (images only)"
 
-#: routes/social.py:750
+#: routes/social.py:793
 msgid "تم تحديث الصورة الشخصية بنجاح"
 msgstr "Profile picture updated successfully"
 
-#: routes/social.py:754
+#: routes/social.py:797
 msgid "حدث خطأ في اختيار الصورة"
 msgstr "Error selecting image"
 
-#: routes/social.py:766
+#: routes/social.py:809
 msgid "قائمة المتصدرين - أقوى العصابات واللاعبين"
 msgstr "Leaderboard - Strongest Gangs and Players"
 
-#: routes/social.py:767
+#: routes/social.py:810
 msgid ""
 "تعرف على أقوى اللاعبين والعصابات في عصابات فلسطين. هل تملك ما يلزم لتكون "
 "في القمة؟"
@@ -6331,216 +6893,237 @@ msgstr ""
 "Meet the strongest players and gangs in Gangs of Palestine. Do you have "
 "what it takes to be at the top?"
 
-#: routes/social.py:770
+#: routes/social.py:813
 msgid "قائمة المتصدرين"
 msgstr "Leaderboard"
 
-#: routes/social.py:806 routes/social.py:888 routes/social.py:985
+#: routes/social.py:958 routes/social.py:1040 routes/social.py:1137
 msgid "هذه غرفة VIP. قم بالترقية للدخول."
 msgstr ""
 
-#: routes/social.py:816 routes/social.py:870 routes/social.py:1404
+#: routes/social.py:968 routes/social.py:1022 routes/social.py:1580
 msgid "هذه الغرفة للزوار فقط."
 msgstr ""
 
-#: routes/social.py:874
+#: routes/social.py:1026
 msgid "الدردشة للمسجلين فقط."
 msgstr ""
 
-#: routes/social.py:878
+#: routes/social.py:1030
 msgid "عذراً، أنت محظور من الدردشة."
 msgstr ""
 
-#: routes/social.py:882
+#: routes/social.py:1034
 msgid "أنت تحت كتم مؤقت. حاول لاحقاً."
 msgstr ""
 
-#: routes/social.py:902 routes/social.py:1341
-msgid "عذراً، يمنع إرسال الروابط أو الإيميلات أو أرقام الهواتف."
-msgstr ""
-
-#: routes/social.py:910 routes/social.py:982
+#: routes/social.py:1062 routes/social.py:1134
 #, fuzzy
 msgid "المرفقات غير متاحة في غرفة الغرباء."
 msgstr "Race not available!"
 
-#: routes/social.py:951
+#: routes/social.py:1103
 #, fuzzy
 msgid "انتظر قليلاً قبل إرسال رسالة أخرى."
 msgstr "Wait a bit before the next attack!"
 
-#: routes/social.py:954
+#: routes/social.py:1106
 msgid "رسالة مكررة خلال دقيقة."
 msgstr ""
 
-#: routes/social.py:995
+#: routes/social.py:1147
 #, fuzzy
 msgid "الملف مطلوب."
 msgstr "Key is required."
 
-#: routes/social.py:999
+#: routes/social.py:1151
 #, fuzzy
 msgid "الملف غير صالح."
 msgstr "Invalid amount"
 
-#: routes/social.py:1018
+#: routes/social.py:1170
 #, fuzzy
 msgid "نوع الملف غير مدعوم."
 msgstr "File type not supported (images only)"
 
-#: routes/social.py:1030 routes/social.py:1032
+#: routes/social.py:1182 routes/social.py:1184
 #, fuzzy
 msgid "حجم الملف كبير جداً."
 msgstr "File not found."
 
-#: routes/social.py:1047 templates/social/chat_room.html:1060
+#: routes/social.py:1199 templates/social/chat_room.html:1060
 #: templates/social/chat_room.html:1064
 #, fuzzy
 msgid "فشل رفع الملف."
 msgstr "Alliance rejected."
 
-#: routes/social.py:1062 routes/social.py:1082 routes/social.py:1098
-#: routes/social.py:1114 routes/social.py:1127
+#: routes/social.py:1214 routes/social.py:1234 routes/social.py:1250
+#: routes/social.py:1266 routes/social.py:1279
 msgid "غير مصرح لك بذلك."
 msgstr "You are not authorized!"
 
-#: routes/social.py:1066 routes/social.py:1086 routes/social.py:1101
-#: routes/social.py:1117
+#: routes/social.py:1218 routes/social.py:1238 routes/social.py:1253
+#: routes/social.py:1269 routes/social.py:1508
 msgid "المستخدم غير موجود."
 msgstr "User not found!"
 
-#: routes/social.py:1070
+#: routes/social.py:1222
 msgid "لا يمكنك حظر شخص بنفس رتبتك أو أعلى."
 msgstr ""
 
-#: routes/social.py:1075
+#: routes/social.py:1227
 msgid "تم حظر المستخدم من الدردشة."
 msgstr "User activated successfully"
 
-#: routes/social.py:1091
+#: routes/social.py:1243
 msgid "تم إلغاء حظر المستخدم من الدردشة."
 msgstr ""
 
-#: routes/social.py:1107
+#: routes/social.py:1259
 #, fuzzy
 msgid "تم كتم المستخدم مؤقتاً."
 msgstr "User activated successfully"
 
-#: routes/social.py:1120
+#: routes/social.py:1272
 #, fuzzy
 msgid "تم إلغاء الكتم."
 msgstr "Order cancelled."
 
-#: routes/social.py:1130 routes/social.py:1143
+#: routes/social.py:1282 routes/social.py:1295
 #, fuzzy
 msgid "الرسالة غير موجودة."
 msgstr "Gang does not exist."
 
-#: routes/social.py:1167
+#: routes/social.py:1319
 #, fuzzy
 msgid "حدث خطأ أثناء الإبلاغ."
 msgstr "An error occurred during cancellation."
 
-#: routes/social.py:1169 templates/social/chat_room.html:1126
+#: routes/social.py:1321 templates/social/chat_room.html:1126
 #, fuzzy
 msgid "تم إرسال البلاغ."
 msgstr "Alliance request sent!"
 
-#: routes/social.py:1181
+#: routes/social.py:1333
 #, fuzzy
 msgid "الرسالة مطلوبة."
 msgstr "Energy Cost"
 
-#: routes/social.py:1199
+#: routes/social.py:1351
 msgid "المضيفة غير موجودة."
 msgstr "Hostess not found."
 
-#: routes/social.py:1385 templates/social/_chat_sidebar.html:23
+#: routes/social.py:1486
+#, fuzzy
+msgid "بيانات ناقصة."
+msgstr "Incorrect data."
+
+#: routes/social.py:1489
+#, fuzzy
+msgid "الرسالة طويلة جداً."
+msgstr "Energy Cost"
+
+#: routes/social.py:1498
+#, fuzzy
+msgid "المستلم غير صالح."
+msgstr "Invalid amount"
+
+#: routes/social.py:1501
+#, fuzzy
+msgid "لا يمكنك مراسلة نفسك."
+msgstr "You cannot message yourself!"
+
+#: routes/social.py:1504
+#, fuzzy
+msgid "لا يمكنك مراسلة هذا المستخدم."
+msgstr "You cannot smelt this item."
+
+#: routes/social.py:1561 templates/social/_chat_sidebar.html:23
 msgid "الغرفة العامة"
 msgstr "General Room"
 
-#: routes/social.py:1386 templates/social/_chat_sidebar.html:26
+#: routes/social.py:1562 templates/social/_chat_sidebar.html:26
 msgid "غرفة التعارف"
 msgstr "Dating Room"
 
-#: routes/social.py:1387 templates/social/_chat_sidebar.html:29
+#: routes/social.py:1563 templates/social/_chat_sidebar.html:29
 msgid "غرفة الغرباء"
 msgstr "Strangers Room"
 
-#: routes/social.py:1388 templates/social/_chat_sidebar.html:32
+#: routes/social.py:1564 templates/social/_chat_sidebar.html:32
 msgid "غرفة المبتدئين"
 msgstr "Beginners Room"
 
-#: routes/social.py:1389 templates/social/_chat_sidebar.html:35
+#: routes/social.py:1565 templates/social/_chat_sidebar.html:35
 msgid "غرفة التجارة"
 msgstr "Trade Room"
 
-#: routes/social.py:1390 templates/social/_chat_sidebar.html:38
+#: routes/social.py:1566 templates/social/_chat_sidebar.html:38
 #: templates/social/chat_room.html:45
 msgid "غرفة VIP"
 msgstr "VIP Room"
 
-#: routes/social.py:1394
+#: routes/social.py:1570
 msgid "هذه غرفة VIP وتتطلب تسجيل الدخول."
 msgstr "This is a VIP room and requires login."
 
-#: routes/social.py:1428
+#: routes/social.py:1604
 msgid "لا تملك ماساً كافياً للترقية. يمكنك شراء الماس أولاً."
 msgstr "You don't have enough diamonds to upgrade. You can buy diamonds first."
 
-#: routes/social.py:1451
+#: routes/social.py:1627
 msgid "دردشة"
 msgstr "Chat"
 
-#: routes/social.py:1452
+#: routes/social.py:1628
 msgid "انضم للدردشة في"
 msgstr "Join the chat in"
 
-#: routes/social.py:1477
+#: routes/social.py:1653
 msgid "غرف الدردشة - تعارف ودردشة"
 msgstr "Chat Rooms - Meet & Chat"
 
-#: routes/social.py:1478
+#: routes/social.py:1654
 msgid "تحدث مع أصدقاء جدد، ابحث عن شريك، أو انضم لغرف الدردشة العامة."
 msgstr "Chat with new friends, find a match, or join public chat rooms."
 
-#: routes/social.py:1525
+#: routes/social.py:1701
 msgid "أنت بالفعل VIP."
 msgstr "You're already VIP."
 
-#: routes/social.py:1548
+#: routes/social.py:1724
 msgid "رصيد الماس غير كافٍ للترقية."
 msgstr "Not enough diamonds to upgrade."
 
-#: routes/social.py:1556
+#: routes/social.py:1732
 msgid "تمت ترقية حسابك إلى VIP بنجاح."
 msgstr "Your account has been upgraded to VIP successfully."
 
-#: routes/social.py:1572
+#: routes/social.py:1748
 msgid "عملة غير صالحة."
 msgstr "Invalid currency."
 
-#: routes/social.py:1576
+#: routes/social.py:1752
 msgid "أدخل مبلغاً صحيحاً."
 msgstr "Enter a valid amount."
 
-#: routes/social.py:1588
+#: routes/social.py:1764
 msgid "لا يمكنك التبرع لنفسك."
 msgstr "You can't donate to yourself."
 
-#: routes/social.py:1593
+#: routes/social.py:1769
 msgid "حساب المطور غير موجود."
 msgstr "Developer account not found."
 
-#: routes/social.py:1615
+#: routes/social.py:1791
 msgid "رصيدك غير كافٍ."
 msgstr "Your balance is insufficient."
 
-#: routes/social.py:1636
+#: routes/social.py:1812
 msgid "حدث خطأ أثناء التبرع."
 msgstr "An error occurred while donating."
 
-#: routes/social.py:1640
+#: routes/social.py:1816
 msgid "شكراً لك! تم إرسال التبرع بنجاح."
 msgstr "Thank you! Your donation was sent successfully."
 
@@ -6564,20 +7147,34 @@ msgstr "You are already here!"
 msgid "عليك الانتظار قبل السفر مرة أخرى!"
 msgstr "You must wait before traveling again!"
 
-#: routes/travel.py:116 routes/travel.py:499
+#: routes/travel.py:116 routes/travel.py:555
 msgid "ليس لديك مال كافٍ للسفر!"
 msgstr "Not enough money to travel!"
 
 #: routes/travel.py:167
-#, python-format
+#, fuzzy, python-format
 msgid ""
-"🚔 كبسة! الشرطة فتشت السيارة ولقت المهربات. تمت مصادرة البضاعة وسجنك 30 "
-"دقيقة وغرامة %(fine)s$."
+"🚔 كبسة! فتشوا السيارة ولقوا تهريب. مصادرة + سجن 30 دقيقة + غرامة "
+"%(fine)s$."
 msgstr ""
 "🚔 Busted! Police searched the car and found contraband. Goods "
 "confiscated, you were jailed for 30 minutes and fined %(fine)s$."
 
-#: routes/travel.py:183
+#: routes/travel.py:169
+#, fuzzy, python-format
+msgid "🚔 انمسكت! تفتيش مفاجئ وتهريب مكشوف. سجن 30 دقيقة وغرامة %(fine)s$."
+msgstr ""
+"🚔 Busted! Police searched the car and found contraband. Goods "
+"confiscated, you were jailed for 30 minutes and fined %(fine)s$."
+
+#: routes/travel.py:171
+#, fuzzy, python-format
+msgid "🚔 وقفوّك للتفتيش… ولقوا تهريب. سجن 30 دقيقة + غرامة %(fine)s$."
+msgstr ""
+"🚔 Busted! Police searched the car and found contraband. Goods "
+"confiscated, you were jailed for 30 minutes and fined %(fine)s$."
+
+#: routes/travel.py:189
 msgid ""
 "🚧 حاجز طيار فجأة طلعلك! وقفوك نص ساعة وفي الآخر رجعوك. راحت عليك أجرة "
 "الطريق."
@@ -6585,7 +7182,15 @@ msgstr ""
 "🚧 A flying checkpoint suddenly appeared! They held you for half an hour "
 "then let you go. You lost the travel fare."
 
-#: routes/travel.py:197
+#: routes/travel.py:190
+msgid "🚧 حاجز طيار! لفّوك على جنب وتدقيق… وبعدها رجّعوك. أجرة الطريق راحت."
+msgstr ""
+
+#: routes/travel.py:191
+msgid "🚧 طلّعوك على حاجز طيار وتفتيش مطوّل… آخر شي رجّعوك. خسرت أجرة الطريق."
+msgstr ""
+
+#: routes/travel.py:207
 msgid ""
 "🚧 حاجز للأمن الداخلي (حماس): \"هات هويتك وشو بتعمل هون؟\" تحقيق سريع "
 "ومضيت."
@@ -6594,6 +7199,24 @@ msgstr ""
 "here?\" Quick interrogation and you passed."
 
 #: routes/travel.py:208
+msgid "🚧 نقطة تفتيش للأمن الداخلي: \"وين رايح؟\" كم سؤال وكم دقيقة ومرقت."
+msgstr "Internal security checkpoint: “Where are you going?” A few questions, a few minutes, then you passed."
+
+#: routes/travel.py:209
+msgid "🚧 وقفوك حاجز للأمن الداخلي… تدقيق بسيط وبعدين مشّوك."
+msgstr "Internal security stopped you… quick checks, then they let you go."
+
+#: routes/travel.py:218
+#, fuzzy
+msgid "الوقائي"
+msgstr "Preventive Security"
+
+#: routes/travel.py:218
+#, fuzzy
+msgid "المخابرات"
+msgstr "Intelligence"
+
+#: routes/travel.py:221
 #, python-format
 msgid ""
 "🚓 دورية للأمن %(branch)s وقفتك: \"ممنوع التجول بالسلاح هون يا شب\". تفتيش"
@@ -6602,7 +7225,17 @@ msgstr ""
 "🚓 Security patrol %(branch)s stopped you: \"No weapons allowed here, "
 "son.\" Security check."
 
-#: routes/travel.py:219
+#: routes/travel.py:223
+#, python-format
+msgid "🚓 طلعلك حاجز للأمن %(branch)s: تدقيق أسماء وتفتيش خفيف… وبالأخير مشّوك."
+msgstr "%(branch)s security checkpoint: name checks and a light search… then you were cleared."
+
+#: routes/travel.py:225
+#, python-format
+msgid "🚓 الأمن %(branch)s وقفك على جنب: \"افتح الشنطة\". تدقيق سريع وبعدين طريقك."
+msgstr "%(branch)s security pulled you over: “Open the trunk.” Quick inspection, then you were on your way."
+
+#: routes/travel.py:238
 msgid ""
 "🧱 جدار الفصل العنصري مسكر المنطقة. اضطريت تلف طريق طويلة وتستنى "
 "\"الفتحة\" لتمر."
@@ -6610,30 +7243,69 @@ msgstr ""
 "🧱 The Apartheid Wall is blocking the area. You had to take a long detour "
 "and wait for the \"gate\" to open."
 
-#: routes/travel.py:258
+#: routes/travel.py:239
+msgid "🧱 سكروا الطريق باتجاه القدس… لفيت لفّة طويلة واستنيت لحد ما فتحت."
+msgstr ""
+
+#: routes/travel.py:240
+msgid "🧱 على بوابة الجدار… ازدحام وتأخير. بالأخير مرقت بعد لفّة طويلة."
+msgstr ""
+
+#: routes/travel.py:280
 msgid " 🚧 صادفك حاجز طيار، لكن الجندي كان ملتهي بالجوال ومرقت عخير."
 msgstr ""
 " 🚧 You encountered a flying checkpoint, but the soldier was distracted by"
 " his phone and you passed safely."
 
-#: routes/travel.py:267
+#: routes/travel.py:281
+msgid " 🚧 حاجز طيار… الجندي مشغول وخلصتها بسرعة."
+msgstr ""
+
+#: routes/travel.py:282
+msgid " 🚧 وقفوك لحظة على حاجز طيار وبعدين مشّوك."
+msgstr ""
+
+#: routes/travel.py:292
 #, python-format
 msgid " 🛑 حاجز طيار! الجندي طلب هويتك وتصريح، دفعت %(bribe)s رشوة لتمشي."
 msgstr ""
 " 🛑 Flying checkpoint! The soldier asked for ID and permit, you paid "
 "%(bribe)s bribe to pass."
 
-#: routes/travel.py:270
+#: routes/travel.py:294
+#, fuzzy, python-format
+msgid " 🛑 حاجز طيار… شدّوا عليك شوي. دفعت %(bribe)s وكمّلت طريقك."
+msgstr ""
+" 🛑 Flying checkpoint! The soldier asked for ID and permit, you paid "
+"%(bribe)s bribe to pass."
+
+#: routes/travel.py:296
+#, python-format
+msgid " 🛑 طلبوا تصريح/هوية… حلّيتها برشوة %(bribe)s ومشيت."
+msgstr ""
+
+#: routes/travel.py:300
 msgid "حدث خطأ أثناء دفع الرشوة!"
 msgstr "Error starting chase."
 
-#: routes/travel.py:282
+#: routes/travel.py:313
 msgid "👮 مسكوك عالمانع! معكش تدفع الرشوة. 15 دقيقة تحقيق ميداني."
 msgstr ""
 "👮 Caught at the checkpoint! You couldn't pay the bribe. 15 minutes field "
 "interrogation."
 
-#: routes/travel.py:297
+#: routes/travel.py:314
+msgid "👮 ما معكش ترشي… سحبوك عالتحقيق 15 دقيقة."
+msgstr ""
+
+#: routes/travel.py:315
+#, fuzzy
+msgid "👮 \"وين تصريحك؟\" ما قدرت تدفع… 15 دقيقة تحقيق ميداني."
+msgstr ""
+"👮 Caught at the checkpoint! You couldn't pay the bribe. 15 minutes field "
+"interrogation."
+
+#: routes/travel.py:331
 #, python-format
 msgid ""
 "👮 الجندي عالحاجز شاف اسمك بالقائمة السوداء! تحولت للاعتقال الإداري لمدة "
@@ -6642,32 +7314,52 @@ msgstr ""
 "👮 The soldier at the checkpoint saw your name on the blacklist! You were "
 "transferred to administrative detention for %(time)s minutes."
 
-#: routes/travel.py:304
+#: routes/travel.py:333
+#, fuzzy, python-format
+msgid "👮 على الحاجز: \"اسمك طالع!\" أخذوك اعتقال إداري %(time)s دقيقة."
+msgstr ""
+"👮 The soldier at the checkpoint saw your name on the blacklist! You were "
+"transferred to administrative detention for %(time)s minutes."
+
+#: routes/travel.py:335
+#, python-format
+msgid "👮 تدقيق طويل… وبالأخير طلع اسمك. اعتقال إداري %(time)s دقيقة."
+msgstr ""
+
+#: routes/travel.py:343
 msgid " 🛂 أزمة عالحاجز وتفتيش دقيق، بس مرقت بعد ما طلعوا روحك."
 msgstr ""
 " 🛂 Traffic at the checkpoint and thorough search, but you passed after "
 "they gave you a hard time."
 
-#: routes/travel.py:329
+#: routes/travel.py:344
+msgid " 🛂 طابور وتفتيش… أخذ وقت، بس بالنهاية مشيت."
+msgstr ""
+
+#: routes/travel.py:345
+msgid " 🛂 دقّقوا عليك كثير وتأخرت… بس عدّت."
+msgstr ""
+
+#: routes/travel.py:371
 msgid "🚑 هاجم المستوطنون سيارتك! إصابتك خطيرة وتم نقلك للمستشفى."
 msgstr ""
 "🚑 Settlers attacked your car! You are critically injured and were taken "
 "to the hospital."
 
-#: routes/travel.py:339
+#: routes/travel.py:381
 #, python-format
 msgid " 🧱 طلعولك مستوطنين ورموا حجار عالسيارة! انصبت وخسرت %(dmg)s من صحتك."
 msgstr ""
 " 🧱 Settlers appeared and threw stones at your car! You were injured and "
 "lost %(dmg)s health."
 
-#: routes/travel.py:369
+#: routes/travel.py:411
 msgid "🚑 الجيش مقتحم المدينة! تصاوبت خلال المواجهات وتم نقلك للمستشفى."
 msgstr ""
 "🚑 The army is invading the city! You were wounded during the clashes and "
 "taken to the hospital."
 
-#: routes/travel.py:380
+#: routes/travel.py:422
 #, python-format
 msgid ""
 " 💥 المدينة تتعرض لاقتحام! شاركت في المواجهات، تصاوبت (%(dmg)s-) بس كسبت "
@@ -6678,20 +7370,34 @@ msgstr ""
 "attack! You participated in the clashes, got wounded (%(dmg)s-) but "
 "gained resistance XP (+%(xp)s)."
 
-#: routes/travel.py:397
+#: routes/travel.py:439
 #, python-format
 msgid "🚔 اقتحام واسع! حاصروك في الحارة وأخذوك اعتقال إداري لمدة %(time)s دقيقة."
 msgstr ""
 "🚔 Wide invasion! They surrounded you in the neighborhood and took you to "
 "administrative detention for %(time)s minutes."
 
-#: routes/travel.py:404
+#: routes/travel.py:441
+#, fuzzy, python-format
+msgid "🚔 اقتحام بالمدينة… لقطوك من الشارع واعتقلوك إداريًا %(time)s دقيقة."
+msgstr ""
+"🚔 Wide invasion! They surrounded you in the neighborhood and took you to "
+"administrative detention for %(time)s minutes."
+
+#: routes/travel.py:443
+#, fuzzy, python-format
+msgid "🚔 الجيش مقتحم… ما لحقت تهرب. اعتقال إداري %(time)s دقيقة."
+msgstr ""
+"🚔 Wide invasion! They surrounded you in the neighborhood and took you to "
+"administrative detention for %(time)s minutes."
+
+#: routes/travel.py:451
 msgid " 🔦 الجيش مقتحم البلد! بس أنت ابن بلد وعارف الطرق المختصرة، نفذت منهم."
 msgstr ""
 " 🔦 The army is invading the town! But you are a local and know the "
 "shortcuts, you escaped them."
 
-#: routes/travel.py:436
+#: routes/travel.py:483
 #, python-format
 msgid ""
 "🚜 حملة على السيارات المشطوبة! الجيش صادر سيارتك (%(car)s) ودمرها لأنها "
@@ -6700,34 +7406,52 @@ msgstr ""
 "🚜 Campaign against illegal cars! The army confiscated your car (%(car)s) "
 "and destroyed it because it's \"illegal\". You lost it!"
 
-#: routes/travel.py:446
+#: routes/travel.py:493
 msgid " 🚓 دورية شرطة بتلم السيارات المشطوبة، بس نمرتك صفرا ومشيت."
 msgstr ""
 " 🚓 Police patrol collecting illegal cars, but your plate is yellow and "
 "you passed."
 
-#: routes/travel.py:450
+#: routes/travel.py:497
 msgid " 🚜 الجيش بيلم السيارات المشطوبة بالشارع، منيح أنك مش سايق."
 msgstr ""
 " 🚜 The army is collecting illegal cars on the street, good thing you're "
 "not driving."
 
-#: routes/travel.py:479
+#: routes/travel.py:526
 #, python-format
 msgid "👮 تفتيش مفاجئ! لقوا معك مهربات. \"عوفر\" بانتظارك لمدة %(time)s دقيقة."
 msgstr ""
 "👮 Surprise search! They found contraband with you. \"Ofer\" prison awaits"
 " you for %(time)s minutes."
 
-#: routes/travel.py:484
+#: routes/travel.py:528
+#, python-format
+msgid "👮 فتشوا السيارة ولِقوا تهريب… حولّوك عالتحقيق %(time)s دقيقة."
+msgstr ""
+
+#: routes/travel.py:530
+#, python-format
+msgid "👮 تفتيش دقيق… والتهريب مكشوف. سجن %(time)s دقيقة."
+msgstr ""
+
+#: routes/travel.py:537
 msgid " 🔍 تفتيش مفاجئ ودقيق للسيارات، بس وضعك بالسليم."
 msgstr " 🔍 Surprise search and thorough check of cars, but you are clean."
 
-#: routes/travel.py:489
+#: routes/travel.py:538
+msgid " 🔍 فتشوا الكل… الحمد لله وضعك نظيف."
+msgstr ""
+
+#: routes/travel.py:539
+msgid " 🔍 تدقيق وتفتيش… مرقت بدون مشاكل."
+msgstr ""
+
+#: routes/travel.py:545
 msgid " 🚕 طلع الشوفير ابن عمك! التوصيلة ببلاش."
 msgstr " 🚕 The driver turned out to be your cousin! The ride is free."
 
-#: routes/travel.py:508
+#: routes/travel.py:564
 #, python-format
 msgid "وصلت إلى %(name)s بنجاح!"
 msgstr "Arrived at %(name)s successfully!"
@@ -7429,7 +8153,7 @@ msgstr "Tip: Go to the gym and train Strength."
 msgid "نصيحة: روح الجيم ودرّب الرشاقة."
 msgstr "Tip: Go to the gym and train Agility."
 
-#: services/requirements.py:99 templates/crimes.html:237
+#: services/requirements.py:99 templates/crimes.html:239
 msgid "نصيحة: نفّذ المهام اليومية لتتطور أسرع."
 msgstr "Tip: Complete daily tasks to level up faster."
 
@@ -7500,181 +8224,177 @@ msgstr "Transfer"
 msgid "تنبيه: التحويلات لا يمكن التراجع عنها."
 msgstr "Warning: Transfers cannot be undone."
 
-#: templates/base.html:186 templates/base.html:421 templates/index.html:267
+#: templates/base.html:187 templates/base.html:422 templates/index.html:267
 msgid "غرف الدردشة"
 msgstr "Chat Rooms"
 
-#: templates/base.html:189 templates/base.html:250 templates/base.html:595
-#: templates/base.html:1103
+#: templates/base.html:190 templates/base.html:251 templates/base.html:596
+#: templates/base.html:1105
 msgid "يوتيوب"
 msgstr "YouTube"
 
-#: templates/base.html:192
+#: templates/base.html:193
 msgid "شارك اللعبة"
 msgstr "Share Game"
 
-#: templates/base.html:200
+#: templates/base.html:201
 msgid "Change Language"
 msgstr ""
 
-#: templates/base.html:205
+#: templates/base.html:206
 msgid "العربية"
 msgstr "Arabic"
 
-#: templates/base.html:208
+#: templates/base.html:209
 msgid "English"
 msgstr "English"
 
-#: templates/base.html:221 templates/developer/heat.html:22
+#: templates/base.html:222 templates/developer/heat.html:22
 #: templates/developer/organized_crimes.html:187
 msgid "الحرارة"
 msgstr "Heat"
 
-#: templates/base.html:245 templates/base.html:298
+#: templates/base.html:246 templates/base.html:299
 #: templates/entertainment/chess_online.html:67
 #: templates/gang/dashboard.html:111 templates/index.html:64
 #: templates/social/_chat_sidebar.html:9
 msgid "الدردشة"
 msgstr "Chat"
 
-#: templates/base.html:264 templates/base.html:383
+#: templates/base.html:265 templates/base.html:384
 #: templates/developer/config_logs.html:8
 msgid "لوحة المطور"
 msgstr "Developer Dashboard"
 
-#: templates/admin/header.html:12 templates/base.html:271
-#: templates/base.html:391 templates/lobby.html:130
+#: templates/admin/header.html:12 templates/base.html:272
+#: templates/base.html:392 templates/lobby.html:130
 msgid "لوحة التحكم"
 msgstr "Admin Panel"
 
-#: templates/admin/header.html:30 templates/base.html:291
+#: templates/admin/header.html:30 templates/base.html:292
 msgid "تسجيل الخروج"
 msgstr "Logout"
 
-#: templates/base.html:303 templates/market/trade.html:168
+#: templates/base.html:304 templates/market/trade.html:168
 #: templates/social/chat_room.html:95
 msgid "دخول"
 msgstr "Login"
 
-#: templates/base.html:316
+#: templates/base.html:317
 #, fuzzy
 msgid "إغلاق القائمة"
 msgstr "Remove Protection"
 
-#: templates/base.html:353
+#: templates/base.html:354
 msgid "تقدم المستوى"
 msgstr "Level Progress"
 
-#: templates/base.html:361
+#: templates/base.html:362
 msgid "تقدم الرتبة"
 msgstr "Rank Progress"
 
-#: templates/base.html:376
+#: templates/base.html:377
 msgid "أداة فيديو تيك توك"
 msgstr ""
 
-#: templates/base.html:399
+#: templates/base.html:400
 msgid "مركز القيادة"
 msgstr "Leader ID"
 
-#: templates/base.html:403
+#: templates/base.html:404
 msgid "الحارة"
 msgstr "Hood"
 
-#: templates/base.html:425
+#: templates/base.html:426
 msgid "العمليات الإجرامية"
 msgstr "Ongoing Auctions"
 
-#: templates/base.html:441 templates/fight.html:3 templates/fight.html:199
+#: templates/base.html:442 templates/fight.html:3 templates/fight.html:199
 msgid "ساحة القتال"
 msgstr "Combat Arena"
 
-#: templates/base.html:453 templates/bounties.html:3
+#: templates/base.html:454 templates/bounties.html:3
 msgid "قائمة المطلوبين"
 msgstr "Wanted List"
 
-#: templates/base.html:459 templates/intel_center.html:8
+#: templates/base.html:460 templates/intel_center.html:8
 msgid "مركز الاستخبارات"
 msgstr "Intel Center"
 
-#: templates/base.html:469
+#: templates/base.html:470
 msgid "الاقتصاد والأعمال"
 msgstr "Economy"
 
-#: templates/base.html:473
+#: templates/base.html:474
 msgid "البنك المركزي"
 msgstr "Available Cash"
 
-#: templates/base.html:479
+#: templates/base.html:480
 msgid "بورصة الغسيل"
 msgstr "Laundering Exchange"
 
-#: templates/base.html:485 templates/black_market.html:10
+#: templates/base.html:486 templates/black_market.html:10
 #: templates/guide.html:36 templates/guide.html:131 templates/hara.html:266
 #: templates/market.html:11
 msgid "السوق السوداء"
 msgstr "Black Market"
 
-#: templates/base.html:491 templates/black_market/auctions.html:3
+#: templates/base.html:492 templates/black_market/auctions.html:3
 msgid "المزاد الأسود"
 msgstr "Black Auction"
 
-#: templates/base.html:497 templates/developer/dashboard.html:109
+#: templates/base.html:498 templates/developer/dashboard.html:109
 #: templates/developer/dashboard.html:399 templates/empire.html:67
 msgid "المصانع"
 msgstr "Factories"
 
-#: templates/base.html:503 templates/farm.html:9
+#: templates/base.html:504 templates/farm.html:9
 msgid "المزارع"
 msgstr "Farms"
 
-#: templates/base.html:507 templates/guide.html:39 templates/guide.html:144
+#: templates/base.html:508 templates/guide.html:39 templates/guide.html:144
 msgid "المدينة والخدمات"
 msgstr "Special Perk"
 
-#: templates/base.html:511 templates/guide.html:172
+#: templates/base.html:512 templates/guide.html:172
 msgid "السفر"
 msgstr "Travel"
 
-#: templates/base.html:517 templates/casino/racing/index.html:91
+#: templates/base.html:518 templates/casino/racing/index.html:91
 #: templates/hara.html:194
 msgid "الكراج"
 msgstr "Garage"
 
-#: templates/base.html:523
+#: templates/base.html:524
 msgid "نادي الجيم"
 msgstr "Iron Gym"
 
-#: templates/base.html:529 templates/guide.html:158 templates/hara.html:248
+#: templates/base.html:530 templates/guide.html:158 templates/hara.html:248
 #: templates/hospital.html:7
 msgid "المستشفى"
 msgstr "Hospital"
 
-#: templates/base.html:541
-msgid "المقبرة"
-msgstr "Graveyard"
-
-#: templates/base.html:547 templates/guide.html:185
+#: templates/base.html:548 templates/guide.html:185
 msgid "الكازينو"
 msgstr "Casino"
 
-#: templates/base.html:553
+#: templates/base.html:554
 msgid "سباق السيارات"
 msgstr "Car Racing"
 
-#: templates/base.html:558
+#: templates/base.html:559
 msgid "الترفيه"
 msgstr "Investigate"
 
-#: templates/base.html:562
+#: templates/base.html:563
 msgid "صالة الألعاب"
 msgstr "Game World"
 
-#: templates/base.html:583 templates/base.html:679
+#: templates/base.html:584 templates/base.html:680
 msgid "المتصدرين"
 msgstr "Leaderboard"
 
-#: templates/base.html:663
+#: templates/base.html:664
 msgid ""
 "عش حياة الجريمة، وسيطر على الشوارع، وكن الزعيم الأقوى في فلسطين. اللعبة "
 "الاستراتيجية الأولى من نوعها التي تجمع بين الإثارة والتحدي."
@@ -7683,85 +8403,85 @@ msgstr ""
 "boss in Palestine. The first strategy game of its kind that combines "
 "excitement and challenge."
 
-#: templates/admin/sidebar.html:67 templates/base.html:675
+#: templates/admin/sidebar.html:67 templates/base.html:676
 msgid "روابط سريعة"
 msgstr "Quick Links"
 
-#: templates/base.html:678 templates/index.html:281
+#: templates/base.html:679 templates/index.html:281
 msgid "دليل اللعبة"
 msgstr "Game Guide"
 
-#: templates/base.html:680
+#: templates/base.html:681
 msgid "انضم إلينا"
 msgstr "Join Us"
 
-#: templates/base.html:686
+#: templates/base.html:687
 msgid "نشاطات"
 msgstr "Activities"
 
-#: templates/base.html:689
+#: templates/base.html:690
 msgid "البورصة"
 msgstr "Exchange"
 
-#: templates/base.html:691 templates/guide.html:151
+#: templates/base.html:692 templates/guide.html:151
 msgid "الجيم"
 msgstr "Gym"
 
-#: templates/base.html:697
+#: templates/base.html:698
 msgid "تطوير ودعم"
 msgstr "Development & Support"
 
-#: templates/base.html:699 templates/base.html:712
+#: templates/base.html:700 templates/base.html:713
 msgid "شركة أزاد للأنظمة الذكية"
 msgstr "Azad Intelligent Systems"
 
-#: templates/base.html:700 templates/base.html:714
+#: templates/base.html:701 templates/base.html:715
 msgid "إدارة: م. أحمد غنام"
 msgstr "Management: Eng. Ahmad Ghanam"
 
-#: templates/base.html:713
+#: templates/base.html:714
 msgid "جميع الحقوق محفوظة."
 msgstr "All rights reserved."
 
-#: templates/base.html:725
+#: templates/base.html:726
 msgid "أخبار عاجلة"
 msgstr "Breaking News"
 
-#: templates/base.html:815
+#: templates/base.html:816
 msgid "مضيفتك"
 msgstr "Your Hostess"
 
-#: templates/base.html:942
+#: templates/base.html:943
 msgid "تثبيت اللعبة"
 msgstr "Game Guide"
 
-#: templates/base.html:952
+#: templates/base.html:953
 msgid "انضم لأقوى لعبة مافيا عربية! ابنِ إمبراطوريتك وسيطر على الشوارع."
 msgstr ""
 
-#: templates/base.html:960
+#: templates/base.html:961
 msgid "مشاركة اللعبة"
 msgstr "Leave Gang"
 
-#: templates/base.html:964 templates/base.html:965
+#: templates/base.html:965 templates/base.html:966
 msgid "انضم لأقوى لعبة مافيا عربية!"
 msgstr ""
 
-#: templates/base.html:970 templates/hara.html:352 templates/index.html:443
+#: templates/base.html:971 templates/hara.html:352 templates/index.html:443
 #: templates/invite_friends.html:44 templates/login.html:338
 msgid "نسخ"
 msgstr "Copy"
 
-#: templates/base.html:987 templates/invite_friends.html:155
+#: templates/base.html:988 templates/invite_friends.html:155
 msgid "تم النسخ!"
 msgstr "Copied!"
 
-#: templates/base.html:1105
+#: templates/base.html:1107
 #, fuzzy
 msgid "تصغير"
 msgstr "Reset"
 
-#: templates/base.html:1106 templates/casino/racing/index.html:248
+#: templates/base.html:1108 templates/casino/racing/index.html:248
 #: templates/casino/racing/index.html:341 templates/casino/racing/room.html:119
 #: templates/casino/racing/room.html:220
 #: templates/developer/heist_history.html:72
@@ -7773,15 +8493,15 @@ msgstr "Reset"
 msgid "إغلاق"
 msgstr "Close"
 
-#: templates/base.html:1111
+#: templates/base.html:1113
 msgid "بحث أو رابط فيديو..."
 msgstr ""
 
-#: templates/base.html:1117
+#: templates/base.html:1119
 msgid "ابحث عن فيديو للمشاهدة"
 msgstr ""
 
-#: templates/base.html:1123
+#: templates/base.html:1125
 #, fuzzy
 msgid "العودة للنتائج"
 msgstr "Back to the Alley"
@@ -7796,7 +8516,7 @@ msgstr ""
 msgid "حدث في السوق السوداء"
 msgstr "Event in the Black Market"
 
-#: templates/black_market.html:53 templates/farm.html:196
+#: templates/black_market.html:53 templates/farm.html:218
 msgid "عقد توريد"
 msgstr "Supply Contract"
 
@@ -7805,7 +8525,7 @@ msgid "المدينة الحالية:"
 msgstr "Current City:"
 
 #: templates/black_market.html:63 templates/casino/hostess.html:60
-#: templates/farm.html:200
+#: templates/farm.html:222
 msgid "ينتهي:"
 msgstr "Ends:"
 
@@ -7854,12 +8574,12 @@ msgstr "Service Locked"
 
 #: templates/black_market.html:122 templates/black_market.html:158
 #: templates/black_market.html:200 templates/black_market.html:243
-#: templates/crimes.html:85 templates/organized_crimes.html:42
+#: templates/crimes.html:82 templates/organized_crimes.html:42
 #: templates/organized_crimes.html:100
 msgid "طور نفسك لفتحها…"
 msgstr "Level up to unlock..."
 
-#: templates/black_market.html:136 templates/farm.html:132
+#: templates/black_market.html:136 templates/farm.html:154
 #: templates/organized_crimes.html:65
 msgid "مقفول"
 msgstr "Locked"
@@ -7950,69 +8670,69 @@ msgstr "Sell Loot"
 msgid "إصلاح الكل"
 msgstr "repair All"
 
-#: templates/black_market.html:377
+#: templates/black_market.html:386
 #: templates/black_market/create_auction.html:27 templates/factory.html:66
-#: templates/farm.html:38
+#: templates/farm.html:47
 msgid "الكمية:"
 msgstr "Amount:"
 
-#: templates/black_market.html:383 templates/inventory.html:52
+#: templates/black_market.html:392 templates/inventory.html:52
 msgid "الحالة:"
 msgstr "Condition:"
 
-#: templates/black_market.html:389
+#: templates/black_market.html:398
 msgid "سعر البيع:"
 msgstr "price Sell:"
 
-#: templates/black_market.html:396
+#: templates/black_market.html:405
 msgid "بيع قطعة واحدة"
 msgstr "sell piece one"
 
-#: templates/black_market.html:404
+#: templates/black_market.html:413
 msgid "إصلاح المسروقات"
 msgstr "repair Loot"
 
-#: templates/black_market.html:420
+#: templates/black_market.html:429
 msgid "بضائع التهريب (أسعار متغيرة)"
 msgstr "Smuggling Goods (Dynamic Prices)"
 
-#: templates/black_market.html:423
+#: templates/black_market.html:432
 msgid "تتغير الأسعار كل ساعة حسب المدينة"
 msgstr "Prices change every hour by city"
 
-#: templates/black_market.html:432
+#: templates/black_market.html:441
 msgid "متوفر:"
 msgstr "Available:"
 
-#: templates/black_market.html:434
+#: templates/black_market.html:443
 msgid "مرتفع"
 msgstr "High"
 
-#: templates/black_market.html:436
+#: templates/black_market.html:445
 msgid "منخفض"
 msgstr "Low"
 
-#: templates/black_market.html:453
+#: templates/black_market.html:471
 msgid "سعر السوق"
 msgstr "Market Price"
 
-#: templates/black_market.html:465 templates/black_market.html:632
+#: templates/black_market.html:483 templates/black_market.html:677
 #: templates/casino/bar.html:40 templates/market/trade.html:139
 #: templates/market/trade.html:265 templates/market/trade.html:293
 msgid "شراء"
 msgstr "Buy"
 
-#: templates/black_market.html:479 templates/market/index.html:105
+#: templates/black_market.html:497 templates/market/index.html:105
 #: templates/market/trade.html:139 templates/market/trade.html:268
 #: templates/market/trade.html:308
 msgid "بيع"
 msgstr "Sell"
 
-#: templates/black_market.html:489
+#: templates/black_market.html:507
 msgid "لا يوجد بضائع مهربة حالياً."
 msgstr "No there is goods mhrba currently."
 
-#: templates/black_market.html:494
+#: templates/black_market.html:512
 msgid ""
 "نصيحة: اشترِ عندما يكون السعر منخفضاً (أخضر)، وسافر لمدينة أخرى لبيعها "
 "بسعر أعلى. احذر من الشرطة!"
@@ -8020,58 +8740,58 @@ msgstr ""
 "Tip: Buy when the price is low (green), travel to another city to sell "
 "for a higher price. Watch out for the police!"
 
-#: templates/black_market.html:502
+#: templates/black_market.html:520
 msgid "الأسلحة المهربة"
 msgstr "Smuggled Weapons"
 
-#: templates/black_market.html:521 templates/crimes.html:127
-#: templates/crimes.html:232 templates/market.html:62
+#: templates/black_market.html:548 templates/crimes.html:119
+#: templates/crimes.html:233 templates/market.html:62
 msgid "قوة"
 msgstr "Strength"
 
-#: templates/black_market.html:532
+#: templates/black_market.html:559
 msgid "شراء مهرب"
 msgstr "Buy Smuggled"
 
-#: templates/black_market.html:539
+#: templates/black_market.html:566
 msgid "لا يوجد أسلحة مهربة متاحة حالياً."
 msgstr "No smuggled weapons available currently."
 
-#: templates/black_market.html:549
+#: templates/black_market.html:576
 msgid "دروع ثقيلة"
 msgstr "Heavy Armor"
 
-#: templates/black_market.html:568 templates/market.html:107
+#: templates/black_market.html:604 templates/market.html:107
 msgid "دفاع"
 msgstr "Defense"
 
-#: templates/black_market.html:579
+#: templates/black_market.html:615
 msgid "شراء ثقيل"
 msgstr "Buy Heavy"
 
-#: templates/black_market.html:586
+#: templates/black_market.html:622
 msgid "لا يوجد دروع ثقيلة متاحة حالياً."
 msgstr "No heavy armor available currently."
 
-#: templates/black_market.html:596
+#: templates/black_market.html:632
 msgid "منشطات ممنوعة"
 msgstr "Illegal Steroids"
 
-#: templates/black_market.html:615 templates/casino/bar.html:31
+#: templates/black_market.html:660 templates/casino/bar.html:31
 msgid "صحة"
 msgstr "Health"
 
-#: templates/black_market.html:618 templates/casino/bar.html:24
+#: templates/black_market.html:663 templates/casino/bar.html:24
 #: templates/intel_center.html:24 templates/intel_center.html:52
-#: templates/intel_center.html:83
+#: templates/intel_center.html:83 templates/intel_center.html:114
 msgid "طاقة"
 msgstr "Energy"
 
-#: templates/black_market.html:621 templates/casino/bar.html:27
+#: templates/black_market.html:666 templates/casino/bar.html:27
 msgid "شجاعة"
 msgstr "Bravery"
 
-#: templates/black_market.html:639
+#: templates/black_market.html:684
 msgid "لا توجد منشطات متاحة حالياً."
 msgstr "No steroids available currently."
 
@@ -8166,7 +8886,7 @@ msgstr "Wanted List"
 msgid "المطلوب"
 msgstr "Wanted"
 
-#: templates/bounties.html:70 templates/crimes.html:113
+#: templates/bounties.html:70 templates/crimes.html:105
 #: templates/heist_report.html:85
 msgid "المكافأة"
 msgstr "Bounty"
@@ -8195,11 +8915,6 @@ msgstr "Pay Ransom to Remove Bounty"
 #: templates/bounties.html:109
 msgid "دفع الفدية"
 msgstr "Pay Ransom"
-
-#: templates/bounties.html:116 templates/combat/index.html:94
-#: templates/profile.html:119 templates/search.html:57 templates/search.html:58
-msgid "هجوم"
-msgstr "Attack"
 
 #: templates/bounties.html:126
 msgid "الشارع هادئ... لا توجد مكافآت حالياً."
@@ -8291,76 +9006,86 @@ msgstr "Varies by Difficulty"
 msgid "كلما زاد المستوى زادت التحديات"
 msgstr "Higher levels bring greater challenges"
 
-#: templates/crimes.html:65 templates/crimes.html:126 templates/crimes.html:231
+#: templates/crimes.html:62 templates/crimes.html:118 templates/crimes.html:232
 #: templates/developer/hostesses.html:50 templates/gang/upgrades.html:42
 #: templates/gang/upgrades.html:55 templates/index.html:219
 #: templates/intel_report.html:13 templates/invite_friends.html:130
-#: templates/story.html:205 templates/trend.html:127
+#: templates/story.html:209 templates/trend.html:127
 msgid "مستوى"
 msgstr "Level"
 
-#: templates/crimes.html:84
+#: templates/crimes.html:81
 msgid "جريمة مقفولة"
 msgstr "Locked Crime"
 
-#: templates/crimes.html:93
+#: templates/crimes.html:90
 msgid "الحد اليومي"
 msgstr "Daily Limit"
 
-#: templates/crimes.html:115
+#: templates/crimes.html:107
 msgid "سيارة مسروقة"
 msgstr "Stolen Car"
 
-#: templates/crimes.html:117
+#: templates/crimes.html:109
 msgid "مسروقات"
 msgstr "Loot"
 
-#: templates/crimes.html:124
+#: templates/crimes.html:116
 msgid "متطلبات"
 msgstr "Requirements"
 
-#: templates/crimes.html:128
+#: templates/crimes.html:120
 msgid "رشاقة"
 msgstr "Agility"
 
-#: templates/crimes.html:134
+#: templates/crimes.html:121 templates/crimes.html:235
+#, fuzzy
+msgid "ذكاء"
+msgstr "Intelligence"
+
+#: templates/crimes.html:127
 msgid "ملاحظة"
 msgstr "Note"
 
-#: templates/crimes.html:135
+#: templates/crimes.html:128
 msgid "تحتاج تصليح بالمرآب"
 msgstr "Needs repair at the garage"
 
-#: templates/crimes.html:139 templates/crimes.html:150
+#: templates/crimes.html:132 templates/crimes.html:143
 #: templates/gang/dashboard.html:67
 msgid "كاش"
 msgstr "Cash"
 
-#: templates/crimes.html:145
+#: templates/crimes.html:138
 msgid "البيع"
 msgstr "Sell"
 
-#: templates/crimes.html:146
+#: templates/crimes.html:139
 msgid "تصلّحها وتبيعها بالسوق السوداء"
 msgstr "Repair it and sell it on the Black Market"
 
-#: templates/crimes.html:181
+#: templates/crimes.html:174
 msgid "المتطلبات"
 msgstr "Requirements"
 
-#: templates/crimes.html:184
+#: templates/crimes.html:177
 msgid "القوة المطلوبة"
 msgstr "Required Strength"
 
-#: templates/crimes.html:189
+#: templates/crimes.html:182
 msgid "الخفة المطلوبة"
 msgstr "Required Agility"
 
-#: templates/crimes.html:200
+#: templates/crimes.html:187
+#, fuzzy
+msgid "الذكاء المطلوب"
+msgstr "Required intelligence:"
+
+#: templates/crimes.html:198
 msgid "نسبة النجاح"
 msgstr "Success Chance"
 
-#: templates/crimes.html:213
+#: templates/crimes.html:211
 msgid "متبقي..."
 msgstr "Remaining..."
 
@@ -8368,24 +9093,24 @@ msgstr "Remaining..."
 msgid "نفذ العملية"
 msgstr "Execute"
 
-#: templates/crimes.html:221
+#: templates/crimes.html:222
 msgid "تصليح/بيع المسروقات"
 msgstr "Repair/Sell Loot"
 
-#: templates/crimes.html:225
+#: templates/crimes.html:226
 msgid "المرآب وإصلاح السيارات"
 msgstr "Garage & Vehicle Repairs"
 
-#: templates/crimes.html:233
+#: templates/crimes.html:234
 msgid "خفة"
 msgstr "Agility"
 
-#: templates/crimes.html:266 templates/gang/organized_crimes.html:125
+#: templates/crimes.html:268 templates/gang/organized_crimes.html:125
 #: templates/gang/organized_crimes.html:136
 msgid "جاهز!"
 msgstr "Ready!"
 
-#: templates/crimes.html:278 templates/farm.html:42
+#: templates/crimes.html:280 templates/farm.html:51
 msgid "متبقي"
 msgstr "Remaining"
 
@@ -8393,15 +9118,24 @@ msgstr "Remaining"
 msgid "أنجز المهام واحصل على مكافآت قيمة"
 msgstr "Complete tasks to earn valuable rewards"
 
-#: templates/daily_tasks.html:24
+#: templates/daily_tasks.html:12
+#, fuzzy
+msgid "أسبوع أول"
+msgstr "2. Asset Types"
+
+#: templates/daily_tasks.html:12 templates/includes/hostess_widget.html:40
+msgid "اليوم"
+msgstr "Today"
+
+#: templates/daily_tasks.html:27
 msgid "التقدم"
 msgstr "Progress"
 
-#: templates/daily_tasks.html:42
+#: templates/daily_tasks.html:45
 msgid "استلام المكافأة"
 msgstr "Claim Reward"
 
-#: templates/daily_tasks.html:50
+#: templates/daily_tasks.html:53
 msgid "لا توجد مهام متاحة حالياً."
 msgstr "No tasks available at the moment."
 
@@ -8618,12 +9352,12 @@ msgstr "Explosives Production Line"
 msgid "جاري العمل"
 msgstr "In Progress"
 
-#: templates/factory.html:80 templates/farm.html:58 templates/gym.html:92
+#: templates/factory.html:80 templates/farm.html:67 templates/gym.html:92
 #, fuzzy
 msgid "إنهاء الآن"
 msgstr "End War"
 
-#: templates/factory.html:88 templates/farm.html:52
+#: templates/factory.html:88 templates/farm.html:61
 #, fuzzy
 msgid "استلام"
 msgstr "Surrender"
@@ -8655,14 +9389,14 @@ msgid "المدة:"
 msgstr "Formula:"
 
 #: templates/factory.html:124 templates/factory.html:179
-#: templates/farm.html:100 templates/gym.html:43 templates/gym.html:79
+#: templates/farm.html:122 templates/gym.html:43 templates/gym.html:79
 #: templates/gym.html:160 templates/hospital.html:55
 #: templates/organized_crimes.html:121
 msgid "د"
 msgstr "m"
 
 #: templates/factory.html:127 templates/factory.html:182
-#: templates/farm.html:101
+#: templates/farm.html:123
 #, fuzzy
 msgid "الإنتاج:"
 msgstr "Production Time:"
@@ -8676,7 +9410,7 @@ msgid "بدء الإنتاج"
 msgstr "Start Production"
 
 #: templates/factory.html:147 templates/factory.html:202
-#: templates/farm.html:128
+#: templates/farm.html:150
 msgid "لا يمكنك بدء عملية جديدة الآن."
 msgstr ""
 
@@ -8731,113 +9465,113 @@ msgstr "Your Farming Rank:"
 msgid "حد التشغيل المتوازي:"
 msgstr "Money cost:"
 
-#: templates/farm.html:37
+#: templates/farm.html:46
 msgid "إنتاج"
 msgstr "Production"
 
-#: templates/farm.html:88
+#: templates/farm.html:110
 msgid "محتوى مقفول"
 msgstr "Locked Content"
 
-#: templates/farm.html:89
+#: templates/farm.html:111
 msgid "طور نفسك لفتحها"
 msgstr "Level up to unlock"
 
-#: templates/farm.html:99
+#: templates/farm.html:121
 #, fuzzy
 msgid "المدة المتوقعة:"
 msgstr "Expected Reward"
 
-#: templates/farm.html:104 templates/farm.html:177
+#: templates/farm.html:126 templates/farm.html:199
 msgid "يتطلب:"
 msgstr "Requirements:"
 
-#: templates/farm.html:124
+#: templates/farm.html:146
 msgid "ابدأ تشغيل"
 msgstr "Start Operation"
 
-#: templates/farm.html:142
+#: templates/farm.html:164
 msgid "المشاريع والمرافق"
 msgstr "Projects and Facilities"
 
-#: templates/farm.html:143
+#: templates/farm.html:165
 msgid "ترقيات دائمة بالماس: تقلل وقت الإنتاج وتزيد فرصة الإنتاج النادر."
 msgstr ""
 "Permanent Diamond Upgrades: Reduce production time and increase rare "
 "production chance."
 
-#: templates/farm.html:151 templates/organized_crimes.html:127
+#: templates/farm.html:173 templates/organized_crimes.html:127
 msgid "Lv"
 msgstr "Lv"
 
-#: templates/farm.html:155
+#: templates/farm.html:177
 msgid "زمن الإنتاج:"
 msgstr "Production Time:"
 
-#: templates/farm.html:156
+#: templates/farm.html:178
 msgid "فرصة النادر:"
 msgstr "Rare Chance:"
 
-#: templates/farm.html:163
+#: templates/farm.html:185
 msgid "ميزة اليوم (مرة كل 24 ساعة)"
 msgstr "Daily Feature (Once every 24 hours)"
 
-#: templates/farm.html:166
+#: templates/farm.html:188
 #, fuzzy
 msgid "متبقي:"
 msgstr "Remaining"
 
-#: templates/farm.html:172
+#: templates/farm.html:194
 msgid "مكتمل التطوير."
 msgstr "Fully Upgraded."
 
-#: templates/farm.html:176
+#: templates/farm.html:198
 msgid "التطوير القادم:"
 msgstr "Next Upgrade:"
 
-#: templates/farm.html:183
+#: templates/farm.html:205
 msgid "تطوير بالماس"
 msgstr "Upgrade with Diamonds"
 
-#: templates/farm.html:198
+#: templates/farm.html:220
 msgid "عقد نشط في مدينة:"
 msgstr "Active Contract in City:"
 
-#: templates/farm.html:199
+#: templates/farm.html:221
 msgid "زيادة البيع:"
 msgstr "Sales Boost:"
 
-#: templates/farm.html:204
+#: templates/farm.html:226
 msgid "يفعل زيادة بيع منتجات المزرعة داخل مدينة تختارها لمدة"
 msgstr "Activates farm product sales boost in a chosen city for"
 
-#: templates/farm.html:204
+#: templates/farm.html:226
 msgid "دقيقة."
 msgstr "Minutes."
 
-#: templates/farm.html:206
+#: templates/farm.html:228
 msgid "الزيادة:"
 msgstr "Boost:"
 
-#: templates/farm.html:207 templates/gang/upgrades.html:64
+#: templates/farm.html:229 templates/gang/upgrades.html:64
 #: templates/intel_center.html:24 templates/intel_center.html:52
-#: templates/intel_center.html:83
+#: templates/intel_center.html:83 templates/intel_center.html:114
 msgid "التكلفة:"
 msgstr "Cost:"
 
-#: templates/farm.html:213
+#: templates/farm.html:235
 msgid "اختر مدينة"
 msgstr "Choose City"
 
-#: templates/farm.html:220
+#: templates/farm.html:242
 msgid "تفعيل عقد بالماس"
 msgstr "Activate Contract with Diamonds"
 
-#: templates/farm.html:230
+#: templates/farm.html:252
 msgid "نصيحة فلسطينية"
 msgstr "Palestinian Tip"
 
-#: templates/farm.html:232
+#: templates/farm.html:254
 msgid ""
 "ازرع… انتج… وسافر بين المدن لتبيع بسعر أعلى. نابلس والخليل وأريحا لكل "
 "واحدة طعمها بالسوق."
@@ -8845,13 +9579,13 @@ msgstr ""
 "Plant... Produce... and travel between cities to sell at a higher price. "
 "Nablus, Hebron, and Jericho each have their own taste in the market."
 
-#: templates/farm.html:235
+#: templates/farm.html:257
 msgid "اختر منتجاً من القائمة للبدء (الزيت والزعتر متاحان للجميع)."
 msgstr ""
 "Select a product from the list to start (Oil and Za'atar are available to"
 " everyone)."
 
-#: templates/farm.html:239
+#: templates/farm.html:261
 msgid "اذهب للسوق السوداء للبيع"
 msgstr "Go to Black Market to Sell"
 
@@ -9917,8 +10651,8 @@ msgid ""
 "تقدر تتنقل بين مدن فلسطينية داخل اللعبة وتنافس لاعبين عرب في حروب "
 "العصابات."
 msgstr ""
-"Travel between Palestinian cities in-game and compete with Arab players in "
-"gang wars."
+"Travel between Palestinian cities in-game and compete with Arab players "
+"in gang wars."
 
 #: templates/index.html:242
 msgid "مدن فلسطينية داخل اللعبة"
@@ -9965,8 +10699,8 @@ msgid ""
 "ادخل غرف دردشة عربية وتعرف على لاعبين جدد، أو انضم لغرف المبتدئين "
 "والتجارة."
 msgstr ""
-"Join Arabic chat rooms and meet new players, or jump into beginner and trade "
-"rooms."
+"Join Arabic chat rooms and meet new players, or jump into beginner and "
+"trade rooms."
 
 #: templates/index.html:272
 msgid "الدخول إلى الدردشة"
@@ -9981,8 +10715,8 @@ msgid ""
 "لو بدك شرح سريع للعبة: الجرائم، العصابات، الاقتصاد، السوق السوداء، "
 "والمدينة والخدمات."
 msgstr ""
-"Want a quick guide to the game: crimes, gangs, economy, the black market, "
-"and city services."
+"Want a quick guide to the game: crimes, gangs, economy, the black market,"
+" and city services."
 
 #: templates/index.html:295
 msgid "استكشف العالم السفلي"
@@ -10145,6 +10879,7 @@ msgid "التكلفة المالية:"
 msgstr "Money cost:"
 
 #: templates/intel_center.html:26 templates/intel_center.html:54
+#: templates/intel_center.html:118
 msgid "تعتمد على:"
 msgstr "Depends on:"
 
@@ -10169,6 +10904,7 @@ msgid "اخترق حساب بنكي للاعب واسرق نسبة من أموا
 msgstr "Hack a player's bank account and steal a percentage of their money."
 
 #: templates/intel_center.html:53 templates/intel_center.html:87
+#: templates/intel_center.html:119
 msgid "المخاطرة:"
 msgstr "Risk:"
 
@@ -10213,7 +10949,51 @@ msgstr "Reward:"
 msgid "اختراق نظام البنك"
 msgstr "Hack the bank system"
 
-#: templates/intel_center.html:106
+#: templates/intel_center.html:108
+#, fuzzy
+msgid "مركز البحث"
+msgstr "News Center"
+
+#: templates/intel_center.html:111
+msgid ""
+"عملية PvE لسرقة تسريبات من قواعد بيانات. تعطيك معلومات هجومية مؤقتة ضد "
+"أهداف قريبة منك."
+msgstr ""
+
+#: templates/intel_center.html:115
+#, fuzzy
+msgid "هدنة:"
+msgstr "City"
+
+#: templates/black_market/create_auction.html:49
+#: templates/intel_center.html:115
+msgid "ساعات"
+msgstr "Hours"
+
+#: templates/intel_center.html:118
+#, fuzzy
+msgid "ذكائك"
+msgstr "Memory"
+
+#: templates/intel_center.html:119
+msgid "مطاردة وربما اعتقال مؤقت"
+msgstr ""
+
+#: templates/intel_center.html:125 templates/lobby.html:189
+msgid "بدء العملية"
+msgstr "Start the operation"
+
+#: templates/intel_center.html:139
+#, fuzzy
+msgid "نتائج الاستخبارات"
+msgstr "Intelligence"
+
+#: templates/intel_center.html:145
+#, fuzzy
+msgid "عرض كل البريد"
+msgstr "View Full Log"
+
+#: templates/intel_center.html:167
 msgid ""
 "نصيحة: طور مستوى ذكائك عبر الدراسة في النادي الرياضي أو القيام بعمليات "
 "التجسس والقرصنة الناجحة."
@@ -10221,7 +11001,7 @@ msgstr ""
 "Tip: Increase your intelligence by training in the gym or doing "
 "successful spying and hacking operations."
 
-#: templates/intel_center.html:108 templates/intel_report.html:70
+#: templates/intel_center.html:169 templates/intel_report.html:89
 msgid "عودة للحارة"
 msgstr "Back to the hood"
 
@@ -10241,17 +11021,31 @@ msgstr "Agility"
 msgid "المعلومات الحساسة"
 msgstr "Sensitive information"
 
-#: templates/intel_report.html:55
+#: templates/intel_report.html:51
+#, fuzzy
+msgid "المنزل الآمن"
+msgstr "Safe House:"
+
+#: templates/intel_report.html:59
 msgid "تم حرق هذا التقرير بعد القراءة. المعلومات قد تتغير في أي لحظة."
 msgstr ""
 "This report was burned after reading. Information may change at any "
 "moment."
 
-#: templates/intel_report.html:59
+#: templates/intel_report.html:63
 msgid "عودة لمركز الاستخبارات"
 msgstr "Back to Intelligence Center"
 
-#: templates/intel_report.html:65
+#: templates/intel_report.html:66 templates/story.html:221
+msgid "فتح النسخة المحفوظة في البريد"
+msgstr ""
+
+#: templates/intel_report.html:76
+#, fuzzy
+msgid "تفجير المنزل الآمن (C4)"
+msgstr "Breach Safe House (requires C4)"
+
+#: templates/intel_report.html:83
 msgid "هجوم الآن!"
 msgstr "Attack now!"
 
@@ -10364,7 +11158,7 @@ msgstr "Invites Log"
 #: templates/casino/racing/room.html:191 templates/developer/factories.html:20
 #: templates/developer/heat.html:20
 #: templates/developer/resurrection_requests.html:19
-#: templates/invite_friends.html:116 templates/leaderboard.html:29
+#: templates/invite_friends.html:116 templates/leaderboard.html:67
 #: templates/profile.html:507 templates/resources/ledger.html:12
 msgid "اللاعب"
 msgstr "Player"
@@ -10604,15 +11398,35 @@ msgstr "Highest Level"
 msgid "الأغنى"
 msgstr "Richest"
 
-#: templates/leaderboard.html:32
+#: templates/leaderboard.html:23
+#, fuzzy
+msgid "سيطرة المدن"
+msgstr "City Graveyard"
+
+#: templates/leaderboard.html:33
+#, fuzzy
+msgid "المدينة"
+msgstr "City"
+
+#: templates/leaderboard.html:34
+#, fuzzy
+msgid "العصابة المسيطرة"
+msgstr "Dominant Gangs"
+
+#: templates/leaderboard.html:58
+#, fuzzy
+msgid "لا توجد بيانات سيطرة لهذا الأسبوع بعد"
+msgstr "No unlocked achievements for this player"
+
+#: templates/leaderboard.html:70
 msgid "الثروة"
 msgstr "Wealth"
 
-#: templates/leaderboard.html:58
+#: templates/leaderboard.html:96
 msgid "محجوز حتى"
 msgstr "Reserved until"
 
-#: templates/leaderboard.html:78
+#: templates/leaderboard.html:116
 msgid "لا يوجد لاعبين في القائمة حالياً"
 msgstr "No players in the list currently"
 
@@ -10715,10 +11529,6 @@ msgstr "Leader Controls"
 msgid "العدد غير مكتمل"
 msgstr "Team is not full"
 
-#: templates/lobby.html:189
-msgid "بدء العملية"
-msgstr "Start the operation"
-
 #: templates/lobby.html:193
 msgid "يجب أن يكون الجميع جاهزاً"
 msgstr "Everyone must be ready"
@@ -10790,24 +11600,24 @@ msgid "أهلاً بك في عصابات فلسطين"
 msgstr "Welcome to Gangs of Palestine"
 
 #: templates/developer/verify.html:16 templates/login.html:162
-#: templates/register.html:72
+#: templates/register.html:82
 msgid "كلمة المرور"
 msgstr "Password"
 
-#: templates/login.html:174 templates/register.html:95
+#: templates/login.html:174 templates/register.html:105
 msgid "رمز التحقق البشري"
 msgstr "Human Verification"
 
-#: templates/login.html:178 templates/register.html:99
+#: templates/login.html:178 templates/register.html:109
 msgid "تغيير الرمز"
 msgstr "Change Code"
 
-#: templates/login.html:183 templates/register.html:104
+#: templates/login.html:183 templates/register.html:114
 msgid "اكتب الرمز الظاهر في الصورة"
 msgstr "Type the code shown in the image"
 
 #: templates/login.html:203 templates/register.html:30
-#: templates/register.html:118
+#: templates/register.html:128
 #, fuzzy
 msgid "دخول الدردشة"
 msgstr "Reply"
@@ -10833,11 +11643,11 @@ msgstr ""
 " in real life so you don't fall under the penalty of law or "
 "accountability. Play responsibly."
 
-#: templates/login.html:227 templates/register.html:137
+#: templates/login.html:227 templates/register.html:147
 msgid "أو يمكنك"
 msgstr "Or you can"
 
-#: templates/login.html:228 templates/register.html:138
+#: templates/login.html:228 templates/register.html:148
 msgid "استكشاف الموقع كزائر"
 msgstr "Explore as a visitor"
 
@@ -10871,10 +11681,6 @@ msgstr "Broke"
 msgid "المخزون فارغ حالياً."
 msgstr "Inventory is currently empty."
 
-#: templates/messages.html:23
-msgid "رسالة جديدة"
-msgstr "New Message"
-
 #: templates/messages.html:54
 msgid "تحديد الكل"
 msgstr "Select All"
@@ -10891,7 +11697,7 @@ msgstr "Are you sure you want to delete the selected messages?"
 msgid "تحديث"
 msgstr "Update"
 
-#: templates/messages.html:104 templates/view_message.html:42
+#: templates/messages.html:104 templates/view_message.html:67
 msgid "رد"
 msgstr "Reply"
 
@@ -10903,7 +11709,7 @@ msgstr "Reply"
 #: templates/developer/unverified_users.html:49 templates/forum/topic.html:32
 #: templates/gang/dashboard.html:662 templates/gang/dashboard.html:667
 #: templates/messages.html:108 templates/notifications.html:57
-#: templates/social/chat_room.html:748 templates/view_message.html:46
+#: templates/social/chat_room.html:748 templates/view_message.html:71
 msgid "حذف"
 msgstr "Delete"
 
@@ -11553,27 +12359,27 @@ msgstr "Back to the Alley"
 msgid "انضم إلى عصابات فلسطين"
 msgstr "Join Gangs of Palestine"
 
-#: templates/register.html:73
+#: templates/register.html:83
 msgid "إظهار/إخفاء كلمة المرور"
 msgstr "Show/Hide password"
 
-#: templates/register.html:85
+#: templates/register.html:95
 msgid "تأكيد كلمة المرور"
 msgstr "Confirm Password"
 
-#: templates/register.html:86
+#: templates/register.html:96
 msgid "إظهار/إخفاء تأكيد كلمة المرور"
 msgstr "Show/Hide confirm password"
 
-#: templates/register.html:112
+#: templates/register.html:122
 msgid "إنشاء الحساب"
 msgstr "Create Account"
 
-#: templates/register.html:130
+#: templates/register.html:140
 msgid "لديك حساب بالفعل؟"
 msgstr "Already have an account?"
 
-#: templates/register.html:131
+#: templates/register.html:141
 msgid "سجل دخولك"
 msgstr "Login"
 
@@ -11628,11 +12434,11 @@ msgstr "Type your message here..."
 msgid "إرسال"
 msgstr "Send"
 
-#: templates/story.html:196 templates/story.html:202
+#: templates/story.html:200 templates/story.html:206
 msgid "حالة"
 msgstr "Status"
 
-#: templates/story.html:213
+#: templates/story.html:217
 msgid "تابع"
 msgstr "Continue"
 
@@ -11780,15 +12586,15 @@ msgstr ""
 msgid "تواصل عبر واتساب"
 msgstr "Contact via WhatsApp"
 
-#: templates/view_message.html:15
+#: templates/view_message.html:40
 msgid "عودة للبريد"
 msgstr "Back to Inbox"
 
-#: templates/developer/messages.html:91 templates/view_message.html:30
+#: templates/developer/messages.html:91 templates/view_message.html:55
 msgid "من:"
 msgstr "From:"
 
-#: templates/view_message.html:68
+#: templates/view_message.html:96
 msgid "هل أنت متأكد من حذف هذه الرسالة؟"
 msgstr "Are you sure you want to delete this message?"
 
@@ -12035,10 +12841,6 @@ msgstr "Auction Duration"
 #: templates/gang/organized_crimes.html:40
 msgid "ساعة"
 msgstr "Hour"
-
-#: templates/black_market/create_auction.html:49
-msgid "ساعات"
-msgstr "Hours"
 
 #: templates/black_market/create_auction.html:56
 #, fuzzy, python-format
@@ -12709,21 +13511,21 @@ msgstr "In jail until"
 msgid "في السجن"
 msgstr "In Jail"
 
-#: templates/combat/index.html:82
-msgid "تفجير المنزل الآمن (يحتاج C4)"
-msgstr "Breach Safe House (requires C4)"
-
-#: templates/combat/index.html:83
-msgid "تفجير (C4)"
-msgstr "Breach (C4)"
-
-#: templates/combat/index.html:87
+#: templates/combat/index.html:79
 msgid "تحتاج لمعلومات استخباراتية للهجوم"
 msgstr "You need intelligence to attack"
 
-#: templates/combat/index.html:88
+#: templates/combat/index.html:80
 msgid "مطلوب مخبر"
 msgstr "Informant Required"
+
+#: templates/combat/index.html:86
+msgid "تفجير المنزل الآمن (يحتاج C4)"
+msgstr "Breach Safe House (requires C4)"
+
+#: templates/combat/index.html:87
+msgid "تفجير (C4)"
+msgstr "Breach (C4)"
 
 #: templates/combat/index.html:107
 msgid "لا يوجد أهداف متاحة حالياً. حاول البحث في وقت لاحق."
@@ -16470,10 +17272,6 @@ msgstr "Online Now"
 msgid "إغلاق المحادثة"
 msgstr "Remove Protection"
 
-#: templates/includes/hostess_widget.html:40
-msgid "اليوم"
-msgstr "Today"
-
 #: templates/includes/hostess_widget.html:48
 msgid "أهلاً! أنا ياسمين. كيف بقدر أساعدك اليوم؟ 🌹"
 msgstr "Hello! I am Yasmin. How can I help you today? 🌹"
@@ -17211,7 +18009,7 @@ msgstr "You are in hospital and cannot commit crimes!"
 msgid "أنت تتدرب ولا يمكنك القيام بهذا النشاط!"
 msgstr "You are training and cannot fight!"
 
-#: utils/essentials.py:553
+#: utils/essentials.py:596
 msgid "نفّذ 3 جرائم"
 msgstr "Perform 3 crimes"
 
@@ -19169,3 +19967,15 @@ msgstr ""
 #~ "War, Strategy Games, Palestine, Jerusalem, "
 #~ "Gaza, Arab Games, Mafia Game, Online "
 #~ "RPG, Browser Game"
+
+#~ msgid "أنت في السجن ولا يمكنك إجراء تحريات!"
+#~ msgstr "You are in jail and cannot conduct investigations!"
+
+#~ msgid "أنت في المستشفى ولا يمكنك إجراء تحريات!"
+#~ msgstr "You are in hospital and cannot conduct investigations!"
+
+#~ msgid "أنت تتدرب ولا يمكنك إجراء تحريات!"
+#~ msgstr "You are training and cannot conduct investigations!"
+
+#~ msgid "تمت العملية بنجاح! جاري عرض التقرير..."
+#~ msgstr "Operation successful! Displaying report..."

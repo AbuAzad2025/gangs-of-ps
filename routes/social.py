@@ -1,9 +1,9 @@
 from flask import render_template, redirect, url_for, flash, abort, request, current_app, jsonify, session
 from flask_login import login_required, current_user
 from extensions import db, limiter, cache
-from sqlalchemy import or_
+from sqlalchemy import or_, func
 from sqlalchemy.exc import ProgrammingError, OperationalError
-from models import Gang, Message, User, Notification, CombatLog, Hostess
+from models import Gang, Message, User, Notification, CombatLog, Hostess, Location, LocationControl
 from models.social import PublicChat, PrivateChat, Friendship
 from models.user import UserRole
 from models.system import SystemConfig, SecurityLog
@@ -114,6 +114,16 @@ def _friendship_key(a_id: int, b_id: int):
     return b_id, a_id
 
 
+def _is_blocked_between(a_id: int, b_id: int) -> bool:
+    try:
+        u1, u2 = _friendship_key(a_id, b_id)
+        rel = Friendship.query.filter_by(
+            user1_id=u1, user2_id=u2, status='blocked').first()
+        return bool(rel)
+    except Exception:
+        return False
+
+
 @bp.route('/notifications')
 @login_required
 def notifications():
@@ -186,7 +196,7 @@ def messages():
             Message.timestamp.desc())
         title = _('البريد الصادر')
     else:
-        now = datetime.now(timezone.utc)
+        now = datetime.now(timezone.utc).replace(tzinfo=None)
         messages_query = Message.query.filter_by(
             receiver_id=current_user.id,
             deleted_by_receiver=False).filter(
@@ -274,9 +284,9 @@ def invite_friends():
 @login_required
 def send_message():
     if request.method == 'POST':
-        receiver_username = request.form.get('receiver')
-        subject = request.form.get('subject')
-        body = request.form.get('body')
+        receiver_username = (request.form.get('receiver') or '').strip()
+        subject = (request.form.get('subject') or '').strip()
+        body = (request.form.get('body') or '').strip()
 
         receiver = User.query.filter_by(username=receiver_username).first()
 
@@ -288,13 +298,46 @@ def send_message():
             flash(_('لا يمكنك مراسلة نفسك!'), 'danger')
             return redirect(url_for('main.send_message'))
 
+        if not subject or not body:
+            flash(_('يرجى تعبئة العنوان والمحتوى.'), 'danger')
+            return redirect(url_for('main.send_message'))
+
+        if len(subject) > 100:
+            flash(_('عنوان الرسالة طويل جداً.'), 'danger')
+            return redirect(url_for('main.send_message'))
+
+        if len(body) > 5000:
+            flash(_('محتوى الرسالة طويل جداً.'), 'danger')
+            return redirect(url_for('main.send_message'))
+
+        if contains_prohibited_content(subject) or contains_prohibited_content(body):
+            flash(_('عذراً، يمنع إرسال الروابط أو الإيميلات أو أرقام الهواتف.'), 'danger')
+            return redirect(url_for('main.send_message'))
+
+        if _is_blocked_between(current_user.id, receiver.id):
+            flash(_('لا يمكن إرسال رسالة لهذا المستخدم.'), 'danger')
+            return redirect(url_for('main.send_message'))
+
+        now = datetime.now(timezone.utc).replace(tzinfo=None)
         msg = Message(
             sender_id=current_user.id,
             receiver_id=receiver.id,
             subject=subject,
-            body=body
+            body=body,
+            timestamp=now,
+            delivery_time=now,
         )
         db.session.add(msg)
+        try:
+            db.session.add(Notification(
+                user_id=receiver.id,
+                title=_('رسالة جديدة'),
+                message=_('وصلتك رسالة جديدة من %(u)s.', u=current_user.username),
+                type='info',
+                link=url_for('main.messages', box='inbox'),
+            ))
+        except Exception:
+            pass
         db.session.commit()
 
         flash(_('تم إرسال الرسالة بنجاح!'), 'success')
@@ -758,31 +801,140 @@ def edit_profile():
 
 @bp.route('/leaderboard')
 @limiter.limit("20 per minute")
-@cache.cached(timeout=300)
+@cache.cached(timeout=300, query_string=True)
 def leaderboard():
-    # SEO
-    from extensions import seo_manager
-    seo_manager.set(
-        title=_("قائمة المتصدرين - أقوى العصابات واللاعبين"),
-        description=_("تعرف على أقوى اللاعبين والعصابات في عصابات فلسطين. هل تملك ما يلزم لتكون في القمة؟"),
-        keywords="leaderboard, top players, gangs ranking, متصدرين, اقوى اللاعبين, ترتيب العصابات")
-    seo_manager.add_breadcrumb(
-        _("قائمة المتصدرين"),
-        url_for('main.leaderboard'))
+    try:
+        from extensions import seo_manager
+        seo_manager.set(
+            title=_("قائمة المتصدرين - أقوى العصابات واللاعبين"),
+            description=_("تعرف على أقوى اللاعبين والعصابات في عصابات فلسطين. هل تملك ما يلزم لتكون في القمة؟"),
+            keywords="leaderboard, top players, gangs ranking, متصدرين, اقوى اللاعبين, ترتيب العصابات")
+        seo_manager.add_breadcrumb(
+            _("قائمة المتصدرين"),
+            url_for('main.leaderboard'))
 
-    top_users = User.query.order_by(
-        User.level.desc(),
-        User.exp.desc()).limit(20).all()
-    top_gangs = Gang.query.order_by(
-        Gang.level.desc(),
-        Gang.exp.desc()).limit(20).all()
-    top_rich = User.query.order_by(User.money.desc()).limit(20).all()
+        sort_by = (request.args.get('sort') or 'level').strip().lower()
+        if sort_by not in {'level', 'money', 'control'}:
+            sort_by = 'level'
 
-    return render_template(
-        'leaderboard.html',
-        top_users=top_users,
-        top_gangs=top_gangs,
-        top_rich=top_rich)
+        top_users_raw = []
+        top_gangs = []
+        top_rich = []
+        city_leaders = []
+        control_week = None
+        control_year = None
+
+        if sort_by == 'money':
+            top_users_raw = User.query.order_by(User.money.desc()).limit(20).all()
+        elif sort_by == 'control':
+            try:
+                now = datetime.now(timezone.utc)
+                iso = now.isocalendar()
+                control_week = int(iso[1])
+                control_year = int(iso[0])
+
+                subq = (
+                    db.session.query(
+                        LocationControl.location_id.label('location_id'),
+                        func.max(LocationControl.points).label('max_points'),
+                    )
+                    .filter(
+                        LocationControl.week_number == control_week,
+                        LocationControl.year == control_year,
+                    )
+                    .group_by(LocationControl.location_id)
+                    .subquery()
+                )
+
+                rows = (
+                    db.session.query(
+                        LocationControl.location_id,
+                        LocationControl.gang_id,
+                        LocationControl.points,
+                        Location.name.label('location_name'),
+                        Gang.name.label('gang_name'),
+                    )
+                    .join(
+                        subq,
+                        (LocationControl.location_id == subq.c.location_id) &
+                        (LocationControl.points == subq.c.max_points),
+                    )
+                    .join(Location, Location.id == LocationControl.location_id)
+                    .join(Gang, Gang.id == LocationControl.gang_id)
+                    .filter(
+                        LocationControl.week_number == control_week,
+                        LocationControl.year == control_year,
+                    )
+                    .order_by(LocationControl.points.desc(), Location.name.asc())
+                    .all()
+                )
+
+                city_leaders = [
+                    {
+                        'location_id': int(r.location_id),
+                        'location_name': r.location_name,
+                        'gang_id': int(r.gang_id),
+                        'gang_name': r.gang_name,
+                        'points': int(r.points or 0),
+                    }
+                    for r in rows
+                ]
+            except Exception as e:
+                current_app.logger.error(f"Leaderboard control view failed: {e}")
+                try:
+                    db.session.rollback()
+                except Exception:
+                    pass
+                sort_by = 'level'
+                top_users_raw = User.query.order_by(
+                    User.level.desc(),
+                    User.exp.desc()).limit(20).all()
+        else:
+            top_users_raw = User.query.order_by(
+                User.level.desc(),
+                User.exp.desc()).limit(20).all()
+
+        top_users = [
+            {
+                'id': u.id,
+                'username': u.username,
+                'avatar': getattr(u, 'avatar', None),
+                'level': int(getattr(u, 'level', 0) or 0),
+                'rank_title': u.rank_title,
+                'health': int(getattr(u, 'health', 0) or 0),
+                'elite_reservation_until': getattr(u, 'elite_reservation_until', None),
+                'money': int(getattr(u, 'money', 0) or 0),
+                'exp': int(getattr(u, 'exp', 0) or 0),
+            }
+            for u in (top_users_raw or [])
+        ]
+
+        return render_template(
+            'leaderboard.html',
+            sort_by=sort_by,
+            top_users=top_users,
+            top_gangs=top_gangs,
+            top_rich=top_rich,
+            city_leaders=city_leaders,
+            control_week=control_week,
+            control_year=control_year,
+        )
+    except Exception as e:
+        current_app.logger.error(f"Error rendering leaderboard: {e}")
+        try:
+            db.session.rollback()
+        except Exception:
+            pass
+        return render_template(
+            'leaderboard.html',
+            sort_by='level',
+            top_users=[],
+            top_gangs=[],
+            top_rich=[],
+            city_leaders=[],
+            control_week=None,
+            control_year=None,
+        )
 
 
 @bp.route('/api/public-chat/messages')
@@ -1326,23 +1478,34 @@ def messenger_send():
     if current_user.is_muted:
         return jsonify({'error': _('أنت مكتوم لا يمكنك التحدث!')}), 403
 
-    data = request.get_json()
+    data = request.get_json(silent=True) or {}
     receiver_id = data.get('receiver_id')
-    content = data.get('content', '').strip()
+    content = (data.get('content') or '').strip()
 
     if not receiver_id or not content:
-        return jsonify({'error': 'Missing data'}), 400
+        return jsonify({'error': _('بيانات ناقصة.')}), 400
 
     if len(content) > 1000:
-        return jsonify({'error': 'Message too long'}), 400
+        return jsonify({'error': _('الرسالة طويلة جداً.')}), 400
 
     if contains_prohibited_content(content):
         return jsonify(
             {'error': _('عذراً، يمنع إرسال الروابط أو الإيميلات أو أرقام الهواتف.')}), 400
 
+    try:
+        receiver_id = int(receiver_id)
+    except Exception:
+        return jsonify({'error': _('المستلم غير صالح.')}), 400
+
+    if receiver_id == int(current_user.id):
+        return jsonify({'error': _('لا يمكنك مراسلة نفسك.')}), 400
+
+    if _is_blocked_between(current_user.id, receiver_id):
+        return jsonify({'error': _('لا يمكنك مراسلة هذا المستخدم.')}), 403
+
     receiver = db.session.get(User, receiver_id)
     if not receiver:
-        return jsonify({'error': 'User not found'}), 404
+        return jsonify({'error': _('المستخدم غير موجود.')}), 404
 
     msg = PrivateChat(
         sender_id=current_user.id,
@@ -1350,6 +1513,18 @@ def messenger_send():
         message=content
     )
     db.session.add(msg)
+
+    try:
+        db.session.add(Notification(
+            user_id=receiver_id,
+            title=_('رسالة جديدة'),
+            message=_('وصلتك رسالة جديدة من %(u)s.', u=current_user.username),
+            type='info',
+            link=url_for('main.messenger', chat_with=current_user.id),
+        ))
+    except Exception:
+        pass
+
     db.session.commit()
 
     return jsonify(msg.to_dict())
@@ -1361,7 +1536,8 @@ def messenger_mark_read(user_id):
     PrivateChat.query.filter_by(
         sender_id=user_id,
         receiver_id=current_user.id,
-        is_read=False
+        is_read=False,
+        deleted_by_receiver=False,
     ).update({'is_read': True})
     db.session.commit()
     return jsonify({'success': True})

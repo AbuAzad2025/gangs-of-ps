@@ -326,6 +326,7 @@ class User(UserMixin, db.Model):
     agility = db.Column(db.Integer, default=10)
     intelligence = db.Column(db.Integer, default=10)
     driving_skill = db.Column(db.Integer, default=1)  # New stat for racing
+    playstyle = db.Column(db.String(20), default='fighter', index=True)
 
     # Banking & Status
     bank_balance = db.Column(db.BigInteger, default=0)

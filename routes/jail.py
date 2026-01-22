@@ -483,8 +483,14 @@ def self_escape():
             action='JAIL_SELF_ESCAPE_FAIL',
             details=f'Penalty {penalty_minutes}m'))
     db.session.commit()
-    flash(_('فشلت المحاولة وتم كشفك. زادت عقوبتك %(min)s دقيقة.',
-          min=penalty_minutes), 'danger')
+    flash(
+        random.choice([
+            _('فشلت المحاولة وتم كشفك. زادت عقوبتك %(min)s دقيقة.', min=penalty_minutes),
+            _('انكشف أمرك… فشل الهروب وزادت العقوبة %(min)s دقيقة.', min=penalty_minutes),
+            _('ما زبطت! كشفوك وزادوا عليك %(min)s دقيقة.', min=penalty_minutes),
+        ]),
+        'danger',
+    )
     return redirect(url_for('jail.index'))
 
 
@@ -1430,7 +1436,14 @@ def breakout(prisoner_id):
         intelligence_gain = 0
         if random.random() < 0.2:
             intelligence_gain = 1
-            flash(_('تطورت مهاراتك في التخطيط! (+1 ذكاء)'), 'info')
+            flash(
+                random.choice([
+                    _('تطورت مهاراتك في التخطيط! (+1 ذكاء)'),
+                    _('تعلمت حركة جديدة… (+1 ذكاء)'),
+                    _('صار عندك خبرة بالتخطيط أكثر! (+1 ذكاء)'),
+                ]),
+                'info',
+            )
 
         changes['exp'] = xp_reward
         if intelligence_gain > 0:
@@ -1450,7 +1463,11 @@ def breakout(prisoner_id):
         expected_version=current_user.version,
             set_fields=set_fields):
         flash(
-            _('تحتاج إلى 50 طاقة لمحاولة التهريب! أو حدث خطأ في التزامن.'),
+            random.choice([
+                _('تحتاج إلى 50 طاقة لمحاولة التهريب! أو حدث خطأ في التزامن.'),
+                _('بدك 50 طاقة عشان التهريب… أو صار خلل بالتزامن.'),
+                _('التهريب بدّه 50 طاقة… أو في مشكلة تزامن.'),
+            ]),
             'danger')
         return redirect(url_for('jail.index'))
 
@@ -1464,10 +1481,26 @@ def breakout(prisoner_id):
             details=f'Broke out {prisoner.username}')
         db.session.add(log)
 
-        flash(_('نجحت العملية! تم تهريب %(name)s وحصلت على %(xp)s خبرة.',
-              name=prisoner.username, xp=xp_reward), 'success')
+        flash(
+            random.choice([
+                _('نجحت العملية! تم تهريب %(name)s وحصلت على %(xp)s خبرة.',
+                  name=prisoner.username, xp=xp_reward),
+                _('عملية التهريب نجحت! طلّعت %(name)s وكسبت %(xp)s خبرة.',
+                  name=prisoner.username, xp=xp_reward),
+                _('نفّذت التهريب! %(name)s صار حر… وأنت ربحت %(xp)s خبرة.',
+                  name=prisoner.username, xp=xp_reward),
+            ]),
+            'success',
+        )
     else:
-        flash(_('فشلت العملية! تم القبض عليك وإيداعك السجن لمدة 5 دقائق.'), 'danger')
+        flash(
+            random.choice([
+                _('فشلت العملية! تم القبض عليك وإيداعك السجن لمدة 5 دقائق.'),
+                _('انمسكت وأنت بتحاول… 5 دقائق سجن زيادة.'),
+                _('ما زبطت التهريب… قبضوا عليك وسجنوك 5 دقائق.'),
+            ]),
+            'danger',
+        )
 
     db.session.commit()
     return redirect(url_for('jail.index'))

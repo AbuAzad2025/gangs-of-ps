@@ -174,7 +174,11 @@
         <div class="story-text mb-3">
           {% if story.text_parts is defined and story.text_parts %}
             {% for part in story.text_parts %}
-              {{ _(part.msgid, **(part.params or {})) }}{% if not loop.last %} {% endif %}
+              {% if part.text is defined %}
+                {{ part.text }}
+              {% else %}
+                {{ _(part.msgid, **(part.params or {})) }}
+              {% endif %}{% if not loop.last %} {% endif %}
             {% endfor %}
           {% else %}
             {{ story.text }}
@@ -212,6 +216,11 @@
         <a class="btn btn-luxury-gold" href="{{ story.next_url or url_for('main.index') }}">
           <i class="fas fa-arrow-left mr-2"></i> {{ _('تابع') }}
         </a>
+        {% if story.message_id %}
+          <a class="btn btn-outline-warning" href="{{ url_for('main.view_message', msg_id=story.message_id) }}">
+            <i class="fas fa-inbox mr-2"></i> {{ _('فتح النسخة المحفوظة في البريد') }}
+          </a>
+        {% endif %}
         {% if story.alt_url %}
           <a class="btn btn-outline-secondary" href="{{ story.alt_url }}">
             <i class="fas fa-redo mr-2"></i> {{ story_alt_label or _('رجوع') }}

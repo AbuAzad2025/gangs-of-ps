@@ -364,7 +364,16 @@
                     <div class="item-card h-100 p-3 text-center d-flex flex-column">
                         <div class="item-icon-wrapper">
                             {% if user_item.item.image %}
-                                <img src="{{ url_for('static', filename='images/items/' + user_item.item.image) }}" alt="{{ _(user_item.item.name) }}" class="item-img-70" onerror="this.onerror=null; this.src='{{ url_for('static', filename='images/crimes/wallet.jpg') }}';">
+                                {% set img = user_item.item.image %}
+                                {% if img.startswith('images/') %}
+                                    {% set img = img[7:] %}
+                                {% endif %}
+                                {% if '/' in img %}
+                                    {% set img_path = 'images/' + img %}
+                                {% else %}
+                                    {% set img_path = 'images/items/' + img %}
+                                {% endif %}
+                                <img src="{{ url_for('static', filename=img_path) }}" alt="{{ _(user_item.item.name) }}" class="item-img-70" onerror="this.onerror=null; this.src='{{ url_for('static', filename='images/crimes/wallet.jpg') }}';">
                             {% else %}
                                 <i class="fas fa-gem fa-3x text-success"></i>
                             {% endif %}
@@ -439,7 +448,16 @@
                         
                         <div class="item-icon-wrapper mb-2 icon-size-60">
                             {% if deal.item.image %}
-                                <img src="{{ url_for('static', filename='images/items/' + deal.item.image) }}" class="img-fluid img-max-60" alt="{{ deal.item.name }}" onerror="this.onerror=null; this.src='{{ url_for('static', filename='images/items/default.jpg') }}';">
+                                {% set img = deal.item.image %}
+                                {% if img.startswith('images/') %}
+                                    {% set img = img[7:] %}
+                                {% endif %}
+                                {% if '/' in img %}
+                                    {% set img_path = 'images/' + img %}
+                                {% else %}
+                                    {% set img_path = 'images/items/' + img %}
+                                {% endif %}
+                                <img src="{{ url_for('static', filename=img_path) }}" class="img-fluid img-max-60" alt="{{ deal.item.name }}" onerror="this.onerror=null; this.src='{{ url_for('static', filename='images/items/default.jpg') }}';">
                             {% else %}
                                 <i class="fas fa-dolly fa-2x text-warning"></i>
                             {% endif %}
@@ -508,7 +526,16 @@
                     <div class="item-card h-100 p-3 text-center d-flex flex-column">
                         <div class="item-icon-wrapper">
                             {% if item.image %}
-                                <img src="{{ url_for('static', filename='images/items/' + item.image) }}" class="img-fluid img-max-60" alt="{{ item.name }}" onerror="this.onerror=null; this.src='{{ url_for('static', filename='images/items/default.jpg') }}';">
+                                {% set img = item.image %}
+                                {% if img.startswith('images/') %}
+                                    {% set img = img[7:] %}
+                                {% endif %}
+                                {% if '/' in img %}
+                                    {% set img_path = 'images/' + img %}
+                                {% else %}
+                                    {% set img_path = 'images/items/' + img %}
+                                {% endif %}
+                                <img src="{{ url_for('static', filename=img_path) }}" class="img-fluid img-max-60" alt="{{ item.name }}" onerror="this.onerror=null; this.src='{{ url_for('static', filename='images/items/default.jpg') }}';">
                             {% else %}
                                 <i class="fas fa-crosshairs fa-3x text-danger"></i>
                             {% endif %}
@@ -555,7 +582,16 @@
                     <div class="item-card h-100 p-3 text-center d-flex flex-column">
                         <div class="item-icon-wrapper">
                             {% if item.image %}
-                                <img src="{{ url_for('static', filename='images/' + item.image) }}" class="img-fluid img-max-60" alt="{{ item.name }}">
+                                {% set img = item.image %}
+                                {% if img.startswith('images/') %}
+                                    {% set img = img[7:] %}
+                                {% endif %}
+                                {% if '/' in img %}
+                                    {% set img_path = 'images/' + img %}
+                                {% else %}
+                                    {% set img_path = 'images/items/' + img %}
+                                {% endif %}
+                                <img src="{{ url_for('static', filename=img_path) }}" class="img-fluid img-max-60" alt="{{ item.name }}" onerror="this.onerror=null; this.src='{{ url_for('static', filename='images/items/default.jpg') }}';">
                             {% else %}
                                 <i class="fas fa-shield-alt fa-3x text-info"></i>
                             {% endif %}
@@ -602,7 +638,16 @@
                     <div class="item-card h-100 p-3 text-center d-flex flex-column">
                         <div class="item-icon-wrapper">
                             {% if item.image %}
-                                <img src="{{ url_for('static', filename='images/items/' + item.image) }}" class="img-fluid img-max-60" alt="{{ item.name }}" onerror="this.onerror=null; this.src='{{ url_for('static', filename='images/items/default.jpg') }}';">
+                                {% set img = item.image %}
+                                {% if img.startswith('images/') %}
+                                    {% set img = img[7:] %}
+                                {% endif %}
+                                {% if '/' in img %}
+                                    {% set img_path = 'images/' + img %}
+                                {% else %}
+                                    {% set img_path = 'images/items/' + img %}
+                                {% endif %}
+                                <img src="{{ url_for('static', filename=img_path) }}" class="img-fluid img-max-60" alt="{{ item.name }}" onerror="this.onerror=null; this.src='{{ url_for('static', filename='images/items/default.jpg') }}';">
                             {% else %}
                                 <i class="fas fa-pills fa-3x text-warning"></i>
                             {% endif %}

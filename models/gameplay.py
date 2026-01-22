@@ -191,7 +191,9 @@ class UserDailyTask(db.Model):
             'crime': _('إجرام'),
             'gym': _('تمرين'),
             'combat': _('قتال'),
-            'buy': _('تسوق')
+            'buy': _('تسوق'),
+            'intel': _('استخبارات'),
+            'gang': _('عصابات'),
         }
         return type_titles.get(
             self.task.target_type,

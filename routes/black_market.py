@@ -1214,6 +1214,7 @@ def buy_service(service_type):
     if service_type == 'safe_house':
         cost = 50000
         duration = 24  # hours
+        now_naive = now.replace(tzinfo=None)
 
         # Gang Buff (Bazaar Connections)
         try:
@@ -1245,14 +1246,15 @@ def buy_service(service_type):
 
         # Extend if already active, else set new
         safe_house_until = current_user.safe_house_until
-        if safe_house_until and safe_house_until.tzinfo is None:
-            safe_house_until = safe_house_until.replace(tzinfo=timezone.utc)
+        if safe_house_until and safe_house_until.tzinfo is not None:
+            safe_house_until = safe_house_until.replace(tzinfo=None)
 
-        if safe_house_until and safe_house_until > now:
-            current_user.safe_house_until = safe_house_until + \
-                timedelta(hours=duration)
+        if safe_house_until and safe_house_until > now_naive:
+            current_user.safe_house_until = safe_house_until + timedelta(
+                hours=duration)
         else:
-            current_user.safe_house_until = now + timedelta(hours=duration)
+            current_user.safe_house_until = now_naive + timedelta(
+                hours=duration)
 
         flash(
             _('تم استئجار المنزل الآمن لمدة 24 ساعة! لا يمكن لأحد مهاجمتك الآن.'),
@@ -1261,6 +1263,7 @@ def buy_service(service_type):
     elif service_type == 'disguise':
         cost = 10000
         duration = 1  # hours
+        now_naive = now.replace(tzinfo=None)
 
         # Gang Buff (Bazaar Connections)
         try:
@@ -1290,10 +1293,16 @@ def buy_service(service_type):
 
         current_user.is_disguised = True
 
-        if current_user.disguise_until and current_user.disguise_until > now:
-            current_user.disguise_until += timedelta(hours=duration)
+        disguise_until = current_user.disguise_until
+        if disguise_until and disguise_until.tzinfo is not None:
+            disguise_until = disguise_until.replace(tzinfo=None)
+
+        if disguise_until and disguise_until > now_naive:
+            current_user.disguise_until = disguise_until + timedelta(
+                hours=duration)
         else:
-            current_user.disguise_until = now + timedelta(hours=duration)
+            current_user.disguise_until = now_naive + timedelta(
+                hours=duration)
 
         flash(
             _('تم تفعيل التخفي لمدة ساعة! سيظهر اسمك كمجهول عند الهجوم.'),
@@ -1536,8 +1545,8 @@ def spy():
     time_multiplier = max(0.2, time_multiplier)  # Min 20% time (2 mins)
 
     final_time_minutes = int(base_time * time_multiplier)
-    delivery_time = datetime.now(timezone.utc) + \
-        timedelta(minutes=final_time_minutes)
+    delivery_time = (datetime.now(timezone.utc) +
+                     timedelta(minutes=final_time_minutes)).replace(tzinfo=None)
 
     # Deduct Money
     # Atomic deduction with logging
@@ -1563,26 +1572,25 @@ def spy():
     safe_house_status = _("نشط") if (
         target.is_safe_house_active and safe_house_until and safe_house_until > now) else _("غير نشط")
 
-    report_body = f"""
-    <strong>{_('تقرير استخباراتي عن الهدف:')} {target.username}</strong><br><br>
-    <ul>
-        <li><strong>{_('الموقع الحالي:')}</strong> {location_name}</li>
-        <li><strong>{_('المنزل الآمن:')}</strong> {safe_house_status}</li>
-        <li><strong>{_('المستوى:')}</strong> {target.level}</li>
-        <li><strong>{_('الصحة المقدرة:')}</strong> {estimated_hp} / {target.max_health}</li>
-        <li><strong>{_('الدفاع:')}</strong> {estimated_def}</li>
-        <li><strong>{_('رصاصات للقتل (تقريبي):')}</strong> {bullets_needed} {_('رصاصة')}</li>
-        <li><strong>{_('الكاش:')}</strong> ${target.money:,}</li>
-    </ul>
-    <br>
-    <small>{_('ملاحظة: هذه المعلومات دقيقة وقت طلب التقرير وقد تتغير.')}</small>
-    """
+    report_body = "\n".join([
+        f"{_('تقرير استخباراتي عن الهدف:')} {target.username}",
+        "",
+        f"{_('الموقع الحالي:')} {location_name}",
+        f"{_('المنزل الآمن:')} {safe_house_status}",
+        f"{_('المستوى:')} {target.level}",
+        f"{_('الصحة المقدرة:')} {estimated_hp} / {target.max_health}",
+        f"{_('الدفاع:')} {estimated_def}",
+        f"{_('رصاصات للقتل (تقريبي):')} {bullets_needed} {_('رصاصة')}",
+        f"{_('الكاش:')} ${target.money:,}",
+        "",
+        _("ملاحظة: هذه المعلومات دقيقة وقت طلب التقرير وقد تتغير."),
+    ])
 
     # Create Message
     msg = Message(
         sender_id=current_user.id,  # From "Self" or "System"
         receiver_id=current_user.id,
-        subject=_('تقرير سري: %(name)s', name=target.username),
+        subject=_('استخبارات: تقرير مخبر عن %(name)s', name=target.username),
         body=report_body,
         delivery_time=delivery_time
     )

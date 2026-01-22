@@ -45,7 +45,11 @@
                         </li>
                         <li class="list-group-item bg-transparent text-white d-flex justify-content-between">
                             <span><i class="fas fa-heartbeat text-danger"></i> {{ _('الصحة') }}</span>
-                            <span class="font-weight-bold">{{ report.health }}%</span>
+                            <span class="font-weight-bold">{{ report.health_current }} / {{ report.max_health }} ({{ report.health_pct }}%)</span>
+                        </li>
+                        <li class="list-group-item bg-transparent text-white d-flex justify-content-between">
+                            <span><i class="fas fa-home text-warning"></i> {{ _('المنزل الآمن') }}</span>
+                            <span class="font-weight-bold">{% if report.safe_house_active %}{{ _('نشط') }}{% else %}{{ _('غير نشط') }}{% endif %}</span>
                         </li>
                     </ul>
                 </div>
@@ -57,14 +61,29 @@
         </div>
         <div class="card-footer text-center">
             <a href="{{ url_for('main.intel_center') }}" class="btn btn-secondary">{{ _('عودة لمركز الاستخبارات') }}</a>
+            {% if saved_msg_id %}
+                <a href="{{ url_for('main.view_message', msg_id=saved_msg_id) }}" class="btn btn-outline-warning ml-2">
+                    <i class="fas fa-inbox"></i> {{ _('فتح النسخة المحفوظة في البريد') }}
+                </a>
+            {% endif %}
             
             {% if report.user_id %}
-            <form action="{{ url_for('combat.attack', target_id=report.user_id) }}" method="POST" class="d-inline-block">
-                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-                <button type="submit" class="btn btn-danger btn-lg ml-2 animate__animated animate__pulse animate__infinite">
-                    <i class="fas fa-crosshairs"></i> {{ _('هجوم الآن!') }}
-                </button>
-            </form>
+                {% if report.safe_house_active %}
+                    <form action="{{ url_for('combat.attack', target_id=report.user_id) }}" method="POST" class="d-inline-block">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                        <input type="hidden" name="action" value="breach"/>
+                        <button type="submit" class="btn btn-danger btn-lg ml-2 animate__animated animate__pulse animate__infinite">
+                            <i class="fas fa-bomb"></i> {{ _('تفجير المنزل الآمن (C4)') }}
+                        </button>
+                    </form>
+                {% else %}
+                    <form action="{{ url_for('combat.attack', target_id=report.user_id) }}" method="POST" class="d-inline-block">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                        <button type="submit" class="btn btn-danger btn-lg ml-2 animate__animated animate__pulse animate__infinite">
+                            <i class="fas fa-crosshairs"></i> {{ _('هجوم الآن!') }}
+                        </button>
+                    </form>
+                {% endif %}
             {% endif %}
             
             <a href="{{ url_for('main.hara') }}" class="btn btn-outline-light ml-2">{{ _('عودة للحارة') }}</a>

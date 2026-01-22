@@ -18,22 +18,26 @@ from models import (
     UserVehicle,
     InvestigationLog,
     Location,
+    LocationControl,
     FactoryJob,
     FarmSupplyContract,
     UserLog,
+    Message,
     UserOrganizedCrimeCooldown,
+    UserProgress,
 )
 from models.hostess import Hostess
 from . import bp
 import random
 from datetime import datetime, timedelta, timezone
 from flask_babel import _
-from .utils import update_daily_task_progress, send_notification, sync_daily_tasks
+from .utils import update_daily_task_progress, send_notification, sync_daily_tasks, get_onboarding_day
 from services.requirements import check_requirements
 from services.resource_service import ResourceService
-from sqlalchemy import select
+from sqlalchemy import select, or_
 from sqlalchemy.orm import selectinload, joinedload
 from decorators import check_maintenance, player_only
+from utils.decorators import check_player_status
 
 _broadcast_cache = {}
 
@@ -41,6 +45,21 @@ _broadcast_cache = {}
 @bp.route('/organized_crimes')
 @limiter.limit("30 per minute")
 def organized_crimes():
+    from extensions import seo_manager
+
+    seo_manager.set(
+        title=_("الجرائم المنظمة - خطط نفذ وسيطر"),
+        description=_(
+            "سيناريوهات الجرائم المنظمة في عصابات فلسطين. خطط ونفذ عمليات سطو مسلح مع فريقك."
+        ),
+        keywords=(
+            "جرائم منظمة, سطو, فريق, عصابات فلسطين, "
+            "organized crimes, heist, team, Gangs of Palestine"
+        ),
+    )
+    seo_manager.add_breadcrumb(_("الرئيسية"), url_for("main.index"))
+    seo_manager.add_breadcrumb(_("الجرائم المنظمة"), url_for("main.organized_crimes"))
+
     if not current_user.is_authenticated:
         enabled = SystemConfig.get_value(
             'organized_crimes_enabled', 'true') == 'true'
@@ -338,7 +357,12 @@ def _expire_lobby_if_needed(lobby):
 @login_required
 def daily_tasks():
     user_tasks = sync_daily_tasks(current_user)
-    return render_template('daily_tasks.html', tasks=user_tasks)
+    onboarding_day = get_onboarding_day(current_user)
+    return render_template(
+        'daily_tasks.html',
+        tasks=user_tasks,
+        onboarding_day=onboarding_day,
+    )
 
 
 @bp.route('/collect_task_reward/<int:task_id>', methods=['POST'])
@@ -431,8 +455,17 @@ def daily_reward():
             hours, remainder = divmod(remaining.seconds, 3600)
             minutes, remaining_seconds = divmod(remainder, 60)
             db.session.rollback()  # Release lock
-            flash(_('لسه بدري يا كبير! ارجع بعد %(hours)s ساعة و %(minutes)s دقيقة.',
-                  hours=hours, minutes=minutes), 'warning')
+            flash(
+                random.choice([
+                    _('لسه بدري يا كبير! ارجع بعد %(hours)s ساعة و %(minutes)s دقيقة.',
+                      hours=hours, minutes=minutes),
+                    _('المكافأة لسه مش جاهزة… ارجع بعد %(hours)s ساعة و %(minutes)s دقيقة.',
+                      hours=hours, minutes=minutes),
+                    _('استنى شوي! باقي %(hours)s ساعة و %(minutes)s دقيقة على المكافأة.',
+                      hours=hours, minutes=minutes),
+                ]),
+                'warning',
+            )
             return redirect(url_for('main.hara'))
 
         delta_days = (now.date() - last_claim_at.date()).days
@@ -458,7 +491,6 @@ def daily_reward():
     diamonds_reward = 0
     if streak % 7 == 0:
         diamonds_reward = 1
-        money_reward += user.level * 200
 
     user.last_daily_reward = now.replace(tzinfo=None)
 
@@ -494,11 +526,29 @@ def daily_reward():
     db.session.commit()
 
     if diamonds_reward:
-        flash(_('أخذت مكافأتك اليومية (ستريك %(streak)s): %(money)s شيكل و %(energy)s طاقة و %(d)s ماس!',
-              streak=streak, money=money_reward, energy=energy_reward, d=diamonds_reward), 'success')
+        flash(
+            random.choice([
+                _('أخذت مكافأتك اليومية (ستريك %(streak)s): %(money)s شيكل و %(energy)s طاقة و %(d)s ماس!',
+                  streak=streak, money=money_reward, energy=energy_reward, d=diamonds_reward),
+                _('مبروك! مكافأة اليوم (ستريك %(streak)s): %(money)s شيكل + %(energy)s طاقة + %(d)s ماس.',
+                  streak=streak, money=money_reward, energy=energy_reward, d=diamonds_reward),
+                _('تم استلام المكافأة (ستريك %(streak)s): %(money)s شيكل، %(energy)s طاقة، %(d)s ماس.',
+                  streak=streak, money=money_reward, energy=energy_reward, d=diamonds_reward),
+            ]),
+            'success',
+        )
     else:
-        flash(_('أخذت مكافأتك اليومية (ستريك %(streak)s): %(money)s شيكل و %(energy)s طاقة!',
-              streak=streak, money=money_reward, energy=energy_reward), 'success')
+        flash(
+            random.choice([
+                _('أخذت مكافأتك اليومية (ستريك %(streak)s): %(money)s شيكل و %(energy)s طاقة!',
+                  streak=streak, money=money_reward, energy=energy_reward),
+                _('مكافأة اليوم وصلت (ستريك %(streak)s): %(money)s شيكل + %(energy)s طاقة.',
+                  streak=streak, money=money_reward, energy=energy_reward),
+                _('تم استلام المكافأة اليومية (ستريك %(streak)s): %(money)s شيكل و %(energy)s طاقة.',
+                  streak=streak, money=money_reward, energy=energy_reward),
+            ]),
+            'success',
+        )
     return redirect(url_for('main.hara'))
 
 
@@ -551,8 +601,6 @@ def hara():
     next_energy = int(min(40, base_energy + (min(10, next_streak - 1) * 2)))
     next_exp = int(base_exp * streak_multiplier)
     next_diamonds = 1 if (next_streak % 7 == 0) else 0
-    if next_diamonds:
-        next_money += current_user.level * 200
 
     daily_reward_meta = {
         "can_claim": bool(can_claim),
@@ -737,6 +785,45 @@ def crimes():
         user_id=current_user.id).all()
     cooldown_map = {}
     now = datetime.now(timezone.utc)
+    today = now.date()
+
+    effective_strength = current_user.strength or 0
+    effective_agility = current_user.agility or 0
+    effective_intelligence = current_user.intelligence or 0
+
+    equipped_items = UserItem.query.join(Item).filter(
+        UserItem.user_id == current_user.id,
+        UserItem.is_equipped
+    ).all()
+    for ui in equipped_items:
+        mult = 1.0
+        if ui.condition is not None and ui.condition < 100:
+            mult = ui.condition / 100
+        effective_strength += int(ui.item.bonus_strength * mult)
+        effective_agility += int(ui.item.bonus_agility * mult)
+
+    hostess_bonus_success = 0
+    if current_user.active_hostess_id and current_user.casino_luck_until:
+        luck_until = current_user.casino_luck_until
+        if luck_until.tzinfo is None:
+            luck_until = luck_until.replace(tzinfo=timezone.utc)
+        if luck_until > now:
+            hostess = db.session.get(Hostess, current_user.active_hostess_id)
+            if hostess and hostess.buff_type == 'crime_success':
+                hostess_bonus_success = (
+                    hostess.buff_value if hostess.buff_value else 0.1) * 100
+
+    try:
+        heat = current_user.heat_value(now=now)
+    except Exception:
+        heat = 0
+    try:
+        heat_penalty_per_point = float(
+            SystemConfig.get_value(
+                "heat_success_penalty_per_point",
+                "0.15") or 0.15)
+    except Exception:
+        heat_penalty_per_point = 0.15
 
     # Global Cooldown Logic
     global_cooldown_until_ms = None
@@ -750,7 +837,10 @@ def crimes():
         if until > now:
             global_cooldown_until_ms = int(until.timestamp() * 1000)
 
+    daily_count_map = {}
     for c in cooldowns:
+        if c.last_reset_date == today:
+            daily_count_map[c.crime_id] = int(c.daily_count or 0)
         # Check if still active
         if c.cooldown_until:
             c_until = c.cooldown_until
@@ -760,6 +850,43 @@ def crimes():
             if c_until > now:
                 cooldown_map[c.crime_id] = c_until
 
+    success_chance_map = {}
+    for crime in all_crimes:
+        base_chance = 60
+
+        str_ratio = (
+            effective_strength /
+            max(1, crime.min_strength)
+        ) if (crime.min_strength and crime.min_strength > 0) else 1
+        agl_ratio = (
+            effective_agility /
+            max(1, crime.min_agility)
+        ) if (crime.min_agility and crime.min_agility > 0) else 1
+        int_ratio = (
+            effective_intelligence /
+            max(1, crime.min_intelligence)
+        ) if (crime.min_intelligence and crime.min_intelligence > 0) else 1
+
+        bonus_chance = min(30, (str_ratio + agl_ratio + int_ratio - 3) * 15)
+        intel_bonus = min(10, effective_intelligence / 10)
+
+        if current_user.is_suspicious:
+            intel_bonus = 0
+            bonus_chance = bonus_chance / 2
+
+        final_chance = min(
+            95,
+            base_chance +
+            bonus_chance +
+            intel_bonus +
+            hostess_bonus_success)
+
+        heat_penalty = heat * heat_penalty_per_point
+        if heat > 80:
+            heat_penalty += (heat - 80) * 0.5
+        final_chance = max(5, int(final_chance - heat_penalty))
+        success_chance_map[crime.id] = final_chance
+
     return render_template(
         'crimes.html',
         crimes=all_crimes,
@@ -767,6 +894,11 @@ def crimes():
         cooldown_map=cooldown_map,
         now=now,
         reward_previews=reward_previews,
+        effective_strength=effective_strength,
+        effective_agility=effective_agility,
+        effective_intelligence=effective_intelligence,
+        success_chance_map=success_chance_map,
+        daily_count_map=daily_count_map,
         global_cooldown_until_ms=global_cooldown_until_ms)
 
 
@@ -788,7 +920,7 @@ def story():
     return render_template('story.html', story=story)
 
 
-@bp.route('/do_crime/<int:crime_id>')
+@bp.route('/do_crime/<int:crime_id>', methods=['POST'])
 @login_required
 @check_maintenance('crimes')
 @player_only
@@ -844,10 +976,13 @@ def do_crime(crime_id):
     crime = db.session.get(Crime, crime_id)
     if not crime:
         abort(404)
+    if not crime.is_active:
+        abort(404)
 
     # Requirements Check
     effective_strength = current_user.strength
     effective_agility = current_user.agility
+    effective_intelligence = current_user.intelligence or 0
 
     equipped_items = UserItem.query.join(Item).filter(
         UserItem.user_id == current_user.id,
@@ -873,6 +1008,11 @@ def do_crime(crime_id):
     if effective_agility < crime.min_agility:
         flash(_('حركتك بطيئة! تحتاج خفة حركة %(agl)s (مع العتاد) لتنفيذ هذه الجريمة',
               agl=crime.min_agility), 'danger')
+        return redirect(url_for('main.crimes'))
+
+    if effective_intelligence < (crime.min_intelligence or 0):
+        flash(_('ذكاءك لا يكفي! تحتاج ذكاء %(intel)s لتنفيذ هذه الجريمة',
+              intel=crime.min_intelligence or 0), 'danger')
         return redirect(url_for('main.crimes'))
 
     # Energy Check
@@ -910,19 +1050,22 @@ def do_crime(crime_id):
     # Execute
     # Atomic deduction for energy
     if not ResourceService.modify_resources(
-            current_user.id, {
-            'energy': -crime.energy_cost}, 'crime_cost', auto_commit=False, expected_version=None):
+            current_user.id,
+            {'energy': -crime.energy_cost},
+            'crime_cost',
+            auto_commit=False,
+            expected_version=None,
+            log_extra={
+                'crime_id': crime.id,
+                'crime_name': crime.name,
+            }):
         db.session.rollback()
         flash(_('لا تملك طاقة كافية!'), 'danger')
         return redirect(url_for('main.crimes'))
 
     # Set Cooldown (Specific Crime) & Update Daily Count
-    new_cooldown_time = (
-        datetime.now(
-            timezone.utc) +
-        timedelta(
-            seconds=crime.cooldown)).replace(
-                tzinfo=None)
+    new_cooldown_time = (now + timedelta(seconds=crime.cooldown)).replace(
+        tzinfo=None)
 
     if user_cooldown:
         user_cooldown.cooldown_until = new_cooldown_time
@@ -977,13 +1120,23 @@ def do_crime(crime_id):
     base_chance = 60
 
     # Bonus for stats exceeding minimums
-    str_ratio = effective_strength / max(1, crime.min_strength)
-    agl_ratio = effective_agility / max(1, crime.min_agility)
+    str_ratio = (
+        effective_strength /
+        max(1, crime.min_strength)
+    ) if (crime.min_strength and crime.min_strength > 0) else 1
+    agl_ratio = (
+        effective_agility /
+        max(1, crime.min_agility)
+    ) if (crime.min_agility and crime.min_agility > 0) else 1
+    int_ratio = (
+        (current_user.intelligence or 0) /
+        max(1, crime.min_intelligence)
+    ) if (crime.min_intelligence and crime.min_intelligence > 0) else 1
 
     # Up to 20% bonus for having stats above required
-    bonus_chance = min(30, (str_ratio + agl_ratio - 2) * 15)
+    bonus_chance = min(30, (str_ratio + agl_ratio + int_ratio - 3) * 15)
     # Intelligence bonus (smart criminals plan better)
-    intel_bonus = min(10, current_user.intelligence / 10)
+    intel_bonus = min(10, effective_intelligence / 10)
 
     if current_user.is_suspicious:
         # Soft Anti-Cheat: Reduce base chance silently
@@ -1045,7 +1198,11 @@ def do_crime(crime_id):
         db.session.commit()
 
         flash(
-            _('🕵️ جاسوس بلغ عنك! قوات خاصة حاصرتك قبل ما تبدأ. أخذوك تحقيق 60 دقيقة.'),
+            random.choice([
+                _('🕵️ جاسوس بلغ عنك! قوات خاصة حاصرتك قبل ما تبدأ. أخذوك تحقيق 60 دقيقة.'),
+                _('🕵️ انفضحت! واحد وداك للشرطة قبل ما تبدأ… تحقيق 60 دقيقة.'),
+                _('🕵️ حد باعك! كمين جاهز قبل التنفيذ… سحبوك على تحقيق 60 دقيقة.'),
+            ]),
             'danger')
         return redirect(url_for('jail.index'))
 
@@ -1058,7 +1215,11 @@ def do_crime(crime_id):
         db.session.commit()
 
         flash(
-            _('👮 كنت ماشي في حالك، وقفتك دورية واعتقلوك عشوائياً (اعتقال إداري).'),
+            random.choice([
+                _('👮 كنت ماشي في حالك، وقفتك دورية واعتقلوك عشوائياً (اعتقال إداري).'),
+                _('👮 دورية وقفتك فجأة… تدقيق وتحقيق وبالأخير اعتقال إداري.'),
+                _('👮 "تعال هون!" مسكوك من الشارع بدون سبب… اعتقال إداري.'),
+            ]),
             'danger')
         return redirect(url_for('jail.index'))
 
@@ -1069,7 +1230,11 @@ def do_crime(crime_id):
             timezone.utc) + timedelta(minutes=jail_time)
         db.session.commit()
         flash(
-            _('🧗 علقت بالسلك وأجت دورية حرس حدود لقطتك. "تهريب عمال؟ تعال هون!"'),
+            random.choice([
+                _('🧗 علقت بالسلك وأجت دورية حرس حدود لقطتك. "تهريب عمال؟ تعال هون!"'),
+                _('🧗 وأنت بتتهرب… انمسكت بالسلك. دورية حدود وصلت واعتقلتك.'),
+                _('🧗 خطوة غلط… انكشف التهريب! حرس الحدود مسكوك وسحبوك عالتحقيق.'),
+            ]),
             'danger')
         return redirect(url_for('jail.index'))
 
@@ -1202,8 +1367,42 @@ def do_crime(crime_id):
             changes,
             'crime_success',
             auto_commit=False,
-            expected_version=current_user.version)
-        current_user.add_rank_points(1)
+            expected_version=current_user.version,
+            log_extra={
+                'crime_id': crime.id,
+                'crime_name': crime.name,
+                'reward_type': getattr(crime, 'reward_type', 'money'),
+                'base_money': base_money,
+                'level_multiplier': level_multiplier,
+                'item_name': story_item_name,
+                'item_condition': story_item_condition,
+                'vehicle_name': story_vehicle_name,
+                'vehicle_condition': story_vehicle_condition,
+                'success_chance': final_chance,
+                'roll': roll,
+            })
+        try:
+            rows = UserProgress.query.filter_by(user_id=current_user.id).update(
+                {UserProgress.rank_points: UserProgress.rank_points + 1},
+                synchronize_session=False,
+            )
+            if rows == 0:
+                try:
+                    with db.session.begin_nested():
+                        db.session.add(
+                            UserProgress(
+                                user_id=current_user.id,
+                                rank_points=1,
+                            )
+                        )
+                        db.session.flush()
+                except Exception:
+                    UserProgress.query.filter_by(user_id=current_user.id).update(
+                        {UserProgress.rank_points: UserProgress.rank_points + 1},
+                        synchronize_session=False,
+                    )
+        except Exception:
+            pass
         try:
             try:
                 heat_base = int(
@@ -1225,32 +1424,22 @@ def do_crime(crime_id):
                 leveled_up = True
         except Exception:
             pass
-
-        log = UserLog(
-            user_id=current_user.id,
-            action='CRIME_SUCCESS',
-            details=f"Crime: {crime.name}, Money: {money}, XP: {xp_reward}",
-            result='success',
-            ip_address=request.remote_addr,
-            user_agent=request.user_agent.string
-        )
-        db.session.add(log)
         db.session.commit()
 
         update_daily_task_progress(current_user, 'crime')
 
         action_lines = [
-            'تسللت بهدوء…',
-            'راقبت المكان دقيقة…',
-            'خططت بسرعة ونفّذت…',
-            'قلّبتها مزبوط وما خليت أثر…',
+            _('تسللت بهدوء…'),
+            _('راقبت المكان دقيقة…'),
+            _('خططت بسرعة ونفّذت…'),
+            _('قلّبتها مزبوط وما خليت أثر…'),
         ]
         extra_lines = [
-            '💨 رميت عليهم قنبلة دخانية!',
-            '🚧 قفزت فوق حاجز بسرعة!',
-            '🕶️ غيّرت مسارك من الزحمة!',
-            '⚡ كانت حركة سريعة وخاطفة!',
-            '🔇 اشتغلت بصمت…',
+            _('💨 رميت عليهم قنبلة دخانية!'),
+            _('🚧 قفزت فوق حاجز بسرعة!'),
+            _('🕶️ غيّرت مسارك من الزحمة!'),
+            _('⚡ كانت حركة سريعة وخاطفة!'),
+            _('🔇 اشتغلت بصمت…'),
         ]
         action = random.choice(action_lines)
         extra = random.choice(extra_lines)
@@ -1261,18 +1450,23 @@ def do_crime(crime_id):
 
         if getattr(crime, 'reward_type', 'money') == 'vehicle':
             animation = 'speed'
-            extra = random.choice(['🚗 دعست بنزين وطلعت زي الرصاصة!',
-                                  '🛞 لفّيت الدركسيون وهربت!', '💨 غيّرت شارع بآخر لحظة!'])
+            extra = random.choice([
+                _('🚗 دعست بنزين وطلعت زي الرصاصة!'),
+                _('🛞 لفّيت الدركسيون وهربت!'),
+                _('💨 غيّرت شارع بآخر لحظة!'),
+            ])
         elif getattr(crime, 'reward_type', 'money') == 'item':
             animation = 'spark'
-            extra = random.choice(['🧤 لبست كفوف وخطفت الغنيمة!',
-                                   '🧰 فتحت القفل بحركة سريعة!',
-                                   '🕳️ خبّيتها قبل ما ينتبهوا!'])
+            extra = random.choice([
+                _('🧤 لبست كفوف وخطفت الغنيمة!'),
+                _('🧰 فتحت القفل بحركة سريعة!'),
+                _('🕳️ خبّيتها قبل ما ينتبهوا!'),
+            ])
 
         parts = [
             {'msgid': 'كفو! نفذت الجريمة.'},
-            {'msgid': action},
-            {'msgid': extra},
+            {'text': action},
+            {'text': extra},
             {'msgid': 'ونجحت!'},
         ]
 
@@ -1380,9 +1574,17 @@ def do_crime(crime_id):
             1, (crime.min_level // 5) * difficulty_mult)
 
         if is_critical_fail:
-            text = '😱 كارثة! فشلت الجريمة بشكل مريع والشرطة مستنفرة جداً!'
+            text = random.choice([
+                _('😱 كارثة! فشلت الجريمة بشكل مريع والشرطة مستنفرة جداً!'),
+                _('😱 مصيبة! خربت من أولها… الشرطة صارت فوق راسك!'),
+                _('😱 سقوط مدوّي! تركت أثر كبير… والشرطة شادة حيلها!'),
+            ])
         else:
-            text = 'فشلت الجريمة والشرطة تلاحقك! اهرب بسرعة!'
+            text = random.choice([
+                _('فشلت الجريمة والشرطة تلاحقك! اهرب بسرعة!'),
+                _('انكشف الموضوع… الشرطة وراك! بدك تهرب فوراً!'),
+                _('الشغلة ما زبطت… مطاردة شغّالة! تحرّك بسرعة!'),
+            ])
 
         session['story'] = {
             'title_msgid': crime.name,
@@ -1471,41 +1673,87 @@ def unequip_item(item_id):
 # --- Intel & Hacking Routes ---
 
 
+def _upsert_recent_self_message(
+    user_id,
+    subject,
+    body,
+    now_naive,
+    window_minutes=10,
+    delivery_time=None,
+):
+    try:
+        window_minutes = int(window_minutes or 0)
+    except Exception:
+        window_minutes = 10
+    cutoff = now_naive - timedelta(minutes=max(0, window_minutes))
+    existing = (
+        Message.query.filter_by(
+            sender_id=user_id,
+            receiver_id=user_id,
+            deleted_by_receiver=False,
+        )
+        .filter(Message.subject == subject)
+        .filter(Message.timestamp >= cutoff)
+        .order_by(Message.timestamp.desc())
+        .first()
+    )
+    if existing:
+        existing.body = body
+        existing.timestamp = now_naive
+        if delivery_time is not None:
+            existing.delivery_time = delivery_time
+        existing.is_read = False
+        return existing
+
+    msg = Message(
+        sender_id=user_id,
+        receiver_id=user_id,
+        subject=subject,
+        body=body,
+        timestamp=now_naive,
+        delivery_time=(delivery_time if delivery_time is not None else now_naive),
+    )
+    db.session.add(msg)
+    return msg
+
+
 @bp.route('/intel_center')
 @login_required
 def intel_center():
-    return render_template('intel_center.html', user=current_user)
+    now = datetime.now(timezone.utc).replace(tzinfo=None)
+    intel_messages = (
+        Message.query.filter_by(
+            receiver_id=current_user.id,
+            deleted_by_receiver=False,
+        )
+        .filter((Message.delivery_time <= now) | (Message.delivery_time.is_(None)))
+        .filter(
+            or_(
+                Message.subject.ilike('استخبارات:%'),
+                Message.subject.ilike('تقرير سري:%'),
+            )
+        )
+        .order_by(Message.timestamp.desc())
+        .limit(10)
+        .all()
+    )
+    intel_unread = sum(1 for m in intel_messages if not m.is_read)
+    return render_template(
+        'intel_center.html',
+        user=current_user,
+        intel_messages=intel_messages,
+        intel_unread=intel_unread,
+    )
 
 
 @bp.route('/investigate', methods=['POST'])
 @login_required
 @limiter.limit("10 per minute")
+@check_player_status
 def investigate():
-    # Status Check
     now = datetime.now(timezone.utc)
-    if current_user.jail_until:
-        jail_until = current_user.jail_until
-        if jail_until.tzinfo is None:
-            jail_until = jail_until.replace(tzinfo=timezone.utc)
-        if jail_until > now:
-            flash(_('أنت في السجن ولا يمكنك إجراء تحريات!'), 'danger')
-            return redirect(url_for('jail.index'))
-
-    if current_user.hospital_until:
-        hospital_until = current_user.hospital_until
-        if hospital_until.tzinfo is None:
-            hospital_until = hospital_until.replace(tzinfo=timezone.utc)
-        if hospital_until > now:
-            flash(_('أنت في المستشفى ولا يمكنك إجراء تحريات!'), 'danger')
-            return redirect(url_for('hospital.index'))
-
-    if current_user.gym_until:
-        gym_until = current_user.gym_until
-        if gym_until.tzinfo is None:
-            gym_until = gym_until.replace(tzinfo=timezone.utc)
-        if gym_until > now:
-            flash(_('أنت تتدرب ولا يمكنك إجراء تحريات!'), 'danger')
-            return redirect(url_for('gym.index'))
+    now_naive = now.replace(tzinfo=None)
+    import json
 
     target_username = request.form.get('username')
     target = User.query.filter_by(username=target_username).first()
@@ -1542,6 +1790,8 @@ def investigate():
         flash(_('حدث خطأ أثناء العملية.'), 'danger')
         return redirect(url_for('main.intel_center'))
 
+    update_daily_task_progress(current_user, 'intel')
+
     # Success Chance
     # Base 50% + (My Intel - Target Intel) * 2
     chance = 50 + (current_user.intelligence - target.intelligence) * 2
@@ -1549,6 +1799,31 @@ def investigate():
 
     if random.randint(1, 100) <= chance:
         # Success
+        safe_house_active = False
+        try:
+            safe_house_until = target.safe_house_until
+            if safe_house_until and safe_house_until.tzinfo is None:
+                safe_house_until = safe_house_until.replace(tzinfo=timezone.utc)
+            safe_house_active = bool(
+                target.is_safe_house_active
+                and safe_house_until
+                and safe_house_until > now
+            )
+        except Exception:
+            safe_house_active = False
+
+        try:
+            max_health = int(getattr(target, "max_health", 0) or 0)
+        except Exception:
+            max_health = 0
+        max_health = max(1, max_health)
+        try:
+            health_current = int(getattr(target, "health", 0) or 0)
+        except Exception:
+            health_current = 0
+        health_current = max(0, min(health_current, max_health))
+        health_pct = int((health_current / max_health) * 100)
+
         report = {
             'user_id': target.id,  # Added ID for Attack Link
             'username': target.username,
@@ -1558,7 +1833,10 @@ def investigate():
             'defense': target.defense,
             'intelligence': target.intelligence,
             'money': target.money,  # Spy on cash!
-            'health': target.health
+            'health_current': health_current,
+            'max_health': max_health,
+            'health_pct': health_pct,
+            'safe_house_active': safe_house_active,
         }
 
         # Log the investigation
@@ -1566,9 +1844,62 @@ def investigate():
             investigator_id=current_user.id,
             target_id=target.id,
             success=True,
-            details=str(report)
+            details=json.dumps(report, ensure_ascii=False)
         )
         db.session.add(log)
+
+        saved_msg = None
+        try:
+            safe_house_txt = _('نشط') if report.get('safe_house_active') else _('غير نشط')
+            health_current = report.get('health_current')
+            max_health = report.get('max_health')
+            health_pct = report.get('health_pct')
+            body = "\n".join([
+                _('تقرير تجسس'),
+                f"{_('الهدف:')} {report.get('username')}",
+                f"{_('المستوى:')} {report.get('level')}",
+                f"{_('القوة:')} {report.get('strength')}",
+                f"{_('المرونة:')} {report.get('agility')}",
+                f"{_('الدفاع:')} {report.get('defense')}",
+                f"{_('الذكاء:')} {report.get('intelligence')}",
+                f"{_('الكاش:')} {report.get('money')} ₪",
+                f"{_('الصحة:')} {health_current} / {max_health} ({health_pct}%)",
+                f"{_('المنزل الآمن:')} {safe_house_txt}",
+            ])
+            saved_msg = _upsert_recent_self_message(
+                current_user.id,
+                _('استخبارات: تقرير تجسس عن %(name)s', name=target.username),
+                body,
+                now_naive,
+                window_minutes=10,
+                delivery_time=now_naive,
+            )
+        except Exception:
+            pass
+
+        try:
+            from models.combat import ActiveIntel
+            intel_duration_minutes = 60
+            intel_start = now_naive
+            intel_expires = now_naive + timedelta(minutes=intel_duration_minutes)
+            existing = ActiveIntel.query.filter_by(
+                user_id=current_user.id,
+                target_id=target.id,
+            ).order_by(ActiveIntel.expires_at.desc()).first()
+            if existing and existing.expires_at and existing.expires_at > intel_expires:
+                pass
+            elif existing:
+                existing.start_time = intel_start
+                existing.expires_at = intel_expires
+            else:
+                db.session.add(ActiveIntel(
+                    user_id=current_user.id,
+                    target_id=target.id,
+                    start_time=intel_start,
+                    expires_at=intel_expires,
+                ))
+        except Exception:
+            pass
 
         # Chance to improve intelligence
         if random.random() < 0.2:  # 20% chance
@@ -1580,30 +1911,70 @@ def investigate():
             flash(_('تطورت مهاراتك الاستخباراتية! (+1 ذكاء)'), 'success')
 
         db.session.commit()
-        flash(_('تمت العملية بنجاح! جاري عرض التقرير...'), 'success')
         return render_template(
             'intel_report.html',
             report=report,
-            user=current_user)
+            user=current_user,
+            saved_msg_id=(saved_msg.id if saved_msg else None),
+        )
     else:
         # Fail
         log = InvestigationLog(
             investigator_id=current_user.id,
             target_id=target.id,
             success=False,
-            details="Failed investigation attempt"
+            details=json.dumps({
+                'target_id': target.id,
+                'target_username': target.username,
+                'reason': 'failed_investigation_attempt',
+            }, ensure_ascii=False)
         )
         db.session.add(log)
+        saved_msg = None
+        try:
+            saved_msg = _upsert_recent_self_message(
+                current_user.id,
+                _('استخبارات: فشل التجسس على %(name)s', name=target.username),
+                _('فشلت محاولة التجسس وتم إفشال العملية.'),
+                now_naive,
+                window_minutes=10,
+                delivery_time=now_naive,
+            )
+        except Exception:
+            pass
+
+        try:
+            if random.random() < 0.2:
+                send_notification(
+                    target.id,
+                    _('تحذير أمني'),
+                    _('حاول أحدهم جمع معلومات عنك مؤخراً.'),
+                    type='warning',
+                    link=url_for('main.intel_center'),
+                )
+        except Exception:
+            pass
 
         db.session.commit()
-        flash(_('فشلت العملية! كشفوك وهربت بصعوبة.'), 'danger')
+        if saved_msg and saved_msg.id:
+            return redirect(url_for('main.view_message', msg_id=saved_msg.id))
+        flash(
+            random.choice([
+                _('فشلت العملية! كشفوك وهربت بصعوبة.'),
+                _('انكشف وجودك… فشلت ورجعت بصعوبة.'),
+                _('ما زبطت! حسّوا فيك واضطريت تهرب.'),
+            ]),
+            'danger',
+        )
         return redirect(url_for('main.intel_center'))
 
 
 @bp.route('/hack_player', methods=['POST'])
 @login_required
 @limiter.limit("10 per minute")
+@check_player_status
 def hack_player():
+    now_naive = datetime.now(timezone.utc).replace(tzinfo=None)
     target_username = request.form.get('username')
     target = User.query.filter_by(username=target_username).first()
 
@@ -1629,12 +2000,35 @@ def hack_player():
         flash(_('ما عندك طاقة كافية!'), 'danger')
         return redirect(url_for('main.intel_center'))
 
+    update_daily_task_progress(current_user, 'intel')
+
     # Logic
 
     # Must have higher intel to even try effectively
     if current_user.intelligence < target.intelligence:
-        flash(_('نظام الحماية عنده قوي جداً! فشلت العملية.'), 'danger')
+        saved_msg = None
+        try:
+            saved_msg = _upsert_recent_self_message(
+                current_user.id,
+                _('استخبارات: فشل قرصنة %(name)s', name=target.username),
+                _('فشلت عملية القرصنة ولم تحصل على شيء.'),
+                now_naive,
+                window_minutes=10,
+                delivery_time=now_naive,
+            )
+        except Exception:
+            pass
         db.session.commit()
+        if saved_msg and saved_msg.id:
+            return redirect(url_for('main.view_message', msg_id=saved_msg.id))
+        flash(
+            random.choice([
+                _('نظام الحماية عنده قوي جداً! فشلت العملية.'),
+                _('جدار حماية قوي… ما قدرت تخترق. فشلت العملية.'),
+                _('الحماية ماسكة… المحاولة فشلت.'),
+            ]),
+            'danger',
+        )
         return redirect(url_for('main.intel_center'))
 
     # Success Chance based on intel difference
@@ -1665,9 +2059,10 @@ def hack_player():
 
             # Add to hacker
             changes = {'money': stolen, 'exp': 20}
+            gained_intel = False
             if random.random() < 0.1:  # 10% chance to gain intel
                 changes['intelligence'] = 1
-                flash(_('تطورت مهارتك في القرصنة! (+1 ذكاء)'), 'success')
+                gained_intel = True
 
             if not ResourceService.modify_resources(
                     current_user.id,
@@ -1685,9 +2080,46 @@ def hack_player():
                 ip_address=request.remote_addr
             )
             db.session.add(log)
+            saved_msg = None
+            try:
+                body = _('نجحت عملية القرصنة وسرقت %(amount)s شيكل.', amount=stolen)
+                if gained_intel:
+                    body = body + "\n" + _('تطورت مهارتك في القرصنة! (+1 ذكاء)')
+                saved_msg = _upsert_recent_self_message(
+                    current_user.id,
+                    _('استخبارات: قرصنة ناجحة ضد %(name)s', name=target.username),
+                    body,
+                    now_naive,
+                    window_minutes=10,
+                    delivery_time=now_naive,
+                )
+            except Exception:
+                pass
             db.session.commit()
-            flash(_('تم اختراق الحساب! سرقت %(amount)s شيكل من %(user)s',
-                  amount=stolen, user=target.username), 'success')
+            try:
+                send_notification(
+                    target.id,
+                    _('تحذير أمني'),
+                    _('تم رصد محاولة اختراق وسرقة من حسابك.'),
+                    type='warning',
+                    link=url_for('main.intel_center'),
+                )
+            except Exception:
+                pass
+            if saved_msg and saved_msg.id:
+                return redirect(url_for('main.view_message', msg_id=saved_msg.id))
+            flash(
+                random.choice([
+                    _('تم اختراق الحساب! سرقت %(amount)s شيكل من %(user)s',
+                      amount=stolen, user=target.username),
+                    _('نجحت القرصنة! طلعت منك غنيمة %(amount)s شيكل من %(user)s',
+                      amount=stolen, user=target.username),
+                    _('عملية ناجحة: سحبت %(amount)s شيكل من %(user)s',
+                      amount=stolen, user=target.username),
+                ]),
+                'success',
+            )
+            return redirect(url_for('main.intel_center'))
         except Exception:
             db.session.rollback()
             flash(_('حدث خطأ أثناء العملية.'), 'danger')
@@ -1702,8 +2134,35 @@ def hack_player():
             ip_address=request.remote_addr
         )
         db.session.add(log)
-        flash(_('فشل الاختراق! الحماية كشفتك.'), 'danger')
+        saved_msg = None
+        try:
+            saved_msg = _upsert_recent_self_message(
+                current_user.id,
+                _('استخبارات: فشل قرصنة %(name)s', name=target.username),
+                _('فشلت عملية القرصنة ولم تحصل على شيء.'),
+                now_naive,
+                window_minutes=10,
+                delivery_time=now_naive,
+            )
+        except Exception:
+            pass
         db.session.commit()
+        try:
+            if random.random() < 0.2:
+                send_notification(
+                    target.id,
+                    _('تحذير أمني'),
+                    _('تم رصد محاولة اختراق فاشلة ضد حسابك.'),
+                    type='warning',
+                    link=url_for('main.intel_center'),
+                )
+        except Exception:
+            pass
+
+        if saved_msg and saved_msg.id:
+            return redirect(url_for('main.view_message', msg_id=saved_msg.id))
+        flash(_('فشل الاختراق! الحماية كشفتك.'), 'danger')
+        return redirect(url_for('main.intel_center'))
 
     return redirect(url_for('main.intel_center'))
 
@@ -1711,7 +2170,9 @@ def hack_player():
 @bp.route('/hack_bank', methods=['POST'])
 @login_required
 @limiter.limit("5 per minute")
+@check_player_status
 def hack_bank():
+    now_naive = datetime.now(timezone.utc).replace(tzinfo=None)
     # PvE Hacking
     # High risk, High reward
     energy_cost = 50
@@ -1776,7 +2237,22 @@ def hack_bank():
             user_agent=request.user_agent.string
         )
         db.session.add(log)
+        saved_msg = None
+        try:
+            saved_msg = _upsert_recent_self_message(
+                current_user.id,
+                _('استخبارات: قرصنة البنك (نجاح)'),
+                _('نجحت قرصنة البنك وحصلت على %(amt)s شيكل.', amt=reward),
+                now_naive,
+                window_minutes=10,
+                delivery_time=now_naive,
+            )
+        except Exception:
+            pass
+        update_daily_task_progress(current_user, 'intel')
         db.session.commit()
+        if saved_msg and saved_msg.id:
+            return redirect(url_for('main.view_message', msg_id=saved_msg.id))
         flash(_('عملية أسطورية! اخترقت البنك وسرقت %(amt)s شيكل!', amt=reward), 'success')
     else:
         # Fail -> Jail? For now just fail and lose energy
@@ -1789,10 +2265,292 @@ def hack_bank():
             user_agent=request.user_agent.string
         )
         db.session.add(log)
-        flash(_('نظام الحماية كشفك! هربت بأعجوبة ولم تحصل على شيء.'), 'danger')
+        saved_msg = None
+        try:
+            saved_msg = _upsert_recent_self_message(
+                current_user.id,
+                _('استخبارات: قرصنة البنك (فشل)'),
+                _('فشلت قرصنة البنك ولم تحصل على شيء.'),
+                now_naive,
+                window_minutes=10,
+                delivery_time=now_naive,
+            )
+        except Exception:
+            pass
+        update_daily_task_progress(current_user, 'intel')
         db.session.commit()
+        if saved_msg and saved_msg.id:
+            return redirect(url_for('main.view_message', msg_id=saved_msg.id))
+        flash(_('نظام الحماية كشفك! هربت بأعجوبة ولم تحصل على شيء.'), 'danger')
+        return redirect(url_for('main.intel_center'))
 
     return redirect(url_for('main.intel_center'))
+
+
+@bp.route('/research_center', methods=['POST'])
+@login_required
+@limiter.limit("5 per minute")
+@check_player_status
+def research_center():
+    now = datetime.now(timezone.utc)
+
+    cooldown_minutes = 180
+    try:
+        cooldown_minutes = int(
+            SystemConfig.get_value(
+                'research_center_cooldown_minutes',
+                str(cooldown_minutes)) or cooldown_minutes)
+    except Exception:
+        cooldown_minutes = 180
+
+    last = (
+        UserLog.query.filter_by(
+            user_id=current_user.id,
+            action='RESEARCH_CENTER_START')
+        .order_by(UserLog.timestamp.desc())
+        .first()
+    )
+    if last and last.timestamp:
+        last_ts = last.timestamp
+        if last_ts.tzinfo is None:
+            last_ts = last_ts.replace(tzinfo=timezone.utc)
+        remaining = int(cooldown_minutes * 60 - (now - last_ts).total_seconds())
+        if remaining > 0:
+            mins, secs = divmod(remaining, 60)
+            flash(
+                _(
+                    'عليك الانتظار %(m)s دقيقة و %(s)s ثانية قبل استخدام مركز البحث مرة أخرى.',
+                    m=mins,
+                    s=secs),
+                'warning')
+            return redirect(url_for('main.intel_center'))
+
+    energy_cost = 35
+    try:
+        energy_cost = int(
+            SystemConfig.get_value(
+                'research_center_energy_cost',
+                str(energy_cost)) or energy_cost)
+    except Exception:
+        energy_cost = 35
+
+    if current_user.energy < energy_cost:
+        flash(_('ما عندك طاقة كافية!'), 'danger')
+        return redirect(url_for('main.intel_center'))
+
+    if not ResourceService.modify_resources(
+        current_user.id,
+        {'energy': -energy_cost},
+        'research_center_cost',
+        auto_commit=False,
+        expected_version=current_user.version,
+    ):
+        flash(_('حدث خطأ أثناء خصم تكلفة العملية.'), 'danger')
+        return redirect(url_for('main.intel_center'))
+
+    try:
+        import json
+        db.session.add(UserLog(
+            user_id=current_user.id,
+            action='RESEARCH_CENTER_START',
+            details=json.dumps({'energy_cost': energy_cost}, ensure_ascii=False),
+            result='success',
+            ip_address=request.remote_addr,
+            user_agent=request.user_agent.string,
+        ))
+    except Exception:
+        pass
+
+    ps = (getattr(current_user, "playstyle", None) or "fighter").strip().lower()
+
+    chance = 35 + int(getattr(current_user, "intelligence", 0) or 0)
+    if ps == "planner":
+        chance += 8
+    elif ps == "fighter":
+        chance += 3
+    chance = min(85, max(10, chance))
+
+    roll = random.randint(1, 100)
+    is_success = roll <= chance
+
+    text_parts = [
+        {'msgid': 'دخلت مركز البحث وحاولت تسحب ملفات من نظامه الداخلي…'},
+        {'msgid': 'النتيجة: %(r)s/100 (فرصتك %(c)s%%).', 'params': {'r': roll, 'c': chance}},
+    ]
+
+    story_stats = {'money': 0, 'exp': 0}
+    story_badge = _('نجاح') if is_success else _('فشل')
+    story_status = 'success' if is_success else 'danger'
+    story_image = 'crimes/cyber.jpg'
+    intel_targets = []
+
+    try:
+        from models.combat import ActiveIntel
+        intel_minutes = 90
+        try:
+            intel_minutes = int(
+                SystemConfig.get_value(
+                    'research_center_intel_minutes',
+                    str(intel_minutes)) or intel_minutes)
+        except Exception:
+            intel_minutes = 90
+
+        now_naive = now.replace(tzinfo=None)
+        expires_at = now_naive + timedelta(minutes=int(intel_minutes))
+
+        if is_success:
+            candidates_q = User.query.filter(User.id != current_user.id)
+            if current_user.location_id:
+                candidates_q = candidates_q.filter(
+                    User.location_id == current_user.location_id)
+            candidates_q = candidates_q.filter(
+                (User.hospital_until.is_(None)) | (User.hospital_until < now),
+                (User.jail_until.is_(None)) | (User.jail_until < now),
+            ).limit(50)
+            candidates = candidates_q.all()
+            random.shuffle(candidates)
+            targets = candidates[:3]
+
+            for t in targets:
+                existing = ActiveIntel.query.filter_by(
+                    user_id=current_user.id,
+                    target_id=t.id,
+                ).order_by(ActiveIntel.expires_at.desc()).first()
+                if existing and existing.expires_at and existing.expires_at > expires_at:
+                    intel_targets.append(t.username)
+                    continue
+                if existing:
+                    existing.start_time = now_naive
+                    existing.expires_at = expires_at
+                else:
+                    db.session.add(ActiveIntel(
+                        user_id=current_user.id,
+                        target_id=t.id,
+                        start_time=now_naive,
+                        expires_at=expires_at,
+                    ))
+                intel_targets.append(t.username)
+    except Exception:
+        intel_targets = []
+
+    try:
+        if is_success:
+            money_reward = random.randint(4000, 12000)
+            exp_reward = random.randint(60, 140)
+
+            if ps == "trader":
+                money_reward = int(money_reward * 1.08)
+            elif ps == "fighter":
+                exp_reward = int(exp_reward * 1.08)
+
+            gain_intel = 0
+            if random.random() < 0.15:
+                gain_intel = 1
+
+            changes = {'money': money_reward, 'exp': exp_reward}
+            if gain_intel:
+                changes['intelligence'] = gain_intel
+
+            if not ResourceService.modify_resources(
+                current_user.id,
+                changes,
+                'research_center_success',
+                auto_commit=False,
+                expected_version=current_user.version,
+            ):
+                raise Exception("reward_failed")
+
+            story_stats['money'] = money_reward
+            story_stats['exp'] = exp_reward
+
+            if intel_targets:
+                text_parts.append(
+                    {
+                        'msgid': 'التسريب أعطاك معلومات هجومية لمدة %(m)s دقيقة ضد: %(t)s.',
+                        'params': {'m': int(intel_minutes), 't': '، '.join(intel_targets)},
+                    }
+                )
+            else:
+                text_parts.append(
+                    {'msgid': 'حصلت على مكافأتك، لكن ما طلعت أسماء مفيدة اليوم.'}
+                )
+
+            if 'intelligence' in changes:
+                text_parts.append({'msgid': 'تطورت مهارة التحليل عندك (+1 ذكاء).'})
+
+        else:
+            heat_gain = random.randint(8, 18)
+            set_fields = None
+            if roll >= 90:
+                jail_minutes = random.randint(10, 25)
+                set_fields = {
+                    'jail_until': (now + timedelta(minutes=jail_minutes)).replace(tzinfo=None)
+                }
+                text_parts.append({'msgid': 'انكشف أمرك وتم اعتقالك مؤقتاً.'})
+
+            if not ResourceService.modify_resources(
+                current_user.id,
+                {'heat': heat_gain},
+                'research_center_fail',
+                auto_commit=False,
+                expected_version=current_user.version,
+                set_fields=set_fields,
+            ):
+                raise Exception("fail_state_failed")
+
+            text_parts.append(
+                {'msgid': 'ارتفعت المطاردة عليك (+%(h)s حرارة).', 'params': {'h': heat_gain}})
+    except Exception:
+        db.session.rollback()
+        flash(_('حدث خطأ أثناء معالجة نتائج العملية.'), 'danger')
+        return redirect(url_for('main.intel_center'))
+
+    saved_msg = None
+    try:
+        summary_lines = []
+        if is_success and intel_targets:
+            summary_lines.append(
+                _(
+                    'تم تفعيل معلومات هجومية مؤقتة ضد: %(t)s',
+                    t='، '.join(intel_targets),
+                )
+            )
+        elif is_success:
+            summary_lines.append(_('نجحت العملية لكن لم تظهر أهداف مفيدة اليوم.'))
+        else:
+            summary_lines.append(_('فشلت العملية وارتفعت عليك حرارة المطاردة.'))
+        saved_msg = _upsert_recent_self_message(
+            current_user.id,
+            _(
+                'استخبارات: مركز البحث (%(s)s)',
+                s=_('نجاح') if is_success else _('فشل'),
+            ),
+            "\n".join(summary_lines),
+            now.replace(tzinfo=None),
+            window_minutes=10,
+            delivery_time=now.replace(tzinfo=None),
+        )
+    except Exception:
+        pass
+
+    db.session.commit()
+
+    session['story'] = {
+        'title_msgid': 'مركز البحث',
+        'subtitle_msgid': 'تسريبات ومعلومات هجومية',
+        'text_parts': text_parts,
+        'image': story_image,
+        'animation': 'spark',
+        'status': story_status,
+        'badge_msgid': story_badge,
+        'next_url': url_for('combat.index') if is_success else url_for('main.intel_center'),
+        'alt_url': url_for('main.intel_center'),
+        'alt_label_msgid': 'رجوع لمركز الاستخبارات',
+        'stats': story_stats,
+    }
+    if saved_msg and saved_msg.id:
+        session['story']['message_id'] = saved_msg.id
+    return redirect(url_for('main.story'))
 
 
 @bp.route('/create_lobby/<int:crime_id>')
@@ -2461,6 +3219,12 @@ def start_heist(lobby_id):
 
     # 1. Planning Time (Patience & Integration)
     planning_seconds = int(lobby.crime.planning_time_seconds or 10)
+    try:
+        leader_playstyle = (getattr(lobby.leader, "playstyle", None) or "fighter").strip().lower()
+        if leader_playstyle == "planner":
+            planning_seconds = max(0, int(planning_seconds * 0.5))
+    except Exception:
+        pass
 
     created_at = lobby.created_at
     if created_at.tzinfo is None:
@@ -2721,7 +3485,16 @@ def start_heist(lobby_id):
         story_log.append(_("🚨 كارثة! الشرطة نصبت كميناً محكماً! (-15%)"))
         # High risk of injury
         for p in participants:
-            if random.random() < 0.3:  # 30% chance of injury
+            injury_chance = 0.3
+            try:
+                ps = (getattr(p.user, "playstyle", None) or "fighter").strip().lower()
+                if ps == "fighter":
+                    injury_chance = 0.22
+                elif ps == "planner":
+                    injury_chance = 0.26
+            except Exception:
+                pass
+            if random.random() < injury_chance:
                 hospital_time = 30  # 30 minutes
                 injuries[p.user_id] = (datetime.now(
                     timezone.utc) + timedelta(minutes=hospital_time)).replace(tzinfo=None)
@@ -2734,6 +3507,20 @@ def start_heist(lobby_id):
         story_log.append(_("🍀 حظ لا يصدق: وجدتم باباً خلفياً مفتوحاً! (+15%)"))
 
     # 5. Final Roll
+    try:
+        playstyle_counts = {"fighter": 0, "trader": 0, "planner": 0}
+        for p in participants:
+            ps = (getattr(p.user, "playstyle", None) or "fighter").strip().lower()
+            if ps in playstyle_counts:
+                playstyle_counts[ps] += 1
+        extra = (playstyle_counts["fighter"] * 2) + (playstyle_counts["planner"] * 1)
+        if extra:
+            success_probability += extra
+            story_log.append(
+                _("🧩 أسلوب الفريق منح أفضلية: +{pct}% فرصة نجاح").format(pct=extra)
+            )
+    except Exception:
+        pass
     success_probability = min(95, max(5, success_probability))
     try:
         import json
@@ -2792,7 +3579,7 @@ def start_heist(lobby_id):
 
     # Calculate Cooldown
     # User requested 23h 59m cooldown
-    cooldown_until = (
+    base_cooldown_until = (
         datetime.now(
             timezone.utc) +
         timedelta(
@@ -2844,6 +3631,32 @@ def start_heist(lobby_id):
             # them reward but they are in hospital)
             bonus_money = 0
             bonus_exp = 0
+            try:
+                ps = (getattr(p.user, "playstyle", None) or "fighter").strip().lower()
+                if ps == "trader":
+                    bonus_money += int(share * 0.05)
+                    story_log.append(
+                        _("📈 {user} (تاجر): مكافأة تجارة +{m} شيكل").format(
+                            user=p.user.username, m=int(share * 0.05)
+                        )
+                    )
+                elif ps == "fighter":
+                    bonus_exp += 40
+                    story_log.append(
+                        _("⚔️ {user} (مقاتل): مكافأة خبرة +{e}").format(
+                            user=p.user.username, e=40
+                        )
+                    )
+                elif ps == "planner":
+                    bonus_money += int(share * 0.02)
+                    bonus_exp += 20
+                    story_log.append(
+                        _("🧠 {user} (مخطط): مكافأة تخطيط +{m} شيكل و +{e} خبرة").format(
+                            user=p.user.username, m=int(share * 0.02), e=20
+                        )
+                    )
+            except Exception:
+                pass
 
             # --- Role Bonuses ---
             try:
@@ -2932,6 +3745,16 @@ def start_heist(lobby_id):
                 cooldown_rec = UserOrganizedCrimeCooldown(
                     user_id=p.user_id, crime_id=crime.id)
                 db.session.add(cooldown_rec)
+            cooldown_until = base_cooldown_until
+            try:
+                ps = (getattr(p.user, "playstyle", None) or "fighter").strip().lower()
+                if ps == "planner":
+                    cooldown_until = max(
+                        datetime.now(timezone.utc).replace(tzinfo=None) + timedelta(hours=1),
+                        (base_cooldown_until - timedelta(hours=4)),
+                    )
+            except Exception:
+                cooldown_until = base_cooldown_until
             cooldown_rec.cooldown_until = cooldown_until
 
             if p.user_id in injuries:
@@ -2990,6 +3813,38 @@ def start_heist(lobby_id):
                 'status': 'success'
             })
 
+        try:
+            leader = lobby.leader
+            leader_gang_id = getattr(leader, "gang_id", None)
+            leader_location_id = getattr(leader, "location_id", None)
+            if leader_gang_id and leader_location_id:
+                now_cc = datetime.now(timezone.utc)
+                iso = now_cc.isocalendar()
+                week_number = int(iso[1])
+                year = int(iso[0])
+                points_gain = max(1, int(getattr(crime, "min_gang_level", 1) or 1)) + 1
+
+                with db.session.begin_nested():
+                    row = LocationControl.query.filter_by(
+                        location_id=leader_location_id,
+                        gang_id=leader_gang_id,
+                        week_number=week_number,
+                        year=year,
+                    ).with_for_update().first()
+                    if not row:
+                        row = LocationControl(
+                            location_id=leader_location_id,
+                            gang_id=leader_gang_id,
+                            week_number=week_number,
+                            year=year,
+                            points=0,
+                        )
+                        db.session.add(row)
+                    row.points = int(getattr(row, "points", 0) or 0) + points_gain
+                    row.updated_at = now_cc
+        except Exception:
+            pass
+
     else:
         story_log.append(_("❌ فشلت العملية! الفوضى عارمة."))
 
@@ -3002,6 +3857,16 @@ def start_heist(lobby_id):
                 cooldown_rec = UserOrganizedCrimeCooldown(
                     user_id=p.user_id, crime_id=crime.id)
                 db.session.add(cooldown_rec)
+            cooldown_until = base_cooldown_until
+            try:
+                ps = (getattr(p.user, "playstyle", None) or "fighter").strip().lower()
+                if ps == "planner":
+                    cooldown_until = max(
+                        datetime.now(timezone.utc).replace(tzinfo=None) + timedelta(hours=1),
+                        (base_cooldown_until - timedelta(hours=4)),
+                    )
+            except Exception:
+                cooldown_until = base_cooldown_until
             cooldown_rec.cooldown_until = cooldown_until
 
             set_fields_dict = {}

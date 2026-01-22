@@ -3,6 +3,31 @@
 {% block title %}{{ message.subject }}{% endblock %}
 
 {% block extra_css %}
+<style>
+    .sender-avatar {
+        width: 56px;
+        height: 56px;
+        border-radius: 50%;
+        object-fit: cover;
+    }
+
+    .message-body {
+        white-space: pre-wrap;
+        overflow-wrap: anywhere;
+        word-break: break-word;
+        line-height: 1.7;
+    }
+
+    .message-body img {
+        max-width: 100%;
+        height: auto;
+    }
+
+    .message-body.report-body {
+        font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+        white-space: normal;
+    }
+</style>
 {% endblock %}
 
 
@@ -49,9 +74,12 @@
                     </div>
                 </div>
                 
-                <div class="message-body">
-                    {{ message.body | escape | replace('\n', '<br>') | safe }}
-                </div>
+                {% set is_report = 'report' in (message.subject|lower) or 'تقرير' in message.subject %}
+                {% if is_report %}
+                <div class="message-body report-body">{{ message.body | safe_message_html }}</div>
+                {% else %}
+                <div class="message-body">{{ message.body | escape }}</div>
+                {% endif %}
             </div>
         </div>
     </div>

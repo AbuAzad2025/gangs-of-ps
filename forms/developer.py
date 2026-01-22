@@ -99,7 +99,9 @@ class TaskForm(FlaskForm):
         ('crime', _l('Crime')),
         ('gym', _l('Gym')),
         ('buy', _l('Buy Item')),
-        ('combat', _l('Combat'))
+        ('combat', _l('Combat')),
+        ('intel', _l('Intel')),
+        ('gang', _l('Gang'))
     ], validators=[DataRequired()])
     target_count = IntegerField('Target Count', validators=[DataRequired()])
     reward_money = IntegerField('Reward Money', validators=[DataRequired()])

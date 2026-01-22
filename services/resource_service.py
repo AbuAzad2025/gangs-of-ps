@@ -57,9 +57,9 @@ class ResourceService:
                 # However, to avoid capping P2P transfers and destroying
                 # economy, we only cap Faucets.
                 CAPPED_REASONS = [
-                    'crime_reward', 'work_salary', 'search_streets_found',
+                    'crime_reward', 'crime_success', 'work_salary', 'search_streets_found',
                     'daily_task_reward', 'race_prize_win', 'mugging_win',
-                    'heist_reward'
+                    'heist_reward', 'organized_crime_reward', 'daily_reward'
                     # REMOVED: 'smuggling_sell', 'sell_smuggling' - because they involve capital (Revenue vs Profit).
                     # REMOVED: 'casino_...' - because it involves betting stake.
                 ]

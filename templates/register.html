@@ -66,6 +66,16 @@
                                 {% endfor %}
                             </div>
                             <div class="mb-4">
+                                {{ form.playstyle.label(class="form-label text-gold") }}
+                                <div class="input-group">
+                                    <span class="input-group-text bg-dark border-secondary text-gold"><i class="fas fa-user-tag"></i></span>
+                                    {{ form.playstyle(class="form-control form-control-luxury") }}
+                                </div>
+                                {% for error in form.playstyle.errors %}
+                                    <span class="text-danger small mt-1 d-block">{{ error }}</span>
+                                {% endfor %}
+                            </div>
+                            <div class="mb-4">
                                 {{ form.password.label(class="form-label text-gold") }}
                                 <div class="input-group">
                                     <span class="input-group-text bg-dark border-secondary text-gold"><i class="fas fa-lock"></i></span>

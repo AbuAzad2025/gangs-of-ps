@@ -10,6 +10,32 @@ from itsdangerous import URLSafeTimedSerializer
 from flask_mail import Message
 
 
+def get_onboarding_day(user, today=None):
+    if not user:
+        return None
+    created_at = getattr(user, "created_at", None)
+    if not created_at:
+        return None
+    if today is None:
+        today = datetime.now(timezone.utc).date()
+    try:
+        if getattr(created_at, "tzinfo", None) is not None:
+            created_date = created_at.astimezone(timezone.utc).date()
+        else:
+            created_date = created_at.date()
+    except Exception:
+        return None
+    try:
+        day = (today - created_date).days + 1
+    except Exception:
+        return None
+    if day < 1:
+        day = 1
+    if day > 7:
+        return None
+    return day
+
+
 def generate_confirmation_token(email):
     serializer = URLSafeTimedSerializer(current_app.config['SECRET_KEY'])
     return serializer.dumps(email, salt='email-confirm-salt')
@@ -197,11 +223,34 @@ def sync_daily_tasks(user):
         current_app.logger.info(
             f"Synchronizing daily tasks for user {user.id}")
 
+        onboarding_day = get_onboarding_day(user, today=today)
+        prefix_any = "أسبوع أول - يوم "
+
         # Fetch available tasks
         all_tasks = DailyTask.query.filter(
             DailyTask.is_active,
             DailyTask.min_level <= user.level
         ).all()
+
+        if onboarding_day:
+            has_any = (
+                DailyTask.query.filter(DailyTask.description.like(f"{prefix_any}%"))
+                .limit(1)
+                .first()
+            )
+            if not has_any:
+                try:
+                    from utils.essentials import initialize_daily_tasks
+                    initialize_daily_tasks()
+                    db.session.commit()
+                    all_tasks = DailyTask.query.filter(
+                        DailyTask.is_active,
+                        DailyTask.min_level <= user.level
+                    ).all()
+                except Exception:
+                    db.session.rollback()
+        else:
+            all_tasks = [t for t in all_tasks if not (t.description or "").startswith(prefix_any)]
 
         # If no tasks exist in DB, try to initialize them (fallback)
         if not all_tasks:
@@ -227,22 +276,35 @@ def sync_daily_tasks(user):
             return []
 
         # Selection Logic
-        preferred_specs = [
-            ("buy", 3),
-            ("crime", 3),
-            ("crime", 6),
-        ]
         selected_tasks = []
         selected_ids = set()
 
-        # 1. Try to match preferred specs
-        for target_type, target_count in preferred_specs:
-            task = next(
-                (t for t in all_tasks if t.target_type == target_type and int(
-                    t.target_count or 0) == int(target_count)), None)
-            if task and task.id not in selected_ids:
-                selected_tasks.append(task)
-                selected_ids.add(task.id)
+        if onboarding_day:
+            prefix = f"أسبوع أول - يوم {int(onboarding_day)}:"
+            onboarding_tasks = [
+                t for t in all_tasks
+                if (t.description or "").startswith(prefix)
+            ]
+            onboarding_tasks.sort(key=lambda t: int(t.id or 0))
+            for task in onboarding_tasks:
+                if len(selected_tasks) >= 3:
+                    break
+                if task.id not in selected_ids:
+                    selected_tasks.append(task)
+                    selected_ids.add(task.id)
+        else:
+            preferred_specs = [
+                ("buy", 3),
+                ("crime", 3),
+                ("crime", 6),
+            ]
+            for target_type, target_count in preferred_specs:
+                task = next(
+                    (t for t in all_tasks if t.target_type == target_type and int(
+                        t.target_count or 0) == int(target_count)), None)
+                if task and task.id not in selected_ids:
+                    selected_tasks.append(task)
+                    selected_ids.add(task.id)
 
         # 2. Fill remaining slots with random tasks
         remaining = [t for t in all_tasks if t.id not in selected_ids]

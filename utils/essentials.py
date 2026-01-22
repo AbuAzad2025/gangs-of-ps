@@ -100,6 +100,16 @@ def ensure_schema_updates():
     """Manual migration to ensure new columns exist."""
     from sqlalchemy import inspect, text
     inspector = inspect(db.engine)
+    try:
+        tables = set(inspector.get_table_names())
+    except Exception:
+        try:
+            db.session.rollback()
+        except Exception:
+            pass
+        return
+    if "user" not in tables:
+        return
 
     # 1. User Referral Columns
     columns = [c['name'] for c in inspector.get_columns('user')]
@@ -124,14 +134,47 @@ def ensure_schema_updates():
                 text('CREATE INDEX ix_user_referred_by_id ON "user" (referred_by_id)'))
             conn.commit()
 
-    # 2. Gang Upgrades Column
-    gang_columns = [c['name'] for c in inspector.get_columns('gang')]
-    if 'upgrades' not in gang_columns:
-        logging.info("Migrating: Adding upgrades to gang table...")
+    if 'playstyle' not in columns:
+        logging.info("Migrating: Adding playstyle to user table...")
         with db.engine.connect() as conn:
             conn.execute(text(
-                'ALTER TABLE gang ADD COLUMN upgrades TEXT DEFAULT "{}"'))
+                'ALTER TABLE "user" ADD COLUMN playstyle VARCHAR(20) DEFAULT \'fighter\''
+            ))
+            conn.execute(
+                text('CREATE INDEX ix_user_playstyle ON "user" (playstyle)')
+            )
             conn.commit()
+
+    # 2. Gang Upgrades Column
+    if "gang" in tables:
+        gang_columns = [c['name'] for c in inspector.get_columns('gang')]
+        if 'upgrades' not in gang_columns:
+            logging.info("Migrating: Adding upgrades to gang table...")
+            with db.engine.connect() as conn:
+                conn.execute(text(
+                    'ALTER TABLE gang ADD COLUMN upgrades TEXT DEFAULT "{}"'))
+                conn.commit()
+
+    # 3. Notification Columns
+    if "notification" in tables:
+        notif_columns = [c['name'] for c in inspector.get_columns('notification')]
+        if 'type' not in notif_columns:
+            logging.info("Migrating: Adding type to notification table...")
+            with db.engine.connect() as conn:
+                conn.execute(text(
+                    'ALTER TABLE notification ADD COLUMN type VARCHAR(50)'
+                ))
+                conn.commit()
+
+    if "location_control" not in tables and "location" in tables and "gang" in tables:
+        try:
+            from models.location import LocationControl
+            LocationControl.__table__.create(db.engine, checkfirst=True)
+        except Exception:
+            try:
+                db.session.rollback()
+            except Exception:
+                pass
 
 
 def initialize_locations():
@@ -575,16 +618,17 @@ def initialize_daily_tasks():
         if not description or not target_type:
             continue
 
+        description = str(description).strip()
+        is_onboarding = description.startswith("أسبوع أول - يوم ")
+
         candidates = DailyTask.query.filter_by(
             target_type=target_type,
             target_count=target_count,
             min_level=min_level,
         ).all()
 
-        task = next(
-            (t for t in candidates if t.description == description), None
-        )
-        if not task and candidates:
+        task = DailyTask.query.filter_by(description=description).first()
+        if not task and not is_onboarding and candidates:
             task = candidates[0]
 
         if not task:
@@ -601,19 +645,29 @@ def initialize_daily_tasks():
             inserted += 1
             continue
 
-        for other in candidates:
-            if other.id == task.id:
-                continue
-            if other.description == description:
-                continue
-            if other.is_active:
-                other.is_active = False
-                db.session.add(other)
-                deactivated += 1
+        if not is_onboarding:
+            for other in candidates:
+                if other.id == task.id:
+                    continue
+                if other.description == description:
+                    continue
+                if other.is_active:
+                    other.is_active = False
+                    db.session.add(other)
+                    deactivated += 1
 
         changed = False
         if task.description != description:
             task.description = description
+            changed = True
+        if task.target_type != target_type:
+            task.target_type = target_type
+            changed = True
+        if task.target_count != target_count:
+            task.target_count = target_count
+            changed = True
+        if task.min_level != min_level:
+            task.min_level = min_level
             changed = True
         if task.reward_money != reward_money:
             task.reward_money = reward_money

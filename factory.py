@@ -111,6 +111,16 @@ def create_app(config_class=Config):
     if socketio:
         socketio.init_app(app, cors_allowed_origins="*")
 
+    with app.app_context():
+        try:
+            from utils.essentials import ensure_schema_updates
+            ensure_schema_updates()
+        except Exception as e:
+            try:
+                app.logger.warning(f"Schema update shim warning: {e}")
+            except Exception:
+                pass
+
     # Content Security Policy (CSP)
     csp = {
         'default-src': '\'self\'',
@@ -245,6 +255,62 @@ def create_app(config_class=Config):
             return "{:,}".format(value)
         except (ValueError, TypeError):
             return value
+
+    @app.template_filter('safe_message_html')
+    def safe_message_html_filter(value):
+        if value is None:
+            return ""
+
+        value = str(value)
+        if "<" not in value and ">" not in value:
+            return value
+
+        from bs4 import BeautifulSoup
+        from markupsafe import Markup
+
+        allowed_tags = {
+            "a",
+            "b",
+            "br",
+            "div",
+            "em",
+            "i",
+            "li",
+            "ol",
+            "p",
+            "small",
+            "span",
+            "strong",
+            "ul",
+        }
+
+        soup = BeautifulSoup(value, "html.parser")
+
+        for tag in soup.find_all(["script", "style"]):
+            tag.decompose()
+
+        for tag in soup.find_all(True):
+            if tag.name not in allowed_tags:
+                tag.unwrap()
+                continue
+
+            if tag.name == "a":
+                href = tag.get("href")
+                title = tag.get("title")
+                attrs = {}
+                if href:
+                    href = str(href)
+                    if href.startswith(("http://", "https://", "/")):
+                        attrs["href"] = href
+                        attrs["rel"] = "nofollow noopener noreferrer"
+                        attrs["target"] = "_blank"
+                if title:
+                    attrs["title"] = str(title)
+                tag.attrs = attrs
+            else:
+                tag.attrs = {}
+
+        return Markup(str(soup))
 
     def _elite_sync_interval_seconds(now):
         cached_at = getattr(app, "_elite_sync_interval_cached_at", None)

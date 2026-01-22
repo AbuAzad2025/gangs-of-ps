@@ -179,10 +179,10 @@ class Message(db.Model):
     timestamp = db.Column(
         db.DateTime,
         default=lambda: datetime.now(
-            timezone.utc))
+            timezone.utc).replace(tzinfo=None))
     delivery_time = db.Column(
         db.DateTime, default=lambda: datetime.now(
-            timezone.utc))  # For delayed messages
+            timezone.utc).replace(tzinfo=None))  # For delayed messages
 
     __table_args__ = (
         db.Index('idx_message_receiver_read', 'receiver_id', 'is_read'),
@@ -247,12 +247,13 @@ class Notification(db.Model):
         index=True)
     title = db.Column(db.String(100), nullable=True)
     message = db.Column(db.Text, nullable=True)
+    type = db.Column(db.String(50), nullable=True)
     link = db.Column(db.String(255))
     is_read = db.Column(db.Boolean, default=False)
     created_at = db.Column(
         db.DateTime,
         default=lambda: datetime.now(
-            timezone.utc))
+            timezone.utc).replace(tzinfo=None))
 
     user = db.relationship(
         'User', backref=db.backref(

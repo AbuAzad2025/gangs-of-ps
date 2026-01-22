@@ -28,7 +28,16 @@
                     <div class="d-flex align-items-center mb-2">
                       <div class="mr-3 farm-item-icon-wrapper">
                         {% if j.output_item and j.output_item.image %}
-                          <img src="{{ url_for('static', filename=j.output_item.image) }}" class="farm-item-img">
+                          {% set img = j.output_item.image %}
+                          {% if img.startswith('images/') %}
+                            {% set img = img[7:] %}
+                          {% endif %}
+                          {% if '/' in img %}
+                            {% set img_path = 'images/' + img %}
+                          {% else %}
+                            {% set img_path = 'images/items/' + img %}
+                          {% endif %}
+                          <img src="{{ url_for('static', filename=img_path) }}" class="farm-item-img" onerror="this.onerror=null; this.src='{{ url_for('static', filename='images/items/default.jpg') }}';">
                         {% else %}
                           <div class="farm-locked-overlay"><i class="fas fa-seedling text-success"></i></div>
                         {% endif %}
@@ -73,7 +82,20 @@
                 <div class="d-flex align-items-center mb-2">
                   <div class="mr-3 farm-item-icon-wrapper">
                     {% if row.unlocked %}
-                      <img src="{{ url_for('static', filename=row.item.image) }}" class="farm-item-img">
+                      {% if row.item and row.item.image %}
+                        {% set img = row.item.image %}
+                        {% if img.startswith('images/') %}
+                          {% set img = img[7:] %}
+                        {% endif %}
+                        {% if '/' in img %}
+                          {% set img_path = 'images/' + img %}
+                        {% else %}
+                          {% set img_path = 'images/items/' + img %}
+                        {% endif %}
+                        <img src="{{ url_for('static', filename=img_path) }}" class="farm-item-img" onerror="this.onerror=null; this.src='{{ url_for('static', filename='images/items/default.jpg') }}';">
+                      {% else %}
+                        <div class="farm-locked-overlay"><i class="fas fa-seedling text-success"></i></div>
+                      {% endif %}
                     {% else %}
                       <div class="farm-locked-overlay">
                         <i class="fas fa-lock text-warning"></i>

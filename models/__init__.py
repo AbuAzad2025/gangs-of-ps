@@ -14,7 +14,7 @@ from .gameplay import (
     UserOrganizedCrimeCooldown,
 )
 from .item import Item, UserItem
-from .location import Location
+from .location import Location, LocationControl
 from .bounty import Bounty
 from .payment import PaymentTransaction
 from .social import Gang, Message, GangLog, GangInvite, GangWar, Notification, Friendship
@@ -73,6 +73,7 @@ __all__ = [
     "LearningLog",
     "LobbyParticipant",
     "Location",
+    "LocationControl",
     "MarketAsset",
     "Message",
     "MoneySinkLog",

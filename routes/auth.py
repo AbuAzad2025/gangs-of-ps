@@ -394,6 +394,7 @@ def register():
         user = User(username=form.username.data)
         user.set_password(form.password.data)
         user.birthdate = form.birthdate.data
+        user.playstyle = (form.playstyle.data or 'fighter').strip().lower()
         user.referral_code = secrets.token_hex(
             4)  # Generate unique 8-char code
         user.is_verified = True

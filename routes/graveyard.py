@@ -12,6 +12,8 @@ bp = Blueprint('graveyard', __name__, url_prefix='/graveyard')
 
 @bp.route('/')
 def index():
+    from extensions import seo_manager
+
     is_dead_viewer = False
     cost_diamonds = 10
     pending_request = None
@@ -47,6 +49,14 @@ def index():
 
     meta_description = _(
         "مقبرة الشهداء والضحايا في عصابات فلسطين. هنا يرقد من خسروا المعركة.")
+
+    seo_manager.set(
+        title=_("مقبرة الضحايا - عصابات فلسطين"),
+        description=meta_description,
+        keywords=_("مقبرة, ضحايا, قتلى, عصابات فلسطين, معارك, graveyard, victims"),
+    )
+    seo_manager.add_breadcrumb(_("الرئيسية"), url_for("main.index"))
+    seo_manager.add_breadcrumb(_("المقبرة"), url_for("graveyard.index"))
 
     return render_template(
         'graveyard.html',

@@ -19,8 +19,46 @@
         <a href="{{ url_for('main.leaderboard', sort='money') }}" class="leaderboard-tab {% if sort_by == 'money' %}active{% endif %}">
             <i class="fas fa-money-bill-wave"></i> {{ _('الأغنى') }}
         </a>
+        <a href="{{ url_for('main.leaderboard', sort='control') }}" class="leaderboard-tab {% if sort_by == 'control' %}active{% endif %}">
+            <i class="fas fa-city"></i> {{ _('سيطرة المدن') }}
+        </a>
     </div>
 
+    {% if sort_by == 'control' %}
+    <div class="table-responsive">
+        <table class="table table-leaderboard mb-0">
+            <thead>
+                <tr>
+                    <th class="text-center">#</th>
+                    <th>{{ _('المدينة') }}</th>
+                    <th>{{ _('العصابة المسيطرة') }}</th>
+                    <th class="text-center">{{ _('النقاط') }}</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for row in city_leaders %}
+                <tr class="rank-{{ loop.index }} anim-delay-{{ loop.index if loop.index <= 20 else 20 }}">
+                    <td class="rank-cell">
+                        {% if loop.index == 1 %}<i class="fas fa-crown text-warning"></i>{% else %}{{ loop.index }}{% endif %}
+                    </td>
+                    <td class="font-weight-bold text-white">{{ row.location_name }}</td>
+                    <td>
+                        <a href="{{ url_for('gang.view', gang_id=row.gang_id) }}" class="user-name-link">{{ row.gang_name }}</a>
+                    </td>
+                    <td class="text-center font-weight-bold text-warning">{{ row.points }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    {% if not city_leaders %}
+    <div class="text-center py-5 text-muted">
+        <i class="fas fa-ghost fa-3x mb-3 opacity-50"></i>
+        <p>{{ _('لا توجد بيانات سيطرة لهذا الأسبوع بعد') }}</p>
+    </div>
+    {% endif %}
+    {% else %}
     <div class="table-responsive">
         <table class="table table-leaderboard mb-0">
             <thead>
@@ -77,6 +115,7 @@
         <i class="fas fa-ghost fa-3x mb-3 opacity-50"></i>
         <p>{{ _('لا يوجد لاعبين في القائمة حالياً') }}</p>
     </div>
+    {% endif %}
     {% endif %}
 </div>
 {% endblock %}

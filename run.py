@@ -39,6 +39,16 @@ def seed_db():
     app.logger.info("Database seeding completed!")
 
 
+@app.cli.command("seed_daily_tasks")
+@with_appcontext
+def seed_daily_tasks():
+    from utils.essentials import initialize_daily_tasks
+    db.create_all()
+    initialize_daily_tasks()
+    db.session.commit()
+    app.logger.info("Daily tasks seeding completed!")
+
+
 @app.cli.command("economy_daily")
 @with_appcontext
 def economy_daily():

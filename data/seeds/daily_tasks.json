@@ -70,5 +70,194 @@
     "reward_exp": 140,
     "min_level": 15,
     "is_active": true
+  },
+  {
+    "description": "أسبوع أول - يوم 1: نفّذ جريمة واحدة",
+    "target_type": "crime",
+    "target_count": 1,
+    "reward_money": 300,
+    "reward_exp": 25,
+    "min_level": 0,
+    "is_active": true
+  },
+  {
+    "description": "أسبوع أول - يوم 1: اشترِ شيئاً واحداً",
+    "target_type": "buy",
+    "target_count": 1,
+    "reward_money": 250,
+    "reward_exp": 20,
+    "min_level": 0,
+    "is_active": true
+  },
+  {
+    "description": "أسبوع أول - يوم 1: تمرّن في الجيم مرة واحدة",
+    "target_type": "gym",
+    "target_count": 1,
+    "reward_money": 250,
+    "reward_exp": 20,
+    "min_level": 0,
+    "is_active": true
+  },
+  {
+    "description": "أسبوع أول - يوم 2: نفّذ عمليّة تجسس واحدة",
+    "target_type": "intel",
+    "target_count": 1,
+    "reward_money": 350,
+    "reward_exp": 35,
+    "min_level": 0,
+    "is_active": true
+  },
+  {
+    "description": "أسبوع أول - يوم 2: نفّذ جريمتين",
+    "target_type": "crime",
+    "target_count": 2,
+    "reward_money": 400,
+    "reward_exp": 30,
+    "min_level": 0,
+    "is_active": true
+  },
+  {
+    "description": "أسبوع أول - يوم 2: اشترِ شيئاً واحداً",
+    "target_type": "buy",
+    "target_count": 1,
+    "reward_money": 300,
+    "reward_exp": 20,
+    "min_level": 0,
+    "is_active": true
+  },
+  {
+    "description": "أسبوع أول - يوم 3: هاجم لاعباً مرة واحدة",
+    "target_type": "combat",
+    "target_count": 1,
+    "reward_money": 450,
+    "reward_exp": 45,
+    "min_level": 0,
+    "is_active": true
+  },
+  {
+    "description": "أسبوع أول - يوم 3: تمرّن في الجيم مرتين",
+    "target_type": "gym",
+    "target_count": 2,
+    "reward_money": 350,
+    "reward_exp": 30,
+    "min_level": 0,
+    "is_active": true
+  },
+  {
+    "description": "أسبوع أول - يوم 3: نفّذ جريمتين",
+    "target_type": "crime",
+    "target_count": 2,
+    "reward_money": 450,
+    "reward_exp": 35,
+    "min_level": 0,
+    "is_active": true
+  },
+  {
+    "description": "أسبوع أول - يوم 4: نفّذ 3 جرائم",
+    "target_type": "crime",
+    "target_count": 3,
+    "reward_money": 600,
+    "reward_exp": 40,
+    "min_level": 0,
+    "is_active": true
+  },
+  {
+    "description": "أسبوع أول - يوم 4: اشترِ 3 عناصر",
+    "target_type": "buy",
+    "target_count": 3,
+    "reward_money": 550,
+    "reward_exp": 35,
+    "min_level": 0,
+    "is_active": true
+  },
+  {
+    "description": "أسبوع أول - يوم 4: نفّذ عملية استخبارات واحدة (تجسس أو قرصنة)",
+    "target_type": "intel",
+    "target_count": 1,
+    "reward_money": 500,
+    "reward_exp": 50,
+    "min_level": 0,
+    "is_active": true
+  },
+  {
+    "description": "أسبوع أول - يوم 5: نفّذ 4 جرائم",
+    "target_type": "crime",
+    "target_count": 4,
+    "reward_money": 850,
+    "reward_exp": 55,
+    "min_level": 0,
+    "is_active": true
+  },
+  {
+    "description": "أسبوع أول - يوم 5: هاجم لاعبين مرتين",
+    "target_type": "combat",
+    "target_count": 2,
+    "reward_money": 900,
+    "reward_exp": 70,
+    "min_level": 0,
+    "is_active": true
+  },
+  {
+    "description": "أسبوع أول - يوم 5: اشترِ شيئاً واحداً",
+    "target_type": "buy",
+    "target_count": 1,
+    "reward_money": 400,
+    "reward_exp": 25,
+    "min_level": 0,
+    "is_active": true
+  },
+  {
+    "description": "أسبوع أول - يوم 6: تفقّد قسم العصابات مرة واحدة",
+    "target_type": "gang",
+    "target_count": 1,
+    "reward_money": 500,
+    "reward_exp": 40,
+    "min_level": 0,
+    "is_active": true
+  },
+  {
+    "description": "أسبوع أول - يوم 6: نفّذ عملية استخبارات واحدة",
+    "target_type": "intel",
+    "target_count": 1,
+    "reward_money": 600,
+    "reward_exp": 60,
+    "min_level": 0,
+    "is_active": true
+  },
+  {
+    "description": "أسبوع أول - يوم 6: تمرّن في الجيم 3 مرات",
+    "target_type": "gym",
+    "target_count": 3,
+    "reward_money": 650,
+    "reward_exp": 55,
+    "min_level": 0,
+    "is_active": true
+  },
+  {
+    "description": "أسبوع أول - يوم 7: نفّذ 6 جرائم",
+    "target_type": "crime",
+    "target_count": 6,
+    "reward_money": 1200,
+    "reward_exp": 90,
+    "min_level": 0,
+    "is_active": true
+  },
+  {
+    "description": "أسبوع أول - يوم 7: اشترِ 5 عناصر",
+    "target_type": "buy",
+    "target_count": 5,
+    "reward_money": 1100,
+    "reward_exp": 80,
+    "min_level": 0,
+    "is_active": true
+  },
+  {
+    "description": "أسبوع أول - يوم 7: هاجم لاعبين مرتين",
+    "target_type": "combat",
+    "target_count": 2,
+    "reward_money": 1300,
+    "reward_exp": 110,
+    "min_level": 0,
+    "is_active": true
   }
 ]

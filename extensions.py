@@ -9,7 +9,7 @@ from flask_admin import Admin, AdminIndexView, expose
 from flask_admin.theme import Bootstrap4Theme
 from flask_babel import Babel
 from flask_wtf.csrf import CSRFProtect
-from flask import redirect, url_for
+from flask import redirect, url_for, request
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 from flask_talisman import Talisman
@@ -84,6 +84,19 @@ migrate = Migrate()
 login = LoginManager()
 login.login_view = 'main.login'  # Corrected blueprint name
 login.login_message = 'Please log in to access this page.'
+
+
+@login.unauthorized_handler
+def _handle_unauthorized():
+    try:
+        next_url = request.full_path
+        if next_url and next_url.endswith('?'):
+            next_url = next_url[:-1]
+        return redirect(url_for('main.login', next=next_url))
+    except Exception:
+        return redirect('/login')
+
+
 limiter = Limiter(
     key_func=get_remote_address,
     default_limits=["2000 per day", "500 per hour"])

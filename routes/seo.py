@@ -16,14 +16,24 @@ def robots():
         "Disallow: /developer/",
         "Disallow: /api/",
         "Disallow: /socket.io/",
+        "Disallow: /chat/room/",
         "Disallow: /hara",
+        "Disallow: /bank/",
         "Disallow: /black_market/",
+        "Disallow: /casino/",
+        "Disallow: /combat/",
         "Disallow: /farm/",
         "Disallow: /factory/",
         "Disallow: /garage/",
         "Disallow: /inventory/",
+        "Disallow: /market/",
+        "Disallow: /police_chase/",
         "Disallow: /resources/",
-        "Disallow: /racing/",
+        "Disallow: /travel/",
+        "Disallow: /gang/",
+        "Allow: /gang/view/",
+        "Allow: /gang/view",
+        "Disallow: /casino/racing/",
         "Disallow: /entertainment/",
         "Disallow: /login",
         "Disallow: /register",
@@ -173,15 +183,13 @@ def sitemap():
     add_page(url_for("main.index"), changefreq="daily", priority="1.0")
     add_page(url_for("main.guide"), changefreq="monthly", priority="0.7")
     add_page(url_for("main.organized_crimes"), changefreq="daily", priority="0.9")
+    add_page(url_for("main.trend"), changefreq="daily", priority="0.8")
+    add_page(url_for("main.tiktok_promo"), changefreq="weekly", priority="0.6")
     add_page(url_for("graveyard.index"), changefreq="daily", priority="0.8")
     add_page(url_for("news.index"), changefreq="daily", priority="0.8")
     add_page(url_for("forum.index"), changefreq="always", priority="0.9")
     add_page(url_for("main.leaderboard"), changefreq="daily", priority="0.8")
     add_page(url_for("main.chat_lobby"), changefreq="daily", priority="0.8")
-    add_page(url_for("main.chat_room", room_name="general"), changefreq="daily", priority="0.6")
-    add_page(url_for("main.chat_room", room_name="beginners"), changefreq="daily", priority="0.6")
-    add_page(url_for("main.chat_room", room_name="trade"), changefreq="daily", priority="0.6")
-    add_page(url_for("main.chat_room", room_name="strangers"), changefreq="daily", priority="0.5")
 
     try:
         from models.social import Gang

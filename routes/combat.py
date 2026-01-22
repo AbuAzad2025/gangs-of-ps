@@ -2,7 +2,7 @@ from flask import Blueprint, render_template, redirect, url_for, flash, request,
 from flask_login import login_required, current_user
 from flask_babel import _
 from extensions import db, limiter
-from models import User, UserItem, Item, CombatLog, UserLog
+from models import User, UserItem, Item, CombatLog, UserLog, Notification
 from models.hostess import Hostess
 from services.resource_service import ResourceService
 from models.combat import ActiveIntel
@@ -21,6 +21,7 @@ def index():
     # Find targets: Users not self, not in hospital, not in jail
     # Matchmaking: +/- 5 levels first, then others
     now = datetime.now(timezone.utc)
+    now_naive = now.replace(tzinfo=None)
 
     # 1. Search Logic
     search_query = request.args.get('q')
@@ -75,8 +76,8 @@ def index():
     active_intels = ActiveIntel.query.filter(
         ActiveIntel.user_id == current_user.id,
         ActiveIntel.target_id.in_(target_ids),
-        ActiveIntel.start_time <= now,
-        ActiveIntel.expires_at > now
+        ActiveIntel.start_time <= now_naive,
+        ActiveIntel.expires_at > now_naive
     ).all()
     intel_target_ids = {intel.target_id for intel in active_intels}
 
@@ -179,16 +180,20 @@ def attack(target_id):
 
     if not current_app.config.get('TESTING', False):
         # --- Intel Check ---
+        now_naive = now.replace(tzinfo=None)
         active_intel = ActiveIntel.query.filter(
             ActiveIntel.user_id == current_user.id,
             ActiveIntel.target_id == target.id,
-            ActiveIntel.start_time <= now,
-            ActiveIntel.expires_at > now
+            ActiveIntel.start_time <= now_naive,
+            ActiveIntel.expires_at > now_naive
         ).first()
 
         if not active_intel:
             flash(
-                _('لا يمكنك الهجوم على هذا اللاعب دون معلومات استخباراتية! استأجر مخبراً من السوق السوداء أولاً.'),
+                _(
+                    'لا يمكنك الهجوم على هذا اللاعب دون معلومات استخباراتية! '
+                    'استأجر مخبراً من السوق السوداء أو نفّذ تحريات ناجحة أولاً.'
+                ),
                 'warning')
             return redirect(url_for('black_market.index'))
 
@@ -242,9 +247,62 @@ def attack(target_id):
                 # Removed premature commit to ensure atomicity with combat
                 # transaction
 
+                try:
+                    breach_details = json.dumps({
+                        'target_id': target.id,
+                        'target_username': target.username,
+                        'c4_item_id': c4_item.id,
+                    }, ensure_ascii=False)
+                except Exception:
+                    breach_details = None
+
+                try:
+                    db.session.add(UserLog(
+                        user_id=current_user.id,
+                        action='SAFEHOUSE_BREACH',
+                        details=breach_details,
+                        result='success',
+                        ip_address=request.remote_addr,
+                        user_agent=request.user_agent.string,
+                    ))
+                except Exception:
+                    pass
+
+                try:
+                    db.session.add(UserLog(
+                        user_id=target.id,
+                        action='SAFEHOUSE_BREACHED',
+                        details=breach_details,
+                        result='success',
+                        ip_address=request.remote_addr,
+                        user_agent=request.user_agent.string,
+                    ))
+                except Exception:
+                    pass
+
                 flash(
                     _('تم تفجير المنزل الآمن بنجاح! الهدف مكشوف الآن.'),
                     'success')
+                try:
+                    db.session.add(Notification(
+                        user_id=target.id,
+                        title=_('تم اقتحام منزلك الآمن'),
+                        message=_('تم تفجير منزلك الآمن وأصبحت مكشوفاً للهجوم.'),
+                        type='warning',
+                        link=url_for('black_market.index'),
+                    ))
+                except Exception:
+                    pass
+                try:
+                    db.session.add(Notification(
+                        user_id=current_user.id,
+                        title=_('تفجير منزل آمن'),
+                        message=_('فجّرت المنزل الآمن لـ %(target)s.', target=target.username),
+                        type='success',
+                        link=url_for('combat.index'),
+                    ))
+                except Exception:
+                    pass
                 # Proceed to combat
 
             else:
@@ -598,6 +656,7 @@ def attack(target_id):
                                 new_war = GangWar(
                                     gang1_id=current_user.gang_id, gang2_id=target.gang_id)
                                 db.session.add(new_war)
+                                db.session.flush()
                                 flash(
                                     _('لقد تسببت هجمتك في اندلاع حرب عصابات!'), 'danger')
                                 is_war = True
@@ -654,6 +713,14 @@ def attack(target_id):
                         # Determine points based on target role
                         points = 1
                         target_gang_role = None
+                        target_gang = None
+                        try:
+                            if target.gang_id:
+                                target_gang = db.session.query(Gang).filter_by(
+                                    id=target.gang_id).first()
+                        except Exception:
+                            target_gang = None
+
                         if target_gang:
                             if target.id == target_gang.leader_id:
                                 points = 5
@@ -732,6 +799,21 @@ def attack(target_id):
 
         # Update Daily Task Progress
         update_daily_task_progress(current_user, 'combat')
+
+        try:
+            attacker_name = _('مجهول') if is_anonymous else current_user.username
+            db.session.add(Notification(
+                user_id=target.id,
+                title=_('هجوم'),
+                message=_('%(attacker)s هاجمك. خسرت %(money)s$ وتعرضت لإصابة (%(dmg)s صحة).',
+                          attacker=attacker_name,
+                          money=money_stolen,
+                          dmg=actual_damage),
+                type='danger',
+                link=url_for('combat.history'),
+            ))
+        except Exception:
+            pass
 
         db.session.commit()
 
@@ -837,6 +919,22 @@ def attack(target_id):
             user_agent=request.user_agent.string
         )
         db.session.add(log)
+
+        update_daily_task_progress(current_user, 'combat')
+
+        try:
+            attacker_name = _('مجهول') if is_anonymous else current_user.username
+            db.session.add(Notification(
+                user_id=target.id,
+                title=_('دفاع ناجح'),
+                message=_('تعرضت لهجوم من %(attacker)s لكنك صدّيته وربحت %(money)s$.',
+                          attacker=attacker_name,
+                          money=money_lost),
+                type='success',
+                link=url_for('combat.history'),
+            ))
+        except Exception:
+            pass
 
         db.session.commit()
 
