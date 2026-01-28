@@ -5,18 +5,23 @@ bp = Blueprint('seo', __name__)
 
 
 @bp.route('/robots.txt')
+@cache.cached(timeout=3600)
 def robots():
     """
     Generate robots.txt
     """
-    sitemap_url = request.url_root.rstrip("/") + url_for('seo.sitemap')
+    sitemap_url = url_for("seo.sitemap", _external=True)
     rules = [
         "User-agent: *",
+        "Allow: /",
+        "Allow: /gang/view",
+        "Allow: /gang/view/",
         "Disallow: /admin/",
         "Disallow: /developer/",
         "Disallow: /api/",
         "Disallow: /socket.io/",
         "Disallow: /chat/room/",
+        "Disallow: /chat/vip/",
         "Disallow: /hara",
         "Disallow: /bank/",
         "Disallow: /black_market/",
@@ -30,11 +35,8 @@ def robots():
         "Disallow: /police_chase/",
         "Disallow: /resources/",
         "Disallow: /travel/",
-        "Disallow: /gang/",
-        "Allow: /gang/view/",
-        "Allow: /gang/view",
-        "Disallow: /casino/racing/",
         "Disallow: /entertainment/",
+        "Disallow: /gang/",
         "Disallow: /login",
         "Disallow: /register",
         "Disallow: /logout",
@@ -48,7 +50,6 @@ def robots():
         "Disallow: /forum/topic/*/lock",
         "Disallow: /forum/topic/*/pin",
         "Disallow: /forum/post/*/delete",
-        "Disallow: /:",
         "",
         f"Sitemap: {sitemap_url}"
     ]
