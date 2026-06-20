@@ -283,11 +283,23 @@ def downgrade():
         batch_op.drop_index(batch_op.f('ix_user_daily_task_task_id'))
 
     with op.batch_alter_table('user_crime_cooldown', schema=None) as batch_op:
-        batch_op.drop_index('idx_user_crime_cooldown_user_crime')
-        batch_op.drop_index(batch_op.f('ix_user_crime_cooldown_user_id'))
-        batch_op.drop_index(batch_op.f('ix_user_crime_cooldown_crime_id'))
-        batch_op.drop_index(
-            batch_op.f('ix_user_crime_cooldown_cooldown_until'))
+        bind = op.get_bind()
+        inspector = sa.inspect(bind)
+        try:
+            idx_names = {i.get("name") for i in inspector.get_indexes("user_crime_cooldown")}
+        except Exception:
+            idx_names = set()
+
+        # PostgreSQL fails if the index doesn't exist; make downgrade idempotent.
+        candidates = [
+            'idx_user_crime_cooldown_user_crime',
+            batch_op.f('ix_user_crime_cooldown_user_id'),
+            batch_op.f('ix_user_crime_cooldown_crime_id'),
+            batch_op.f('ix_user_crime_cooldown_cooldown_until'),
+        ]
+        for name in candidates:
+            if name in idx_names:
+                batch_op.drop_index(name)
 
     with op.batch_alter_table('user', schema=None) as batch_op:
         # SQLite may not have named constraints; Alembic expects a name when
@@ -316,8 +328,20 @@ def downgrade():
         batch_op.drop_index(batch_op.f('ix_user_active_hostess_id'))
 
     with op.batch_alter_table('spot_order', schema=None) as batch_op:
-        batch_op.drop_index(batch_op.f('ix_spot_order_created_at'))
-        batch_op.drop_index('idx_spot_order_exec_buy')
+        bind = op.get_bind()
+        inspector = sa.inspect(bind)
+        try:
+            idx_names = {i.get("name") for i in inspector.get_indexes("spot_order")}
+            idx_names.discard(None)
+        except Exception:
+            idx_names = set()
+
+        created_at_idx = batch_op.f('ix_spot_order_created_at')
+        if created_at_idx in idx_names:
+            batch_op.drop_index(created_at_idx)
+
+        if 'idx_spot_order_exec_buy' in idx_names:
+            batch_op.drop_index('idx_spot_order_exec_buy')
 
     with op.batch_alter_table('referral', schema=None) as batch_op:
         batch_op.drop_index(batch_op.f('ix_referral_referrer_id'))
@@ -351,14 +375,31 @@ def downgrade():
     with op.batch_alter_table('market_asset', schema=None) as batch_op:
         batch_op.drop_index(batch_op.f('ix_market_asset_asset_type'))
 
+    def _drop_named_foreign_keys(table_name: str, batch_op) -> None:
+        bind = op.get_bind()
+        inspector = sa.inspect(bind)
+        try:
+            fks = inspector.get_foreign_keys(table_name)
+        except Exception:
+            fks = []
+
+        fk_names = set()
+        for fk in fks:
+            name = fk.get("name")
+            if name:
+                fk_names.add(name)
+
+        for fk_name in fk_names:
+            batch_op.drop_constraint(fk_name, type_='foreignkey')
+
     with op.batch_alter_table('hostess_memories', schema=None) as batch_op:
-        batch_op.drop_constraint(None, type_='foreignkey')
+        _drop_named_foreign_keys('hostess_memories', batch_op)
 
     with op.batch_alter_table('hostess_knowledge', schema=None) as batch_op:
         batch_op.drop_index(batch_op.f('ix_hostess_knowledge_hostess_id'))
 
     with op.batch_alter_table('hostess_chat_messages', schema=None) as batch_op:
-        batch_op.drop_constraint(None, type_='foreignkey')
+        _drop_named_foreign_keys('hostess_chat_messages', batch_op)
 
     with op.batch_alter_table('heist_history', schema=None) as batch_op:
         batch_op.drop_index(batch_op.f('ix_heist_history_created_at'))
@@ -392,15 +433,26 @@ def downgrade():
         batch_op.drop_index(batch_op.f('ix_game_chat_room_id'))
 
     with op.batch_alter_table('futures_position', schema=None) as batch_op:
-        batch_op.drop_index(batch_op.f('ix_futures_position_opened_at'))
-        batch_op.drop_index(
-            batch_op.f('ix_futures_position_liquidation_price'))
-        batch_op.drop_index(batch_op.f('ix_futures_position_is_open'))
-        batch_op.drop_index(batch_op.f('ix_futures_position_closed_at'))
-        batch_op.drop_index(batch_op.f('ix_futures_position_asset_id'))
-        batch_op.drop_index('idx_futures_position_user_open')
-        batch_op.drop_index('idx_futures_liq_check')
-        batch_op.drop_index(batch_op.f('ix_futures_position_position_type'))
+        bind = op.get_bind()
+        inspector = sa.inspect(bind)
+        try:
+            idx_names = {i.get("name") for i in inspector.get_indexes("futures_position")}
+            idx_names.discard(None)
+        except Exception:
+            idx_names = set()
+
+        for name in [
+            batch_op.f('ix_futures_position_opened_at'),
+            batch_op.f('ix_futures_position_liquidation_price'),
+            batch_op.f('ix_futures_position_is_open'),
+            batch_op.f('ix_futures_position_closed_at'),
+            batch_op.f('ix_futures_position_asset_id'),
+            'idx_futures_position_user_open',
+            'idx_futures_liq_check',
+            batch_op.f('ix_futures_position_position_type'),
+        ]:
+            if name in idx_names:
+                batch_op.drop_index(name)
 
     with op.batch_alter_table('forum_post', schema=None) as batch_op:
         batch_op.drop_index(batch_op.f('ix_forum_post_user_id'))
@@ -410,15 +462,39 @@ def downgrade():
         batch_op.drop_index(batch_op.f('ix_farm_job_output_item_id'))
 
     with op.batch_alter_table('crime_lobby', schema=None) as batch_op:
-        batch_op.drop_index(batch_op.f('ix_crime_lobby_crime_id'))
-        batch_op.drop_index(batch_op.f('ix_crime_lobby_created_at'))
-        batch_op.drop_index('idx_crime_lobby_status_created')
+        bind = op.get_bind()
+        inspector = sa.inspect(bind)
+        try:
+            idx_names = {i.get("name") for i in inspector.get_indexes("crime_lobby")}
+            idx_names.discard(None)
+        except Exception:
+            idx_names = set()
+
+        for name in [
+            batch_op.f('ix_crime_lobby_crime_id'),
+            batch_op.f('ix_crime_lobby_created_at'),
+            'idx_crime_lobby_status_created',
+        ]:
+            if name in idx_names:
+                batch_op.drop_index(name)
 
     with op.batch_alter_table('crime', schema=None) as batch_op:
-        batch_op.drop_index(batch_op.f('ix_crime_reward_item_id'))
-        batch_op.drop_index(batch_op.f('ix_crime_min_level'))
-        batch_op.drop_index(batch_op.f('ix_crime_is_active'))
-        batch_op.drop_index(batch_op.f('ix_crime_cooldown'))
+        bind = op.get_bind()
+        inspector = sa.inspect(bind)
+        try:
+            idx_names = {i.get("name") for i in inspector.get_indexes("crime")}
+            idx_names.discard(None)
+        except Exception:
+            idx_names = set()
+
+        for name in [
+            batch_op.f('ix_crime_reward_item_id'),
+            batch_op.f('ix_crime_min_level'),
+            batch_op.f('ix_crime_is_active'),
+            batch_op.f('ix_crime_cooldown'),
+        ]:
+            if name in idx_names:
+                batch_op.drop_index(name)
 
     with op.batch_alter_table('combat_log', schema=None) as batch_op:
         batch_op.drop_index(batch_op.f('ix_combat_log_winner_id'))

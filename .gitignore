@@ -31,3 +31,13 @@ tests/
 temp_*
 *.avi
 *.mov
+
+# BLACKBOX/CLI artifacts
+.blackboxcli/
+
+# Additional temp/backup files
+*.bak
+*.tmp
+
+# (If present) admin bundle artifacts
+static/adminlte/
