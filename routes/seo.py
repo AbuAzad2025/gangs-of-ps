@@ -14,8 +14,16 @@ def robots():
     rules = [
         "User-agent: *",
         "Allow: /",
+        "Allow: /gang/",
         "Allow: /gang/view",
         "Allow: /gang/view/",
+        "Disallow: /gang/dashboard",
+        "Disallow: /gang/create",
+        "Disallow: /gang/edit",
+        "Disallow: /gang/invites",
+        "Disallow: /gang/accept_invite",
+        "Disallow: /gang/reject_invite",
+        "Disallow: /gang/leave",
         "Disallow: /admin/",
         "Disallow: /developer/",
         "Disallow: /api/",
@@ -36,7 +44,6 @@ def robots():
         "Disallow: /resources/",
         "Disallow: /travel/",
         "Disallow: /entertainment/",
-        "Disallow: /gang/",
         "Disallow: /login",
         "Disallow: /register",
         "Disallow: /logout",
@@ -189,6 +196,7 @@ def sitemap():
     add_page(url_for("graveyard.index"), changefreq="daily", priority="0.8")
     add_page(url_for("news.index"), changefreq="daily", priority="0.8")
     add_page(url_for("forum.index"), changefreq="always", priority="0.9")
+    add_page(url_for("gang.index"), changefreq="daily", priority="0.8")
     add_page(url_for("main.leaderboard"), changefreq="daily", priority="0.8")
     add_page(url_for("main.chat_lobby"), changefreq="daily", priority="0.8")
 

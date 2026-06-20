@@ -131,11 +131,15 @@ class BackupManager:
                 env=env,
                 check=True,
                 stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE)
+                stderr=subprocess.PIPE,
+                timeout=int(os.environ.get("SUBPROCESS_TIMEOUT", "600") or 600),
+            )
             return True, _("تم إنشاء النسخة الاحتياطية بنجاح.")
         except subprocess.CalledProcessError as e:
             return False, _("فشل إنشاء النسخة الاحتياطية: %(error)s",
                             error=e.stderr.decode('utf-8') if e.stderr else str(e))
+        except subprocess.TimeoutExpired:
+            return False, _("فشل إنشاء النسخة الاحتياطية: انتهت المهلة.")
         except FileNotFoundError:
             return False, _(
                 "لم يتم العثور على أداة pg_dump. تأكد من تثبيت PostgreSQL.")
@@ -177,11 +181,15 @@ class BackupManager:
                 env=env,
                 check=True,
                 stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE)
+                stderr=subprocess.PIPE,
+                timeout=int(os.environ.get("SUBPROCESS_TIMEOUT", "600") or 600),
+            )
             return True, _("تم استعادة النسخة الاحتياطية بنجاح.")
         except subprocess.CalledProcessError as e:
             return False, _("فشل استعادة النسخة الاحتياطية: %(error)s",
                             error=e.stderr.decode('utf-8') if e.stderr else str(e))
+        except subprocess.TimeoutExpired:
+            return False, _("فشل استعادة النسخة الاحتياطية: انتهت المهلة.")
         except FileNotFoundError:
             return False, _(
                 "لم يتم العثور على أداة psql. تأكد من تثبيت PostgreSQL.")

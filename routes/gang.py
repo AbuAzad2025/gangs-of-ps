@@ -10,7 +10,7 @@ from models.item import UserItem, Item
 from models.system import SystemConfig
 from datetime import datetime, timedelta, timezone
 from .utils import save_image, send_notification, update_daily_task_progress
-from sqlalchemy import or_
+from sqlalchemy import or_, func
 
 from services.resource_service import ResourceService
 
@@ -18,13 +18,51 @@ bp = Blueprint('gang', __name__, url_prefix='/gang')
 
 
 @bp.route('/')
-@login_required
 def index():
-    update_daily_task_progress(current_user, 'gang')
-    gangs = Gang.query.order_by(
-        Gang.level.desc(),
-        Gang.exp.desc()).limit(100).all()
-    return render_template('gang/index.html', title=_('العصابات'), gangs=gangs)
+    from extensions import seo_manager
+
+    if current_user.is_authenticated:
+        update_daily_task_progress(current_user, 'gang')
+
+    member_counts = (
+        db.session.query(
+            User.gang_id.label("gang_id"),
+            func.count(User.id).label("members_count"),
+        )
+        .group_by(User.gang_id)
+        .subquery()
+    )
+
+    gang_rows = (
+        db.session.query(
+            Gang,
+            func.coalesce(member_counts.c.members_count, 0).label("members_count"),
+        )
+        .outerjoin(member_counts, Gang.id == member_counts.c.gang_id)
+        .order_by(Gang.level.desc(), Gang.exp.desc())
+        .limit(100)
+        .all()
+    )
+
+    gangs = []
+    for gang, members_count in gang_rows:
+        gang.members_count = int(members_count or 0)
+        gangs.append(gang)
+
+    seo_manager.set(
+        title=f"{_('العصابات')} - {_('عصابات فلسطين')}",
+        description=_(
+            "تصفح أفضل العصابات في لعبة عصابات فلسطين: المستويات، الخبرة، وعدد الأعضاء."
+        ),
+        keywords=_(
+            "عصابات, ترتيب العصابات, عصابات فلسطين, gang, gangs, clan, leaderboard"
+        ),
+        type="website",
+    )
+    seo_manager.add_breadcrumb(_("الرئيسية"), url_for("main.index"))
+    seo_manager.add_breadcrumb(_("العصابات"), url_for("gang.index"))
+
+    return render_template("gang/index.html", title=_("العصابات"), gangs=gangs)
 
 
 @bp.route('/invites')

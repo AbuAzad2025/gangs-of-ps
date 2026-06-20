@@ -1,0 +1,8 @@
+Traceback (most recent call last):
+  File "<string>", line 1, in <module>
+    import run
+  File "D:\Data\gang of Ps\GangsOfPalestine\run.py", line 21, in <module>
+    from extensions import socketio
+  File "D:\Data\gang of Ps\GangsOfPalestine\extensions.py", line 16, in <module>
+    from flask_admin import Admin, AdminIndexView, expose
+ModuleNotFoundError: No module named 'flask_admin'

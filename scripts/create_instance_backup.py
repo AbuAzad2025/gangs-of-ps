@@ -64,7 +64,12 @@ def create_backup():
             creds["dbname"],
         ]
 
-        subprocess.run(cmd, env=env, check=True)
+        subprocess.run(
+            cmd,
+            env=env,
+            check=True,
+            timeout=int(os.environ.get("SUBPROCESS_TIMEOUT", "600") or 600),
+        )
         size = os.path.getsize(filepath)
 
         retention_days = int(os.environ.get("BACKUP_RETENTION_DAYS", "7"))
@@ -82,6 +87,9 @@ def create_backup():
 
 
 if __name__ == "__main__":
-    path, size = create_backup()
-    print(path)
-    print(size)
+    try:
+        path, size = create_backup()
+        print(path)
+        print(size)
+    except subprocess.TimeoutExpired:
+        print("Backup failed: timed out.")

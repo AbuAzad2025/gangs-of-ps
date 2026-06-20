@@ -1,6 +1,7 @@
 import os
 import sys
 import subprocess
+import logging
 from urllib.parse import urlparse
 import argparse
 
@@ -63,11 +64,19 @@ def restore_database(backup_file, db_url):
 
     try:
         # Run psql
-        subprocess.run(cmd, env=env, check=True)
+        subprocess.run(
+            cmd,
+            env=env,
+            check=True,
+            timeout=int(os.environ.get("SUBPROCESS_TIMEOUT", "600") or 600),
+        )
         print("\nRestore completed successfully!")
         return True
     except subprocess.CalledProcessError as e:
         print(f"\nRestore failed with error code {e.returncode}.")
+        return False
+    except subprocess.TimeoutExpired:
+        print("\nRestore failed: timed out.")
         return False
     except FileNotFoundError:
         print("\nError: 'psql' command not found. Please ensure PostgreSQL client tools are installed and in your PATH.")

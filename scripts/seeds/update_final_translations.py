@@ -2426,7 +2426,9 @@ if __name__ == "__main__":
     try:
         import subprocess
         subprocess.run(["pybabel", "compile", "-d",
-                       "translations"], check=True)
+                       "translations"], check=True, timeout=int(os.environ.get("SUBPROCESS_TIMEOUT", "300") or 300))
         print("Compiled translations.")
+    except subprocess.TimeoutExpired:
+        print("Warning: could not compile translations automatically: timed out")
     except Exception as e:
         print(f"Warning: could not compile translations automatically: {e}")

@@ -3,7 +3,15 @@ import platform
 import sys
 
 from flask_sqlalchemy import SQLAlchemy
-from flask_migrate import Migrate
+try:
+    from flask_migrate import Migrate
+except Exception:
+    class Migrate:
+        def __init__(self, *args, **kwargs):
+            return None
+
+        def init_app(self, *args, **kwargs):
+            return None
 from flask_login import LoginManager, current_user
 from flask_admin import Admin, AdminIndexView, expose
 from flask_admin.theme import Bootstrap4Theme

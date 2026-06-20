@@ -1,10 +1,4 @@
-"""optimize_market_and_gameplay_indexes
 
-Revision ID: 9124fe2bf48a
-Revises: 380a7cb143ee
-Create Date: 2026-01-08 22:39:25.274169
-
-"""
 from alembic import op
 import sqlalchemy as sa
 
@@ -296,7 +290,23 @@ def downgrade():
             batch_op.f('ix_user_crime_cooldown_cooldown_until'))
 
     with op.batch_alter_table('user', schema=None) as batch_op:
-        batch_op.drop_constraint(None, type_='foreignkey')
+        # SQLite may not have named constraints; Alembic expects a name when
+        # dropping constraints, otherwise it raises:
+        # "ValueError: Constraint must have a name".
+        bind = op.get_bind()
+        inspector = sa.inspect(bind)
+        try:
+            fks = inspector.get_foreign_keys('user')
+        except Exception:
+            fks = []
+
+        for fk in fks:
+            # Different dialects return different shapes; only drop constraints
+            # that Alembic can identify via a real constraint name.
+            fk_name = fk.get('name')
+            if fk_name:
+                batch_op.drop_constraint(fk_name, type_='foreignkey')
+
         batch_op.drop_index(batch_op.f('ix_user_referred_by_id'))
         batch_op.drop_index(batch_op.f('ix_user_last_travel'))
         batch_op.drop_index(batch_op.f('ix_user_last_daily_reward'))

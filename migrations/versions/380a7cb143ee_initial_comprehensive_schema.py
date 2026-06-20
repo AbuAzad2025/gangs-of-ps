@@ -398,6 +398,15 @@ def upgrade():
             ['referral_code'],
             unique=True)
 
+    op.create_table('public_chat',
+        sa.Column('id', sa.Integer(), nullable=False),
+        sa.Column('user_id', sa.Integer(), nullable=False),
+        sa.Column('message', sa.String(length=500), nullable=False),
+        sa.Column('created_at', sa.DateTime(), nullable=True),
+        sa.ForeignKeyConstraint(['user_id'], ['user.id'], ),
+        sa.PrimaryKeyConstraint('id')
+    )
+
     op.create_table('active_intel',
                     sa.Column('id', sa.Integer(), nullable=False),
                     sa.Column('user_id', sa.Integer(), nullable=False),
@@ -1329,6 +1338,7 @@ def downgrade():
     op.drop_table('bounty')
     op.drop_table('auction')
     op.drop_table('asset')
+    op.drop_table('public_chat')
     op.drop_table('active_intel')
     with op.batch_alter_table('user', schema=None) as batch_op:
         batch_op.drop_index(batch_op.f('ix_user_referral_code'))

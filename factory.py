@@ -36,14 +36,23 @@ def create_app(config_class=Config):
         if not re.fullmatch(r"[A-Za-z0-9_]+", db_name):
             raise ValueError("Invalid PostgreSQL database name.")
 
-        maintenance_url = url.set(database="postgres")
-
         import psycopg2
         from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
 
-        conn = psycopg2.connect(
-            maintenance_url.render_as_string(
-                hide_password=False))
+        last_error = None
+        conn = None
+        for maintenance_db in ("postgres", "template1"):
+            maintenance_url = url.set(database=maintenance_db)
+            try:
+                conn = psycopg2.connect(
+                    maintenance_url.render_as_string(hide_password=False),
+                    connect_timeout=int(os.environ.get("PG_CONNECT_TIMEOUT", "5") or 5),
+                )
+                break
+            except psycopg2.OperationalError as e:
+                last_error = e
+        if conn is None:
+            raise last_error  # type: ignore[misc]
         try:
             conn.set_isolation_level(ISOLATION_LEVEL_AUTOCOMMIT)
             cur = conn.cursor()
@@ -73,8 +82,9 @@ def create_app(config_class=Config):
             from sqlalchemy.pool import NullPool
 
             conn = psycopg2.connect(
-                test_db_url.render_as_string(
-                    hide_password=False))
+                test_db_url.render_as_string(hide_password=False),
+                connect_timeout=int(os.environ.get("PG_CONNECT_TIMEOUT", "5") or 5),
+            )
             try:
                 conn.set_isolation_level(ISOLATION_LEVEL_AUTOCOMMIT)
                 cur = conn.cursor()

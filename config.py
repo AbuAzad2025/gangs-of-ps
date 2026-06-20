@@ -1,5 +1,9 @@
 import os
-from dotenv import load_dotenv
+try:
+    from dotenv import load_dotenv
+except Exception:
+    def load_dotenv(*args, **kwargs):
+        return False
 
 load_dotenv()
 
@@ -25,13 +29,22 @@ class Config:
     FLASK_ADMIN_SWATCH = 'cerulean'
 
     # SQLAlchemy Engine Options to avoid connection exhaustion
-    SQLALCHEMY_ENGINE_OPTIONS = {
+    _engine_options = {
         'pool_size': int(os.environ.get('DB_POOL_SIZE', 5)),
         'max_overflow': int(os.environ.get('DB_MAX_OVERFLOW', 10)),
         'pool_recycle': int(os.environ.get('DB_POOL_RECYCLE', 1800)),
         'pool_pre_ping': True,
         'pool_timeout': int(os.environ.get('DB_POOL_TIMEOUT', 30)),
     }
+    if (env_db_url or "").startswith("postgresql"):
+        _connect_args = dict(_engine_options.get("connect_args") or {})
+        _connect_args.setdefault(
+            "connect_timeout",
+            int(os.environ.get("PG_CONNECT_TIMEOUT", "5") or 5),
+        )
+        _engine_options["connect_args"] = _connect_args
+
+    SQLALCHEMY_ENGINE_OPTIONS = _engine_options
 
     RATELIMIT_STORAGE_URI = (
         os.environ.get('RATELIMIT_STORAGE_URI') or 'memory://')

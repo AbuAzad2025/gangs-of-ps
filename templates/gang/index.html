@@ -42,7 +42,7 @@
                                 <td class="font-weight-bold text-gold">{{ gang.name }}</td>
                                 <td><span class="badge badge-warning">{{ gang.level }}</span></td>
                                 <td>{{ gang.exp }}</td>
-                                <td>{{ gang.members|length }}</td>
+                                <td>{{ gang.members_count if gang.members_count is defined else gang.members|length }}</td>
                                 <td>
                                     <a href="{{ url_for('gang.view', gang_id=gang.id) }}" class="btn btn-sm btn-outline-gold" title="{{ _('عرض') }}">
                                         <i class="fas fa-eye"></i>

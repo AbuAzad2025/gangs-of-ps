@@ -72,25 +72,33 @@ def upgrade():
             ['sender_id'],
             unique=False)
 
+    # PostgreSQL: batch_op.create_index will error if index already exists.
+    # Use a guard to avoid duplicates and keep migrations idempotent.
     with op.batch_alter_table('crime', schema=None) as batch_op:
-        batch_op.create_index(
-            batch_op.f('ix_crime_cooldown'),
-            ['cooldown'],
-            unique=False)
+        batch_op.execute(
+            sa.text('CREATE INDEX IF NOT EXISTS "ix_crime_cooldown" ON "crime" ("cooldown")')
+        )
 
     with op.batch_alter_table('crime_lobby', schema=None) as batch_op:
-        batch_op.create_index(
-            'idx_crime_lobby_status_created', [
-                'status', 'created_at'], unique=False)
+        batch_op.execute(
+            sa.text(
+                'CREATE INDEX IF NOT EXISTS "idx_crime_lobby_status_created" '
+                'ON "crime_lobby" ("status", "created_at")'
+            )
+        )
 
     with op.batch_alter_table('futures_position', schema=None) as batch_op:
-        batch_op.create_index(
-            'idx_futures_liq_check', [
-                'asset_id', 'is_open', 'position_type', 'liquidation_price'], unique=False)
-        batch_op.create_index(
-            batch_op.f('ix_futures_position_position_type'),
-            ['position_type'],
-            unique=False)
+        # PostgreSQL: avoid duplicate index creation
+        batch_op.execute(
+            sa.text(
+                'CREATE INDEX IF NOT EXISTS "idx_futures_liq_check" '
+                'ON "futures_position" ("asset_id", "is_open", "position_type", "liquidation_price")'
+            )
+        )
+        batch_op.execute(
+            sa.text('CREATE INDEX IF NOT EXISTS "ix_futures_position_position_type" '
+                    'ON "futures_position" ("position_type")')
+        )
 
     with op.batch_alter_table('public_chat', schema=None) as batch_op:
         batch_op.drop_index('idx_public_chat_created_at')
@@ -100,9 +108,12 @@ def upgrade():
             unique=False)
 
     with op.batch_alter_table('spot_order', schema=None) as batch_op:
-        batch_op.create_index(
-            'idx_spot_order_exec_buy', [
-                'asset_id', 'status', 'order_type', 'price'], unique=False)
+        batch_op.execute(
+            sa.text(
+                'CREATE INDEX IF NOT EXISTS "idx_spot_order_exec_buy" '
+                'ON "spot_order" ("asset_id", "status", "order_type", "price")'
+            )
+        )
 
     with op.batch_alter_table('user', schema=None) as batch_op:
         batch_op.alter_column('jail_escape_attempts',
@@ -127,17 +138,25 @@ def upgrade():
             unique=False)
 
     with op.batch_alter_table('user_crime_cooldown', schema=None) as batch_op:
-        batch_op.create_index(
-            'idx_user_crime_cooldown_user_crime', [
-                'user_id', 'crime_id'], unique=False)
-        batch_op.create_index(
-            batch_op.f('ix_user_crime_cooldown_crime_id'),
-            ['crime_id'],
-            unique=False)
-        batch_op.create_index(
-            batch_op.f('ix_user_crime_cooldown_user_id'),
-            ['user_id'],
-            unique=False)
+        # PostgreSQL: avoid duplicate index creation
+        batch_op.execute(
+            sa.text(
+                'CREATE INDEX IF NOT EXISTS "idx_user_crime_cooldown_user_crime" '
+                'ON "user_crime_cooldown" ("user_id", "crime_id")'
+            )
+        )
+        batch_op.execute(
+            sa.text(
+                'CREATE INDEX IF NOT EXISTS "ix_user_crime_cooldown_crime_id" '
+                'ON "user_crime_cooldown" ("crime_id")'
+            )
+        )
+        batch_op.execute(
+            sa.text(
+                'CREATE INDEX IF NOT EXISTS "ix_user_crime_cooldown_user_id" '
+                'ON "user_crime_cooldown" ("user_id")'
+            )
+        )
 
     # ### end Alembic commands ###
 
