@@ -308,6 +308,13 @@ def login():
                 db.session.rollback()
             except Exception:
                 pass
+        
+        # Check if this is a first-time user and guide them to their first crime
+        if session.get('first_time_user'):
+            session.pop('first_time_user', None)  # Remove the flag
+            flash(_('مرحباً بك في عصابات فلسطين! ابدأ رحلتك بتنفيذ أول جريمة لك: "نشل محفظة"'), 'info')
+            return redirect(_get_safe_next_url() or url_for('main.crimes'))
+            
         return redirect(_get_safe_next_url() or url_for('main.hara'))
 
     return render_template(
@@ -422,6 +429,8 @@ def register():
                 current_app.logger.error(f"Referral error: {e}")
 
         flash(_('تم إنشاء الحساب بنجاح! يمكنك تسجيل الدخول الآن.'), 'success')
+        # Store a flag to show first-time guidance after login
+        session['first_time_user'] = True
         next_url = _get_safe_next_url()
         if next_url:
             return redirect(url_for('main.login', next=next_url))

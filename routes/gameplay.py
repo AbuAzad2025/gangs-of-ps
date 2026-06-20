@@ -613,6 +613,11 @@ def hara():
         "next_diamonds": next_diamonds,
     }
 
+    # Show get-started guidance for new players (level < 5)
+    if current_user.level < 5 and not session.get('hara_guidance_shown'):
+        session['hara_guidance_shown'] = True
+        flash(_('مرحباً بك في عصابات فلسطين! لتطوير شخصيتك بسرعة، ابدأ بتنفيذ الجرائم البسيطة مثل "نشل محفظة" من عالم الجريمة.'), 'info')
+    
     return render_template(
         'hara.html',
         user=current_user,
@@ -1425,6 +1430,12 @@ def do_crime(crime_id):
         except Exception:
             pass
         db.session.commit()
+
+        # Track first-time crime completion for celebration
+        if not session.get('first_crime_completed'):
+            session['first_crime_completed'] = True
+            # Add special celebration message for first crime
+            session['first_crime_celebration'] = True
 
         update_daily_task_progress(current_user, 'crime')
 

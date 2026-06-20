@@ -81,8 +81,23 @@
                     <h3 class="crime-title h4 mb-3">{{ _('جريمة مقفولة') }}</h3>
                     <p class="text-muted small mb-4 crime-desc-clamp">{{ _('طور نفسك لفتحها…') }}</p>
                 {% else %}
+                    {% if crime.name == 'نشل محفظة' and user.level < 5 %}
+                    <h3 class="crime-title h4 mb-3 text-success">
+                        <i class="fas fa-star text-warning mr-2"></i>
+                        {{ _(crime.name) }}
+                        <span class="badge badge-pill badge-success ml-2">
+                            {{ _('جريمتك الأولى!') }}
+                        </span>
+                    </h3>
+                    <p class="text-muted small mb-4 crime-desc-clamp text-info">
+                        {{ _(crime.description) }}
+                        <br>
+                        <small>{{ _('ابدأ رحلتك الإجرامية بهذه الجريمة البسيطة') }}</small>
+                    </p>
+                    {% else %}
                     <h3 class="crime-title h4 mb-3">{{ _(crime.name) }}</h3>
                     <p class="text-muted small mb-4 crime-desc-clamp">{{ _(crime.description) }}</p>
+                    {% endif %}
                 {% endif %}
 
                 {% if crime.daily_limit and crime.daily_limit > 0 %}
