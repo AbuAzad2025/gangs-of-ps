@@ -167,7 +167,7 @@
           {% endif %}
         </div>
 
-        {% if session.get('first_crime_celebration') %}
+        {% if show_first_crime_celebration %}
         <div class="mb-3">
           <div class="alert alert-success alert-dismissible fade show" role="alert">
             <i class="fas fa-trophy mr-2"></i>
@@ -177,7 +177,6 @@
             </button>
           </div>
         </div>
-        {% session.pop('first_crime_celebration', None) %}
         {% endif %}
 
         {% if story_subtitle %}

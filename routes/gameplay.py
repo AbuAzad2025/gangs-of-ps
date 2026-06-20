@@ -922,7 +922,11 @@ def story():
             story.setdefault('badge_msgid', story.get('badge'))
         if 'alt_label' in story:
             story.setdefault('alt_label_msgid', story.get('alt_label'))
-    return render_template('story.html', story=story)
+    show_first_crime_celebration = session.pop(
+        "first_crime_celebration",
+        False,
+    )
+    return render_template('story.html', story=story, show_first_crime_celebration=show_first_crime_celebration)
 
 
 @bp.route('/do_crime/<int:crime_id>', methods=['POST'])
