@@ -3,11 +3,12 @@
 {% block title %}{{ _('سجن عوفر العسكري') }}{% endblock %}
 
 {% block content %}
-<div class="container-fluid">
+<div class="container-fluid" data-game-page="jail">
     
     <!-- Header -->
     <div class="jail-header fade-in-down">
         <div class="jail-bars"></div>
+        <div class="story-overlay jail" style="position:absolute;inset:0;pointer-events:none;opacity:0.35;"></div>
         <div class="jail-header-content">
             <h2 class="gold-text-gradient mb-2 display-4 font-weight-bold"><i class="fas fa-dungeon mr-2"></i> {{ _('سجن عوفر العسكري') }}</h2>
             <p class="text-light opacity-75">{{ _('مقبرة الأحياء... وقلعة الصمود والتحدي') }}</p>
@@ -71,7 +72,7 @@
                                     <!-- Hunger Strike -->
                                     <form action="{{ url_for('jail.hunger_strike') }}" method="POST" class="mb-3">
                                         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                                        <button type="submit" class="btn btn-outline-danger btn-block font-weight-bold" 
+                                        <button type="submit" class="btn btn-outline-danger btn-block font-weight-bold btn-game" 
                                                 onclick="return confirm('{{ _('تحذير: الإضراب عن الطعام سيؤدي إلى فقدان 20%% من صحتك! هل أنت متأكد؟') }}')">
                                             <i class="fas fa-utensils-slash mr-2"></i> {{ _('معركة الأمعاء الخاوية') }}
                                         </button>
@@ -81,7 +82,7 @@
                                     <!-- Riot -->
                                     <form action="{{ url_for('jail.riot') }}" method="POST">
                                         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                                        <button type="submit" class="btn btn-danger btn-block font-weight-bold" {% if user.energy < 30 %}disabled{% endif %}>
+                                        <button type="submit" class="btn btn-danger btn-block font-weight-bold btn-game" {% if user.energy < 30 %}disabled{% endif %}>
                                             <i class="fas fa-fire mr-2"></i> {{ _('انتفاضة السجون (شغب)') }} <span class="badge bg-light text-danger ml-2">30 <i class="fas fa-bolt"></i></span>
                                         </button>
                                         <small class="text-muted d-block mt-1">{{ _('خطر عالي! نجاح جماعي أو عزل انفرادي') }}</small>
@@ -173,7 +174,7 @@
                                     {% if enable_self_escape %}
                                     <form action="{{ url_for('jail.self_escape') }}" method="POST" class="mb-3">
                                         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                                        <button type="submit" class="btn btn-outline-danger btn-block font-weight-bold"
+                                        <button type="submit" class="btn btn-outline-danger btn-block font-weight-bold btn-game"
                                                 {% if user.energy < self_escape_energy_cost or user.money < self_escape_money_cost %}disabled{% endif %}
                                                 onclick="return confirm('{{ _('محاولة هروب خطرة وقد تُزيد الحكم. هل أنت متأكد؟') }}')">
                                             <i class="fas fa-tools mr-2"></i> {{ _('محاولة هروب ذاتي') }}
@@ -187,7 +188,7 @@
                                     {% if enable_gilboa_escape %}
                                     <form action="{{ url_for('jail.gilboa_escape') }}" method="POST" class="mb-3">
                                         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                                        <button type="submit" class="btn btn-danger btn-block font-weight-bold"
+                                        <button type="submit" class="btn btn-danger btn-block font-weight-bold btn-game"
                                                 {% if user.energy < gilboa_energy_cost or user.diamonds < gilboa_diamond_cost or gilboa_cooldown_left_seconds > 0 %}disabled{% endif %}
                                                 onclick="return confirm('{{ _('مغامرة جلبوع مكلفة وخطرة. هل تريد المحاولة؟') }}')">
                                             <i class="fas fa-dungeon mr-2"></i> {{ _('مغامرة سجن جلبوع') }}

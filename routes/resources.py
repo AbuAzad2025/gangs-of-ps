@@ -5,6 +5,7 @@ from sqlalchemy import or_
 from models.log import UserLog, MoneySinkLog
 from models.user import UserRole, User
 from services.budget_service import BudgetService
+from routes.utils import track_academy_visit
 
 bp = Blueprint('resources', __name__, url_prefix='/resources')
 
@@ -19,6 +20,7 @@ def _parse_int(value, default):
 @bp.route('/ledger')
 @login_required
 def my_ledger():
+    track_academy_visit(current_user, 'ledger_visit')
     return _ledger_view(current_user.id)
 
 

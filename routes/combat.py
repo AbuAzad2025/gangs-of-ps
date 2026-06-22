@@ -830,7 +830,6 @@ def attack(target_id):
         if is_dodge:
             msg += " " + _('الخصم حاول يتفادى الضربة لكنك جبت أجله!')
 
-        flash(msg, 'success')
         return render_template(
             'combat/result.html',
             result='win',
@@ -938,8 +937,6 @@ def attack(target_id):
 
         db.session.commit()
 
-        msg = _('لقد خسرت المعركة! خسرت %(money)s$.', money=money_lost)
-        flash(msg, 'danger')
         return render_template(
             'combat/result.html',
             result='lose',

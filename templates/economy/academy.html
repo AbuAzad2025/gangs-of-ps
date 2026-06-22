@@ -1,0 +1,122 @@
+{% extends "base.html" %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/economy-academy.css') }}?v=1.0">
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid fade-in economy-academy-page">
+    <div class="text-center luxury-header-gold mb-4">
+        <h1 class="display-4 text-gradient-gold font-reem-kufi">
+            <i class="fas fa-graduation-cap mr-3"></i>{{ _('مدرسة الحارة') }}
+        </h1>
+        <p class="lead text-muted">{{ _('تعلّم الاقتصاد باللعب — من الكاش إلى الإمبراطورية') }}</p>
+        {% if onboarding_day and onboarding_day <= academy_days %}
+        <span class="badge badge-warning economy-lesson-badge px-3 py-2">
+            {{ _('الدرس اليومي') }} — {{ _('اليوم') }} {{ onboarding_day }}
+        </span>
+        {% endif %}
+    </div>
+
+    <div class="row mb-4">
+        <div class="col-lg-7 mb-4">
+            {% include 'includes/economy_health_widget.html' %}
+            {% if health.tips %}
+            <ul class="economy-tip-list text-muted small pl-3 mb-0">
+                {% for tip in health.tips %}
+                <li>{{ tip }}</li>
+                {% endfor %}
+            </ul>
+            {% endif %}
+        </div>
+        <div class="col-lg-5 mb-4">
+            <div class="economy-health-panel h-100">
+                <h6 class="text-gold mb-3"><i class="fas fa-users mr-1"></i> {{ _('مقارنة مع مستواك') }}</h6>
+                <div class="d-flex justify-content-between mb-2">
+                    <span class="text-muted">{{ _('ثروتك') }}</span>
+                    <span class="text-white font-weight-bold">{{ "{:,}".format(peers.user_wealth) }}$</span>
+                </div>
+                <div class="d-flex justify-content-between mb-2">
+                    <span class="text-muted">{{ _('متوسط المستوى %(lvl)s', lvl=peers.level) }}</span>
+                    <span class="text-info">{{ "{:,}".format(peers.avg_wealth) }}$</span>
+                </div>
+                {% if peers.peer_count > 0 %}
+                <div class="text-center mt-3 p-2 rounded" style="background: rgba(0,0,0,0.35);">
+                    {% if peers.ahead %}
+                    <span class="text-success"><i class="fas fa-arrow-up mr-1"></i> {{ _('أغنى من المتوسط بـ %(diff)s$', diff="{:,}".format(peers.diff)) }}</span>
+                    {% elif peers.diff < 0 %}
+                    <span class="text-warning"><i class="fas fa-arrow-down mr-1"></i> {{ _('أقل من المتوسط بـ %(diff)s$', diff="{:,}".format(peers.diff|abs)) }}</span>
+                    {% else %}
+                    <span class="text-muted">{{ _('قريب من المتوسط') }}</span>
+                    {% endif %}
+                </div>
+                {% else %}
+                <p class="text-muted small mb-0">{{ _('لا يوجد لاعبون آخرون في مستواك للمقارنة بعد.') }}</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="fee-simulator-box" data-fee-simulator data-fee-url="{{ url_for('economy.academy_fee_preview') }}">
+                <h6 class="text-gold mb-3"><i class="fas fa-calculator mr-1"></i> {{ _('محاكي رسوم البنك') }}</h6>
+                <p class="text-muted small">{{ _('كم تدفع رسوماً يومياً إذا كان رصيدك في البنك:') }}</p>
+                <div class="input-group mb-2">
+                    <div class="input-group-prepend"><span class="input-group-text bg-dark border-secondary text-white">$</span></div>
+                    <input type="number" class="form-control bg-dark border-secondary text-white" data-fee-input value="{{ current_bank_fee.balance }}" min="0" step="1000">
+                </div>
+                <div class="d-flex align-items-center justify-content-between flex-wrap">
+                    <div>
+                        <span class="text-muted small d-block">{{ _('الرسوم اليومية المتوقعة') }}</span>
+                        <span class="fee-simulator-result" data-fee-output>{{ "{:,}".format(current_bank_fee.fee) }}$</span>
+                    </div>
+                    <span class="text-muted small" data-fee-reason>{{ current_bank_fee.reason }}</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <h4 class="text-gold mb-3"><i class="fas fa-book-open mr-2"></i> {{ _('دروس الأكاديمية') }}</h4>
+    <div class="row">
+        {% for lesson in lessons %}
+        <div class="col-md-6 col-lg-4 mb-4 fade-in-up anim-delay-{{ lesson.day }}">
+            <div class="lesson-card {% if lesson.locked %}locked{% endif %} {% if lesson.completed %}completed{% endif %} {% if lesson.current %}current{% endif %}">
+                <div class="d-flex align-items-start mb-2">
+                    <div class="rounded-circle bg-dark d-flex align-items-center justify-content-center mr-3" style="width:42px;height:42px;border:1px solid rgba(212,175,55,0.25);">
+                        <i class="fas {{ lesson.icon }} text-gold"></i>
+                    </div>
+                    <div>
+                        <span class="badge badge-secondary economy-lesson-badge mb-1">{{ _('اليوم') }} {{ lesson.day }}</span>
+                        {% if lesson.completed %}
+                        <span class="badge badge-success economy-lesson-badge mb-1 ml-1"><i class="fas fa-check"></i></span>
+                        {% elif lesson.current %}
+                        <span class="badge badge-warning economy-lesson-badge mb-1 ml-1">{{ _('الآن') }}</span>
+                        {% elif lesson.locked %}
+                        <span class="badge badge-dark economy-lesson-badge mb-1 ml-1"><i class="fas fa-lock"></i></span>
+                        {% endif %}
+                        <h5 class="text-white mb-1">{{ lesson.title }}</h5>
+                    </div>
+                </div>
+                <p class="text-muted small mb-2">{{ lesson.summary }}</p>
+                <p class="text-warning small mb-3"><i class="fas fa-lightbulb mr-1"></i> {{ lesson.tip }}</p>
+                {% if not lesson.locked %}
+                <a href="{{ lesson.try_url }}" class="btn btn-sm btn-outline-warning btn-game">
+                    <i class="fas fa-play mr-1"></i> {{ lesson.try_label }}
+                </a>
+                {% endif %}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <div class="text-center mt-2">
+        <a href="{{ url_for('main.daily_tasks') }}" class="btn btn-luxury-gold btn-game">
+            <i class="fas fa-tasks mr-2"></i> {{ _('مهام اليوم — أكمل درسك') }}
+        </a>
+        <a href="{{ url_for('main.guide') }}#economy" class="btn btn-outline-secondary btn-game ml-2">
+            <i class="fas fa-book mr-2"></i> {{ _('دليل اللعبة') }}
+        </a>
+    </div>
+</div>
+{% endblock %}

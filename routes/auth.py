@@ -519,84 +519,11 @@ def logout():
 @limiter.limit("20 per minute")
 @csrf.exempt
 def public_hostess_chat():
+    from services.greeter_service import process_assistant_message
     data = request.get_json(silent=True) or {}
     message = (data.get('message') or '').strip()
-    # Use default ID for 'Jasmin' if not provided, or search by role
     hostess_id = data.get('hostess_id')
-
-    if not message:
-        return {'error': 'Missing message'}, 400
-
-    hostess = None
-    if hostess_id:
-        hostess = db.session.get(Hostess, hostess_id)
-    else:
-        # Try to find the 'greeter' hostess
-        hostess = Hostess.query.filter_by(role='greeter').first()
-        if not hostess:
-            # Fallback to name 'Jasmin' or first available
-            hostess = Hostess.query.filter(
-                (Hostess.name.ilike('%Jasmin%')) | (
-                    Hostess.name.ilike('%Jasmine%'))).first()
-            if not hostess:
-                hostess = Hostess.query.first()
-
-    if not hostess:
-        return {'error': 'Hostess not found'}, 404
-
-    # Create simplified context for guest
-    if 'guest_id' not in session:
-        import random
-        # Use a large range for guest IDs (1B+) to avoid collision with real
-        # users
-        session['guest_id'] = random.randint(1_000_000_000, 2_000_000_000)
-
-    guest_id = session['guest_id']
-
-    user_context = {
-        'id': guest_id,
-        'name': 'Guest Player',
-        'is_guest': True,
-        'money': 0,
-        'level': 0
-    }
-
-    ai_service = AIHostessService()
-
-    # 1. Retrieve history from session (Server-side context retention)
-    session_key = f'guest_chat_history_{hostess.id}'
-    chat_history = session.get(session_key, [])
-
-    # 2. Get Response
-    try:
-        response_text = ai_service.get_response(
-            user_message=message,
-            hostess_context=hostess.to_dict(),
-            user_context=user_context,
-            chat_history=chat_history
-        )
-    except Exception as e:
-        try:
-            current_app.logger.error(f"Public hostess chat error: {e}")
-        except Exception:
-            pass
-        response_text = ai_service._rule_based_response(
-            message, hostess.to_dict(), user_context)
-
-    # 3. Update History
-    # Append User Message
-    chat_history.append({'role': 'user', 'content': message})
-    # Append Assistant Message
-    chat_history.append({'role': 'assistant', 'content': response_text})
-
-    # Keep last 20 messages to prevent session bloat
-    if len(chat_history) > 20:
-        chat_history = chat_history[-20:]
-
-    session[session_key] = chat_history
-    session.modified = True
-
-    return {
-        'response': response_text,
-        'hostess_name': hostess.name,
-        'hostess_image': hostess.image}
+    payload, err, status = process_assistant_message(message, hostess_id=hostess_id)
+    if err:
+        return {'error': err}, status
+    return payload

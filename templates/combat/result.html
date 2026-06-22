@@ -1,62 +1,47 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div class="row justify-content-center">
-    <div class="col-md-6 col-lg-5">
-        <div class="card luxury-card {{ 'luxury-card-win' if result == 'win' else 'luxury-card-loss' }}">
-            <div class="card-header luxury-header {{ 'header-win' if result == 'win' else 'header-loss' }}">
-                <h3 class="result-title {{ 'text-success' if result == 'win' else 'text-danger' }}">
-                    {% if result == 'win' %}
-                        <i class="fas fa-trophy mb-2 d-block display-4"></i> {{ _('انتصار!') }}
-                    {% else %}
-                        <i class="fas fa-skull-crossbones mb-2 d-block display-4"></i> {{ _('هزيمة!') }}
-                    {% endif %}
-                </h3>
-            </div>
-            <div class="card-body p-4 text-center">
-                <div class="avatar-wrapper">
-                    <img class="avatar-img {{ 'avatar-loss' if result == 'win' else 'avatar-win' }}" src="https://ui-avatars.com/api/?name={{ target.username }}&background=random" alt="Target Avatar">
-                    <!-- Note: Avatar border color logic inverted (target lost if we won) -->
-                </div>
-                <h3 class="font-weight-bold text-white mb-4">{{ target.username }}</h3>
-
-                <div class="result-box">
-                    {% if result == 'win' %}
-                        <h5 class="text-success mb-3 font-weight-bold"><i class="fas fa-check-circle mr-2"></i> {{ _('لقد سحقت خصمك!') }}</h5>
-                        <div class="stat-row">
-                            <span class="text-muted">{{ _('المسروقات') }}</span>
-                            <span class="text-success font-weight-bold">+${{ money }}</span>
-                        </div>
-                        <div class="stat-row">
-                            <span class="text-muted">{{ _('الخبرة') }}</span>
-                            <span class="text-warning font-weight-bold">+{{ exp }} XP</span>
-                        </div>
-                    {% else %}
-                        <h5 class="text-danger mb-3 font-weight-bold"><i class="fas fa-times-circle mr-2"></i> {{ _('لقد تم سحقك!') }}</h5>
-                        <div class="stat-row">
-                            <span class="text-muted">{{ _('خسرت') }}</span>
-                            <span class="text-danger font-weight-bold">-${{ money }}</span>
-                        </div>
-                        <p class="text-muted mt-3 small mb-0">{{ _('حاول تدريب نفسك في الجيم وشراء أسلحة أفضل!') }}</p>
-                    {% endif %}
-                </div>
-
-                <div class="mt-4">
-                    {% if result == 'win' %}
-                    <a href="https://wa.me/?text={{ _('لقد سحقت %(target)s في عصابات فلسطين! وسرقت منه $%(money)s! انضم لي الآن وسيطر على المدينة!', target=target.username, money=money) }} {{ url_for('main.register', ref=current_user.referral_code, _external=True) }}" target="_blank" class="btn btn-success btn-block btn-action mb-2">
-                        <i class="fab fa-whatsapp mr-2"></i> {{ _('شارك انتصارك') }}
-                    </a>
-                    {% endif %}
-
-                    <a href="{{ url_for('combat.index') }}" class="btn btn-primary btn-block btn-action mb-2 btn-gold">
-                        <i class="fas fa-search mr-2"></i> {{ _('بحث عن ضحية أخرى') }}
-                    </a>
-                    <a href="{{ url_for('hospital.index') }}" class="btn btn-outline-danger btn-block btn-action">
-                        <i class="fas fa-procedures mr-2"></i> {{ _('الذهاب للمستشفى') }}
-                    </a>
-                </div>
-            </div>
-        </div>
-    </div>
+<div class="container-fluid fade-in">
+  <div class="combat-cinematic" aria-hidden="true">
+    <div class="fighter left">🥊</div>
+    <div class="fighter right">💀</div>
+    <div class="impact">💥</div>
+  </div>
+  {% if result == 'win' %}
+    {% set story = {
+      'title': _('انتصار ساحق!'),
+      'subtitle': target.username,
+      'avatar_url': 'https://ui-avatars.com/api/?name=' ~ target.username ~ '&background=random',
+      'animation': 'speed',
+      'status': 'success',
+      'badge': _('فوز'),
+      'text': _('لقد سحقت %(target)s وسرقت منه ثروة. الشوارع تهمس باسمك الآن.', target=target.username),
+      'stats': {'money': money, 'exp': exp, 'target': target.username},
+      'next_url': url_for('combat.index'),
+      'next_label': _('بحث عن ضحية أخرى'),
+      'alt_url': url_for('hospital.index'),
+      'alt_label': _('الذهاب للمستشفى')
+    } %}
+  {% else %}
+    {% set story = {
+      'title': _('هزيمة مذلة!'),
+      'subtitle': target.username,
+      'avatar_url': 'https://ui-avatars.com/api/?name=' ~ target.username ~ '&background=random',
+      'animation': 'smoke',
+      'status': 'danger',
+      'badge': _('خسارة'),
+      'text': _('لقد سحقك %(target)s. خسرت مالاً وكرامتك. عد أقوى من الجيم والسوق السوداء.', target=target.username),
+      'stats': {'money_lost': money, 'target': target.username},
+      'next_url': url_for('combat.index'),
+      'next_label': _('حاول مرة أخرى'),
+      'alt_url': url_for('gym.index'),
+      'alt_label': _('تدريب في الجيم')
+    } %}
+  {% endif %}
+  {% include 'includes/story_scene.html' %}
 </div>
+<script>
+  document.body.setAttribute('data-game-context', 'combat-result');
+  document.body.setAttribute('data-combat-result', '{{ result }}');
+</script>
 {% endblock %}

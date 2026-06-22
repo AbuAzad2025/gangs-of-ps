@@ -1,0 +1,95 @@
+/* Economy Academy — Phase 2 */
+.economy-academy-page .lesson-card {
+    background: var(--bg-card, #1e1e1e);
+    border: 1px solid rgba(212, 175, 55, 0.12);
+    border-radius: 16px;
+    padding: 1.25rem;
+    height: 100%;
+    transition: transform 0.2s ease, border-color 0.2s ease;
+}
+.economy-academy-page .lesson-card:hover:not(.locked) {
+    transform: translateY(-3px);
+    border-color: rgba(255, 215, 0, 0.35);
+}
+.economy-academy-page .lesson-card.locked {
+    opacity: 0.55;
+    filter: grayscale(0.4);
+}
+.economy-academy-page .lesson-card.completed {
+    border-color: rgba(40, 167, 69, 0.45);
+}
+.economy-academy-page .lesson-card.current {
+    box-shadow: 0 0 20px rgba(255, 215, 0, 0.15);
+    border-color: rgba(255, 215, 0, 0.4);
+}
+.economy-health-panel {
+    background: linear-gradient(135deg, rgba(30,30,30,0.95), rgba(18,18,18,0.98));
+    border: 1px solid rgba(212, 175, 55, 0.2);
+    border-radius: 18px;
+    padding: 1.25rem 1.5rem;
+}
+.economy-health-score {
+    font-size: 2.5rem;
+    font-weight: 900;
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+}
+.economy-allocation-bar {
+    display: flex;
+    height: 12px;
+    border-radius: 8px;
+    overflow: hidden;
+    background: rgba(0,0,0,0.4);
+    border: 1px solid rgba(255,255,255,0.06);
+}
+.economy-allocation-bar .seg-cash {
+    background: linear-gradient(90deg, #c69500, #ffc107);
+    transition: width 0.8s ease;
+}
+.economy-allocation-bar .seg-bank {
+    background: linear-gradient(90deg, #1e7e34, #28a745);
+    transition: width 0.8s ease;
+}
+.fee-simulator-box {
+    background: rgba(0,0,0,0.35);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 14px;
+    padding: 1rem 1.25rem;
+}
+.fee-simulator-result {
+    font-size: 1.35rem;
+    font-weight: 800;
+    color: #ffc107;
+}
+.economy-tip-list li {
+    margin-bottom: 0.45rem;
+}
+.economy-lesson-badge {
+    font-size: 0.72rem;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+}
+.task-box.economy-lesson-task {
+    border-color: rgba(255, 215, 0, 0.35) !important;
+    background: linear-gradient(180deg, rgba(212,175,55,0.06), transparent);
+}
+.economy-mini-widget {
+    font-size: 0.85rem;
+}
+.economy-mini-widget .score-ring {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 800;
+    font-size: 0.9rem;
+    border: 2px solid rgba(255,215,0,0.35);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .economy-academy-page .lesson-card:hover:not(.locked) {
+        transform: none;
+    }
+}

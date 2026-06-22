@@ -1,0 +1,39 @@
+{# VIP upgrade / buy diamonds — include with optional compact=1 #}
+{% set _monthly = vip_monthly_cost_diamonds|default(80) %}
+{% set _lifetime = vip_lifetime_cost_diamonds|default(250) %}
+{% set _vip_next = vip_next_url|default(url_for('main.chat_room', room_name='vip')) %}
+<div class="gop-vip-upsell{% if compact %} gop-vip-upsell--compact{% endif %}">
+    {% if not compact %}
+    <div class="text-gold font-weight-bold mb-2"><i class="fas fa-crown mr-2"></i>{{ _('ترقية VIP') }}</div>
+    {% endif %}
+    <div class="d-flex flex-wrap align-items-center">
+        <a href="{{ url_for('main.chat_room', room_name='vip') }}" class="btn btn-outline-gold mr-2 mb-2">
+            <i class="fas fa-comments"></i> {{ _('غرفة VIP') }}
+        </a>
+        {% if current_user.is_authenticated %}
+            {% if not is_vip %}
+            <form method="POST" action="{{ url_for('main.chat_vip_upgrade') }}" class="mr-2 mb-2">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <input type="hidden" name="plan" value="monthly">
+                <button type="submit" class="btn btn-gold btn-sm">
+                    <i class="fas fa-crown"></i> {{ _('شهري') }} ({{ _monthly }} {{ _('ماس') }})
+                </button>
+            </form>
+            <form method="POST" action="{{ url_for('main.chat_vip_upgrade') }}" class="mr-2 mb-2">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <input type="hidden" name="plan" value="lifetime">
+                <button type="submit" class="btn btn-outline-gold btn-sm">
+                    <i class="fas fa-gem"></i> {{ _('مدى الحياة') }} ({{ _lifetime }})
+                </button>
+            </form>
+            {% endif %}
+            <a href="{{ url_for('main.buy_diamonds', next=_vip_next) }}" class="btn btn-outline-light mr-2 mb-2">
+                <i class="fas fa-gem"></i> {{ _('شراء الماس') }}
+            </a>
+        {% else %}
+            <a href="{{ url_for('main.login', next=_vip_next) }}" class="btn btn-outline-light mb-2">
+                <i class="fas fa-sign-in-alt"></i> {{ _('سجل للترقية') }}
+            </a>
+        {% endif %}
+    </div>
+</div>

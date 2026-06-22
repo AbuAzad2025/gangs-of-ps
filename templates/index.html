@@ -378,12 +378,6 @@
 {% endblock %}
 
 {% block scripts %}
-{% if jasmin %}
-    {% with hostess=jasmin %}
-        {% include 'includes/hostess_widget.html' %}
-    {% endwith %}
-{% endif %}
-
 <!-- Buy Code Modal -->
 <div class="modal fade" id="buyCodeModal" tabindex="-1" role="dialog" aria-labelledby="buyCodeModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered" role="document">

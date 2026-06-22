@@ -1,9 +1,17 @@
-from flask import render_template, redirect, url_for, flash, request
+from flask import render_template, redirect, url_for, flash, request, current_app
 from flask_login import login_required, current_user
-from extensions import db
+from extensions import db, csrf
 from models import PaymentTransaction
 from forms.payment import ManualPaymentForm
 from flask_babel import _
+from services.resource_service import ResourceService
+from services.stripe_service import (
+    DIAMOND_PACKAGES,
+    create_checkout_session,
+    get_publishable_key,
+    handle_webhook_payload,
+    stripe_enabled,
+)
 from . import bp
 import uuid
 
@@ -57,11 +65,101 @@ def buy_diamonds():
             return redirect(next_url)
         return redirect(url_for('main.hara'))
 
+    stripe_msg = None
+    if request.args.get('stripe') == 'success':
+        stripe_msg = _('تم الدفع! ستُضاف الماسات خلال ثوانٍ بعد تأكيد Stripe.')
+    elif request.args.get('stripe') == 'cancel':
+        stripe_msg = _('تم إلغاء الدفع.')
+
     return render_template(
         'buy_diamonds.html',
         title=_('شراء الماس'),
         form=form,
-        next_url=next_url)
+        next_url=next_url,
+        stripe_enabled=stripe_enabled(),
+        stripe_publishable_key=get_publishable_key(),
+        diamond_packages=DIAMOND_PACKAGES,
+        stripe_message=stripe_msg,
+    )
+
+
+@bp.route('/stripe/checkout', methods=['POST'])
+@login_required
+def stripe_checkout():
+    if not stripe_enabled():
+        flash(_('الدفع الإلكتروني غير مفعّل حالياً.'), 'warning')
+        return redirect(url_for('main.buy_diamonds'))
+
+    package_key = (request.form.get('package') or '').strip()
+    next_url = _sanitize_next_url(request.form.get('next') or '')
+    success_url = url_for('main.buy_diamonds', _external=True)
+    cancel_url = url_for('main.buy_diamonds', _external=True)
+
+    checkout_url, err = create_checkout_session(
+        current_user.id,
+        package_key,
+        success_url,
+        cancel_url,
+    )
+    if err or not checkout_url:
+        flash(_('تعذّر بدء الدفع: %(err)s', err=err or _('خطأ غير معروف')), 'danger')
+        return redirect(url_for('main.buy_diamonds', next=next_url))
+
+    return redirect(checkout_url)
+
+
+@bp.route('/stripe/webhook', methods=['POST'])
+@csrf.exempt
+def stripe_webhook():
+    if not stripe_enabled():
+        return {'ok': False}, 400
+
+    payload = request.get_data()
+    sig = request.headers.get('Stripe-Signature', '')
+    result = handle_webhook_payload(payload, sig)
+    if not result.get('ok'):
+        current_app.logger.warning("Stripe webhook error: %s", result.get('error'))
+        return {'ok': False}, 400
+    if result.get('ignored'):
+        return {'ok': True}, 200
+
+    user_id = int(result.get('user_id') or 0)
+    diamonds = int(result.get('diamonds') or 0)
+    if user_id <= 0 or diamonds <= 0:
+        return {'ok': False, 'error': 'invalid metadata'}, 400
+
+    session_id = result.get('session_id') or ''
+    if session_id:
+        existing = PaymentTransaction.query.filter_by(
+            transaction_id=session_id,
+        ).first()
+        if existing and existing.is_verified:
+            return {'ok': True}, 200
+
+    if not ResourceService.modify_resources(
+        user_id,
+        {'diamonds': diamonds},
+        'stripe_checkout',
+        auto_commit=False,
+        expected_version=None,
+    ):
+        db.session.rollback()
+        return {'ok': False}, 500
+
+    if session_id:
+        tx = PaymentTransaction(
+            user_id=user_id,
+            amount_usd=0,
+            diamonds_amount=diamonds,
+            transaction_id=session_id,
+            status='completed',
+            payment_method='stripe',
+            payment_proof='stripe webhook',
+            is_verified=True,
+        )
+        db.session.add(tx)
+    db.session.commit()
+    return {'ok': True}, 200
 
 # Secure or remove the debug route
 # @bp.route('/process_payment/<int:amount>')

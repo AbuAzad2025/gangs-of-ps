@@ -12,6 +12,7 @@ import pandas as pd
 from services.resource_service import ResourceService
 from services.market_simulation import MarketSimulationService
 from utils.decorators import check_player_status
+from routes.utils import track_academy_visit
 
 bp = Blueprint('market', __name__, url_prefix='/market')
 
@@ -323,6 +324,7 @@ def get_prices():
 @login_required
 def index():
     update_market_prices()
+    track_academy_visit(current_user, 'market_visit')
 
     allowed = MarketSimulationService.allowed_symbols()
     assets = MarketAsset.query.filter(MarketAsset.symbol.in_(allowed)).all()

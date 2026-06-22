@@ -1,0 +1,32 @@
+{# expects `health` dict from compute_economy_health #}
+{% if health %}
+<div class="economy-health-panel economy-mini-widget mb-3 fade-in-up">
+    <div class="d-flex align-items-center justify-content-between mb-2">
+        <h6 class="text-gold mb-0 font-weight-bold">
+            <i class="fas fa-chart-pie mr-1"></i> {{ _('صحة اقتصادك') }}
+        </h6>
+        <a href="{{ url_for('economy.academy') }}" class="small text-muted">{{ _('التفاصيل') }}</a>
+    </div>
+    <div class="d-flex align-items-center mb-3">
+        <div class="score-ring text-{{ health.status }} mr-3">{{ health.score }}</div>
+        <div class="flex-grow-1">
+            <div class="text-white font-weight-bold">{{ health.label }}</div>
+            <div class="text-muted small">{{ _('إجمالي') }}: {{ "{:,}".format(health.total) }}$</div>
+        </div>
+    </div>
+    <div class="economy-allocation-bar mb-2" title="{{ _('كاش') }} / {{ _('بنك') }}">
+        <div class="seg-cash" style="width: {{ health.cash_pct }}%;"></div>
+        <div class="seg-bank" style="width: {{ health.bank_pct }}%;"></div>
+    </div>
+    <div class="d-flex justify-content-between small text-muted mb-2">
+        <span><i class="fas fa-wallet text-warning mr-1"></i> {{ health.cash_pct }}% {{ _('كاش') }}</span>
+        <span><i class="fas fa-university text-success mr-1"></i> {{ health.bank_pct }}% {{ _('بنك') }}</span>
+    </div>
+    {% if health.daily_sink > 0 %}
+    <div class="alert alert-dark border border-danger py-2 px-2 mb-0 small">
+        <i class="fas fa-exclamation-triangle text-danger mr-1"></i>
+        {{ _('تخسر تقريباً %(amt)s$ يومياً (رسوم + صيانة)', amt="{:,}".format(health.daily_sink)) }}
+    </div>
+    {% endif %}
+</div>
+{% endif %}

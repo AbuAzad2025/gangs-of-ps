@@ -42,6 +42,14 @@ from utils.decorators import check_player_status
 _broadcast_cache = {}
 
 
+def _world_money_bonus(amount):
+    try:
+        from services.world_event_service import apply_world_event_money_bonus
+        return apply_world_event_money_bonus(amount)
+    except Exception:
+        return int(amount or 0)
+
+
 @bp.route('/organized_crimes')
 @limiter.limit("30 per minute")
 def organized_crimes():
@@ -356,12 +364,15 @@ def _expire_lobby_if_needed(lobby):
 @bp.route('/daily_tasks')
 @login_required
 def daily_tasks():
+    from services.economy_academy import ECONOMY_TASK_PREFIX
+
     user_tasks = sync_daily_tasks(current_user)
     onboarding_day = get_onboarding_day(current_user)
     return render_template(
         'daily_tasks.html',
         tasks=user_tasks,
         onboarding_day=onboarding_day,
+        economy_task_prefix=ECONOMY_TASK_PREFIX,
     )
 
 
@@ -486,6 +497,7 @@ def daily_reward():
     streak_multiplier = 1.0 + (min(6, streak - 1) * 0.10)
 
     money_reward = int(base_money * streak_multiplier)
+    money_reward = _world_money_bonus(money_reward)
     energy_reward = int(min(40, base_energy + (min(10, streak - 1) * 2)))
     exp_reward = int(base_exp * streak_multiplier)
     diamonds_reward = 0
@@ -555,6 +567,8 @@ def daily_reward():
 @bp.route('/hara')
 @login_required
 def hara():
+    from services.economy_academy import compute_economy_health
+
     announcements = Announcement.query.filter_by(
         is_active=True).order_by(
         Announcement.created_at.desc()).limit(3).all()
@@ -623,6 +637,7 @@ def hara():
         user=current_user,
         announcements=announcements,
         daily_reward_meta=daily_reward_meta,
+        economy_health=compute_economy_health(current_user),
         page_container_class='')
 
 
@@ -687,6 +702,10 @@ def empire():
 
     gang = current_user.gang
 
+    from services.empire_service import get_empire_dashboard
+    dashboard = get_empire_dashboard(
+        current_user, heat=current_heat, gang=gang)
+
     return render_template(
         'empire.html',
         user=current_user,
@@ -698,7 +717,30 @@ def empire():
         smuggling_items=smuggling_items,
         current_heat=current_heat,
         gang=gang,
+        dashboard=dashboard,
         title=_('إمبراطوريتك'),
+    )
+
+
+@bp.route('/season')
+@login_required
+def season():
+    from services.season_service import (
+        ensure_season_active,
+        get_current_season,
+        get_season_leaderboard,
+        get_user_season_rank,
+    )
+
+    season_info = ensure_season_active()
+    leaders = get_season_leaderboard(15)
+    my_rank = get_user_season_rank(current_user.id)
+    return render_template(
+        'season/index.html',
+        title=_('الموسم الحالي'),
+        season=season_info,
+        leaders=leaders,
+        my_rank=my_rank,
     )
 
 
@@ -1268,6 +1310,8 @@ def do_crime(crime_id):
             # Soft Anti-Cheat: Reduce rewards
             money = int(money * 0.6)
             xp_reward = int(xp_reward * 0.5)
+
+        money = _world_money_bonus(money)
 
         story_item_name = None
         story_item_condition = None
@@ -2458,6 +2502,8 @@ def research_center():
             elif ps == "fighter":
                 exp_reward = int(exp_reward * 1.08)
 
+            money_reward = _world_money_bonus(money_reward)
+
             gain_intel = 0
             if random.random() < 0.15:
                 gain_intel = 1
@@ -3625,6 +3671,7 @@ def start_heist(lobby_id):
                     _("🎁 مفاجأة نادرة! حصل الفريق على مكافآت إضافية بفضل فرصة ذهبية."))
         except Exception:
             pass
+        reward_money = _world_money_bonus(reward_money)
         total_reward = reward_money
 
         # Distribute

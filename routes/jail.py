@@ -447,7 +447,7 @@ def self_escape():
                 details=f'Energy {energy_cost}, Money {money_cost}'))
         db.session.commit()
         flash(_('نجحت بخطف لحظة فوضى والهروب من السجن!'), 'success')
-        return redirect(url_for('main.index'))
+        return redirect(url_for('main.index', fx='escape_success'))
 
     penalty_minutes = random.randint(
         penalty_min, penalty_max) if penalty_max > 0 else 0
@@ -491,10 +491,7 @@ def self_escape():
         ]),
         'danger',
     )
-    return redirect(url_for('jail.index'))
-
-
-@bp.route('/gilboa_escape', methods=['POST'])
+    return redirect(url_for('jail.index', fx='escape_fail'))
 @login_required
 @limiter.limit("4 per minute")
 def gilboa_escape():
@@ -602,7 +599,7 @@ def gilboa_escape():
                 details=f'Energy {energy_cost}, Diamonds {diamond_cost}'))
         db.session.commit()
         flash(_('نجحت مغامرة جلبوع! خرجت من السجن رغم التشديد.'), 'success')
-        return redirect(url_for('main.index'))
+        return redirect(url_for('main.index', fx='escape_success'))
 
     penalty_minutes = random.randint(
         penalty_min, penalty_max) if penalty_max > 0 else 0
@@ -635,10 +632,7 @@ def gilboa_escape():
     flash(
         _('فشلت مغامرة جلبوع. تم تشديد الإجراءات وزادت عقوبتك %(min)s دقيقة.'),
         'danger')
-    return redirect(url_for('jail.index'))
-
-
-@bp.route('/self_bail', methods=['POST'])
+    return redirect(url_for('jail.index', fx='escape_fail'))
 @login_required
 @limiter.limit("6 per minute")
 def self_bail():
@@ -704,7 +698,7 @@ def self_bail():
             details=f'Paid {diamond_cost} diamonds'))
     db.session.commit()
     flash(_('تمت الكفالة بالماس. أنت حر الآن.'), 'success')
-    return redirect(url_for('main.index'))
+    return redirect(url_for('main.index', fx='escape_success'))
 
 
 @bp.route('/riot', methods=['POST'])
@@ -1266,7 +1260,7 @@ def bribe():
 
         flash(_('تم دفع الرشوة بنجاح! أنت حر الآن.%(msg)s',
               msg=discount_msg), 'success')
-        return redirect(url_for('main.index'))
+        return redirect(url_for('main.index', fx='escape_success'))
     else:
         flash(_('ليس لديك مال كافٍ لدفع الرشوة! تحتاج %(cost)s$.%(msg)s',
               cost=bribe_cost, msg=discount_msg), 'danger')

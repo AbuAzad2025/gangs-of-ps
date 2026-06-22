@@ -11,6 +11,7 @@ from models.location import Location
 from models.contract import FarmSupplyContract
 from services.requirements import check_requirements
 from services.resource_service import ResourceService
+from routes.utils import track_academy_visit
 
 
 bp = Blueprint('farm', __name__, url_prefix='/farm')
@@ -241,6 +242,7 @@ def _add_user_item(user_id, item, qty):
 @bp.route('/')
 @login_required
 def index():
+    track_academy_visit(current_user, 'farm_visit')
     cfg = _get_farm_config()
     fcfg = _get_facilities_config()
     lvl = _effective_level(current_user)

@@ -620,6 +620,7 @@ def initialize_daily_tasks():
 
         description = str(description).strip()
         is_onboarding = description.startswith("أسبوع أول - يوم ")
+        is_economy_academy = description.startswith("مدرسة الحارة - يوم ")
 
         candidates = DailyTask.query.filter_by(
             target_type=target_type,
@@ -628,7 +629,7 @@ def initialize_daily_tasks():
         ).all()
 
         task = DailyTask.query.filter_by(description=description).first()
-        if not task and not is_onboarding and candidates:
+        if not task and not is_onboarding and not is_economy_academy and candidates:
             task = candidates[0]
 
         if not task:
@@ -645,7 +646,7 @@ def initialize_daily_tasks():
             inserted += 1
             continue
 
-        if not is_onboarding:
+        if not is_onboarding and not is_economy_academy:
             for other in candidates:
                 if other.id == task.id:
                     continue

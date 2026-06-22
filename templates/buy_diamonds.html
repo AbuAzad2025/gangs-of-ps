@@ -22,6 +22,32 @@
                         <span class="text-light">{{ _('يرجى تحويل المبلغ المطلوب إلى أحد الحسابات التالية، ثم تعبئة النموذج أسفل الصفحة لتأكيد العملية.') }}</span>
                     </div>
 
+                    {% if stripe_message %}
+                    <div class="alert alert-info text-center">{{ stripe_message }}</div>
+                    {% endif %}
+
+                    {% if stripe_enabled and diamond_packages %}
+                    <div class="mb-5">
+                        <h3 class="text-center gold-text-gradient mb-4">{{ _('دفع فوري (Stripe)') }}</h3>
+                        <div class="row text-center">
+                            {% for key, pkg in diamond_packages.items() %}
+                            <div class="col-6 col-md-3 mb-3">
+                                <form method="POST" action="{{ url_for('main.stripe_checkout') }}">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                    <input type="hidden" name="package" value="{{ key }}">
+                                    <input type="hidden" name="next" value="{{ next_url or '' }}">
+                                    <button type="submit" class="btn btn-outline-gold btn-block py-3">
+                                        <div class="font-weight-bold">${{ pkg.usd }}</div>
+                                        <div class="small text-muted">{{ pkg.diamonds }} {{ _('ماس') }}</div>
+                                    </button>
+                                </form>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    <hr class="border-gold opacity-50 my-5">
+                    {% endif %}
+
                     <div class="row text-center mb-5">
                         <div class="col-md-6 mb-4">
                             <div class="card h-100 bg-dark border-gold payment-card">

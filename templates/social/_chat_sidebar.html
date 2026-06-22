@@ -41,27 +41,32 @@
         </div>
 
         <div class="mb-4">
-            {% if current_user.is_authenticated %}
-                {% if current_user.role.value < 2 %}
+            <h6 class="text-gold mb-3 border-bottom border-secondary pb-2">{{ _('التواصل والمساعدة') }}</h6>
+            <div class="list-group list-group-flush mb-3">
+                <a href="{{ url_for('main.messenger') }}" class="list-group-item list-group-item-action bg-transparent text-light pl-0">
+                    <i class="fas fa-envelope text-info mr-2"></i> {{ _('رسائل خاصة') }}
+                </a>
+                <a href="{{ url_for('main.guide') }}" class="list-group-item list-group-item-action bg-transparent text-light pl-0">
+                    <i class="fas fa-book text-warning mr-2"></i> {{ _('دليل اللعبة') }}
+                </a>
+                <a href="{{ url_for('economy.academy') }}" class="list-group-item list-group-item-action bg-transparent text-light pl-0">
+                    <i class="fas fa-graduation-cap text-gold mr-2"></i> {{ _('مدرسة الحارة') }}
+                </a>
+                <button type="button" class="list-group-item list-group-item-action bg-transparent text-light pl-0 text-right border-0" data-gop-assistant-toggle>
+                    <i class="fas fa-sparkles text-gold mr-2"></i> {{ _('ياسمين — المساعدة') }}
+                </button>
+            </div>
+        </div>
+
+        <div class="mb-4">
+            {% if current_user.is_authenticated and not is_vip|default(false) %}
+                {% set compact = true %}
+                {% include 'includes/vip_chat_upsell.html' %}
+            {% elif not current_user.is_authenticated %}
                 <div class="card bg-transparent border border-warning" style="background: rgba(0,0,0,0.25);">
                     <div class="card-body py-3">
-                        <div class="text-gold font-weight-bold mb-2"><i class="fas fa-crown mr-2"></i>{{ _('ترقية VIP') }}</div>
-                        <a href="{{ url_for('main.chat_room', room_name='vip') }}" class="btn btn-outline-gold btn-block mb-2">
-                            <i class="fas fa-comments"></i> {{ _('تفاصيل VIP') }}
-                        </a>
-                        <a href="{{ url_for('main.buy_diamonds', next=url_for('main.chat_room', room_name='vip')) }}" class="btn btn-outline-light btn-block">
-                            <i class="fas fa-gem"></i> {{ _('شراء الماس') }}
-                        </a>
-                    </div>
-                </div>
-                {% endif %}
-            {% else %}
-                <div class="card bg-transparent border border-warning" style="background: rgba(0,0,0,0.25);">
-                    <div class="card-body py-3">
-                        <div class="text-gold font-weight-bold mb-2"><i class="fas fa-crown mr-2"></i>{{ _('VIP') }}</div>
-                        <a href="{{ url_for('main.login', next=url_for('main.chat_room', room_name='vip')) }}" class="btn btn-outline-light btn-block">
-                            <i class="fas fa-sign-in-alt"></i> {{ _('سجل دخولك للترقية') }}
-                        </a>
+                        {% set compact = true %}
+                        {% include 'includes/vip_chat_upsell.html' %}
                     </div>
                 </div>
             {% endif %}

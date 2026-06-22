@@ -152,6 +152,11 @@ def save_image(form_image, folder):
     return None
 
 
+def track_academy_visit(user, visit_type):
+    """Track economy academy page visits for daily lesson tasks."""
+    return update_daily_task_progress(user, visit_type)
+
+
 def update_daily_task_progress(user, target_type):
     """
     Updates progress for daily tasks based on target_type.
@@ -183,15 +188,13 @@ def update_daily_task_progress(user, target_type):
 
         updated_count = 0
         for user_task in tasks:
+            if user_task.progress >= user_task.task.target_count:
+                continue
             user_task.progress += 1
             updated_count += 1
 
-            # Auto-complete logic if needed, but usually user collects reward
-            # manually
             if user_task.progress >= user_task.task.target_count:
                 user_task.progress = user_task.task.target_count
-                # Optional: Mark as completed immediately if no manual collection is required
-                # But here we wait for collection.
 
         db.session.commit()
 
@@ -225,6 +228,7 @@ def sync_daily_tasks(user):
 
         onboarding_day = get_onboarding_day(user, today=today)
         prefix_any = "أسبوع أول - يوم "
+        economy_prefix_any = "مدرسة الحارة - يوم "
 
         # Fetch available tasks
         all_tasks = DailyTask.query.filter(
@@ -250,7 +254,11 @@ def sync_daily_tasks(user):
                 except Exception:
                     db.session.rollback()
         else:
-            all_tasks = [t for t in all_tasks if not (t.description or "").startswith(prefix_any)]
+            all_tasks = [
+                t for t in all_tasks
+                if not (t.description or "").startswith(prefix_any)
+                and not (t.description or "").startswith(economy_prefix_any)
+            ]
 
         # If no tasks exist in DB, try to initialize them (fallback)
         if not all_tasks:
@@ -292,6 +300,19 @@ def sync_daily_tasks(user):
                 if task.id not in selected_ids:
                     selected_tasks.append(task)
                     selected_ids.add(task.id)
+
+            if onboarding_day <= 5:
+                economy_prefix = f"{economy_prefix_any}{int(onboarding_day)}:"
+                economy_tasks = [
+                    t for t in all_tasks
+                    if (t.description or "").startswith(economy_prefix)
+                ]
+                economy_tasks.sort(key=lambda t: int(t.id or 0))
+                for task in economy_tasks:
+                    if task.id not in selected_ids:
+                        selected_tasks.append(task)
+                        selected_ids.add(task.id)
+                        break
         else:
             preferred_specs = [
                 ("buy", 3),

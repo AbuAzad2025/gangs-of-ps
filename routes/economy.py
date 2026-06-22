@@ -1,5 +1,5 @@
 from services.resource_service import ResourceService
-from flask import render_template, redirect, url_for, flash, Blueprint, abort
+from flask import render_template, redirect, url_for, flash, Blueprint, abort, request, jsonify
 from flask_login import login_required, current_user
 from flask_babel import _
 from extensions import db
@@ -356,3 +356,40 @@ def buy_gang_property(asset_id):
 def my_properties():
     assets = Asset.query.filter_by(owner_id=current_user.id).all()
     return render_template('my_properties.html', assets=assets)
+
+
+@bp.route('/academy')
+@login_required
+def academy():
+    from routes.utils import get_onboarding_day
+    from services.economy_academy import (
+        ACADEMY_LESSON_DAYS,
+        compute_economy_health,
+        get_lesson_progress,
+        get_peer_wealth_stats,
+        preview_bank_fee,
+    )
+
+    onboarding_day = get_onboarding_day(current_user)
+    return render_template(
+        'economy/academy.html',
+        title=_('مدرسة الحارة — أكاديمية الاقتصاد'),
+        health=compute_economy_health(current_user),
+        peers=get_peer_wealth_stats(current_user),
+        lessons=get_lesson_progress(current_user),
+        onboarding_day=onboarding_day,
+        academy_days=ACADEMY_LESSON_DAYS,
+        current_bank_fee=preview_bank_fee(current_user.bank_balance or 0),
+    )
+
+
+@bp.route('/academy/fee_preview')
+@login_required
+def academy_fee_preview():
+    try:
+        amount = int(request.args.get('amount', 0))
+    except (TypeError, ValueError):
+        amount = 0
+    from services.economy_academy import preview_bank_fee
+
+    return jsonify(preview_bank_fee(amount))

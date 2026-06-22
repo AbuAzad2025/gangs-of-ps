@@ -211,6 +211,56 @@
     </div>
 </div>
 
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card luxury-card">
+            {{ dev_card_header(_('الموسم والحدث العالمي'), icon_class='fas fa-globe', header_class='card-header luxury-header', title_class='mb-0 text-gold') }}
+            <div class="card-body bg-dark">
+                <form action="{{ url_for('main.dev_world_season') }}" method="POST">
+                    {{ csrf_input() }}
+                    <div class="form-row">
+                        <div class="form-group col-md-3">
+                            <label class="text-white">{{ _('تفعيل الحدث العالمي') }}</label>
+                            <div class="custom-control custom-switch mt-2">
+                                <input type="checkbox" class="custom-control-input" id="world_event_active" name="world_event_active" {% if world_event_active %}checked{% endif %}>
+                                <label class="custom-control-label text-muted" for="world_event_active">{{ _('مفعّل') }}</label>
+                            </div>
+                        </div>
+                        <div class="form-group col-md-3">
+                            <label class="text-white">{{ _('عنوان الحدث') }}</label>
+                            <input type="text" name="world_event_title" class="form-control form-control-luxury" value="{{ world_event_title }}">
+                        </div>
+                        <div class="form-group col-md-3">
+                            <label class="text-white">{{ _('مكافأة مال (%)') }}</label>
+                            <input type="number" min="0" max="200" step="1" name="world_event_money_bonus_pct" class="form-control form-control-luxury" value="{{ world_event_money_bonus_pct }}">
+                        </div>
+                        <div class="form-group col-md-3">
+                            <label class="text-white">{{ _('انتهاء الحدث (ISO)') }}</label>
+                            <input type="text" name="world_event_ends_at" class="form-control form-control-luxury" value="{{ world_event_ends_at }}" placeholder="2026-07-01T00:00:00+00:00">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="text-white">{{ _('وصف الحدث') }}</label>
+                        <input type="text" name="world_event_description" class="form-control form-control-luxury" value="{{ world_event_description }}">
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group col-md-6">
+                            <label class="text-white">{{ _('اسم الموسم') }}</label>
+                            <input type="text" name="current_season_name" class="form-control form-control-luxury" value="{{ current_season_name }}">
+                        </div>
+                        <div class="form-group col-md-6">
+                            <label class="text-white">{{ _('انتهاء الموسم (ISO)') }}</label>
+                            <input type="text" name="season_ends_at" class="form-control form-control-luxury" value="{{ season_ends_at }}">
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-gold font-weight-bold">{{ _('حفظ') }}</button>
+                    <a href="{{ url_for('main.dev_settings') }}" class="btn btn-outline-light ml-2">{{ _('كل الإعدادات') }}</a>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- Economy Stats -->
 <div class="row mb-4">
     <div class="col-md-4">

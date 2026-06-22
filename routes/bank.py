@@ -6,6 +6,7 @@ from models.user import User
 from datetime import datetime, timezone
 from decorators import check_maintenance, player_only
 from services.resource_service import ResourceService
+from routes.utils import track_academy_visit, update_daily_task_progress
 
 bp = Blueprint('bank', __name__, url_prefix='/bank')
 
@@ -13,7 +14,23 @@ bp = Blueprint('bank', __name__, url_prefix='/bank')
 @bp.route('/')
 @login_required
 def index():
-    return render_template('bank.html', user=current_user)
+    from services.economy_academy import (
+        compute_economy_health,
+        get_lesson_for_day,
+        preview_bank_fee,
+    )
+    from routes.utils import get_onboarding_day
+
+    track_academy_visit(current_user, 'bank_visit')
+    onboarding_day = get_onboarding_day(current_user)
+    lesson = get_lesson_for_day(1) if onboarding_day == 1 else None
+    return render_template(
+        'bank.html',
+        user=current_user,
+        economy_health=compute_economy_health(current_user),
+        bank_fee_preview=preview_bank_fee(current_user.bank_balance or 0),
+        academy_lesson=lesson,
+    )
 
 
 @bp.route('/deposit', methods=['POST'])
@@ -71,7 +88,8 @@ def deposit():
         return redirect(url_for('bank.index'))
 
     flash(_('تم إيداع %(amount)s في البنك.', amount=amount), 'success')
-    return redirect(url_for('bank.index'))
+    update_daily_task_progress(current_user, 'bank_deposit')
+    return redirect(url_for('bank.index', fx='deposit', amt=amount))
 
 
 @bp.route('/withdraw', methods=['POST'])
@@ -129,7 +147,7 @@ def withdraw():
         return redirect(url_for('bank.index'))
 
     flash(_('تم سحب %(amount)s من البنك.', amount=amount), 'success')
-    return redirect(url_for('bank.index'))
+    return redirect(url_for('bank.index', fx='withdraw', amt=amount))
 
 
 @bp.route('/transfer', methods=['POST'])
@@ -235,4 +253,4 @@ def transfer():
 
     flash(_('تم تحويل %(amount)s إلى %(name)s بنجاح.',
           amount=amount, name=recipient.username), 'success')
-    return redirect(url_for('bank.index'))
+    return redirect(url_for('bank.index', fx='transfer', amt=amount))

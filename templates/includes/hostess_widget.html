@@ -1,255 +1,76 @@
 {% if hostess %}
-<!-- Hostess Chat Widget (Enhanced UI) -->
 {% set hostess_img = hostess.image_path %}
-<div id="hostess-chat-widget" class="hostess-widget-container shadow-lg fade-in">
-    
-    <!-- Header -->
-    <div class="d-flex justify-content-between align-items-center py-3 px-3 hostess-header">
-        <div class="d-flex align-items-center">
-            <div class="position-relative">
-                {% if hostess.is_avatar_active and hostess.video %}
-                {% if hostess.video.endswith('.gif') %}
-                  <img src="{{ url_for('static', filename='videos/hostesses/' + hostess.video) }}" class="rounded-circle border border-gold hostess-avatar-sm">
-                {% else %}
-                  <video autoplay loop muted playsinline class="rounded-circle border border-gold hostess-avatar-sm">
-                      <source src="{{ url_for('static', filename='videos/hostesses/' + hostess.video) }}" type="video/mp4">
-                  </video>
-                {% endif %}
-                {% else %}
-                <img src="{{ url_for('static', filename='images/' + hostess_img) }}" class="rounded-circle border border-gold hostess-avatar-sm" onerror="this.onerror=null; this.src='{{ url_for('static', filename='images/hostesses/default_hostess.jpg') }}';">
-                {% endif %}
-                <span class="position-absolute bottom-0 right-0 bg-success border border-dark rounded-circle hostess-status-dot"></span>
-            </div>
-            <div class="ml-3">
-                <span class="text-white font-weight-bold d-block fs-1-1">{{ hostess.name }}</span>
-                <small class="text-gold fs-0-8"><i class="fas fa-sparkles mr-1"></i> {{ _('متصلة الآن') }}</small>
-            </div>
-        </div>
-        <div class="d-flex align-items-center">
-            <span class="badge badge-dark text-muted mr-2 fs-0-7">EN / AR</span>
-            <button type="button" class="btn btn-sm text-white-50 hover-text-white rounded-circle p-1 w-30px h-30px" onclick="toggleHostessChat()" aria-label="{{ _('إغلاق المحادثة') }}">
-                <i class="fas fa-times"></i>
-            </button>
-        </div>
-    </div>
-
-    <!-- Body -->
-    <div class="chat-body p-3 flex-grow-1 hostess-chat-body" id="chat-messages">
-        
-        <div class="text-center mb-3">
-            <small class="text-muted fs-0-7">{{ _('اليوم') }}</small>
-        </div>
-
-        <!-- Initial Greeting -->
-        <div class="message received mb-3 fade-in">
-            <div class="d-flex align-items-end">
-                <img src="{{ url_for('static', filename='images/' + hostess_img) }}" class="rounded-circle mr-2 shadow-sm w-30px h-30px object-fit-cover" onerror="this.onerror=null; this.src='{{ url_for('static', filename='images/hostesses/default_hostess.jpg') }}';">
-                <div class="bg-dark border border-secondary p-3 text-white shadow-sm hostess-msg-bubble-received">
-                    {{ _(hostess.intro_message).replace('\n', '<br>')|safe if hostess.intro_message else _('أهلاً! أنا ياسمين. كيف بقدر أساعدك اليوم؟ 🌹') }}
+<div id="gop-assistant-root"
+     data-hostess-id="{{ hostess.id }}"
+     data-api-url="{{ url_for('main.assistant_chat') }}">
+    <template id="gop-assistant-avatar-tpl">{% include 'includes/_assistant_avatar_snippet.html' %}</template>
+    <div id="gop-assistant-widget" class="hostess-widget-container shadow-lg fade-in" style="display: none;">
+        <div class="d-flex justify-content-between align-items-center py-3 px-3 hostess-header">
+            <div class="d-flex align-items-center">
+                <div class="position-relative">
+                    {% if hostess.is_avatar_active and hostess.video %}
+                    {% if hostess.video.endswith('.gif') %}
+                      <img src="{{ url_for('static', filename='videos/hostesses/' + hostess.video) }}" class="rounded-circle border border-gold hostess-avatar-sm">
+                    {% else %}
+                      <video autoplay loop muted playsinline class="rounded-circle border border-gold hostess-avatar-sm">
+                          <source src="{{ url_for('static', filename='videos/hostesses/' + hostess.video) }}" type="video/mp4">
+                      </video>
+                    {% endif %}
+                    {% else %}
+                    <img src="{{ url_for('static', filename='images/' + hostess_img) }}" class="rounded-circle border border-gold hostess-avatar-sm" onerror="this.onerror=null; this.src='{{ url_for('static', filename='images/hostesses/default_hostess.jpg') }}';">
+                    {% endif %}
+                    <span class="position-absolute bottom-0 right-0 bg-success border border-dark rounded-circle hostess-status-dot"></span>
+                </div>
+                <div class="ml-3">
+                    <span class="text-white font-weight-bold d-block fs-1-1">{{ hostess.name }}</span>
+                    <small class="text-gold fs-0-8"><i class="fas fa-sparkles mr-1"></i> {{ _('مساعدتك في اللعبة') }}</small>
                 </div>
             </div>
-        </div>
-    </div>
-
-    <!-- Footer -->
-    <div class="chat-footer p-3 hostess-footer">
-        <div class="input-group bg-dark rounded-pill border border-secondary overflow-hidden shadow-inset hostess-input-group">
-            <input type="text" id="chat-input" class="form-control bg-transparent text-white border-0 px-3 py-2 box-shadow-none" 
-                   placeholder="{{ _('اكتبي رسالتك...') }}" onkeypress="handleEnter(event)">
-            <div class="input-group-append">
-                <button class="btn text-gold px-3 transition-02" onclick="sendPublicMessage()">
-                    <i class="fas fa-paper-plane"></i>
+            <div class="d-flex align-items-center">
+                <a href="{{ url_for('main.guide') }}" class="btn btn-sm btn-outline-gold mr-1" title="{{ _('الدليل') }}"><i class="fas fa-book"></i></a>
+                <a href="{{ url_for('economy.academy') }}" class="btn btn-sm btn-outline-gold mr-2" title="{{ _('مدرسة الحارة') }}"><i class="fas fa-graduation-cap"></i></a>
+                <button type="button" class="btn btn-sm text-white-50 hover-text-white rounded-circle p-1 w-30px h-30px" data-gop-assistant-toggle aria-label="{{ _('إغلاق') }}">
+                    <i class="fas fa-times"></i>
                 </button>
             </div>
         </div>
-        <div class="text-center mt-2">
-            <small class="text-muted fs-0-65 opacity-70">Powered by Gangs AI &trade;</small>
+
+        <div class="chat-body p-3 flex-grow-1 hostess-chat-body" id="gop-assistant-messages">
+            <div class="text-center mb-3"><small class="text-muted fs-0-7">{{ _('اليوم') }}</small></div>
+            <div class="message received mb-3 fade-in">
+                <div class="d-flex align-items-end">
+                    {% include 'includes/_assistant_avatar_snippet.html' with context %}
+                    <div class="bg-dark border border-secondary p-3 text-white shadow-sm hostess-msg-bubble-received">
+                        {{ _(hostess.intro_message).replace('\n', '<br>')|safe if hostess.intro_message else _('أهلاً! أنا ياسمين. اسأليني عن القواعد، الاقتصاد، أو ماذا تفعل اليوم؟ 🌹') }}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="chat-footer p-3 hostess-footer">
+            <div class="input-group bg-dark rounded-pill border border-secondary overflow-hidden shadow-inset hostess-input-group">
+                <input type="text" id="gop-assistant-input" class="form-control bg-transparent text-white border-0 px-3 py-2 box-shadow-none"
+                       placeholder="{{ _('اكتب سؤالك...') }}">
+                <div class="input-group-append">
+                    <button type="button" id="gop-assistant-send" class="btn text-gold px-3 transition-02">
+                        <i class="fas fa-paper-plane"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="text-center mt-2">
+                <div class="d-flex flex-wrap justify-content-center mb-2" style="gap: .25rem;">
+                    <button type="button" class="btn btn-xs btn-outline-gold btn-sm" data-gop-assistant-prompt="{{ _('كيف أبدأ؟')|e }}">{{ _('بداية سريعة') }}</button>
+                    <button type="button" class="btn btn-xs btn-outline-gold btn-sm" data-gop-assistant-prompt="{{ _('اشرح الاقتصاد')|e }}">{{ _('الاقتصاد') }}</button>
+                    <a href="{{ url_for('economy.academy') }}" class="btn btn-xs btn-outline-light btn-sm">{{ _('مدرسة الحارة') }}</a>
+                </div>
+                <small class="text-muted fs-0-65 opacity-70">{{ _('دردشة اللاعبين') }} · <a href="{{ url_for('main.chat_lobby') }}" class="text-gold">{{ _('مركز التواصل') }}</a></small>
+            </div>
         </div>
     </div>
-    <!-- Hidden CSRF Token if not present in page -->
-    {% if not csrf_token_present %}
-    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-    {% endif %}
+
+    <button type="button" data-gop-assistant-toggle class="btn btn-gold rounded-circle shadow-lg pulse-btn hostess-trigger-btn" aria-label="{{ _('ياسمين — المساعدة') }}">
+        <img src="{{ url_for('static', filename='images/' + hostess_img) }}" class="rounded-circle w-100 h-100 object-fit-cover" alt="{{ hostess.name }}"
+             onerror="this.onerror=null; this.src='{{ url_for('static', filename='images/hostesses/default_hostess.jpg') }}';">
+    </button>
 </div>
-
-<!-- Floating Trigger Button (If not triggered by other means) -->
-<button onclick="toggleHostessChat()" class="btn btn-gold rounded-circle shadow-lg pulse-btn hostess-trigger-btn">
-    <img src="{{ url_for('static', filename='images/' + hostess_img) }}" class="rounded-circle w-100 h-100 object-fit-cover" onerror="this.onerror=null; this.src='{{ url_for('static', filename='images/hostesses/default_hostess.jpg') }}';">
-</button>
-
-<script>
-    const hostessAvatarHtml = `
-    {% if hostess.is_avatar_active and hostess.video %}
-    {% if hostess.video.endswith('.gif') %}
-    <img src="{{ url_for('static', filename='videos/hostesses/' + hostess.video) }}" class="rounded-circle mr-2 shadow-sm w-30px h-30px object-fit-cover">
-    {% else %}
-    <video autoplay loop muted playsinline class="rounded-circle mr-2 shadow-sm w-30px h-30px object-fit-cover">
-        <source src="{{ url_for('static', filename='videos/hostesses/' + hostess.video) }}" type="video/mp4">
-    </video>
-    {% endif %}
-    {% else %}
-    <img src="{{ url_for('static', filename='images/' + hostess_img) }}" class="rounded-circle mr-2 shadow-sm w-30px h-30px object-fit-cover" onerror="this.onerror=null; this.src='{{ url_for('static', filename='images/hostesses/default_hostess.jpg') }}';">
-    {% endif %}
-    `;
-
-    function toggleHostessChat() {
-        var widget = document.getElementById('hostess-chat-widget');
-        var display = widget.style.display || (window.getComputedStyle ? window.getComputedStyle(widget).display : '');
-        if (display === 'none') {
-            widget.style.display = 'flex';
-            widget.style.opacity = '0';
-            widget.style.transform = 'scale(0.9) translateY(20px)';
-            
-            setTimeout(() => {
-                widget.style.opacity = '1';
-                widget.style.transform = 'scale(1) translateY(0)';
-            }, 10);
-            
-            // Focus input
-            setTimeout(() => document.getElementById('chat-input').focus(), 300);
-        } else {
-            widget.style.opacity = '0';
-            widget.style.transform = 'scale(0.9) translateY(20px)';
-            setTimeout(() => {
-                widget.style.display = 'none';
-            }, 300);
-        }
-    }
-
-    function handleEnter(e) {
-        if (e.key === 'Enter') {
-            sendPublicMessage();
-        }
-    }
-
-    async function sendPublicMessage() {
-        const input = document.getElementById('chat-input');
-        const message = input.value.trim();
-        if (!message) return;
-
-        // Add user message
-        const chatBody = document.getElementById('chat-messages');
-        const userMsgHtml = `
-            <div class="message sent mb-3 fade-in text-right">
-                <div class="p-3 text-white shadow-sm d-inline-block text-left hostess-msg-bubble-sent">
-                    ${escapeHtml(message)}
-                </div>
-            </div>
-        `;
-        chatBody.insertAdjacentHTML('beforeend', userMsgHtml);
-        input.value = '';
-        scrollToBottom();
-
-        // Show typing indicator
-        const typingId = 'typing-' + Date.now();
-        const typingHtml = `
-            <div id="${typingId}" class="message received mb-3 fade-in">
-                <div class="d-flex align-items-end">
-                    ${hostessAvatarHtml}
-                    <div class="bg-dark border border-secondary p-3 text-white shadow-sm hostess-msg-bubble-received">
-                        <div class="typing-dots">
-                            <span></span><span></span><span></span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        `;
-        chatBody.insertAdjacentHTML('beforeend', typingHtml);
-        scrollToBottom();
-
-        try {
-            let csrfToken = '';
-            const csrfMeta = document.querySelector('meta[name="csrf-token"]');
-            if (csrfMeta) {
-                csrfToken = csrfMeta.getAttribute('content') || '';
-            }
-            if (!csrfToken) {
-                const csrfInput = document.querySelector('input[name="csrf_token"]');
-                if (csrfInput) {
-                    csrfToken = csrfInput.value;
-                }
-            }
-            
-            const response = await fetch('/api/public/chat', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRFToken': csrfToken
-                },
-                body: JSON.stringify({
-                    message: message,
-                    hostess_id: {{ hostess.id }}
-                })
-            });
-
-            let data = null;
-            try {
-                data = await response.json();
-            } catch (e) {
-                data = null;
-            }
-            
-            // Remove typing indicator
-            const typingEl = document.getElementById(typingId);
-            if (typingEl) typingEl.remove();
-
-            if (response.ok && data && data.response) {
-                const botMsgHtml = `
-                    <div class="message received mb-3 fade-in">
-                        <div class="d-flex align-items-end">
-                            ${hostessAvatarHtml}
-                            <div class="bg-dark border border-secondary p-3 text-white shadow-sm hostess-msg-bubble-received">
-                                ${data.response.replace(/\n/g, '<br>')}
-                            </div>
-                        </div>
-                    </div>
-                `;
-                chatBody.insertAdjacentHTML('beforeend', botMsgHtml);
-            } else if (data && data.error) {
-                 const errorHtml = `
-                    <div class="message received mb-3 fade-in">
-                        <small class="text-danger">${data.error}</small>
-                    </div>
-                `;
-                chatBody.insertAdjacentHTML('beforeend', errorHtml);
-            } else if (!response.ok) {
-                const errorHtml = `
-                    <div class="message received mb-3 fade-in">
-                        <small class="text-danger">Chat Error (${response.status})</small>
-                    </div>
-                `;
-                chatBody.insertAdjacentHTML('beforeend', errorHtml);
-            }
-        } catch (error) {
-            console.error('Error:', error);
-            const typingEl = document.getElementById(typingId);
-            if (typingEl) typingEl.remove();
-            const chatBody = document.getElementById('chat-messages');
-            const errorHtml = `
-                <div class="message received mb-3 fade-in">
-                    <small class="text-danger">Network Error</small>
-                </div>
-            `;
-            chatBody.insertAdjacentHTML('beforeend', errorHtml);
-        }
-        
-        scrollToBottom();
-    }
-
-    function scrollToBottom() {
-        const chatBody = document.getElementById('chat-messages');
-        chatBody.scrollTop = chatBody.scrollHeight;
-    }
-
-    function escapeHtml(text) {
-        var map = {
-            '&': '&amp;',
-            '<': '&lt;',
-            '>': '&gt;',
-            '"': '&quot;',
-            "'": '&#039;'
-        };
-        return text.replace(/[&<>"']/g, function(m) { return map[m]; });
-    }
-</script>
 {% endif %}

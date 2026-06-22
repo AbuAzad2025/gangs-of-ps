@@ -1,0 +1,13 @@
+{% set hostess_img = hostess.image_path %}
+{% if hostess.is_avatar_active and hostess.video %}
+{% if hostess.video.endswith('.gif') %}
+<img src="{{ url_for('static', filename='videos/hostesses/' + hostess.video) }}" class="rounded-circle mr-2 shadow-sm w-30px h-30px object-fit-cover hostess-avatar-inline">
+{% else %}
+<video autoplay loop muted playsinline class="rounded-circle mr-2 shadow-sm w-30px h-30px object-fit-cover hostess-avatar-inline">
+    <source src="{{ url_for('static', filename='videos/hostesses/' + hostess.video) }}" type="video/mp4">
+</video>
+{% endif %}
+{% else %}
+<img src="{{ url_for('static', filename='images/' + hostess_img) }}" class="rounded-circle mr-2 shadow-sm w-30px h-30px object-fit-cover hostess-avatar-inline"
+     onerror="this.onerror=null; this.src='{{ url_for('static', filename='images/hostesses/default_hostess.jpg') }}';">
+{% endif %}

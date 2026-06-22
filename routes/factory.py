@@ -10,6 +10,7 @@ from sqlalchemy import select
 from models import Item, UserItem, FactoryJob, SystemConfig, User, MoneySinkLog
 from services.requirements import check_requirements
 from services.resource_service import ResourceService
+from routes.utils import track_academy_visit
 
 
 bp = Blueprint('factory', __name__, url_prefix='/factory')
@@ -186,6 +187,7 @@ def _check_requirements(user, req, tier):
 @bp.route('/')
 @login_required
 def index():
+    track_academy_visit(current_user, 'factory_visit')
     cfg = _get_factory_config()
     metal_item = _get_material_item(cfg["metal_item_name"])
     explosive_item = _get_material_item(cfg["explosive_item_name"])

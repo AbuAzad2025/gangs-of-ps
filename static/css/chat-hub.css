@@ -1,0 +1,54 @@
+.gop-chat-hub-nav {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+    padding: 0.5rem;
+    background: rgba(0, 0, 0, 0.35);
+    border: 1px solid rgba(212, 175, 55, 0.25);
+    border-radius: 0.5rem;
+}
+
+.gop-chat-hub-tab {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.45rem 0.75rem;
+    border-radius: 2rem;
+    font-size: 0.85rem;
+    color: rgba(255, 255, 255, 0.75);
+    background: transparent;
+    border: 1px solid transparent;
+    text-decoration: none;
+    transition: all 0.2s ease;
+}
+
+.gop-chat-hub-tab:hover,
+.gop-chat-hub-tab.active {
+    color: var(--gold-primary, #d4af37);
+    border-color: rgba(212, 175, 55, 0.45);
+    background: rgba(212, 175, 55, 0.08);
+    text-decoration: none;
+}
+
+.gop-chat-hub-tab--assistant {
+    cursor: pointer;
+    margin-right: auto;
+}
+
+.gop-vip-upsell--compact .btn {
+    font-size: 0.8rem;
+}
+
+.gop-hara-assistant-card {
+    border: 1px solid rgba(212, 175, 55, 0.35);
+    background: linear-gradient(135deg, rgba(0, 0, 0, 0.55), rgba(40, 20, 20, 0.45));
+    border-radius: 0.75rem;
+    padding: 1rem 1.25rem;
+    margin-bottom: 1.5rem;
+}
+
+.gop-hara-assistant-card .assistant-avatar {
+    width: 52px;
+    height: 52px;
+    object-fit: cover;
+}

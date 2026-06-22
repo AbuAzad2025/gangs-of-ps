@@ -22,9 +22,47 @@
         <a href="{{ url_for('main.leaderboard', sort='control') }}" class="leaderboard-tab {% if sort_by == 'control' %}active{% endif %}">
             <i class="fas fa-city"></i> {{ _('سيطرة المدن') }}
         </a>
+        <a href="{{ url_for('main.leaderboard', sort='gang') }}" class="leaderboard-tab {% if sort_by == 'gang' %}active{% endif %}">
+            <i class="fas fa-users"></i> {{ _('أقوى العصابات') }}
+        </a>
     </div>
 
-    {% if sort_by == 'control' %}
+    {% if sort_by == 'gang' %}
+    <div class="table-responsive">
+        <table class="table table-leaderboard mb-0">
+            <thead>
+                <tr>
+                    <th class="text-center">#</th>
+                    <th>{{ _('العصابة') }}</th>
+                    <th class="text-center">{{ _('المستوى') }}</th>
+                    <th class="text-center">{{ _('الأعضاء') }}</th>
+                    <th class="text-center">{{ _('الخبرة') }}</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for gang in top_gangs %}
+                <tr class="rank-{{ loop.index }} anim-delay-{{ loop.index if loop.index <= 20 else 20 }}">
+                    <td class="rank-cell">
+                        {% if loop.index == 1 %}<i class="fas fa-crown text-warning"></i>{% else %}{{ loop.index }}{% endif %}
+                    </td>
+                    <td>
+                        <a href="{{ url_for('gang.view', gang_id=gang.id) }}" class="user-name-link">{{ gang.name }}</a>
+                    </td>
+                    <td class="text-center"><span class="level-badge">{{ gang.level }}</span></td>
+                    <td class="text-center text-muted">{{ gang.members_count }}</td>
+                    <td class="text-center font-weight-bold text-warning">{{ "{:,}".format(gang.exp) }} XP</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% if not top_gangs %}
+    <div class="text-center py-5 text-muted">
+        <i class="fas fa-ghost fa-3x mb-3 opacity-50"></i>
+        <p>{{ _('لا توجد عصابات في القائمة حالياً') }}</p>
+    </div>
+    {% endif %}
+    {% elif sort_by == 'control' %}
     <div class="table-responsive">
         <table class="table table-leaderboard mb-0">
             <thead>

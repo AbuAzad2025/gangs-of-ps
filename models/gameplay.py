@@ -186,7 +186,9 @@ class UserDailyTask(db.Model):
 
     @property
     def title(self):
-        # Generate a title based on target_type
+        desc = self.task.description or ''
+        if desc.startswith('مدرسة الحارة'):
+            return _('مدرسة الحارة')
         type_titles = {
             'crime': _('إجرام'),
             'gym': _('تمرين'),
@@ -194,6 +196,12 @@ class UserDailyTask(db.Model):
             'buy': _('تسوق'),
             'intel': _('استخبارات'),
             'gang': _('عصابات'),
+            'bank_deposit': _('بنك'),
+            'bank_visit': _('بنك'),
+            'market_visit': _('بورصة'),
+            'factory_visit': _('مصنع'),
+            'farm_visit': _('مزرعة'),
+            'ledger_visit': _('سجل'),
         }
         return type_titles.get(
             self.task.target_type,

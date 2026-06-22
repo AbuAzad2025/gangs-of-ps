@@ -166,9 +166,14 @@
 
     <!-- Custom Luxury CSS -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/palestine_luxury.css') }}?v=3.1">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/game-animations.css') }}?v=1.0">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/economy-academy.css') }}?v=1.0">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/phase3.css') }}?v=1.0">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/chat-hub.css') }}?v=1.0">
     {% block extra_css %}{% endblock %}
 </head>
-<body class="hold-transition sidebar-mini layout-fixed theme-palestine {{ body_extra_class|default('') }}">
+<body class="hold-transition sidebar-mini layout-fixed theme-palestine {{ body_extra_class|default('') }}"{% if current_user.is_authenticated %} data-user-id="{{ current_user.id }}" data-max-energy="{{ current_user.max_energy }}" data-energy-title="{{ _('الطاقة ممتلئة!')|e }}" data-energy-body="{{ _('ارجع للجرائم واستغل طاقتك.')|e }}"{% endif %}>
+{% set gop_flashes = get_flashed_messages(with_categories=true) %}
 <div class="bg-keffiyeh-overlay"></div>
 <div class="wrapper">
 
@@ -184,7 +189,7 @@
         <a href="{{ url_for('main.index') }}" class="nav-link">{{ _('الرئيسية') }}</a>
       </li>
       <li class="nav-item d-none d-sm-inline-block">
-        <a href="{{ url_for('main.chat_lobby') }}" class="nav-link"><i class="fas fa-comments text-gold mr-1"></i> {{ _('غرف الدردشة') }}</a>
+        <a href="{{ url_for('main.chat_lobby') }}" class="nav-link"><i class="fas fa-comments text-gold mr-1"></i> {{ _('مركز التواصل') }}</a>
       </li>
       <li class="nav-item d-none d-sm-inline-block">
         <a href="#" class="nav-link js-youtube-toggle" id="youtube-toggle-btn"><i class="fab fa-youtube text-danger mr-1"></i> {{ _('يوتيوب') }}</a>
@@ -209,6 +214,13 @@
             <i class="flag-icon flag-icon-us mr-2"></i> {{ _('English') }}
           </a>
         </div>
+      </li>
+
+      <li class="nav-item">
+        <a class="nav-link gop-sound-toggle" href="#" title="{{ _('الصوت') }}" aria-label="{{ _('كتم/تشغيل الصوت') }}">
+          <i class="fas fa-volume-up gop-sound-on"></i>
+          <i class="fas fa-volume-mute gop-sound-off" style="display:none;"></i>
+        </a>
       </li>
 
       {% if current_user.is_authenticated %}
@@ -417,9 +429,15 @@
             </a>
           </li>
           <li class="nav-item">
-            <a href="{{ url_for('main.chat_lobby') }}" class="nav-link">
+            <a href="{{ url_for('main.chat_lobby') }}" class="nav-link" title="{{ _('مركز التواصل') }}">
               <i class="nav-icon fas fa-comments text-gold"></i>
-              <p>{{ _('غرف الدردشة') }}</p>
+              <p>{{ _('مركز التواصل') }}</p>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="{{ url_for('main.messenger') }}" class="nav-link" title="{{ _('رسائل خاصة') }}">
+              <i class="nav-icon fas fa-envelope text-info"></i>
+              <p>{{ _('رسائل خاصة') }}</p>
             </a>
           </li>
 
@@ -472,6 +490,18 @@
             <a href="{{ url_for('bank.index') }}" class="nav-link">
               <i class="nav-icon fas fa-university text-success"></i>
               <p>{{ _('البنك المركزي') }}</p>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="{{ url_for('main.season') }}" class="nav-link">
+              <i class="nav-icon fas fa-trophy text-gold"></i>
+              <p>{{ _('الموسم') }}</p>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="{{ url_for('economy.academy') }}" class="nav-link">
+              <i class="nav-icon fas fa-graduation-cap text-gold"></i>
+              <p>{{ _('مدرسة الحارة') }}</p>
             </a>
           </li>
           <li class="nav-item">
@@ -618,6 +648,17 @@
     </div>
     {% endif %}
 
+    {% if world_event %}
+    <div class="world-event-banner">
+        <i class="fas {{ world_event.icon }} text-warning mr-1"></i>
+        <strong>{{ world_event.title }}</strong>
+        {% if world_event.description %} — {{ world_event.description }}{% endif %}
+        {% if world_event.money_bonus_pct > 0 %}
+        <span class="badge badge-success ml-1">+{{ world_event.money_bonus_pct|int }}% {{ _('مكافآت') }}</span>
+        {% endif %}
+    </div>
+    {% endif %}
+
     {% if title and not hide_page_title %}
     <div class="content-header">
       <div class="container-fluid">
@@ -633,19 +674,6 @@
     <!-- Main content -->
     <section class="content">
       <div class="{{ page_container_class|default('container-fluid') }}">
-        {% with messages = get_flashed_messages(with_categories=true) %}
-            {% if messages %}
-                {% for category, message in messages %}
-                    <div class="alert alert-{{ category }} alert-dismissible fade show">
-                        {{ message | safe }}
-                        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-                            <span aria-hidden="true">&times;</span>
-                        </button>
-                    </div>
-                {% endfor %}
-            {% endif %}
-        {% endwith %}
-
         {% block content %}{% endblock %}
       </div>
     </section>
@@ -713,6 +741,14 @@
                     <strong>Copyright &copy; 2026 <a href="#" class="text-gold">{{ _('شركة أزاد للأنظمة الذكية') }}</a>.</strong>
                     {{ _('جميع الحقوق محفوظة.') }}
                     <div class="mt-1 small text-muted">{{ _('إدارة: م. أحمد غنام') }}</div>
+                    {% if current_user.is_authenticated %}
+                    <button type="button" id="gop-enable-notifications" class="btn btn-sm btn-outline-gold mt-2"
+                        data-title="{{ _('عصابات فلسطين')|e }}"
+                        data-body="{{ _('فعّل التنبيهات لتذكيرك بالطاقة والأحداث.')|e }}"
+                        data-url="{{ url_for('main.hara') }}">
+                        <i class="fas fa-bell"></i> {{ _('تفعيل التنبيهات') }}
+                    </button>
+                    {% endif %}
                 </div>
             </div>
         </div>
@@ -808,9 +844,8 @@
     });
 
     // Flask Flash Messages to Toasts
-    {% with messages = get_flashed_messages(with_categories=true) %}
-      {% if messages %}
-        {% for category, message in messages %}
+    {% if gop_flashes %}
+        {% for category, message in gop_flashes %}
             {% if category == 'hostess_reaction' %}
                  var parts = {{ message | tojson }}.split('|');
                  var hName = parts.length > 1 ? parts[0] : "{{ _('مضيفتك') }}";
@@ -852,8 +887,7 @@
                 });
             {% endif %}
         {% endfor %}
-      {% endif %}
-    {% endwith %}
+    {% endif %}
 
     // Live Stats Update
     function updateStats() {
@@ -1132,5 +1166,15 @@
 </div>
 
 <script src="{{ url_for('static', filename='js/youtube_widget.js') }}?v=4.0"></script>
+<script id="game-flash-meta" type="application/json">{{ gop_flashes|tojson }}</script>
+<script src="{{ url_for('static', filename='js/game-fx.js') }}?v=1.0"></script>
+<script src="{{ url_for('static', filename='js/economy-academy.js') }}?v=1.0"></script>
+<script src="{{ url_for('static', filename='js/pwa-notifications.js') }}?v=1.0"></script>
+{% if greeter_hostess %}
+<script src="{{ url_for('static', filename='js/assistant-widget.js') }}?v=1.0"></script>
+{% with hostess=greeter_hostess %}
+{% include 'includes/hostess_widget.html' %}
+{% endwith %}
+{% endif %}
 </body>
 </html>

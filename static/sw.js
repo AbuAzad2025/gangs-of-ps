@@ -1,4 +1,4 @@
-const CACHE_NAME = 'gangs-palestine-v1';
+const CACHE_NAME = 'gangs-palestine-v2';
 const ASSETS_TO_CACHE = [
   '/static/images/azad_logo_white_on_dark.png',
   '/static/css/custom.css',
@@ -31,6 +31,25 @@ self.addEventListener('activate', (evt) => {
     })
   );
   self.clients.claim();
+});
+
+// Notification click — open target URL from payload
+self.addEventListener('notificationclick', (event) => {
+  event.notification.close();
+  const target = (event.notification.data && event.notification.data.url) || '/';
+  event.waitUntil(
+    self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clients) => {
+      for (const client of clients) {
+        if ('focus' in client) {
+          client.navigate(target);
+          return client.focus();
+        }
+      }
+      if (self.clients.openWindow) {
+        return self.clients.openWindow(target);
+      }
+    })
+  );
 });
 
 // Fetch Event

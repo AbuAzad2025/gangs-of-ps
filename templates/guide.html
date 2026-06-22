@@ -123,6 +123,10 @@
                 
                 <h5 class="text-info mt-3"><i class="fas fa-chart-line mr-1"></i> {{ _('البورصة وغسيل الأموال') }}</h5>
                 <p class="text-muted small">{{ _('استثمر أموالك "الكاش" في البورصة لغسلها وحمايتها. راقب السوق، فالأسعار تتغير باستمرار!') }}</p>
+                <a href="{{ url_for('economy.academy') }}" class="btn btn-sm btn-outline-warning mb-2 mr-2"><i class="fas fa-graduation-cap mr-1"></i> {{ _('مدرسة الحارة') }}</a>
+                <a href="{{ url_for('bank.index') }}" class="btn btn-sm btn-outline-success mb-2 mr-2"><i class="fas fa-university mr-1"></i> {{ _('جرّب الآن — البنك') }}</a>
+                <a href="{{ url_for('market.index') }}" class="btn btn-sm btn-outline-info mb-2 mr-2"><i class="fas fa-chart-line mr-1"></i> {{ _('جرّب الآن — البورصة') }}</a>
+                <a href="{{ url_for('factory.index') }}" class="btn btn-sm btn-outline-light mb-2"><i class="fas fa-industry mr-1"></i> {{ _('جرّب الآن — المصنع') }}</a>
             </div>
 
             <!-- Black Market -->
@@ -131,6 +135,7 @@
                     <i class="fas fa-store-slash text-secondary ml-2"></i> {{ _('السوق السوداء') }}
                 </h3>
                 <p class="text-light">{{ _('المكان الذي لا تدخله الشرطة.') }}</p>
+                <a href="{{ url_for('black_market.index') }}" class="btn btn-sm btn-outline-warning mb-3"><i class="fas fa-play mr-1"></i> {{ _('جرّب الآن — السوق السوداء') }}</a>
                 <ul class="text-muted">
                     <li class="mb-2"><strong class="text-warning">{{ _('شراء الأسلحة:') }}</strong> {{ _('احصل على أحدث الأسلحة والدروع لزيادة قوتك الهجومية والدفاعية.') }}</li>
                     <li class="mb-2"><strong class="text-warning">{{ _('المزادات (Auctions):') }}</strong> {{ _('زايد على عناصر نادرة ومميزة يطرحها لاعبون آخرون أو النظام.') }}</li>

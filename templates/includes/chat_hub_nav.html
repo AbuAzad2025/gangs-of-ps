@@ -1,0 +1,23 @@
+{# Unified chat / messages / help navigation #}
+<nav class="gop-chat-hub-nav mb-3" aria-label="{{ _('مركز التواصل') }}">
+    <a href="{{ url_for('main.chat_lobby') }}" class="gop-chat-hub-tab{% if hub_active == 'lobby' %} active{% endif %}">
+        <i class="fas fa-th-large"></i> {{ _('الردهة') }}
+    </a>
+    <a href="{{ url_for('main.messenger') }}" class="gop-chat-hub-tab{% if hub_active == 'messenger' %} active{% endif %}">
+        <i class="fas fa-envelope"></i> {{ _('رسائل خاصة') }}
+    </a>
+    <a href="{{ url_for('main.guide') }}" class="gop-chat-hub-tab{% if hub_active == 'guide' %} active{% endif %}">
+        <i class="fas fa-book"></i> {{ _('الدليل') }}
+    </a>
+    <a href="{{ url_for('economy.academy') }}" class="gop-chat-hub-tab{% if hub_active == 'academy' %} active{% endif %}">
+        <i class="fas fa-graduation-cap"></i> {{ _('مدرسة الحارة') }}
+    </a>
+    {% if current_user.is_authenticated %}
+    <a href="{{ url_for('main.messages') }}" class="gop-chat-hub-tab{% if hub_active == 'mail' %} active{% endif %}">
+        <i class="fas fa-inbox"></i> {{ _('البريد') }}
+    </a>
+    {% endif %}
+    <button type="button" class="gop-chat-hub-tab gop-chat-hub-tab--assistant" data-gop-assistant-toggle>
+        <i class="fas fa-sparkles"></i> {{ _('ياسمين') }}
+    </button>
+</nav>

@@ -5,6 +5,22 @@
 {% block content %}
 
 <div class="container-fluid fade-in">
+  {% set story = {
+    'title': history.crime_name,
+    'subtitle': _('القائد') ~ ': ' ~ history.leader_name,
+    'image': crime_image,
+    'animation': animation or ('spark' if history.success else 'smoke'),
+    'status': 'success' if history.success else 'danger',
+    'badge': _('نجاح') if history.success else _('فشل'),
+    'text': (lines[0] if lines else _('انتهت العملية المنظمة.')),
+    'stats': {'money': history.money_earned} if history.success and history.money_earned else {},
+    'next_url': '',
+    'actions': ''
+  } %}
+  <div class="heist-story-intro">
+    {% include 'includes/story_scene.html' %}
+  </div>
+
   <div class="d-flex justify-content-between align-items-center flex-wrap mb-3">
     <div class="text-muted small">
       {{ _('تم تجهيز تقرير العملية. إن لم تظهر النافذة، اضغط "عرض التقرير".') }}
@@ -131,6 +147,7 @@
 
 <script>
   document.addEventListener('DOMContentLoaded', function() {
+    document.body.setAttribute('data-game-context', 'crime-story');
     if (window.jQuery && jQuery.fn && jQuery.fn.modal) {
       jQuery('#heistReportModal').modal('show');
     }

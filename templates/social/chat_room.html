@@ -2,6 +2,8 @@
 
 {% block content %}
 <div class="chatna-shell">
+{% set hub_active = 'room' %}
+{% include 'includes/chat_hub_nav.html' %}
 <div class="row no-gutters chatna-row">
     <div class="col-lg-3 d-none d-lg-block chatna-pane chatna-pane--sidebar">
         {% set chat_sidebar_mode = 'room' %}
@@ -23,8 +25,8 @@
                         <span class="badge badge-success" id="online-count">0</span>
                         <span class="text-muted small ml-1">{{ _('متصل') }}</span>
                     </div>
-                    <button type="button" class="btn btn-sm btn-outline-gold ml-2" id="ai-chat-btn" aria-label="{{ _('الدردشة الذكية') }}" {{ 'disabled' if (not current_user.is_authenticated) else '' }}>
-                        <i class="fas fa-robot"></i>
+                    <button type="button" class="btn btn-sm btn-outline-gold ml-2" data-gop-assistant-toggle aria-label="{{ _('ياسمين — المساعدة') }}" title="{{ _('اسأل ياسمين') }}">
+                        <i class="fas fa-sparkles"></i>
                     </button>
                     <button type="button" class="btn btn-sm btn-outline-gold ml-2" id="toggle-sound" aria-label="{{ _('الصوت') }}">
                         <i class="fas fa-volume-up"></i>
@@ -40,23 +42,7 @@
                 <div id="typing-indicator" class="small text-muted mb-2" style="min-height: 18px;"></div>
                 {% if current_room == 'vip' and not can_chat %}
                 <div class="alert alert-dark border border-warning mb-3" style="background: rgba(0,0,0,0.35);">
-                    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center">
-                        <div class="mb-3 mb-md-0">
-                            <div class="text-gold font-weight-bold">{{ _('غرفة VIP') }}</div>
-                            <div class="text-muted small">{{ _('قم بالترقية لفتح الدردشة في غرفة VIP.') }}</div>
-                        </div>
-                        <div class="d-flex flex-wrap align-items-center">
-                            <form method="POST" action="{{ url_for('main.chat_vip_upgrade') }}" class="mb-0 mr-2">
-                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                                <button type="submit" class="btn btn-gold">
-                                    <i class="fas fa-crown"></i> {{ _('ترقية VIP') }} ({{ vip_upgrade_cost_diamonds }} {{ _('ماس') }})
-                                </button>
-                            </form>
-                            <a href="{{ url_for('main.buy_diamonds', next=url_for('main.chat_room', room_name='vip')) }}" class="btn btn-outline-light">
-                                <i class="fas fa-gem"></i> {{ _('شراء الماس') }}
-                            </a>
-                        </div>
-                    </div>
+                    {% include 'includes/vip_chat_upsell.html' %}
                 </div>
 
                 <div class="card luxury-card border border-warning mb-3" style="background: rgba(0,0,0,0.25);">
@@ -159,34 +145,6 @@
                     <div class="card-body p-0 overflow-auto custom-scrollbar" style="max-height: 45vh;" id="online-users-list-modal">
                     </div>
                 </div>
-            </div>
-        </div>
-    </div>
-</div>
-
-<div class="modal fade" id="aiChatModal" tabindex="-1" role="dialog" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered" role="document">
-        <div class="modal-content luxury-card border-gold">
-            <div class="modal-header luxury-header">
-                <h6 class="mb-0"><i class="fas fa-robot mr-2"></i> {{ _('الدردشة الذكية') }}</h6>
-                <button type="button" class="close text-white" data-dismiss="modal" aria-label="{{ _('إغلاق') }}">
-                    <span aria-hidden="true">&times;</span>
-                </button>
-            </div>
-            <div class="modal-body p-0">
-                <div id="ai-chat-messages" class="p-3 overflow-auto custom-scrollbar" style="max-height: 55vh; background-color: rgba(0,0,0,0.45);"></div>
-            </div>
-            <div class="modal-footer bg-dark border-top border-secondary">
-                <form id="ai-chat-form" class="w-100 mb-0">
-                    <div class="input-group">
-                        <input type="text" id="ai-chat-input" class="form-control form-control-luxury" placeholder="{{ _('اسأل أي شيء...') }}" autocomplete="off" maxlength="500" {{ 'disabled' if (not current_user.is_authenticated) else '' }}>
-                        <div class="input-group-append">
-                            <button type="submit" class="btn btn-gold" {{ 'disabled' if (not current_user.is_authenticated) else '' }}>
-                                <i class="fas fa-paper-plane"></i>
-                            </button>
-                        </div>
-                    </div>
-                </form>
             </div>
         </div>
     </div>
@@ -495,6 +453,8 @@
     }
 </style>
 
+<script src="https://cdn.jsdelivr.net/npm/socket.io-client@4.7.5/dist/socket.io.min.js"></script>
+<script src="{{ url_for('static', filename='js/chat-realtime.js') }}?v=1.0"></script>
 <script>
     const ROOM = "{{ current_room }}";
     const IS_AUTH = {{ 'true' if current_user.is_authenticated else 'false' }};
@@ -508,13 +468,13 @@
     const AVATAR_BASE = "{{ url_for('static', filename='images/avatars/') }}";
     const STATIC_BASE = "{{ url_for('static', filename='') }}";
     const UPLOAD_URL = "{{ url_for('main.public_chat_upload') }}";
-    const SMART_CHAT_URL = "{{ url_for('main.smart_chat') }}";
     const emojis = ['😀','😁','😂','🤣','😊','😍','😘','😎','🤔','😅','😉','😇','🙂','🙃','😭','😡','👍','👎','🙏','👏','🔥','💯','🎉','❤️','💔','⭐','🌙','⚡','💬','🕊️','🇵🇸'];
     let typingStopTimer = null;
     let isTypingActive = false;
     let lastTypingSentAt = 0;
     let cameraStream = null;
     let lastCapturedBlob = null;
+    let chatPollMs = 3000;
     
     document.addEventListener('DOMContentLoaded', function() {
         soundEnabled = localStorage.getItem('chat_sound_enabled') !== '0';
@@ -524,8 +484,13 @@
         loadMessages();
         loadOnlineUsers();
         if (IS_AUTH) loadTyping();
+
+        if (window.GopChatRealtime) {
+            var rt = GopChatRealtime.init(ROOM, function () { loadMessages(); });
+            if (rt && rt.mode === 'socket') chatPollMs = 12000;
+        }
         
-        setInterval(loadMessages, 3000);
+        setInterval(loadMessages, chatPollMs);
         setInterval(loadOnlineUsers, 10000);
         if (IS_AUTH) setInterval(loadTyping, 2000);
 
@@ -568,18 +533,6 @@
             });
         }
 
-        const aiBtn = document.getElementById('ai-chat-btn');
-        if (aiBtn) {
-            aiBtn.addEventListener('click', function() {
-                if (!IS_AUTH) return;
-                $('#aiChatModal').modal('show');
-                setTimeout(() => {
-                    const input = document.getElementById('ai-chat-input');
-                    if (input) input.focus();
-                }, 250);
-                primeAiChat();
-            });
-        }
 
         if (cameraCaptureBtn && cameraSendBtn && cameraPreview && cameraCanvas) {
             cameraCaptureBtn.addEventListener('click', function() {
@@ -757,7 +710,7 @@
                             <img src="${AVATAR_BASE + (msg.avatar || 'default.png')}" class="msg-avatar" onclick="window.location.href='/profile/${msg.user_id}'" style="cursor:pointer" onerror="this.onerror=null; this.src='https://ui-avatars.com/api/?name=${msg.username}&background=random';">
                             <div>
                                 <div class="small text-muted mb-1 ${isMe ? 'text-right' : ''}">
-                                    <span>${msg.username} ${badges.join('')} <span class="text-gold text-xs ml-1">${msg.created_at}</span></span>
+                                    <span>${escapeHtml(msg.username)} ${badges.join('')} <span class="text-gold text-xs ml-1">${escapeHtml(msg.created_at)}</span></span>
                                     <span class="chat-actions">${actions.join('')}</span>
                                 </div>
                                 <div class="message-content text-white">
@@ -927,78 +880,6 @@
         });
     } catch (e) {}
 
-    function appendAiMessage(role, text, typingId) {
-        const container = document.getElementById('ai-chat-messages');
-        if (!container) return null;
-        const isUser = role === 'user';
-        const row = document.createElement('div');
-        row.className = `message ${isUser ? 'sent text-right' : 'received'} mb-2`;
-        if (typingId) row.id = typingId;
-        row.innerHTML = `
-            <div class="d-inline-block p-2 rounded ${isUser ? 'bg-gold text-dark' : 'bg-dark border border-secondary text-white'}" style="max-width: 90%;">
-                ${escapeHtml(String(text || '')).replace(/\n/g, '<br>')}
-            </div>
-        `;
-        container.appendChild(row);
-        container.scrollTop = container.scrollHeight;
-        return row;
-    }
-
-    function primeAiChat() {
-        const container = document.getElementById('ai-chat-messages');
-        if (!container) return;
-        if (container.dataset.primed === '1') return;
-        container.dataset.primed = '1';
-        appendAiMessage('assistant', '{{ _("أهلاً! أنا الدردشة الذكية. اسألني عن أي شيء داخل اللعبة.") }}');
-    }
-
-    async function sendSmartChatMessage(message) {
-        const res = await fetch(SMART_CHAT_URL, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRFToken': CSRF_TOKEN
-            },
-            body: JSON.stringify({ message })
-        });
-        let data = null;
-        try {
-            data = await res.json();
-        } catch (e) {
-            throw new Error('{{ _("حدث خطأ.") }}');
-        }
-        if (!res.ok || (data && data.error)) {
-            throw new Error((data && data.error) ? data.error : '{{ _("حدث خطأ.") }}');
-        }
-        return data;
-    }
-
-    const aiForm = document.getElementById('ai-chat-form');
-    if (aiForm) {
-        aiForm.addEventListener('submit', async function(e) {
-            e.preventDefault();
-            if (!IS_AUTH) return;
-            const input = document.getElementById('ai-chat-input');
-            if (!input) return;
-            const msg = (input.value || '').trim();
-            if (!msg) return;
-            input.value = '';
-            appendAiMessage('user', msg);
-            const typingId = 'ai-typing-' + Date.now();
-            appendAiMessage('assistant', '{{ _("جاري الكتابة...") }}', typingId);
-            try {
-                const data = await sendSmartChatMessage(msg);
-                const typingEl = document.getElementById(typingId);
-                if (typingEl) typingEl.remove();
-                appendAiMessage('assistant', (data && data.response) ? data.response : '{{ _("حدث خطأ.") }}');
-            } catch (err) {
-                const typingEl = document.getElementById(typingId);
-                if (typingEl) typingEl.remove();
-                appendAiMessage('assistant', (err && err.message) ? err.message : '{{ _("حدث خطأ.") }}');
-            }
-        });
-    }
-
     function renderMessageContent(text) {
         const raw = String(text || '');
         const match = raw.match(/^\[\[(image|video|file):([^\]\|]+)(?:\|([^\]]+))?\]\]$/);
@@ -1006,9 +887,12 @@
             return escapeHtml(raw);
         }
         const kind = match[1];
-        const path = (match[2] || '').replace(/^\/+/, '');
+        let path = (match[2] || '').replace(/^\/+/, '').replace(/\\/g, '/');
+        if (!/^uploads\/chat\/chat_\d+_[a-f0-9]+\.(png|jpe?g|gif|webp|mp4|pdf|txt)$/i.test(path)) {
+            return escapeHtml(raw);
+        }
         const name = (match[3] || '').trim();
-        const url = STATIC_BASE + path;
+        const url = STATIC_BASE + encodeURI(path);
         if (kind === 'image') {
             return `<a href="${url}" target="_blank" rel="noopener"><img src="${url}" class="img-fluid rounded border border-warning" style="max-height: 260px; object-fit: contain;" /></a>`;
         }

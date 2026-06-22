@@ -34,6 +34,7 @@ temp_*
 
 # BLACKBOX/CLI artifacts
 .blackboxcli/
+.blackbox/
 
 # Additional temp/backup files
 *.bak

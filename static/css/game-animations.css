@@ -1,0 +1,383 @@
+/* ==========================================================================
+   Gangs of Palestine — Phase 1 Game Animation Library
+   ========================================================================== */
+
+/* --- Page transitions --- */
+@view-transition { navigation: auto; }
+::view-transition-old(root) { animation: gopPageOut 0.22s ease-in forwards; }
+::view-transition-new(root) { animation: gopPageIn 0.28s ease-out forwards; }
+
+@keyframes gopPageOut {
+    from { opacity: 1; transform: translateY(0); }
+    to   { opacity: 0; transform: translateY(-6px); }
+}
+@keyframes gopPageIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+body.gop-page-enter .content-wrapper {
+    animation: gopPageIn 0.35s ease-out forwards;
+}
+
+/* --- Micro-interactions --- */
+.btn-game,
+.btn-crime,
+.btn-luxury-gold,
+.btn-action,
+.shine-effect,
+.luxury-card .btn,
+.crime-card .btn,
+.balance-box .btn {
+    transition: transform 0.14s ease, box-shadow 0.14s ease, filter 0.14s ease;
+}
+.btn-game:active:not(:disabled),
+.btn-crime:active:not(:disabled),
+.btn-luxury-gold:active:not(:disabled),
+.btn-action:active:not(:disabled),
+.shine-effect:active:not(:disabled),
+.crime-card .btn:active:not(:disabled),
+.balance-box .btn:active:not(:disabled) {
+    transform: scale(0.96) translateY(1px);
+    filter: brightness(0.95);
+}
+
+.card-lift,
+.crime-card:not(.locked),
+.location-card,
+.balance-box,
+.user-progress-panel .luxury-card {
+    transition: transform 0.22s ease, box-shadow 0.22s ease;
+}
+.card-lift:hover,
+.crime-card:not(.locked):hover,
+.location-card:hover,
+.balance-box:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 28px rgba(0, 0, 0, 0.45), 0 0 18px rgba(212, 175, 55, 0.08);
+}
+
+/* --- Shake (failure) --- */
+.gop-shake { animation: gopShake 0.55s cubic-bezier(0.36, 0.07, 0.19, 0.97) both; }
+@keyframes gopShake {
+    10%, 90% { transform: translateX(-2px); }
+    20%, 80% { transform: translateX(4px); }
+    30%, 50%, 70% { transform: translateX(-6px); }
+    40%, 60% { transform: translateX(6px); }
+}
+
+/* --- Reward pop --- */
+.gop-reward-pop { animation: gopRewardPop 0.7s cubic-bezier(0.34, 1.56, 0.64, 1) both; }
+@keyframes gopRewardPop {
+    0%   { opacity: 0; transform: scale(0.4) translateY(20px); }
+    60%  { opacity: 1; transform: scale(1.08) translateY(-4px); }
+    100% { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+.gop-float-money {
+    position: fixed;
+    z-index: 10050;
+    pointer-events: none;
+    font-weight: 900;
+    font-size: 1.35rem;
+    color: #28a745;
+    text-shadow: 0 2px 8px rgba(0,0,0,0.8);
+    animation: gopFloatUp 1.4s ease-out forwards;
+}
+.gop-float-money.negative { color: #dc3545; }
+.gop-float-money.xp { color: #17a2b8; }
+
+@keyframes gopFloatUp {
+    0%   { opacity: 0; transform: translateY(0) scale(0.8); }
+    15%  { opacity: 1; transform: translateY(-8px) scale(1); }
+    100% { opacity: 0; transform: translateY(-70px) scale(1.05); }
+}
+
+/* --- Confetti canvas --- */
+#gop-confetti-canvas {
+    position: fixed;
+    inset: 0;
+    z-index: 10040;
+    pointer-events: none;
+}
+
+/* --- Animated progress bars --- */
+.progress-track-animated,
+.hara-energy-bar,
+.gop-anim-bar {
+    position: relative;
+    overflow: hidden;
+    border-radius: 8px;
+    background: rgba(0, 0, 0, 0.45);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    height: 10px;
+}
+.progress-track-animated .progress-fill-animated,
+.hara-energy-bar .progress-fill-animated,
+.gop-anim-bar .gop-anim-bar-fill {
+    height: 100%;
+    border-radius: 8px;
+    transition: width 1.1s cubic-bezier(0.22, 1, 0.36, 1);
+    position: relative;
+    overflow: hidden;
+}
+.progress-fill-animated::after,
+.gop-anim-bar-fill::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+        90deg,
+        transparent 0%,
+        rgba(255, 255, 255, 0.22) 50%,
+        transparent 100%
+    );
+    animation: gopBarShimmer 2.2s ease-in-out infinite;
+    transform: translateX(-100%);
+}
+@keyframes gopBarShimmer {
+    0%   { transform: translateX(-100%); }
+    100% { transform: translateX(200%); }
+}
+
+.gop-anim-bar[data-color="danger"] .gop-anim-bar-fill { background: linear-gradient(90deg, #a71d2a, #dc3545); }
+.gop-anim-bar[data-color="warning"] .gop-anim-bar-fill { background: linear-gradient(90deg, #c69500, #ffc107); }
+.gop-anim-bar[data-color="info"] .gop-anim-bar-fill { background: linear-gradient(90deg, #117a8b, #17a2b8); }
+.gop-anim-bar[data-color="primary"] .gop-anim-bar-fill { background: linear-gradient(90deg, #0056b3, #007bff); }
+
+/* --- Sound toggle --- */
+.gop-sound-toggle {
+    cursor: pointer;
+    opacity: 0.75;
+    transition: opacity 0.2s, color 0.2s;
+}
+.gop-sound-toggle:hover { opacity: 1; color: var(--gold-primary, #ffd700) !important; }
+.gop-sound-toggle.muted { opacity: 0.45; }
+
+/* ==========================================================================
+   Story Scene (shared cinematic card)
+   ========================================================================== */
+.story-wrap {
+    max-width: 900px;
+    margin: 0 auto;
+}
+
+.story-card {
+    background: var(--bg-card, #1e1e1e);
+    border: 1px solid rgba(212, 175, 55, 0.15);
+    border-radius: 18px;
+    overflow: hidden;
+    box-shadow: 0 15px 45px rgba(0, 0, 0, 0.55);
+}
+
+.story-hero {
+    position: relative;
+    height: 280px;
+    background: rgba(0, 0, 0, 0.35);
+}
+
+.story-hero img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    filter: contrast(1.05) saturate(1.05);
+    opacity: 0.92;
+}
+
+.story-hero::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background:
+        radial-gradient(circle at 30% 20%, rgba(212, 175, 55, 0.18), transparent 55%),
+        linear-gradient(to top, rgba(0, 0, 0, 0.85), rgba(0, 0, 0, 0.05));
+    pointer-events: none;
+}
+
+.story-overlay {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    overflow: hidden;
+}
+
+.story-overlay.speed::before {
+    content: "";
+    position: absolute;
+    inset: -30%;
+    background: repeating-linear-gradient(
+        120deg,
+        rgba(255, 255, 255, 0) 0px,
+        rgba(255, 255, 255, 0) 16px,
+        rgba(255, 255, 255, 0.08) 18px,
+        rgba(255, 255, 255, 0) 22px
+    );
+    transform: translateX(-20%);
+    animation: gopSpeedLines 1.1s linear infinite;
+    mix-blend-mode: screen;
+    opacity: 0.6;
+}
+
+.story-overlay.smoke .smoke-bubble {
+    position: absolute;
+    width: 160px;
+    height: 160px;
+    border-radius: 50%;
+    background: radial-gradient(circle at 30% 30%, rgba(220, 220, 220, 0.25), rgba(220, 220, 220, 0));
+    filter: blur(6px);
+    animation: gopSmokeRise 2.8s ease-in-out infinite;
+    opacity: 0.75;
+}
+.story-overlay.smoke .smoke-bubble:nth-child(1) { left: 10%; bottom: -30%; animation-delay: 0s; transform: scale(0.9); }
+.story-overlay.smoke .smoke-bubble:nth-child(2) { left: 45%; bottom: -35%; animation-delay: 0.6s; transform: scale(1.1); }
+.story-overlay.smoke .smoke-bubble:nth-child(3) { left: 75%; bottom: -40%; animation-delay: 1.1s; transform: scale(0.8); }
+
+.story-overlay.spark::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background:
+        radial-gradient(circle at 20% 40%, rgba(212, 175, 55, 0.18), rgba(212, 175, 55, 0) 35%),
+        radial-gradient(circle at 65% 35%, rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0) 30%),
+        radial-gradient(circle at 80% 70%, rgba(212, 175, 55, 0.16), rgba(212, 175, 55, 0) 38%);
+    animation: gopPulseGlow 1.8s ease-in-out infinite;
+}
+
+.story-overlay.jail::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: repeating-linear-gradient(
+        90deg,
+        rgba(0, 0, 0, 0.55) 0px,
+        rgba(0, 0, 0, 0.55) 8px,
+        rgba(255, 255, 255, 0.04) 8px,
+        rgba(255, 255, 255, 0.04) 12px
+    );
+    animation: gopJailBars 3.5s linear infinite;
+    opacity: 0.7;
+}
+
+.story-overlay.bank::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle at 50% 80%, rgba(40, 167, 69, 0.2), transparent 60%);
+    animation: gopPulseGlow 2.4s ease-in-out infinite;
+}
+
+.story-body { padding: 22px 22px 18px; }
+
+.story-title {
+    color: var(--gold-primary, #ffd700);
+    font-weight: 800;
+    font-family: 'Cairo', sans-serif;
+    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.6);
+}
+
+.story-text {
+    font-size: 1.15rem;
+    line-height: 1.9;
+    color: rgba(255, 255, 255, 0.92);
+    background: rgba(0, 0, 0, 0.22);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 14px;
+    padding: 14px 16px;
+}
+
+.story-badges .badge {
+    padding: 8px 10px;
+    border-radius: 10px;
+    margin-left: 8px;
+    margin-top: 8px;
+    animation: gopRewardPop 0.5s ease-out backwards;
+}
+.story-badges .badge:nth-child(2) { animation-delay: 0.08s; }
+.story-badges .badge:nth-child(3) { animation-delay: 0.16s; }
+.story-badges .badge:nth-child(4) { animation-delay: 0.24s; }
+
+.story-actions {
+    padding: 0 22px 22px;
+    display: flex;
+    gap: 10px;
+    justify-content: flex-start;
+    flex-wrap: wrap;
+}
+
+.story-stat-counter {
+    font-variant-numeric: tabular-nums;
+    display: inline-block;
+}
+
+@keyframes gopSpeedLines {
+    0%   { transform: translateX(-30%) translateY(0); }
+    100% { transform: translateX(30%) translateY(0); }
+}
+@keyframes gopSmokeRise {
+    0%   { transform: translateY(0) scale(0.9); opacity: 0; }
+    20%  { opacity: 0.75; }
+    100% { transform: translateY(-120%) scale(1.35); opacity: 0; }
+}
+@keyframes gopPulseGlow {
+    0%, 100% { opacity: 0.65; transform: scale(1); }
+    50%      { opacity: 1; transform: scale(1.02); }
+}
+@keyframes gopJailBars {
+    0%   { transform: translateX(0); }
+    100% { transform: translateX(16px); }
+}
+
+/* Bank page enhancements */
+.bank-hero-scene .story-hero { height: 200px; }
+.bank-balance-pulse.gop-reward-pop { animation-duration: 0.9s; }
+
+/* Jail cinematic header boost */
+.jail-header {
+    position: relative;
+    overflow: hidden;
+}
+.jail-header .jail-bars {
+    animation: gopJailBars 4s linear infinite;
+}
+
+/* Crime page energy bar */
+.crime-energy-bar .gop-anim-bar-fill {
+    background: linear-gradient(90deg, #c69500, #ffc107);
+}
+
+/* Combat avatar in story */
+.story-combat-avatar {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    border: 3px solid var(--gold-primary, #ffd700);
+    object-fit: cover;
+    box-shadow: 0 0 24px rgba(212, 175, 55, 0.35);
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+    ::view-transition-old(root),
+    ::view-transition-new(root),
+    body.gop-page-enter .content-wrapper,
+    .gop-shake,
+    .gop-reward-pop,
+    .gop-float-money,
+    .story-overlay.speed::before,
+    .story-overlay.smoke .smoke-bubble,
+    .story-overlay.spark::before,
+    .story-overlay.jail::before,
+    .story-overlay.bank::before,
+    .progress-fill-animated::after,
+    .gop-anim-bar-fill::after,
+    .jail-header .jail-bars {
+        animation: none !important;
+        transition: none !important;
+    }
+    .card-lift:hover,
+    .crime-card:not(.locked):hover,
+    .location-card:hover,
+    .balance-box:hover {
+        transform: none;
+    }
+}

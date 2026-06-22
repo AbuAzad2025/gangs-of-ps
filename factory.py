@@ -758,8 +758,29 @@ def create_app(config_class=Config):
 
         return dict(
             global_announcement=latest_announcement,
-            ticker_news=ticker_items
+            ticker_news=ticker_items,
         )
+
+    @app.context_processor
+    def inject_greeter_assistant():
+        try:
+            from services.greeter_service import get_greeter_hostess
+            greeter = get_greeter_hostess()
+            return {'greeter_hostess': greeter}
+        except Exception:
+            return {'greeter_hostess': None}
+
+    @app.context_processor
+    def inject_world_season():
+        try:
+            from services.world_event_service import get_active_world_event
+            from services.season_service import get_current_season
+            return {
+                'world_event': get_active_world_event(),
+                'current_season': get_current_season(),
+            }
+        except Exception:
+            return {'world_event': None, 'current_season': None}
 
     from routes import bp as main_bp, register_main_routes
     register_main_routes()
@@ -1123,5 +1144,10 @@ def create_app(config_class=Config):
                     db.session,
                     name=_('الردود'),
                     category=_('المجتمع')))
+
+    try:
+        import routes.chat_socket  # noqa: F401
+    except Exception:
+        pass
 
     return app

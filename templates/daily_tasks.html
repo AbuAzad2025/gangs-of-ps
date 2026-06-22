@@ -9,36 +9,61 @@
         </h1>
         <p class="lead text-muted">{{ _('أنجز المهام واحصل على مكافآت قيمة') }}</p>
         {% if onboarding_day %}
-        <p class="small text-muted mb-0">{{ _('أسبوع أول') }} - {{ _('اليوم') }} {{ onboarding_day }}</p>
+        <p class="small text-muted mb-0">{{ _('أسبوع أول') }} — {{ _('اليوم') }} {{ onboarding_day }}</p>
         {% endif %}
+        <p class="mb-0 mt-2">
+            <a href="{{ url_for('economy.academy') }}" class="btn btn-sm btn-outline-warning">
+                <i class="fas fa-graduation-cap mr-1"></i> {{ _('مدرسة الحارة — أكاديمية الاقتصاد') }}
+            </a>
+        </p>
     </div>
-    
+
     <div class="row">
         {% for task in tasks %}
         <div class="col-md-6 col-lg-4 mb-4 stagger-animation anim-delay-dynamic" style="--delay: {{ loop.index0 * 0.1 }}s;">
-            <div class="task-box p-4">
+            {% set is_ready = task.progress >= task.goal and not task.is_completed %}
+            {% set is_done = task.is_completed %}
+            {% set is_economy_lesson = economy_task_prefix and task.description and task.description.startswith(economy_task_prefix) %}
+            <div class="task-box p-4 {% if is_economy_lesson %}economy-lesson-task{% endif %} {% if is_done %}border-success{% elif is_ready %}border-warning{% else %}border-secondary{% endif %}">
                 <div class="text-center">
+                    {% if is_economy_lesson %}
+                    <span class="badge badge-warning economy-lesson-badge mb-2"><i class="fas fa-graduation-cap mr-1"></i> {{ _('مدرسة الحارة') }}</span>
+                    {% endif %}
                     <i class="fas fa-clipboard-list task-icon"></i>
                     <h5 class="text-light mb-2">{{ _(task.title) }}</h5>
                     <p class="text-muted small mb-3">{{ _(task.description) }}</p>
                 </div>
-                
+
                 <div class="d-flex justify-content-between text-muted small mb-1">
                     <span>{{ _('التقدم') }}</span>
                     <span>{{ task.progress }} / {{ task.goal }}</span>
                 </div>
-                
+
                 <div class="progress">
                     <div class="progress-bar w-dynamic" role="progressbar" style="--width: {{ (task.progress / task.goal * 100) }}%"></div>
                 </div>
-                
+
                 <div class="text-center mt-3">
                     <span class="reward-badge">
                         <i class="fas fa-gift mr-1"></i> {{ task.reward }}
                     </span>
                 </div>
-                
-                {% if task.progress >= task.goal and not task.is_completed %}
+
+                {% if not is_ready and not is_done %}
+                <span class="badge badge-secondary ms-2">قيد التنفيذ</span>
+                {% endif %}
+
+                {% if is_ready %}
+                <span class="badge badge-warning ms-2">جاهزة للاستلام</span>
+                {% endif %}
+
+                {% if is_done %}
+                <span class="badge badge-success ms-2">
+                    <i class="fas fa-check mr-1"></i> تم الاستلام
+                </span>
+                {% endif %}
+
+                {% if is_ready %}
                 <div class="mt-3">
                     <form action="{{ url_for('main.collect_task_reward', task_id=task.id) }}" method="POST">
                         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>

@@ -204,3 +204,4 @@ yfinance==0.2.66
 youtube-search-python==1.6.6
 zopfli==0.2.3.post1
 zstandard==0.25.0
+stripe>=8.0.0

@@ -1,15 +1,19 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div class="container-fluid fade-in">
-    <div class="row justify-content-center">
-        <div class="col-md-8">
-            <div class="bank-card mb-4 shadow-lg">
-                <div class="card-body text-center p-5">
-                    <h1 class="display-4 font-weight-bold text-gold mb-2">
+<div class="container-fluid fade-in bank-page" data-game-page="bank">
+    <div class="row justify-content-center bank-hero-scene">
+        <div class="col-md-10">
+            <div class="story-card mb-4">
+                <div class="story-hero">
+                    <img src="{{ url_for('static', filename='images/locations/bank.jpg') }}" alt="{{ _('بنك فلسطين الدولي') }}" onerror="this.onerror=null; this.src='{{ url_for('static', filename='images/crimes/wallet.jpg') }}';">
+                    <div class="story-overlay bank"></div>
+                </div>
+                <div class="story-body text-center py-4">
+                    <h1 class="story-title display-4 mb-2">
                         <i class="fas fa-university mr-3"></i>{{ _('بنك فلسطين الدولي') }}
                     </h1>
-                    <p class="lead text-muted">{{ _('المكان الأكثر أماناً لأموالك.. ربما.') }}</p>
+                    <p class="lead text-muted mb-0">{{ _('المكان الأكثر أماناً لأموالك.. ربما.') }}</p>
                 </div>
             </div>
         </div>
@@ -17,19 +21,19 @@
 
     <div class="row">
         <div class="col-md-6 mb-4">
-            <div class="balance-box">
+            <div class="balance-box card-lift">
                 <div class="balance-title">{{ _('الكاش في جيبك') }}</div>
-                <div class="balance-amount">{{ "{:,.0f}".format(user.money) }}$</div>
+                <div class="balance-amount bank-balance-pulse"><span data-count-to="{{ user.money|int }}" data-count-prefix="$">0</span></div>
                 
-                <form method="POST" action="{{ url_for('bank.deposit') }}" class="transaction-form w-100">
+                <form method="POST" action="{{ url_for('bank.deposit') }}" class="transaction-form w-100" data-game-action="deposit">
                     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
                     <div class="input-group mb-3">
                         <div class="input-group-prepend">
                             <span class="input-group-text bg-dark border-secondary text-white">$</span>
                         </div>
-                        <input type="number" name="amount" class="form-control bg-dark border-secondary text-white" placeholder="{{ _('المبلغ للإيداع') }}">
+                        <input type="number" name="amount" class="form-control bg-dark border-secondary text-white" placeholder="{{ _('المبلغ للإيداع') }}" min="1">
                     </div>
-                    <button type="submit" class="btn btn-outline-success btn-block font-weight-bold shine-effect">
+                    <button type="submit" class="btn btn-outline-success btn-block font-weight-bold shine-effect btn-game">
                         <i class="fas fa-arrow-down mr-2"></i>{{ _('إيداع') }}
                     </button>
                 </form>
@@ -37,30 +41,58 @@
         </div>
 
         <div class="col-md-6 mb-4">
-            <div class="balance-box gold-border">
+            <div class="balance-box gold-border card-lift">
                 <div class="balance-title text-gold">{{ _('رصيد البنك') }}</div>
-                <div class="balance-amount gold">{{ "{:,.0f}".format(user.bank_balance) }}$</div>
+                <div class="balance-amount gold bank-balance-pulse"><span data-count-to="{{ user.bank_balance|int }}" data-count-prefix="$">0</span></div>
                 
-                <form method="POST" action="{{ url_for('bank.withdraw') }}" class="transaction-form w-100">
+                <form method="POST" action="{{ url_for('bank.withdraw') }}" class="transaction-form w-100" data-game-action="withdraw">
                     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
                     <div class="input-group mb-3">
                         <div class="input-group-prepend">
                             <span class="input-group-text bg-dark border-secondary text-white">$</span>
                         </div>
-                        <input type="number" name="amount" class="form-control bg-dark border-secondary text-white" placeholder="{{ _('المبلغ للسحب') }}">
+                        <input type="number" name="amount" class="form-control bg-dark border-secondary text-white" placeholder="{{ _('المبلغ للسحب') }}" min="1">
                     </div>
-                    <button type="submit" class="btn btn-outline-warning btn-block font-weight-bold">
+                    <button type="submit" class="btn btn-outline-warning btn-block font-weight-bold btn-game">
                         <i class="fas fa-arrow-up mr-2"></i>{{ _('سحب') }}
                     </button>
                 </form>
             </div>
         </div>
     </div>
+
+    <div class="row">
+        <div class="col-lg-5 mb-4">
+            {% if economy_health %}
+            {% with health=economy_health %}
+            {% include 'includes/economy_health_widget.html' %}
+            {% endwith %}
+            {% endif %}
+        </div>
+        <div class="col-lg-7 mb-4">
+            <div class="fee-simulator-box h-100" data-fee-simulator data-fee-url="{{ url_for('economy.academy_fee_preview') }}">
+                <h6 class="text-gold mb-2"><i class="fas fa-calculator mr-1"></i> {{ _('محاكي رسوم البنك') }}</h6>
+                <p class="text-muted small mb-2">{{ _('جرّب: كم تدفع يومياً إذا أودعت هذا المبلغ؟') }}</p>
+                <div class="input-group mb-2">
+                    <div class="input-group-prepend"><span class="input-group-text bg-dark border-secondary text-white">$</span></div>
+                    <input type="number" class="form-control bg-dark border-secondary text-white" data-fee-input value="{{ bank_fee_preview.balance }}" min="0" step="500">
+                </div>
+                <div class="d-flex justify-content-between align-items-center flex-wrap">
+                    <span class="fee-simulator-result" data-fee-output>{{ "{:,}".format(bank_fee_preview.fee) }}$</span>
+                    <span class="text-muted small" data-fee-reason>{{ bank_fee_preview.reason }}</span>
+                </div>
+                <a href="{{ url_for('economy.academy') }}" class="btn btn-sm btn-outline-warning mt-3 btn-game">
+                    <i class="fas fa-graduation-cap mr-1"></i> {{ _('مدرسة الحارة') }}
+                </a>
+            </div>
+        </div>
+    </div>
+
     <div class="row justify-content-center">
         <div class="col-md-8 mb-4">
-            <div class="luxury-card p-4">
+            <div class="luxury-card p-4 card-lift">
                 <h3 class="text-gradient-gold mb-3 text-center"><i class="fas fa-exchange-alt mr-2"></i>{{ _('تحويل الأموال') }}</h3>
-                <form method="POST" action="{{ url_for('bank.transfer') }}">
+                <form method="POST" action="{{ url_for('bank.transfer') }}" data-game-action="transfer">
                     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
                     <div class="form-group">
                         <label class="text-muted">{{ _('اسم المستلم') }}</label>
@@ -68,9 +100,9 @@
                     </div>
                     <div class="form-group">
                         <label class="text-muted">{{ _('المبلغ') }}</label>
-                        <input type="number" name="amount" class="form-control bg-dark border-secondary text-white" placeholder="{{ _('المبلغ') }}" required>
+                        <input type="number" name="amount" class="form-control bg-dark border-secondary text-white" placeholder="{{ _('المبلغ') }}" min="1" required>
                     </div>
-                    <button type="submit" class="btn btn-info btn-block">
+                    <button type="submit" class="btn btn-info btn-block btn-game">
                         <i class="fas fa-paper-plane mr-2"></i>{{ _('تحويل') }}
                     </button>
                     <small class="form-text text-muted text-center mt-2">{{ _('تنبيه: التحويلات لا يمكن التراجع عنها.') }}</small>
@@ -79,4 +111,14 @@
         </div>
     </div>
 </div>
+{% if academy_lesson %}
+<script id="economy-lesson-tip-data" type="application/json">{{ {
+  'id': 'bank_day1',
+  'title': academy_lesson.title,
+  'body': academy_lesson.summary,
+  'tip': academy_lesson.tip,
+  'tryUrl': '',
+  'tryLabel': _('حسناً')
+}|tojson }}</script>
+{% endif %}
 {% endblock %}

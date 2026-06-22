@@ -1,0 +1,87 @@
+/* Phase 3 — Empire, combat cinematic, world events */
+.empire-score-ring {
+    width: 72px;
+    height: 72px;
+    border-radius: 50%;
+    border: 3px solid rgba(255, 215, 0, 0.45);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    font-weight: 900;
+    color: #ffd700;
+    background: rgba(0,0,0,0.45);
+}
+.empire-stat-grid .stat-tile {
+    background: rgba(0,0,0,0.35);
+    border: 1px solid rgba(255,255,255,0.06);
+    border-radius: 12px;
+    padding: 0.75rem 1rem;
+    text-align: center;
+}
+.empire-stat-grid .stat-value {
+    font-size: 1.25rem;
+    font-weight: 800;
+    color: #fff;
+}
+.world-event-banner {
+    background: linear-gradient(90deg, rgba(220,53,69,0.25), rgba(212,175,55,0.15));
+    border-bottom: 1px solid rgba(255,215,0,0.25);
+    padding: 0.5rem 1rem;
+    text-align: center;
+    font-size: 0.95rem;
+}
+.season-pill {
+    display: inline-block;
+    padding: 0.2rem 0.65rem;
+    border-radius: 999px;
+    background: rgba(212,175,55,0.15);
+    border: 1px solid rgba(212,175,55,0.35);
+    font-size: 0.8rem;
+    color: #ffd700;
+}
+.combat-cinematic {
+    position: relative;
+    min-height: 140px;
+    overflow: hidden;
+    border-radius: 14px;
+    background: rgba(0,0,0,0.5);
+    margin-bottom: 1rem;
+}
+.combat-cinematic .fighter {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 2.5rem;
+    opacity: 0;
+}
+.combat-cinematic .fighter.left { left: 15%; animation: fighterEnterLeft 0.5s ease forwards; }
+.combat-cinematic .fighter.right { right: 15%; animation: fighterEnterRight 0.5s ease 0.2s forwards; }
+.combat-cinematic .impact {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%) scale(0);
+    font-size: 2rem;
+    color: #dc3545;
+    animation: combatImpact 0.4s ease 0.7s forwards;
+}
+@keyframes fighterEnterLeft {
+    from { opacity: 0; transform: translate(-30px, -50%); }
+    to { opacity: 1; transform: translateY(-50%); }
+}
+@keyframes fighterEnterRight {
+    from { opacity: 0; transform: translate(30px, -50%); }
+    to { opacity: 1; transform: translateY(-50%); }
+}
+@keyframes combatImpact {
+    0% { transform: translate(-50%, -50%) scale(0); opacity: 0; }
+    50% { transform: translate(-50%, -50%) scale(1.4); opacity: 1; }
+    100% { transform: translate(-50%, -50%) scale(1); opacity: 0.6; }
+}
+.heist-story-intro { margin-bottom: 1.5rem; }
+
+@media (prefers-reduced-motion: reduce) {
+    .combat-cinematic .fighter,
+    .combat-cinematic .impact { animation: none !important; opacity: 1; }
+}

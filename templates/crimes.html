@@ -14,12 +14,14 @@
 <!-- Counters Section -->
 <div class="row mb-4">
     <div class="col-md-4 mb-3">
-        <div class="luxury-card p-3 text-center">
+        <div class="luxury-card p-3 text-center card-lift crime-energy-bar">
             <h6 class="text-muted text-uppercase mb-2">{{ _('الطاقة الحالية') }}</h6>
-            <div class="progress bg-dark border border-secondary mb-2 progress-height-15">
-                <div class="progress-bar bg-warning progress-dynamic" role="progressbar" style="--progress-width: {{ (user.energy / user.max_energy) * 100 }}%;" aria-valuenow="{{ user.energy }}" aria-valuemin="0" aria-valuemax="{{ user.max_energy }}"></div>
+            <div class="gop-anim-bar mb-2" data-pct="{{ ((user.energy / user.max_energy) * 100)|int }}" data-color="warning">
+                <div class="gop-anim-bar-fill"></div>
             </div>
-            <span class="h4 text-warning font-weight-bold">{{ user.energy }} / {{ user.max_energy }}</span>
+            <span class="h4 text-warning font-weight-bold">
+              <span data-count-to="{{ user.energy }}" data-count-suffix=" / {{ user.max_energy }}">0</span>
+            </span>
         </div>
     </div>
     <div class="col-md-4 mb-3">
@@ -56,7 +58,7 @@
     {% set is_locked = not (is_level_ok and is_str_ok and is_agl_ok and is_int_ok) %}
     
     <div class="col-lg-3 col-md-6 mb-4 fade-in-up anim-delay-{{ loop.index if loop.index <= 20 else 20 }}">
-        <div class="crime-card {{ 'locked' if is_locked else '' }}">
+        <div class="crime-card {{ 'locked' if is_locked else '' }} card-lift">
             <div class="card-body text-center p-3">
                 <span class="level-badge">
                     <i class="fas fa-layer-group mr-1"></i> {{ _('مستوى') }} {{ crime.min_level }}
@@ -228,7 +230,7 @@
                 {% elif not is_locked %}
                     <form action="{{ url_for('main.do_crime', crime_id=crime.id) }}" method="POST">
                         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-                        <button type="submit" class="btn btn-crime btn-block btn-lg shadow-sm shine-effect">
+                        <button type="submit" class="btn btn-crime btn-block btn-lg shadow-sm shine-effect btn-game">
                             <i class="fas fa-mask mr-2"></i> {{ _('نفذ العملية') }}
                         </button>
                     </form>

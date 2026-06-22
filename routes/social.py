@@ -1,6 +1,6 @@
 from flask import render_template, redirect, url_for, flash, abort, request, current_app, jsonify, session
 from flask_login import login_required, current_user
-from extensions import db, limiter, cache
+from extensions import db, limiter, cache, csrf
 from sqlalchemy import or_, func
 from sqlalchemy.exc import ProgrammingError, OperationalError
 from models import Gang, Message, User, Notification, CombatLog, Hostess, Location, LocationControl
@@ -20,6 +20,55 @@ from services.budget_service import BudgetService
 from services.revenue_service import RevenueService
 from services.resource_service import ResourceService
 from services.ai_hostess_service import AIHostessService
+from services.vip_service import (
+    expire_vip_if_needed,
+    grant_vip,
+    user_has_active_vip,
+)
+from services.chat_security import (
+    PUBLIC_CHAT_ROOMS,
+    normalize_room,
+    moderator_can_act,
+    validate_message_attachments,
+    validate_upload_magic,
+    scan_upload_file,
+    is_safe_chat_upload_rel_path,
+    MAX_CHAT_UPLOAD_BYTES,
+)
+
+
+def _user_is_vip(user) -> bool:
+    if not user or not getattr(user, 'is_authenticated', False):
+        return False
+    if not user.is_authenticated:
+        return False
+    try:
+        expire_vip_if_needed(user)
+    except Exception:
+        pass
+    return user_has_active_vip(user)
+
+
+def _vip_plan_costs():
+    monthly = 80
+    lifetime = 250
+    try:
+        monthly = int(
+            SystemConfig.get_value('vip_monthly_cost_diamonds', '80') or 80)
+    except Exception:
+        monthly = 80
+    try:
+        lifetime = int(
+            SystemConfig.get_value('vip_lifetime_cost_diamonds', '250') or 250)
+    except Exception:
+        lifetime = 250
+    legacy = lifetime
+    try:
+        legacy = int(
+            SystemConfig.get_value('vip_upgrade_cost_diamonds', str(lifetime)) or lifetime)
+    except Exception:
+        legacy = lifetime
+    return monthly, lifetime, legacy
 
 
 def contains_prohibited_content(text):
@@ -814,7 +863,7 @@ def leaderboard():
             url_for('main.leaderboard'))
 
         sort_by = (request.args.get('sort') or 'level').strip().lower()
-        if sort_by not in {'level', 'money', 'control'}:
+        if sort_by not in {'level', 'money', 'control', 'gang'}:
             sort_by = 'level'
 
         top_users_raw = []
@@ -824,7 +873,22 @@ def leaderboard():
         control_week = None
         control_year = None
 
-        if sort_by == 'money':
+        if sort_by == 'gang':
+            gang_rows = Gang.query.order_by(
+                Gang.level.desc(),
+                Gang.exp.desc(),
+            ).limit(20).all()
+            top_gangs = [
+                {
+                    'id': g.id,
+                    'name': g.name,
+                    'level': int(getattr(g, 'level', 0) or 0),
+                    'exp': int(getattr(g, 'exp', 0) or 0),
+                    'members_count': len(g.members or []),
+                }
+                for g in gang_rows
+            ]
+        elif sort_by == 'money':
             top_users_raw = User.query.order_by(User.money.desc()).limit(20).all()
         elif sort_by == 'control':
             try:
@@ -940,21 +1004,10 @@ def leaderboard():
 @bp.route('/api/public-chat/messages')
 def get_public_chat_messages():
     since_id = request.args.get('since_id', type=int)
-    room = request.args.get('room', default='general')
-
-    valid_rooms = {
-        'general',
-        'dating',
-        'strangers',
-        'beginners',
-        'trade',
-        'vip'}
-    if room not in valid_rooms:
-        room = 'general'
+    room = normalize_room(request.args.get('room', default='general'))
 
     if room == 'vip':
-        if (not current_user.is_authenticated) or (
-                current_user.role.value < UserRole.SUBSCRIBER.value):
+        if (not current_user.is_authenticated) or not _user_is_vip(current_user):
             return jsonify({'error': _('هذه غرفة VIP. قم بالترقية للدخول.'), 'messages': [
             ], 'last_id': since_id or 0}), 403
 
@@ -1005,17 +1058,7 @@ def send_public_chat_message():
     now = datetime.now(timezone.utc)
     data = request.get_json(silent=True) or {}
     msg_content = (data.get('message') or '').strip()
-    room = (data.get('room') or 'general').strip()
-
-    valid_rooms = {
-        'general',
-        'dating',
-        'strangers',
-        'beginners',
-        'trade',
-        'vip'}
-    if room not in valid_rooms:
-        room = 'general'
+    room = normalize_room((data.get('room') or 'general').strip())
 
     if room == 'strangers':
         if current_user.is_authenticated:
@@ -1034,8 +1077,7 @@ def send_public_chat_message():
             return jsonify({'error': _('أنت تحت كتم مؤقت. حاول لاحقاً.')}), 403
 
     if room == 'vip':
-        if (not current_user.is_authenticated) or (
-                actor.role.value < UserRole.SUBSCRIBER.value):
+        if (not current_user.is_authenticated) or not _user_is_vip(actor):
             return jsonify(
                 {'error': _('هذه غرفة VIP. قم بالترقية للدخول.')}), 403
 
@@ -1052,6 +1094,9 @@ def send_public_chat_message():
     if contains_prohibited_content(msg_content):
         return jsonify(
             {'error': _('عذراً، يمنع إرسال الروابط أو الإيميلات أو أرقام الهواتف.')}), 400
+
+    if '[[' in msg_content and not validate_message_attachments(msg_content):
+        return jsonify({'error': _('مرفق غير صالح.')}), 400
 
     if room == 'strangers':
         if re.search(
@@ -1111,29 +1156,27 @@ def send_public_chat_message():
     db.session.add(chat)
     db.session.commit()
 
-    return jsonify(chat.to_dict())
+    payload = chat.to_dict()
+    try:
+        from services.chat_realtime import emit_public_chat_message
+        emit_public_chat_message(room, payload)
+    except Exception:
+        pass
+
+    return jsonify(payload)
 
 
 @bp.route('/api/public-chat/upload', methods=['POST'])
 @login_required
 @limiter.limit("30 per hour")
 def public_chat_upload():
-    room = (request.form.get('room') or 'general').strip()
-    valid_rooms = {
-        'general',
-        'dating',
-        'strangers',
-        'beginners',
-        'trade',
-        'vip'}
-    if room not in valid_rooms:
-        room = 'general'
+    room = normalize_room((request.form.get('room') or 'general').strip())
 
     if room == 'strangers':
         return jsonify(
             {'error': _('المرفقات غير متاحة في غرفة الغرباء.')}), 403
 
-    if room == 'vip' and current_user.role.value < UserRole.SUBSCRIBER.value:
+    if room == 'vip' and not _user_is_vip(current_user):
         return jsonify({'error': _('هذه غرفة VIP. قم بالترقية للدخول.')}), 403
 
     if room in {'dating', 'strangers'} and (not current_user.is_authenticated):
@@ -1151,37 +1194,12 @@ def public_chat_upload():
         return jsonify({'error': _('الملف غير صالح.')}), 400
 
     original_name = f.filename
-    ext = ''
-    if '.' in original_name:
-        ext = original_name.rsplit('.', 1)[1].lower()
-
-    allowed = {
-        'png': 'image',
-        'jpg': 'image',
-        'jpeg': 'image',
-        'gif': 'image',
-        'webp': 'image',
-        'mp4': 'video',
-        'pdf': 'file',
-        'txt': 'file',
-    }
-    kind = allowed.get(ext)
+    kind, ext_or_err, size = scan_upload_file(original_name, f.stream, MAX_CHAT_UPLOAD_BYTES)
     if not kind:
+        if ext_or_err == 'too_large':
+            return jsonify({'error': _('حجم الملف كبير جداً.')}), 400
         return jsonify({'error': _('نوع الملف غير مدعوم.')}), 400
-
-    try:
-        f.stream.seek(0, os.SEEK_END)
-        size = int(f.stream.tell() or 0)
-        f.stream.seek(0)
-    except Exception:
-        size = 0
-
-    max_bytes = 8 * 1024 * 1024
-    if request.content_length and request.content_length > (
-            max_bytes + 1024 * 64):
-        return jsonify({'error': _('حجم الملف كبير جداً.')}), 400
-    if size and size > max_bytes:
-        return jsonify({'error': _('حجم الملف كبير جداً.')}), 400
+    ext = original_name.rsplit('.', 1)[1].lower() if '.' in original_name else ''
 
     uploads_dir = os.path.join(
         current_app.root_path,
@@ -1198,7 +1216,17 @@ def public_chat_upload():
     except Exception:
         return jsonify({'error': _('فشل رفع الملف.')}), 500
 
+    if not validate_upload_magic(save_path, kind):
+        try:
+            os.remove(save_path)
+        except Exception:
+            pass
+        return jsonify({'error': _('محتوى الملف لا يطابق النوع المعلن.')}), 400
+
     rel_path = f"uploads/chat/{filename}"
+    if not is_safe_chat_upload_rel_path(rel_path):
+        return jsonify({'error': _('مسار ملف غير صالح.')}), 400
+
     token = f"[[{kind}:{rel_path}|{safe_name}]]" if kind == 'file' else f"[[{kind}:{rel_path}]]"
     return jsonify({'success': True,
                     'kind': kind,
@@ -1209,6 +1237,7 @@ def public_chat_upload():
 
 @bp.route('/api/public-chat/ban/<int:user_id>', methods=['POST'])
 @login_required
+@limiter.limit("60 per hour")
 def ban_public_chat_user(user_id):
     if current_user.role.value < UserRole.MODERATOR.value:
         return jsonify({'error': _('غير مصرح لك بذلك.')}), 403
@@ -1217,11 +1246,22 @@ def ban_public_chat_user(user_id):
     if not user:
         return jsonify({'error': _('المستخدم غير موجود.')}), 404
 
-    if user.role.value >= current_user.role.value:
+    if not moderator_can_act(current_user, user):
         return jsonify(
             {'error': _('لا يمكنك حظر شخص بنفس رتبتك أو أعلى.')}), 403
 
     user.is_chat_banned = True
+    try:
+        db.session.add(SecurityLog(
+            event_type='chat_ban',
+            ip_address=request.remote_addr,
+            details=json.dumps({
+                'target_user_id': user_id,
+                'moderator_id': current_user.id,
+            }),
+        ))
+    except Exception:
+        pass
     db.session.commit()
     return jsonify({'success': True, 'message': _(
         'تم حظر المستخدم من الدردشة.')})
@@ -1229,6 +1269,7 @@ def ban_public_chat_user(user_id):
 
 @bp.route('/api/public-chat/unban/<int:user_id>', methods=['POST'])
 @login_required
+@limiter.limit("60 per hour")
 def unban_public_chat_user(user_id):
     if current_user.role.value < UserRole.MODERATOR.value:
         return jsonify({'error': _('غير مصرح لك بذلك.')}), 403
@@ -1245,12 +1286,15 @@ def unban_public_chat_user(user_id):
 
 @bp.route('/api/public-chat/mute/<int:user_id>', methods=['POST'])
 @login_required
+@limiter.limit("60 per hour")
 def mute_public_chat_user(user_id):
     if current_user.role.value < UserRole.MODERATOR.value:
         return jsonify({'error': _('غير مصرح لك بذلك.')}), 403
     user = db.session.get(User, user_id)
     if not user:
         return jsonify({'error': _('المستخدم غير موجود.')}), 404
+    if not moderator_can_act(current_user, user):
+        return jsonify({'error': _('لا يمكنك كتم هذا المستخدم.')}), 403
     minutes = request.args.get('minutes', default=30, type=int)
     from datetime import datetime, timezone, timedelta
     now = datetime.now(timezone.utc).replace(tzinfo=None)
@@ -1261,6 +1305,7 @@ def mute_public_chat_user(user_id):
 
 @bp.route('/api/public-chat/unmute/<int:user_id>', methods=['POST'])
 @login_required
+@limiter.limit("60 per hour")
 def unmute_public_chat_user(user_id):
     if current_user.role.value < UserRole.MODERATOR.value:
         return jsonify({'error': _('غير مصرح لك بذلك.')}), 403
@@ -1274,6 +1319,7 @@ def unmute_public_chat_user(user_id):
 
 @bp.route('/api/public-chat/delete/<int:msg_id>', methods=['POST'])
 @login_required
+@limiter.limit("120 per hour")
 def delete_public_chat_message(msg_id):
     if current_user.role.value < UserRole.MODERATOR.value:
         return jsonify({'error': _('غير مصرح لك بذلك.')}), 403
@@ -1321,68 +1367,36 @@ def report_public_chat_message(msg_id):
     return jsonify({'success': True, 'message': _('تم إرسال البلاغ.')})
 
 
+@bp.route('/api/assistant/chat', methods=['POST'])
+@limiter.limit("20 per minute")
+def assistant_chat():
+    from services.greeter_service import process_assistant_message
+    from flask_wtf.csrf import validate_csrf
+    from werkzeug.exceptions import BadRequest
+
+    if current_user.is_authenticated:
+        token = request.headers.get('X-CSRFToken') or request.form.get('csrf_token')
+        try:
+            validate_csrf(token)
+        except BadRequest:
+            return jsonify({'error': _('طلب غير صالح. حدّث الصفحة وحاول مجدداً.')}), 400
+
+    data = request.get_json(silent=True) or {}
+    message = (data.get('message') or '').strip()
+    payload, err, status = process_assistant_message(message)
+    if err:
+        if err == 'Message too long':
+            return jsonify({'error': _('الرسالة طويلة جداً.')}), status
+        return jsonify({'error': _(err) if err != 'Missing message' else _('الرسالة مطلوبة.')}), status
+    return jsonify(payload)
+
+
 @bp.route('/api/chat/smart', methods=['POST'])
 @login_required
 @limiter.limit("20 per minute")
 def smart_chat():
-    data = request.get_json(silent=True) or {}
-    message = (data.get('message') or '').strip()
-    hostess_id = data.get('hostess_id')
-
-    if not message:
-        return jsonify({'error': _('الرسالة مطلوبة.')}), 400
-
-    hostess = None
-    if hostess_id:
-        try:
-            hostess = db.session.get(Hostess, int(hostess_id))
-        except Exception:
-            hostess = None
-    if not hostess:
-        hostess = Hostess.query.filter_by(role='greeter').first()
-        if not hostess:
-            hostess = Hostess.query.filter(
-                (Hostess.name.ilike('%Jasmin%')) | (
-                    Hostess.name.ilike('%Jasmine%'))).first()
-            if not hostess:
-                hostess = Hostess.query.first()
-
-    if not hostess:
-        return jsonify({'error': _('المضيفة غير موجودة.')}), 404
-
-    user_context = {
-        'id': int(current_user.id),
-        'name': str(current_user.username or ''),
-        'is_guest': False,
-        'money': int(getattr(current_user, 'money', 0) or 0),
-        'level': int(getattr(current_user, 'level', 0) or 0),
-    }
-
-    ai_service = AIHostessService()
-    session_key = f'user_chat_history_{hostess.id}_{current_user.id}'
-    chat_history = session.get(session_key, [])
-
-    try:
-        response_text = ai_service.get_response(
-            user_message=message,
-            hostess_context=hostess.to_dict(),
-            user_context=user_context,
-            chat_history=chat_history
-        )
-    except Exception:
-        response_text = ai_service._rule_based_response(
-            message, hostess.to_dict(), user_context)
-
-    chat_history.append({'role': 'user', 'content': message})
-    chat_history.append({'role': 'assistant', 'content': response_text})
-    if len(chat_history) > 20:
-        chat_history = chat_history[-20:]
-    session[session_key] = chat_history
-    session.modified = True
-
-    return jsonify({'response': response_text,
-                    'hostess_name': hostess.name,
-                    'hostess_image': hostess.image})
+    """Legacy alias — use /api/assistant/chat."""
+    return assistant_chat()
 
 # --- Messenger (Private Chat) Routes ---
 
@@ -1477,6 +1491,8 @@ def messenger_messages(user_id):
 def messenger_send():
     if current_user.is_muted:
         return jsonify({'error': _('أنت مكتوم لا يمكنك التحدث!')}), 403
+    if getattr(current_user, 'is_chat_banned', False):
+        return jsonify({'error': _('أنت محظور من الدردشة.')}), 403
 
     data = request.get_json(silent=True) or {}
     receiver_id = data.get('receiver_id')
@@ -1585,21 +1601,16 @@ def chat_room(room_name):
         except Exception:
             chat_user_id = 0
 
-    vip_upgrade_cost_diamonds = 250
-    try:
-        vip_upgrade_cost_diamonds = int(
-            SystemConfig.get_value(
-                'vip_upgrade_cost_diamonds',
-                str(vip_upgrade_cost_diamonds)) or vip_upgrade_cost_diamonds)
-    except Exception:
-        vip_upgrade_cost_diamonds = 250
+    monthly_cost, lifetime_cost, legacy_cost = _vip_plan_costs()
+    vip_upgrade_cost_diamonds = legacy_cost
 
-    if room_name == 'vip' and current_user.is_authenticated and current_user.role.value < UserRole.SUBSCRIBER.value:
+    if room_name == 'vip' and current_user.is_authenticated and not _user_is_vip(current_user):
         try:
             user_diamonds = int(getattr(current_user, 'diamonds', 0) or 0)
         except Exception:
             user_diamonds = 0
-        if user_diamonds < int(vip_upgrade_cost_diamonds):
+        min_cost = min(monthly_cost, lifetime_cost)
+        if user_diamonds < min_cost:
             flash(
                 _('لا تملك ماساً كافياً للترقية. يمكنك شراء الماس أولاً.'),
                 'warning')
@@ -1607,8 +1618,7 @@ def chat_room(room_name):
 
     vip_can_chat = True
     if room_name == 'vip':
-        vip_can_chat = current_user.is_authenticated and (
-            current_user.role.value >= UserRole.SUBSCRIBER.value)
+        vip_can_chat = current_user.is_authenticated and _user_is_vip(current_user)
 
     donation_target_username = None
     try:
@@ -1635,9 +1645,11 @@ def chat_room(room_name):
         room_title=room_titles.get(room_name, room_name),
         can_chat=vip_can_chat,
         chat_user_id=chat_user_id,
-        vip_upgrade_cost_diamonds=vip_upgrade_cost_diamonds,
+        vip_upgrade_cost_diamonds=legacy_cost,
+        vip_monthly_cost_diamonds=monthly_cost,
+        vip_lifetime_cost_diamonds=lifetime_cost,
+        is_vip=_user_is_vip(current_user) if current_user.is_authenticated else False,
         donation_target_username=donation_target_username,
-        hide_page_title=True,
         hide_footer=True,
         hide_sidebar=True,
         page_container_class='container-fluid p-0',
@@ -1657,14 +1669,7 @@ def chat_lobby():
             "دردشة, شات, غرف دردشة, دردشة عربية, دردشة تعارف, دردشة غرباء, "
             "غرفة عامة, غرفة مبتدئين, غرفة تجارة, عصابات فلسطين"
         ))
-    vip_upgrade_cost_diamonds = 250
-    try:
-        vip_upgrade_cost_diamonds = int(
-            SystemConfig.get_value(
-                'vip_upgrade_cost_diamonds',
-                str(vip_upgrade_cost_diamonds)) or vip_upgrade_cost_diamonds)
-    except Exception:
-        vip_upgrade_cost_diamonds = 250
+    monthly_cost, lifetime_cost, legacy_cost = _vip_plan_costs()
 
     donation_target_username = None
     try:
@@ -1677,12 +1682,13 @@ def chat_lobby():
     except Exception:
         donation_target_username = None
 
-    is_vip = bool(
-        current_user.is_authenticated and current_user.role.value >= UserRole.SUBSCRIBER.value)
+    is_vip = _user_is_vip(current_user) if current_user.is_authenticated else False
 
     return render_template(
         'social/chat_lobby.html',
-        vip_upgrade_cost_diamonds=vip_upgrade_cost_diamonds,
+        vip_upgrade_cost_diamonds=legacy_cost,
+        vip_monthly_cost_diamonds=monthly_cost,
+        vip_lifetime_cost_diamonds=lifetime_cost,
         donation_target_username=donation_target_username,
         is_vip=is_vip,
         hide_page_title=True,
@@ -1697,28 +1703,34 @@ def chat_lobby():
 @login_required
 @limiter.limit("10 per hour")
 def chat_vip_upgrade():
-    if current_user.role.value >= UserRole.SUBSCRIBER.value:
+    expire_vip_if_needed(current_user)
+    if user_has_active_vip(current_user):
         flash(_('أنت بالفعل VIP.'), 'info')
         return redirect(url_for('main.chat_room', room_name='vip'))
 
-    cost = 250
-    try:
-        cost = int(
-            SystemConfig.get_value(
-                'vip_upgrade_cost_diamonds',
-                str(cost)) or cost)
-    except Exception:
-        cost = 250
+    plan = (request.form.get('plan') or 'monthly').strip().lower()
+    monthly_cost, lifetime_cost, _legacy = _vip_plan_costs()
+    if plan == 'lifetime':
+        cost = lifetime_cost
+        grant_days = None
+        lifetime = True
+    else:
+        plan = 'monthly'
+        cost = monthly_cost
+        grant_days = 30
+        lifetime = False
 
     ok = ResourceService.modify_resources(
         current_user.id,
         {'diamonds': -max(1, int(cost))},
         'vip_upgrade',
         check_balance=True,
-        auto_commit=True,
+        auto_commit=False,
         expected_version=None,
-        set_fields={'role': UserRole.SUBSCRIBER},
-        log_extra={'vip_cost_diamonds': int(cost)},
+        log_extra={
+            'vip_cost_diamonds': int(cost),
+            'vip_plan': plan,
+        },
     )
     if not ok:
         flash(_('رصيد الماس غير كافٍ للترقية.'), 'danger')
@@ -1729,7 +1741,16 @@ def chat_vip_upgrade():
                     'main.chat_room',
                     room_name='vip')))
 
-    flash(_('تمت ترقية حسابك إلى VIP بنجاح.'), 'success')
+    if not grant_vip(current_user.id, days=grant_days, lifetime=lifetime):
+        db.session.rollback()
+        flash(_('تعذّرت الترقية. حاول لاحقاً.'), 'danger')
+        return redirect(url_for('main.chat_lobby'))
+
+    db.session.commit()
+    if lifetime:
+        flash(_('تمت ترقية حسابك إلى VIP مدى الحياة!'), 'success')
+    else:
+        flash(_('تمت ترقية حسابك إلى VIP لمدة 30 يوماً!'), 'success')
     return redirect(url_for('main.chat_room', room_name='vip'))
 
 
@@ -1848,7 +1869,7 @@ def get_online_users():
             'age': age,
             'country': u.country,
             'level': u.level,
-            'is_vip': bool(u.role and u.role.value >= UserRole.SUBSCRIBER.value)
+            'is_vip': _user_is_vip(u)
         })
 
     return jsonify(filtered_users)
@@ -1885,7 +1906,7 @@ def _prune_typing_state(state, now_ts, max_age_seconds):
 @login_required
 def chat_typing_get():
     room = _valid_chat_room(request.args.get('room') or 'general')
-    if room == 'vip' and current_user.role.value < UserRole.SUBSCRIBER.value:
+    if room == 'vip' and not _user_is_vip(current_user):
         return jsonify({'room': room, 'typing': []}), 403
     now_ts = datetime.now(timezone.utc).timestamp()
     state = cache.get(_typing_cache_key(room)) or {}
@@ -1915,7 +1936,7 @@ def chat_typing_get():
 def chat_typing_set():
     data = request.get_json(silent=True) or {}
     room = _valid_chat_room((data.get('room') or 'general').strip())
-    if room == 'vip' and current_user.role.value < UserRole.SUBSCRIBER.value:
+    if room == 'vip' and not _user_is_vip(current_user):
         return jsonify({'success': False}), 403
     is_typing = bool(data.get('is_typing'))
     now_ts = datetime.now(timezone.utc).timestamp()

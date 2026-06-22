@@ -137,6 +137,14 @@ def dev_dashboard():
     game_tarneeb_enabled = SystemConfig.get_value(
         'game_tarneeb_enabled', 'true') == 'true'
 
+    world_event_active = SystemConfig.get_value('world_event_active', 'false') == 'true'
+    world_event_title = SystemConfig.get_value('world_event_title', 'حدث عالمي')
+    world_event_description = SystemConfig.get_value('world_event_description', '')
+    world_event_money_bonus_pct = SystemConfig.get_value('world_event_money_bonus_pct', '0') or '0'
+    world_event_ends_at = SystemConfig.get_value('world_event_ends_at', '')
+    current_season_name = SystemConfig.get_value('current_season_name', 'الموسم 1')
+    season_ends_at = SystemConfig.get_value('season_ends_at', '')
+
     return render_template(
         'developer/dashboard.html',
         stats=stats,
@@ -154,6 +162,13 @@ def dev_dashboard():
         game_chess_enabled=game_chess_enabled,
         game_trix_enabled=game_trix_enabled,
         game_tarneeb_enabled=game_tarneeb_enabled,
+        world_event_active=world_event_active,
+        world_event_title=world_event_title,
+        world_event_description=world_event_description,
+        world_event_money_bonus_pct=world_event_money_bonus_pct,
+        world_event_ends_at=world_event_ends_at,
+        current_season_name=current_season_name,
+        season_ends_at=season_ends_at,
         title=_('لوحة تحكم المطور'))
 
 
@@ -174,6 +189,32 @@ def dev_maintenance_mode():
         description='Maintenance Message')
 
     flash(_('تم تحديث وضع الصيانة'), 'success')
+    return redirect(url_for('main.dev_dashboard'))
+
+
+@bp.route('/developer/world-season', methods=['POST'])
+@developer_required
+@double_verification_required
+def dev_world_season():
+    active = request.form.get('world_event_active') == 'on'
+    title = (request.form.get('world_event_title') or 'حدث عالمي').strip()
+    description = (request.form.get('world_event_description') or '').strip()
+    bonus = (request.form.get('world_event_money_bonus_pct') or '0').strip()
+    ends_at = (request.form.get('world_event_ends_at') or '').strip()
+    season_name = (request.form.get('current_season_name') or 'الموسم 1').strip()
+    season_ends = (request.form.get('season_ends_at') or '').strip()
+
+    SystemConfig.set_value('world_event_active', 'true' if active else 'false')
+    SystemConfig.set_value('world_event_title', title)
+    SystemConfig.set_value('world_event_description', description)
+    SystemConfig.set_value('world_event_money_bonus_pct', bonus)
+    if ends_at:
+        SystemConfig.set_value('world_event_ends_at', ends_at)
+    SystemConfig.set_value('current_season_name', season_name)
+    if season_ends:
+        SystemConfig.set_value('season_ends_at', season_ends)
+    db.session.commit()
+    flash(_('تم تحديث إعدادات الموسم والحدث العالمي'), 'success')
     return redirect(url_for('main.dev_dashboard'))
 
 

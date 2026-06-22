@@ -375,6 +375,9 @@ class User(UserMixin, db.Model):
     failed_login_attempts = db.Column(db.Integer, default=0)
     locked_until = db.Column(db.DateTime, nullable=True)
 
+    # VIP subscription expiry (null = lifetime / legacy VIP)
+    vip_until = db.Column(db.DateTime, nullable=True, index=True)
+
     # Optimistic Locking
     version = db.Column(db.Integer, nullable=False, default=0)
 
@@ -617,6 +620,10 @@ class User(UserMixin, db.Model):
     def clear_heat(self):
         self.heat_points = 0
         self.heat_updated_at = None
+
+    def has_active_vip(self, now=None):
+        from services.vip_service import user_has_active_vip
+        return user_has_active_vip(self, now=now)
 
     def unlock_achievement(self, key, title, description=None, points=0):
         from models.achievement import Achievement, UserAchievement

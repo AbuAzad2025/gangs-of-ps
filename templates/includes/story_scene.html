@@ -1,0 +1,137 @@
+{# Reusable cinematic story card — expects `story` dict and optional `show_first_crime_celebration` #}
+<div class="story-wrap {{ story_wrap_class|default('') }}">
+  {% set story_title = _(story.title_msgid) if story.title_msgid is defined else (story.title if story.title else '') %}
+  {% set story_subtitle = _(story.subtitle_msgid) if story.subtitle_msgid is defined else (story.subtitle if story.subtitle else '') %}
+  {% set story_badge = _(story.badge_msgid) if story.badge_msgid is defined else (story.badge if story.badge else '') %}
+  {% set story_alt_label = _(story.alt_label_msgid) if story.alt_label_msgid is defined else (story.alt_label if story.alt_label else '') %}
+  {% set anim = story.animation or 'spark' %}
+  {% set hero_img = story.image or 'crimes/wallet.jpg' %}
+  {% if hero_img and not hero_img.startswith('http') and not hero_img.startswith('images/') %}
+    {% set hero_src = url_for('static', filename='images/' + hero_img) %}
+  {% elif hero_img and hero_img.startswith('images/') %}
+    {% set hero_src = url_for('static', filename=hero_img) %}
+  {% else %}
+    {% set hero_src = hero_img %}
+  {% endif %}
+
+  <div class="story-card gop-reward-pop">
+    <div class="story-hero">
+      {% if story.avatar_url %}
+        <div class="d-flex align-items-center justify-content-center h-100" style="background: rgba(0,0,0,0.5);">
+          <img src="{{ story.avatar_url }}" alt="{{ story_title }}" class="story-combat-avatar">
+        </div>
+      {% else %}
+        <img src="{{ hero_src }}" alt="{{ story_title }}" onerror="this.onerror=null; this.src='{{ url_for('static', filename='images/crimes/wallet.jpg') }}';">
+      {% endif %}
+      <div class="story-overlay {{ anim }}">
+        {% if anim == 'smoke' %}
+          <div class="smoke-bubble"></div>
+          <div class="smoke-bubble"></div>
+          <div class="smoke-bubble"></div>
+        {% endif %}
+      </div>
+    </div>
+
+    <div class="story-body">
+      <div class="d-flex align-items-center justify-content-between flex-wrap mb-3">
+        <h2 class="story-title mb-0">{{ story_title }}</h2>
+        {% if story.status %}
+          <span class="badge badge-{{ story.status }} px-3 py-2">{{ story_badge }}</span>
+        {% endif %}
+      </div>
+
+      {% if show_first_crime_celebration %}
+      <div class="mb-3">
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+          <i class="fas fa-trophy mr-2"></i>
+          <strong>{{ _('مبروك!') }}</strong> {{ _('لقد أكملت أول جريمة لك! استمر في بناء إمبراطوريتك الإجرامية.') }}
+          <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+      </div>
+      {% endif %}
+
+      {% if story_subtitle %}
+        <div class="text-muted mb-2">{{ story_subtitle }}</div>
+      {% endif %}
+
+      <div class="story-text mb-3">
+        {% if story.text_parts is defined and story.text_parts %}
+          {% for part in story.text_parts %}
+            {% if part.text is defined %}
+              {{ part.text }}
+            {% else %}
+              {{ _(part.msgid, **(part.params or {})) }}
+            {% endif %}{% if not loop.last %} {% endif %}
+          {% endfor %}
+        {% elif story.text is defined and story.text %}
+          {{ story.text }}
+        {% elif story.text_msgid is defined %}
+          {{ _(story.text_msgid, **(story.text_params or {})) }}
+        {% endif %}
+      </div>
+
+      {% if story.stats %}
+        <div class="story-badges d-flex flex-wrap">
+          {% if story.stats.money is not none %}
+            <span class="badge badge-success">
+              <i class="fas fa-coins mr-1"></i>
+              <span class="story-stat-counter" data-count-to="{{ story.stats.money }}" data-count-prefix="+">0</span> {{ _('شيكل') }}
+            </span>
+          {% endif %}
+          {% if story.stats.exp is not none %}
+            <span class="badge badge-info">
+              <i class="fas fa-star mr-1"></i>
+              <span class="story-stat-counter" data-count-to="{{ story.stats.exp }}" data-count-prefix="+">0</span> EXP
+            </span>
+          {% endif %}
+          {% if story.stats.money_lost is not none %}
+            <span class="badge badge-danger">
+              <i class="fas fa-coins mr-1"></i>
+              <span class="story-stat-counter" data-count-to="{{ story.stats.money_lost }}" data-count-prefix="-">0</span> {{ _('شيكل') }}
+            </span>
+          {% endif %}
+          {% if story.stats.item %}
+            <span class="badge badge-warning text-dark"><i class="fas fa-box-open mr-1"></i> {{ _(story.stats.item) }}</span>
+          {% endif %}
+          {% if story.stats.item_condition is not none %}
+            <span class="badge badge-secondary"><i class="fas fa-wrench mr-1"></i> {{ _('حالة') }} {{ story.stats.item_condition }}%</span>
+          {% endif %}
+          {% if story.stats.vehicle %}
+            <span class="badge badge-warning text-dark"><i class="fas fa-car mr-1"></i> {{ _(story.stats.vehicle) }}</span>
+          {% endif %}
+          {% if story.stats.vehicle_condition is not none %}
+            <span class="badge badge-secondary"><i class="fas fa-tools mr-1"></i> {{ _('حالة') }} {{ story.stats.vehicle_condition }}%</span>
+          {% endif %}
+          {% if story.stats.level %}
+            <span class="badge badge-primary"><i class="fas fa-level-up-alt mr-1"></i> {{ _('مستوى') }} {{ story.stats.level }}</span>
+          {% endif %}
+          {% if story.stats.target %}
+            <span class="badge badge-secondary"><i class="fas fa-user mr-1"></i> {{ story.stats.target }}</span>
+          {% endif %}
+        </div>
+      {% endif %}
+    </div>
+
+    <div class="story-actions">
+      {% if story.actions %}
+        {{ story.actions|safe }}
+      {% else %}
+        <a class="btn btn-luxury-gold btn-game" href="{{ story.next_url or url_for('main.index') }}">
+          <i class="fas fa-arrow-left mr-2"></i> {{ story.next_label or _('تابع') }}
+        </a>
+        {% if story.message_id %}
+          <a class="btn btn-outline-warning btn-game" href="{{ url_for('main.view_message', msg_id=story.message_id) }}">
+            <i class="fas fa-inbox mr-2"></i> {{ _('فتح النسخة المحفوظة في البريد') }}
+          </a>
+        {% endif %}
+        {% if story.alt_url %}
+          <a class="btn btn-outline-secondary btn-game" href="{{ story.alt_url }}">
+            <i class="fas fa-redo mr-2"></i> {{ story_alt_label or _('رجوع') }}
+          </a>
+        {% endif %}
+      {% endif %}
+    </div>
+  </div>
+</div>
