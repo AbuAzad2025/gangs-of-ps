@@ -486,7 +486,10 @@
         if (IS_AUTH) loadTyping();
 
         if (window.GopChatRealtime) {
-            var rt = GopChatRealtime.init(ROOM, function () { loadMessages(); });
+            var rt = GopChatRealtime.init(ROOM, function () { loadMessages(); }, function (msgId) {
+                var el = document.querySelector('[data-msg-id="' + msgId + '"]');
+                if (el) el.remove();
+            });
             if (rt && rt.mode === 'socket') chatPollMs = 12000;
         }
         
@@ -699,8 +702,12 @@
                         const actions = [];
                         if (CAN_MODERATE) {
                             actions.push(`<button type="button" class="btn btn-xs btn-outline-danger" onclick="deleteChatMessage(${msg.id})" aria-label="{{ _('حذف') }}"><i class="fas fa-trash"></i></button>`);
-                            actions.push(`<button type="button" class="btn btn-xs btn-outline-warning" onclick="muteChatUser(${msg.user_id}, 30)" aria-label="{{ _('كتم') }}"><i class="fas fa-volume-mute"></i></button>`);
-                            actions.push(`<button type="button" class="btn btn-xs btn-outline-secondary" onclick="banChatUser(${msg.user_id})" aria-label="{{ _('حظر') }}"><i class="fas fa-ban"></i></button>`);
+                            if (msg.user_id && msg.user_id !== CURRENT_USER_ID) {
+                                actions.push(`<button type="button" class="btn btn-xs btn-outline-warning" onclick="muteChatUser(${msg.user_id}, 30)" aria-label="{{ _('كتم') }}"><i class="fas fa-volume-mute"></i></button>`);
+                                actions.push(`<button type="button" class="btn btn-xs btn-outline-secondary" onclick="banChatUser(${msg.user_id})" aria-label="{{ _('حظر') }}"><i class="fas fa-ban"></i></button>`);
+                                actions.push(`<button type="button" class="btn btn-xs btn-outline-success" onclick="unmuteChatUser(${msg.user_id})" aria-label="{{ _('إلغاء كتم') }}"><i class="fas fa-volume-up"></i></button>`);
+                                actions.push(`<button type="button" class="btn btn-xs btn-outline-info" onclick="unbanChatUser(${msg.user_id})" aria-label="{{ _('إلغاء حظر') }}"><i class="fas fa-unlock"></i></button>`);
+                            }
                         }
                         actions.push(`<button type="button" class="btn btn-xs btn-outline-light" onclick="reportChatMessage(${msg.id})" aria-label="{{ _('بلاغ') }}"><i class="fas fa-flag"></i></button>`);
                         const div = document.createElement('div');
@@ -1000,6 +1007,22 @@
         if (!CAN_MODERATE) return;
         if (!confirm('{{ _("هل تريد حظر المستخدم من الدردشة؟") }}')) return;
         postAction(`/api/public-chat/ban/${userId}`)
+            .then(data => alert((data && data.message) ? data.message : '{{ _("تم.") }}'))
+            .catch(err => alert(err.message || '{{ _("حدث خطأ.") }}'));
+    }
+
+    function unbanChatUser(userId) {
+        if (!CAN_MODERATE) return;
+        if (!confirm('{{ _("إلغاء حظر المستخدم من الدردشة؟") }}')) return;
+        postAction(`/api/public-chat/unban/${userId}`)
+            .then(data => alert((data && data.message) ? data.message : '{{ _("تم.") }}'))
+            .catch(err => alert(err.message || '{{ _("حدث خطأ.") }}'));
+    }
+
+    function unmuteChatUser(userId) {
+        if (!CAN_MODERATE) return;
+        if (!confirm('{{ _("إلغاء كتم المستخدم؟") }}')) return;
+        postAction(`/api/public-chat/unmute/${userId}`)
             .then(data => alert((data && data.message) ? data.message : '{{ _("تم.") }}'))
             .catch(err => alert(err.message || '{{ _("حدث خطأ.") }}'));
     }

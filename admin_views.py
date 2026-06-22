@@ -154,7 +154,8 @@ class UserView(SecureModelView):
         'money',
         'diamonds',
         'banned_until',
-        'ban_reason')
+        'ban_reason',
+        'is_chat_banned')
     form_excluded_columns = (
         'password_hash',
         'items',
@@ -186,6 +187,7 @@ class UserView(SecureModelView):
         'is_active': _('نشط'),
         'banned_until': _('محظور حتى'),
         'ban_reason': _('سبب الحظر'),
+        'is_chat_banned': _('محظور من الدردشة'),
         'inventory': _('المخزون'),
         'vehicles': _('المركبات'),
         'investments': _('الاستثمارات')

@@ -585,6 +585,21 @@ def profile(user_id):
         if current_user.id != user.id:
             friendship_state = 'none'
 
+    from services.staff_access import (
+        is_staff,
+        role_label,
+        staff_capabilities,
+        staff_hub_links,
+    )
+    from services.chat_security import moderator_can_act
+
+    show_staff_hub = (
+        current_user.id == user.id and is_staff(current_user))
+    can_moderate_target = (
+        current_user.id != user.id
+        and current_user.is_moderator
+        and moderator_can_act(current_user, user))
+
     return render_template(
         'profile.html',
         user=user,
@@ -604,6 +619,13 @@ def profile(user_id):
         friend_requests_in=friend_requests_in,
         friend_requests_out=friend_requests_out,
         pending_friends_in_count=pending_friends_in_count,
+        show_staff_hub=show_staff_hub,
+        staff_hub_links=staff_hub_links(current_user) if show_staff_hub else [],
+        staff_capabilities=staff_capabilities(current_user) if show_staff_hub else [],
+        staff_role_label=role_label(current_user.role) if show_staff_hub else '',
+        admin_role_label=role_label(user.role),
+        show_admin_badge=user.role.value >= UserRole.MODERATOR.value,
+        can_moderate_target=can_moderate_target,
     )
 
 
@@ -1326,8 +1348,14 @@ def delete_public_chat_message(msg_id):
     m = db.session.get(PublicChat, msg_id)
     if not m:
         return jsonify({'error': _('الرسالة غير موجودة.')}), 404
+    room = m.room or 'general'
     db.session.delete(m)
     db.session.commit()
+    try:
+        from services.chat_realtime import emit_public_chat_delete
+        emit_public_chat_delete(room, msg_id)
+    except Exception:
+        pass
     return jsonify({'success': True, 'message': _('تم حذف الرسالة.')})
 
 

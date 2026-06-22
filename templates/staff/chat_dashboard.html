@@ -1,0 +1,206 @@
+{% extends "base.html" %}
+{% from "developer/_macros.html" import csrf_input %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-3">
+    <div class="row mb-3">
+        <div class="col-12">
+            <div class="luxury-card p-4 d-flex flex-wrap justify-content-between align-items-center">
+                <div>
+                    <h2 class="text-white mb-1"><i class="fas fa-shield-alt text-warning"></i> {{ _('لوحة إشراف الدردشة') }}</h2>
+                    <div class="text-muted small">
+                        {{ _('صلاحيتك:') }} <span class="badge badge-warning">{{ role_label }}</span>
+                    </div>
+                </div>
+                <a href="{{ url_for('main.chat_lobby') }}" class="btn btn-outline-light">
+                    <i class="fas fa-comments mr-1"></i> {{ _('الذهاب للدردشة') }}
+                </a>
+            </div>
+        </div>
+    </div>
+
+  {% if staff_capabilities %}
+    <div class="row mb-3">
+        <div class="col-12">
+            <div class="card luxury-card">
+                <div class="card-header luxury-header"><span class="text-gold mb-0">{{ _('صلاحياتك') }}</span></div>
+                <div class="card-body bg-dark">
+                    <ul class="mb-0 text-light">
+                        {% for cap in staff_capabilities %}
+                        <li>{{ cap }}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+  {% endif %}
+
+    <div class="row mb-4">
+        <div class="col-lg-6 mb-3">
+            <div class="card luxury-card h-100">
+                <div class="card-header luxury-header d-flex justify-content-between">
+                    <span class="text-gold">{{ _('بلاغات الدردشة') }}</span>
+                    <span class="badge badge-danger">{{ reports|length }}</span>
+                </div>
+                <div class="card-body bg-dark p-0">
+                    <div class="table-responsive">
+                        <table class="table table-dark table-sm table-hover mb-0">
+                            <thead>
+                                <tr>
+                                    <th>{{ _('الوقت') }}</th>
+                                    <th>{{ _('الغرفة') }}</th>
+                                    <th>{{ _('المبلّغ') }}</th>
+                                    <th>{{ _('المعاينة') }}</th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for r in reports %}
+                                <tr>
+                                    <td class="text-muted small">{{ r.timestamp.strftime('%m-%d %H:%M') if r.timestamp else '' }}</td>
+                                    <td>{{ r.details.get('room', '—') }}</td>
+                                    <td>{{ r.details.get('reporter_username', '—') }}</td>
+                                    <td class="small text-truncate" style="max-width:180px">{{ r.details.get('message_preview', '') }}</td>
+                                    <td>
+                                        {% if r.details.get('msg_id') %}
+                                        <form method="POST" action="{{ url_for('main.staff_chat_delete_message', msg_id=r.details.msg_id) }}" class="d-inline" onsubmit="return confirm('{{ _('حذف الرسالة؟') }}')">
+                                            {{ csrf_input() }}
+                                            <button type="submit" class="btn btn-xs btn-outline-danger" title="{{ _('حذف') }}"><i class="fas fa-trash"></i></button>
+                                        </form>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% else %}
+                                <tr><td colspan="5" class="text-center text-muted py-4">{{ _('لا توجد بلاغات.') }}</td></tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-6 mb-3">
+            <div class="card luxury-card h-100">
+                <div class="card-header luxury-header"><span class="text-gold">{{ _('محظورون من الدردشة') }}</span></div>
+                <div class="card-body bg-dark p-0">
+                    <div class="table-responsive">
+                        <table class="table table-dark table-sm table-hover mb-0">
+                            <thead>
+                                <tr>
+                                    <th>{{ _('المستخدم') }}</th>
+                                    <th>{{ _('الرتبة الإدارية') }}</th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for u in chat_banned %}
+                                <tr>
+                                    <td>
+                                        <a href="{{ url_for('main.profile', user_id=u.id) }}" class="text-warning">{{ u.username }}</a>
+                                    </td>
+                                    <td><span class="badge badge-secondary">{{ u.role.name }}</span></td>
+                                    <td>
+                                        <form method="POST" action="{{ url_for('main.staff_chat_unban', user_id=u.id) }}" class="d-inline">
+                                            {{ csrf_input() }}
+                                            <button type="submit" class="btn btn-xs btn-outline-success">{{ _('إلغاء الحظر') }}</button>
+                                        </form>
+                                    </td>
+                                </tr>
+                                {% else %}
+                                <tr><td colspan="3" class="text-center text-muted py-4">{{ _('لا أحد محظور حالياً.') }}</td></tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mb-4">
+        <div class="col-lg-6 mb-3">
+            <div class="card luxury-card h-100">
+                <div class="card-header luxury-header"><span class="text-gold">{{ _('مكتومون مؤقتاً') }}</span></div>
+                <div class="card-body bg-dark p-0">
+                    <div class="table-responsive">
+                        <table class="table table-dark table-sm table-hover mb-0">
+                            <thead>
+                                <tr>
+                                    <th>{{ _('المستخدم') }}</th>
+                                    <th>{{ _('حتى') }}</th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for u in muted_users %}
+                                <tr>
+                                    <td><a href="{{ url_for('main.profile', user_id=u.id) }}" class="text-info">{{ u.username }}</a></td>
+                                    <td class="small text-muted">{{ u.chat_muted_until.strftime('%Y-%m-%d %H:%M') if u.chat_muted_until else '' }}</td>
+                                    <td>
+                                        <form method="POST" action="{{ url_for('main.staff_chat_unmute', user_id=u.id) }}" class="d-inline">
+                                            {{ csrf_input() }}
+                                            <button type="submit" class="btn btn-xs btn-outline-success">{{ _('إلغاء الكتم') }}</button>
+                                        </form>
+                                    </td>
+                                </tr>
+                                {% else %}
+                                <tr><td colspan="3" class="text-center text-muted py-4">{{ _('لا يوجد مكتومون.') }}</td></tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {% if can_edit_settings %}
+        <div class="col-lg-6 mb-3">
+            <div class="card luxury-card h-100">
+                <div class="card-header luxury-header"><span class="text-gold">{{ _('إعدادات بطء الإرسال') }}</span></div>
+                <div class="card-body bg-dark">
+                    <form method="POST" action="{{ url_for('main.staff_chat_settings') }}">
+                        {{ csrf_input() }}
+                        <div class="form-group">
+                            <label class="text-light">{{ _('افتراضي (ثوانٍ)') }}</label>
+                            <input type="number" name="chat_slow_mode_seconds" class="form-control form-control-luxury" min="0" max="60" value="{{ slow_global }}">
+                        </div>
+                        <div class="form-group">
+                            <label class="text-light">{{ _('غرفة العام') }}</label>
+                            <input type="number" name="chat_slow_mode_seconds_general" class="form-control form-control-luxury" min="0" max="60" value="{{ slow_general }}">
+                        </div>
+                        <div class="form-group">
+                            <label class="text-light">{{ _('غرفة VIP') }}</label>
+                            <input type="number" name="chat_slow_mode_seconds_vip" class="form-control form-control-luxury" min="0" max="60" value="{{ slow_vip }}">
+                        </div>
+                        <button type="submit" class="btn btn-gold">{{ _('حفظ') }}</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    {% if hub_links and hub_links|length > 2 %}
+    <div class="row">
+        <div class="col-12">
+            <div class="card luxury-card">
+                <div class="card-header luxury-header"><span class="text-gold">{{ _('روابط إدارية أخرى') }}</span></div>
+                <div class="card-body bg-dark d-flex flex-wrap">
+                    {% for link in hub_links %}
+                    {% if link.endpoint != 'main.staff_chat' and link.endpoint != 'main.chat_lobby' %}
+                    <a href="{% if link.url %}{{ link.url }}{% else %}{{ url_for(link.endpoint) }}{% endif %}" class="btn btn-outline-light m-1">
+                        <i class="{{ link.icon }} mr-1 {{ link.css }}"></i> {{ link.label }}
+                    </a>
+                    {% endif %}
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

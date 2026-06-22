@@ -33,6 +33,11 @@
                     <div class="profile-rank-badge">
                         <i class="fas fa-crown mr-2"></i> {{ _(user.rank_title) }}
                     </div>
+                    {% if show_admin_badge %}
+                    <div class="badge badge-warning mt-2 p-2">
+                        <i class="fas fa-user-shield mr-1"></i> {{ admin_role_label }}
+                    </div>
+                    {% endif %}
                     {% if user.jail_until and user.jail_until.replace(tzinfo=None) > now.replace(tzinfo=None) %}
                     <div class="badge bg-danger text-white mt-2 p-2 shadow-sm rounded-pill">
                         <i class="fas fa-lock mr-1"></i> {{ _('سجين في عوفر') }}
@@ -167,6 +172,24 @@
                         <a href="{{ url_for('main.edit_profile') }}" class="btn-action-primary">
                             <i class="fas fa-cog mr-2"></i> {{ _('تعديل الملف الشخصي') }}
                         </a>
+                        {% include 'includes/staff_hub.html' %}
+                    {% endif %}
+                    {% if can_moderate_target %}
+                    <div class="mt-3 p-2 rounded border border-warning" style="background:rgba(255,193,7,0.08);">
+                        <div class="small text-warning mb-2"><i class="fas fa-gavel mr-1"></i> {{ _('إجراءات إشراف') }}</div>
+                        <div class="d-flex flex-wrap" style="gap:.35rem;">
+                            <a href="{{ url_for('main.staff_chat') }}" class="btn btn-sm btn-outline-warning">{{ _('لوحة الدردشة') }}</a>
+                            {% if current_user.is_developer %}
+                            <a href="{{ url_for('main.dev_user_edit', id=user.id) }}" class="btn btn-sm btn-outline-light">{{ _('تعديل إداري') }}</a>
+                            {% endif %}
+                        </div>
+                        {% if user.is_chat_banned %}
+                        <div class="small text-danger mt-2">{{ _('محظور من الدردشة') }}</div>
+                        {% endif %}
+                        {% if user.chat_muted_until and user.chat_muted_until.replace(tzinfo=None) > now.replace(tzinfo=None) %}
+                        <div class="small text-muted mt-1">{{ _('مكتوم حتى') }} {{ user.chat_muted_until.strftime('%H:%M') }}</div>
+                        {% endif %}
+                    </div>
                     {% endif %}
                 </div>
             </div>

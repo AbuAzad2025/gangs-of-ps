@@ -279,6 +279,13 @@
             </a>
         </li>
         {% endif %}
+        {% if current_user.is_moderator %}
+        <li class="nav-item d-none d-sm-inline-block">
+            <a href="{{ url_for('main.staff_chat') }}" class="nav-link" title="{{ _('إدارة الدردشة') }}">
+            <i class="fas fa-comments text-warning"></i>
+            </a>
+        </li>
+        {% endif %}
         {% if current_user.is_admin or current_user.is_developer %}
         <li class="nav-item d-none d-sm-inline-block">
             <a href="/admin/" class="nav-link" title="{{ _('لوحة التحكم') }}">
@@ -381,14 +388,24 @@
       <nav class="mt-2">
         <ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu" data-accordion="false">
           
-          {% if current_user.is_developer or current_user.is_admin %}
+          {% if current_user.is_developer or current_user.is_admin or current_user.is_moderator %}
           <li class="nav-header"><i class="fas fa-cogs mr-2"></i> {{ _('الإدارة') }}</li>
+          {% if current_user.is_moderator %}
+          <li class="nav-item">
+            <a href="{{ url_for('main.staff_chat') }}" class="nav-link">
+              <i class="nav-icon fas fa-comments text-warning"></i>
+              <p>{{ _('إدارة الدردشة') }}</p>
+            </a>
+          </li>
+          {% endif %}
+          {% if current_user.is_admin or current_user.is_developer %}
           <li class="nav-item">
               <a href="{{ url_for('main.tiktok_promo') }}" class="nav-link" target="_blank">
                   <i class="nav-icon fab fa-tiktok text-danger"></i>
                   <p>{{ _('أداة فيديو تيك توك') }}</p>
               </a>
           </li>
+          {% endif %}
           {% if current_user.is_developer %}
           <li class="nav-item">
             <a href="{{ url_for('main.dev_dashboard') }}" class="nav-link">

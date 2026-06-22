@@ -16,3 +16,16 @@ def emit_public_chat_message(room: str, payload: Dict[str, Any]) -> None:
         socketio.emit('chat_message', payload, room=chat_room_key(room))
     except Exception:
         pass
+
+
+def emit_public_chat_delete(room: str, msg_id: int) -> None:
+    try:
+        from extensions import socketio
+        if not socketio:
+            return
+        socketio.emit(
+            'chat_delete',
+            {'id': int(msg_id)},
+            room=chat_room_key(room))
+    except Exception:
+        pass

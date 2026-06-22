@@ -29,12 +29,13 @@
                                 <input type="text" name="username" class="form-control form-control-luxury" value="{{ user.username }}" required>
                             </div>
                             <div class="form-group mb-3">
-                                <label class="text-gold">{{ _('الدور') }}</label>
-                                <select name="role" class="form-control form-control-luxury">
-                                    {% for role in roles %}
-                                    <option value="{{ role.name }}" {% if user.role == role %}selected{% endif %}>{{ role.name }}</option>
+                                <label class="text-gold">{{ _('الصلاحية الإدارية') }}</label>
+                                <select name="admin_role" class="form-control form-control-luxury">
+                                    {% for r in user_roles %}
+                                    <option value="{{ r.name }}" {% if user.role == r %}selected{% endif %}>{{ role_labels[r] }}</option>
                                     {% endfor %}
                                 </select>
+                                <small class="text-muted">{{ _('رتبة اللعب (تلقائية من المستوى):') }} {{ _(user.rank_title) }}</small>
                             </div>
                             <div class="form-group mb-3">
                                 <label class="text-gold">{{ _('المستوى') }}</label>
@@ -235,6 +236,56 @@
                         {% else %}
                             <small class="text-success">{{ _('المستخدم غير محظور حالياً.') }}</small>
                         {% endif %}
+                    </div>
+                </div>
+
+                <div class="row bg-dark p-3 rounded border border-warning mt-3">
+                    <div class="col-md-12 mb-2">
+                        <h6 class="text-warning"><i class="fas fa-comments mr-2"></i> {{ _('الدردشة و VIP') }}</h6>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-check mt-2">
+                            <input class="form-check-input" type="checkbox" name="is_chat_banned" id="chatBanned" {% if user.is_chat_banned %}checked{% endif %}>
+                            <label class="form-check-label text-white" for="chatBanned">{{ _('محظور من الدردشة') }}</label>
+                        </div>
+                        {% if user.is_chat_banned %}
+                        <div class="form-check mt-2">
+                            <input class="form-check-input" type="checkbox" name="clear_chat_ban" id="clearChatBan">
+                            <label class="form-check-label text-success" for="clearChatBan">{{ _('رفع حظر الدردشة') }}</label>
+                        </div>
+                        {% endif %}
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            <label class="text-light">{{ _('كتم الدردشة (دقائق)') }}</label>
+                            <input type="number" name="chat_mute_minutes" class="form-control bg-secondary text-light" min="0" placeholder="0">
+                        </div>
+                        {% if user.chat_muted_until %}
+                        <div class="small text-muted mb-1">{{ _('مكتوم حتى:') }} {{ user.chat_muted_until.strftime('%Y-%m-%d %H:%M') }}</div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" name="clear_chat_mute" id="clearChatMute">
+                            <label class="form-check-label text-success" for="clearChatMute">{{ _('إلغاء الكتم') }}</label>
+                        </div>
+                        {% endif %}
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            <label class="text-light">{{ _('VIP — إضافة أيام') }}</label>
+                            <input type="number" name="vip_days" class="form-control bg-secondary text-light" min="0" placeholder="0">
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" name="vip_lifetime" id="vipLifetime">
+                            <label class="form-check-label text-white" for="vipLifetime">{{ _('VIP مدى الحياة') }}</label>
+                        </div>
+                        {% if user.vip_until %}
+                        <div class="small text-muted mt-1">{{ _('VIP حتى:') }} {{ user.vip_until.strftime('%Y-%m-%d %H:%M') }}</div>
+                        {% elif user.role.value >= 2 and not user.vip_until %}
+                        <div class="small text-success mt-1">{{ _('VIP نشط (بدون انتهاء)') }}</div>
+                        {% endif %}
+                        <div class="form-check mt-1">
+                            <input class="form-check-input" type="checkbox" name="clear_vip" id="clearVip">
+                            <label class="form-check-label text-danger" for="clearVip">{{ _('إلغاء VIP') }}</label>
+                        </div>
                     </div>
                 </div>
 

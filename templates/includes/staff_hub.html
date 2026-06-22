@@ -1,0 +1,26 @@
+{% if show_staff_hub %}
+<div class="staff-hub-card mt-3 p-3 rounded border border-warning" style="background:rgba(212,175,55,0.08);">
+    <h6 class="text-gold mb-2"><i class="fas fa-user-shield mr-1"></i> {{ _('لوحة الطاقم') }}</h6>
+    <p class="text-muted small mb-2">
+        {{ _('الصلاحية الإدارية:') }}
+        <span class="badge badge-warning">{{ staff_role_label }}</span>
+        <span class="mx-1">•</span>
+        {{ _('رتبة اللعب:') }}
+        <span class="badge badge-secondary">{{ _(user.rank_title) }}</span>
+    </p>
+    {% if staff_capabilities %}
+    <ul class="small text-light mb-3 pl-3">
+        {% for cap in staff_capabilities[:4] %}
+        <li>{{ cap }}</li>
+        {% endfor %}
+    </ul>
+    {% endif %}
+    <div class="d-flex flex-wrap" style="gap:.5rem;">
+        {% for link in staff_hub_links %}
+        <a href="{% if link.url %}{{ link.url }}{% else %}{{ url_for(link.endpoint) }}{% endif %}" class="btn btn-sm btn-outline-warning">
+            <i class="{{ link.icon }} mr-1"></i> {{ link.label }}
+        </a>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}

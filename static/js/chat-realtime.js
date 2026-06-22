@@ -1,7 +1,7 @@
 (function (global) {
     'use strict';
 
-    function initChatRealtime(room, onMessage) {
+    function initChatRealtime(room, onMessage, onDelete) {
         if (!room || typeof onMessage !== 'function') return { stop: function () {} };
         if (typeof io === 'undefined') {
             return { stop: function () {}, mode: 'poll' };
@@ -27,6 +27,13 @@
         socket.on('chat_message', function (msg) {
             if (!stopped && msg && msg.id) {
                 onMessage(msg);
+            }
+        });
+
+        socket.on('chat_delete', function (payload) {
+            if (stopped || !payload || !payload.id) return;
+            if (typeof onDelete === 'function') {
+                onDelete(payload.id);
             }
         });
 

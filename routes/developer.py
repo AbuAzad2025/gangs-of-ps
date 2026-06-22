@@ -895,6 +895,56 @@ def dev_user_edit(id):
             if 'clear_ban' in request.form:
                 set_fields['banned_until'] = None
 
+            # Chat moderation fields
+            if 'clear_chat_ban' in request.form:
+                set_fields['is_chat_banned'] = False
+            elif 'is_chat_banned' in request.form:
+                set_fields['is_chat_banned'] = True
+
+            if 'clear_chat_mute' in request.form:
+                set_fields['chat_muted_until'] = None
+            else:
+                chat_mute_minutes = request.form.get('chat_mute_minutes')
+                if chat_mute_minutes and int(chat_mute_minutes) > 0:
+                    set_fields['chat_muted_until'] = datetime.now(
+                        timezone.utc).replace(tzinfo=None) + timedelta(
+                        minutes=int(chat_mute_minutes))
+
+            # Collaborator/Suspicious Status
+            set_fields['is_suspicious'] = 'is_suspicious' in request.form
+
+            admin_role_name = request.form.get('admin_role')
+            new_admin_role = None
+            if admin_role_name:
+                try:
+                    new_admin_role = UserRole[admin_role_name]
+                    set_fields['role'] = new_admin_role
+                except KeyError:
+                    flash(_('صلاحية إدارية غير صالحة.'), 'warning')
+
+            effective_role = new_admin_role or user.role
+
+            # VIP subscription (UserRole.SUBSCRIBER + vip_until)
+            if 'clear_vip' in request.form:
+                if effective_role == UserRole.SUBSCRIBER:
+                    set_fields['role'] = UserRole.USER
+                set_fields['vip_until'] = None
+            elif 'vip_lifetime' in request.form:
+                if effective_role.value < UserRole.SUBSCRIBER.value:
+                    set_fields['role'] = UserRole.SUBSCRIBER
+                set_fields['vip_until'] = None
+            else:
+                vip_days = request.form.get('vip_days')
+                if vip_days and int(vip_days) > 0:
+                    if effective_role.value < UserRole.SUBSCRIBER.value:
+                        set_fields['role'] = UserRole.SUBSCRIBER
+                    base = user.vip_until or datetime.now(
+                        timezone.utc).replace(tzinfo=None)
+                    if base < datetime.now(timezone.utc).replace(tzinfo=None):
+                        base = datetime.now(timezone.utc).replace(tzinfo=None)
+                    set_fields['vip_until'] = base + timedelta(
+                        days=int(vip_days))
+
             # Administrative Detention (Jail)
             jail_hours = request.form.get('jail_hours')
             if jail_hours and int(jail_hours) > 0:
@@ -903,15 +953,6 @@ def dev_user_edit(id):
 
             if 'clear_jail' in request.form:
                 set_fields['jail_until'] = None
-
-            # Collaborator/Suspicious Status
-            set_fields['is_suspicious'] = 'is_suspicious' in request.form
-
-            role_name = request.form.get('role')
-            if role_name:
-                role = UserRank.query.filter_by(name=role_name).first()
-                if role:
-                    set_fields['role_id'] = role.id
 
             # Apply changes via ResourceService
             # Note: expected_version is None because Admin overrides everything
@@ -928,12 +969,13 @@ def dev_user_edit(id):
 
         return redirect(url_for('main.dev_user_edit', id=user.id))
 
-    roles = UserRank.query.all()
+    from services.staff_access import ADMIN_ROLE_LABELS, selectable_admin_roles
     locations = Location.query.all()
     return render_template(
         'developer/edit_user.html',
         user=user,
-        roles=roles,
+        user_roles=selectable_admin_roles(),
+        role_labels=ADMIN_ROLE_LABELS,
         locations=locations,
         title=_('تعديل مستخدم'))
 
