@@ -3,52 +3,46 @@
 {% block content %}
 {% set hub_active = 'messenger' %}
 {% include 'includes/chat_hub_nav.html' %}
-<div class="card luxury-card" style="height: 700px; overflow: hidden;">
-    <div class="row no-gutters h-100">
-        <!-- Sidebar: Conversations -->
-        <div class="col-md-4 col-lg-3 border-left border-secondary d-flex flex-column h-100 bg-dark-gradient">
-            <div class="p-3 border-bottom border-secondary d-flex justify-content-between align-items-center">
-                <h5 class="mb-0 text-gold"><i class="fas fa-comments mr-2"></i> {{ _('المحادثات') }}</h5>
+
+<div class="gop-messenger-shell">
+    <div class="row no-gutters gop-messenger-row">
+        <div class="col-md-4 col-lg-3 gop-messenger-sidebar order-md-2 order-lg-1">
+            <div class="p-3 border-bottom border-secondary">
+                <h5 class="mb-0 text-gold"><i class="fas fa-envelope mr-2"></i> {{ _('المحادثات') }}</h5>
             </div>
-            
-            <div class="list-group list-group-flush flex-grow-1 overflow-auto" id="conversation-list">
-                <!-- Loaded via JS -->
+            <div class="flex-grow-1 overflow-auto custom-scrollbar" id="conversation-list">
                 <div class="text-center mt-5 text-muted">
                     <i class="fas fa-spinner fa-spin"></i> {{ _('جاري التحميل...') }}
                 </div>
             </div>
         </div>
 
-        <!-- Main: Chat Area -->
-        <div class="col-md-8 col-lg-9 d-flex flex-column h-100 bg-black-50">
-            <!-- Header -->
-            <div id="chat-header" class="p-3 border-bottom border-secondary d-none bg-dark-gradient">
+        <div class="col-md-8 col-lg-9 gop-messenger-main order-md-1 order-lg-2">
+            <div id="chat-header" class="gop-messenger-topbar d-none">
                 <div class="d-flex align-items-center">
-                    <img id="header-avatar" src="" class="img-circle border border-gold mr-3" width="40" height="40" style="object-fit: cover;">
+                    <img id="header-avatar" src="" class="rounded-circle border border-gold mr-3" width="42" height="42" style="object-fit: cover;" alt="">
                     <div>
                         <h5 class="mb-0 text-white" id="header-username"></h5>
-                        <small class="text-success"><i class="fas fa-circle x-small"></i> {{ _('متصل') }}</small>
+                        <small id="header-presence" class="gop-presence gop-presence--away">
+                            <i class="fas fa-circle" style="font-size:0.5rem;"></i>
+                            <span id="header-presence-text">{{ _('غير متصل') }}</span>
+                        </small>
                     </div>
                 </div>
             </div>
 
-            <!-- Empty State -->
-            <div id="empty-state" class="d-flex align-items-center justify-content-center h-100 flex-column text-muted">
-                <i class="far fa-paper-plane fa-5x mb-3 text-gold opacity-50"></i>
-                <h3>{{ _('اختر محادثة للبدء') }}</h3>
-                <p>{{ _('تواصل مع أعضاء عصابتك وأصدقائك بخصوصية تامة') }}</p>
+            <div id="empty-state" class="d-flex align-items-center justify-content-center flex-grow-1 flex-column text-muted p-4">
+                <i class="far fa-paper-plane fa-4x mb-3 text-gold opacity-50"></i>
+                <h3 class="h4">{{ _('اختر محادثة للبدء') }}</h3>
+                <p class="text-center mb-0">{{ _('رسائل خاصة آمنة بين اللاعبين — بدون روابط أو أرقام هواتف.') }}</p>
             </div>
 
-            <!-- Messages Container -->
-            <div id="chat-messages" class="flex-grow-1 p-4 d-none overflow-auto custom-scrollbar" style="background-color: rgba(0,0,0,0.5);">
-                <!-- Messages loaded by JS -->
-            </div>
+            <div id="chat-messages" class="gop-messenger-messages custom-scrollbar d-none"></div>
 
-            <!-- Input Area -->
-            <div id="chat-input-area" class="p-3 border-top border-secondary d-none bg-dark-gradient">
+            <div id="chat-input-area" class="gop-messenger-composer d-none">
                 <form id="messenger-form">
                     <div class="input-group">
-                        <input type="text" id="messenger-input" class="form-control form-control-luxury py-4" placeholder="{{ _('اكتب رسالتك هنا...') }}" autocomplete="off" maxlength="1000">
+                        <input type="text" id="messenger-input" class="form-control form-control-luxury py-3" placeholder="{{ _('اكتب رسالتك هنا...') }}" autocomplete="off" maxlength="1000">
                         <div class="input-group-append">
                             <button type="submit" class="btn btn-gold px-4"><i class="fas fa-paper-plane"></i></button>
                         </div>
@@ -58,225 +52,172 @@
         </div>
     </div>
 </div>
-
-<style>
-.bg-dark-gradient {
-    background: linear-gradient(180deg, #1a1a1a 0%, #0d0d0d 100%);
-}
-.bg-black-50 {
-    background-color: rgba(0,0,0,0.5);
-}
-.custom-scrollbar::-webkit-scrollbar {
-    width: 8px;
-}
-.custom-scrollbar::-webkit-scrollbar-track {
-    background: #0d0d0d; 
-}
-.custom-scrollbar::-webkit-scrollbar-thumb {
-    background: #444; 
-    border-radius: 4px;
-}
-.custom-scrollbar::-webkit-scrollbar-thumb:hover {
-    background: #d4af37; 
-}
-.conversation-item {
-    transition: all 0.2s;
-    cursor: pointer;
-    border-bottom: 1px solid rgba(255,255,255,0.05);
-}
-.conversation-item:hover, .conversation-item.active {
-    background-color: rgba(212, 175, 55, 0.1);
-    border-right: 3px solid #d4af37;
-}
-.message-bubble {
-    max-width: 75%;
-    padding: 10px 15px;
-    border-radius: 15px;
-    margin-bottom: 10px;
-    position: relative;
-    word-wrap: break-word;
-}
-.message-sent {
-    background-color: #d4af37;
-    color: #000;
-    margin-right: auto;
-    border-bottom-right-radius: 2px;
-}
-.message-received {
-    background-color: #333;
-    color: #fff;
-    margin-left: auto;
-    border-bottom-left-radius: 2px;
-}
-.message-time {
-    font-size: 0.7rem;
-    opacity: 0.7;
-    margin-top: 5px;
-    display: block;
-    text-align: right;
-}
-</style>
 {% endblock %}
 
 {% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/socket.io-client@4.7.5/dist/socket.io.min.js"></script>
+<script src="{{ url_for('static', filename='js/chat-utils.js') }}?v=1.1"></script>
+<script src="{{ url_for('static', filename='js/chat-realtime.js') }}?v=1.1"></script>
 <script>
 $(document).ready(function() {
-    $.ajaxSetup({
-        headers: {
-            'X-CSRFToken': "{{ csrf_token() }}"
-        }
-    });
+    $.ajaxSetup({ headers: { 'X-CSRFToken': "{{ csrf_token() }}" } });
 
-    const AVATAR_BASE = "/static/images/avatars/";
+    const AVATAR_BASE = "{{ url_for('static', filename='images/avatars/') }}";
+    const CURRENT_USER_ID = {{ current_user.id }};
+    const LABEL_ONLINE = {{ _('متصل الآن')|tojson }};
+    const LABEL_AWAY = {{ _('غير متصل')|tojson }};
+    const escapeHtml = window.GopChatUtils.escapeHtml;
 
     let currentReceiverId = null;
     let lastMsgId = 0;
     let messengerPollId = null;
-    let pollInterval = null;
-    
-    // --- Load Conversations ---
-    function loadConversations() {
-        $.ajax({
-            url: "{{ url_for('main.messenger_conversations') }}",
-            success: function(conversations) {
-                const list = $('#conversation-list');
-                list.empty();
-                
-                if (conversations.length === 0) {
-                    list.html(`<div class="text-center mt-5 text-muted"><p>{{ _('لا توجد محادثات') }}</p></div>`);
-                    return;
-                }
+    let socketMode = false;
 
-                conversations.forEach(c => {
-                    const isActive = c.user_id === currentReceiverId ? 'active' : '';
-                    const unreadBadge = c.unread_count > 0 ? `<span class="badge badge-danger ml-auto">${c.unread_count}</span>` : '';
-                    const isReadClass = !c.is_read && c.user_id !== {{ current_user.id }} ? 'font-weight-bold text-white' : 'text-muted';
-                    const safeLastMessage = escapeHtml(c.last_message || '');
-                    
-                    const html = `
-                        <div class="conversation-item p-3 d-flex align-items-center ${isActive}" onclick="openChat(${c.user_id}, '${c.username}', '${c.avatar}')">
-                            <img src="${AVATAR_BASE + c.avatar}" class="img-circle mr-3" width="40" height="40" style="object-fit: cover;" onerror="this.src='https://ui-avatars.com/api/?name=${c.username}&background=random';">
-                            <div class="flex-grow-1 overflow-hidden">
-                                <div class="d-flex justify-content-between">
-                                    <h6 class="mb-0 text-truncate ${c.unread_count > 0 ? 'text-gold' : 'text-light'}">${c.username}</h6>
-                                    <small class="text-muted ml-2">${c.timestamp.substring(11, 16)}</small>
-                                </div>
-                                <p class="mb-0 small text-truncate ${isReadClass}">${safeLastMessage}</p>
-                            </div>
-                            ${unreadBadge}
-                        </div>
-                    `;
-                    list.append(html);
-                });
-            }
+    function updatePresence(userId, isOnline) {
+        if (parseInt(userId, 10) !== parseInt(currentReceiverId, 10)) return;
+        const el = $('#header-presence');
+        const text = $('#header-presence-text');
+        if (isOnline) {
+            el.removeClass('gop-presence--away').addClass('gop-presence--online');
+            text.text(LABEL_ONLINE);
+        } else {
+            el.removeClass('gop-presence--online').addClass('gop-presence--away');
+            text.text(LABEL_AWAY);
+        }
+    }
+
+    const PRESENCE_URL_TMPL = {{ url_for('main.messenger_presence', user_id=0)|tojson }};
+
+    function fetchPresence(userId) {
+        const url = PRESENCE_URL_TMPL.replace('/0', '/' + userId);
+        $.getJSON(url).done(function(data) {
+            updatePresence(userId, !!(data && data.is_online));
         });
     }
 
-    // --- Open Chat ---
-    window.openChat = function(userId, username, avatar) {
+    function loadConversations() {
+        $.getJSON("{{ url_for('main.messenger_conversations') }}", function(conversations) {
+            const list = $('#conversation-list');
+            list.empty();
+            if (!conversations.length) {
+                list.html('<div class="gop-chat-empty"><p>{{ _('لا توجد محادثات بعد') }}</p></div>');
+                return;
+            }
+            conversations.forEach(function(c) {
+                const isActive = c.user_id === currentReceiverId ? 'active' : '';
+                const unreadBadge = c.unread_count > 0 ? '<span class="badge badge-danger ml-auto">' + c.unread_count + '</span>' : '';
+                const onlineDot = c.is_online
+                    ? '<span class="gop-presence gop-presence--online ml-1"><i class="fas fa-circle" style="font-size:0.45rem;"></i></span>'
+                    : '';
+                const html = ''
+                    + '<div class="gop-conversation-item p-3 d-flex align-items-center ' + isActive + '" data-user-id="' + c.user_id + '" data-username="' + escapeHtml(c.username) + '" data-avatar="' + escapeHtml(c.avatar || 'default.png') + '" data-online="' + (c.is_online ? '1' : '0') + '">'
+                    + '<img src="' + AVATAR_BASE + escapeHtml(c.avatar || 'default.png') + '" class="rounded-circle mr-3" width="40" height="40" style="object-fit:cover;" alt="" onerror="this.src=\'https://ui-avatars.com/api/?name=' + encodeURIComponent(c.username) + '&background=random\';">'
+                    + '<div class="flex-grow-1 overflow-hidden">'
+                    + '<div class="d-flex justify-content-between align-items-center"><h6 class="mb-0 text-truncate ' + (c.unread_count > 0 ? 'text-gold' : 'text-light') + '">' + escapeHtml(c.username) + onlineDot + '</h6><small class="text-muted ml-2">' + (c.timestamp ? c.timestamp.substring(11, 16) : '') + '</small></div>'
+                    + '<p class="mb-0 small text-truncate text-muted">' + escapeHtml(c.last_message || '') + '</p>'
+                    + '</div>' + unreadBadge + '</div>';
+                list.append(html);
+            });
+        });
+    }
+
+    $('#conversation-list').on('click', '.gop-conversation-item', function() {
+        const el = $(this);
+        openChat(
+            parseInt(el.data('user-id'), 10),
+            String(el.data('username') || ''),
+            String(el.data('avatar') || 'default.png'),
+            el.data('online') === 1 || el.data('online') === '1'
+        );
+    });
+
+    function openChat(userId, username, avatar, isOnline) {
         if (currentReceiverId === userId) return;
-        
         currentReceiverId = userId;
         lastMsgId = 0;
         $('#empty-state').addClass('d-none');
-        $('#chat-header').removeClass('d-none');
-        $('#chat-messages').removeClass('d-none');
-        $('#chat-input-area').removeClass('d-none');
-        
+        $('#chat-header, #chat-messages, #chat-input-area').removeClass('d-none');
         $('#header-username').text(username);
-        $('#header-avatar').attr('src', `${AVATAR_BASE}${avatar || 'default.png'}`).attr('onerror', `this.src='https://ui-avatars.com/api/?name=${username}&background=random'`);
-        
-        loadConversations(); // Update active state
-        loadMessages(userId);
+        $('#header-avatar').attr('src', AVATAR_BASE + (avatar || 'default.png'));
+        updatePresence(userId, !!isOnline);
+        fetchPresence(userId);
+        loadConversations();
+        loadMessages(userId, false);
         markAsRead(userId);
-        scrollToBottom();
-    };
+    }
 
-    // --- Load Messages ---
     function appendMessageBubble(msg) {
-        const isMe = msg.sender_id == {{ current_user.id }};
-        const msgClass = isMe ? 'message-sent' : 'message-received';
-        const safeMessage = escapeHtml(msg.message || '');
-        const html = `
-            <div class="d-flex ${isMe ? 'flex-row' : 'flex-row-reverse'} mb-3" data-msg-id="${msg.id}">
-                <div class="message-bubble ${msgClass}">
-                    ${safeMessage}
-                    <span class="message-time">
-                        ${msg.created_at}
-                        ${isMe ? (msg.is_read ? '<i class="fas fa-check-double text-primary ml-1"></i>' : '<i class="fas fa-check ml-1"></i>') : ''}
-                    </span>
-                </div>
-            </div>
-        `;
+        if (!msg || !msg.id) return;
+        if (document.querySelector('[data-msg-id="' + msg.id + '"]')) return;
+        const isMe = parseInt(msg.sender_id, 10) === CURRENT_USER_ID;
+        const bubbleClass = isMe ? 'gop-chat-bubble--sent' : 'gop-chat-bubble--received';
+        const alignClass = isMe ? 'justify-content-start' : 'justify-content-end';
+        const readMark = isMe ? (msg.is_read ? '<i class="fas fa-check-double ml-1"></i>' : '<i class="fas fa-check ml-1"></i>') : '';
+        const html = ''
+            + '<div class="d-flex ' + alignClass + ' mb-2" data-msg-id="' + msg.id + '">'
+            + '<div class="gop-chat-bubble ' + bubbleClass + '">' + escapeHtml(msg.message || '')
+            + '<span class="gop-chat-time">' + escapeHtml(msg.created_at || '') + readMark + '</span></div></div>';
         $('#chat-messages').append(html);
-        if (msg.id) lastMsgId = Math.max(lastMsgId, parseInt(msg.id, 10) || 0);
+        lastMsgId = Math.max(lastMsgId, parseInt(msg.id, 10) || 0);
     }
 
     function loadMessages(userId, incremental) {
         const url = incremental && lastMsgId > 0
-            ? `/api/messenger/messages/${userId}?since_id=${lastMsgId}`
-            : `/api/messenger/messages/${userId}`;
-        $.ajax({
-            url: url,
-            success: function(messages) {
-                if (!incremental || lastMsgId === 0) {
-                    $('#chat-messages').empty();
-                    lastMsgId = 0;
-                }
-                if (!messages || !messages.length) {
-                    if (!incremental) scrollToBottom();
-                    return;
-                }
-                messages.forEach(msg => {
-                    if (!document.querySelector(`[data-msg-id="${msg.id}"]`)) {
-                        appendMessageBubble(msg);
-                    }
-                });
-                scrollToBottom();
+            ? '/api/messenger/messages/' + userId + '?since_id=' + lastMsgId
+            : '/api/messenger/messages/' + userId;
+        $.getJSON(url, function(messages) {
+            if (!incremental || lastMsgId === 0) {
+                $('#chat-messages').empty();
+                lastMsgId = 0;
             }
+            (messages || []).forEach(function(msg) {
+                if (!document.querySelector('[data-msg-id="' + msg.id + '"]')) appendMessageBubble(msg);
+            });
+            scrollToBottom();
         });
     }
 
-    function markAsRead(userId) {
-        $.post(`/api/messenger/mark_read/${userId}`);
-    }
-
+    function markAsRead(userId) { $.post('/api/messenger/mark_read/' + userId); }
     function scrollToBottom() {
-        const container = $('#chat-messages');
-        container.scrollTop(container[0].scrollHeight);
+        const c = $('#chat-messages');
+        if (c.length) c.scrollTop(c[0].scrollHeight);
     }
 
-    // --- Send Message ---
     $('#messenger-form').on('submit', function(e) {
         e.preventDefault();
-        const input = $('#messenger-input');
-        const content = input.val().trim();
-        
+        const content = $('#messenger-input').val().trim();
         if (!content || !currentReceiverId) return;
-        
         $.ajax({
             url: "{{ url_for('main.messenger_send') }}",
             method: 'POST',
             contentType: 'application/json',
-            data: JSON.stringify({
-                receiver_id: currentReceiverId,
-                content: content
-            }),
+            data: JSON.stringify({ receiver_id: currentReceiverId, content: content }),
             success: function(msg) {
-                input.val('');
-                if (msg && msg.id) {
-                    appendMessageBubble(msg);
-                    scrollToBottom();
-                } else {
-                    loadMessages(currentReceiverId, true);
-                }
+                $('#messenger-input').val('');
+                if (msg && msg.id) appendMessageBubble(msg);
+                else loadMessages(currentReceiverId, true);
+                scrollToBottom();
                 loadConversations();
             },
             error: function(xhr) {
-                toastr.error(xhr.responseJSON ? xhr.responseJSON.error : 'Error sending message');
+                toastr.error(xhr.responseJSON ? xhr.responseJSON.error : 'Error');
             }
         });
     });
+
+    let realtime = null;
+    if (window.GopChatRealtime && window.GopChatRealtime.initMessenger) {
+        realtime = window.GopChatRealtime.initMessenger(function(msg) {
+            if (!msg) return;
+            if (currentReceiverId && parseInt(msg.sender_id, 10) === parseInt(currentReceiverId, 10)) {
+                appendMessageBubble(msg);
+                markAsRead(currentReceiverId);
+                scrollToBottom();
+            }
+            loadConversations();
+        });
+        socketMode = realtime && realtime.mode === 'socket';
+    }
 
     function startMessengerPoll() {
         if (messengerPollId) clearInterval(messengerPollId);
@@ -284,8 +225,11 @@ $(document).ready(function() {
         messengerPollId = setInterval(function() {
             if (document.hidden) return;
             loadConversations();
-            if (currentReceiverId) loadMessages(currentReceiverId, true);
-        }, 8000);
+            if (currentReceiverId) {
+                loadMessages(currentReceiverId, true);
+                fetchPresence(currentReceiverId);
+            }
+        }, socketMode ? 20000 : 6000);
     }
 
     document.addEventListener('visibilitychange', function() {
@@ -297,26 +241,13 @@ $(document).ready(function() {
     });
 
     startMessengerPoll();
-
-    // Initial Load
     loadConversations();
-    
-    // Open chat if target_user is present
+
     {% if target_user %}
-        // Small delay to ensure DOM is ready and functions defined
-        setTimeout(() => {
-            openChat({{ target_user.id }}, '{{ target_user.username }}', '{{ target_user.avatar }}');
-        }, 100);
+    setTimeout(function() {
+        openChat({{ target_user.id }}, {{ target_user.username|tojson }}, {{ (target_user.avatar or 'default.png')|tojson }}, false);
+    }, 100);
     {% endif %}
 });
-
-function escapeHtml(text) {
-    return String(text)
-        .replace(/&/g, "&amp;")
-        .replace(/</g, "&lt;")
-        .replace(/>/g, "&gt;")
-        .replace(/"/g, "&quot;")
-        .replace(/'/g, "&#039;");
-}
 </script>
 {% endblock %}

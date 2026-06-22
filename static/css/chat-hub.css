@@ -52,3 +52,198 @@
     height: 52px;
     object-fit: cover;
 }
+
+/* Shared messenger / gang chat shell */
+.gop-messenger-shell {
+    height: calc(100vh - 200px);
+    min-height: 560px;
+    border: 1px solid rgba(212, 175, 55, 0.22);
+    border-radius: 14px;
+    overflow: hidden;
+    background: radial-gradient(1100px 700px at 80% 0%, rgba(212, 175, 55, 0.10), transparent 55%),
+                radial-gradient(900px 520px at 0% 100%, rgba(0, 180, 216, 0.08), transparent 52%),
+                rgba(0, 0, 0, 0.35);
+    box-shadow: 0 18px 55px rgba(0, 0, 0, 0.55);
+}
+
+.gop-messenger-row {
+    height: 100%;
+    margin: 0;
+}
+
+.gop-messenger-sidebar {
+    height: 100%;
+    background: rgba(0, 0, 0, 0.28);
+    border-left: 1px solid rgba(255, 255, 255, 0.06);
+    display: flex;
+    flex-direction: column;
+}
+
+[dir="rtl"] .gop-messenger-sidebar {
+    border-left: 0;
+    border-right: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.gop-messenger-main {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    background: rgba(0, 0, 0, 0.15);
+}
+
+.gop-messenger-topbar {
+    flex: 0 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.85rem 1rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    background: linear-gradient(90deg, rgba(0, 0, 0, 0.55), rgba(0, 0, 0, 0.15));
+}
+
+.gop-messenger-messages,
+.gop-gang-chat-box {
+    flex: 1 1 auto;
+    overflow: auto;
+    padding: 1rem;
+    background: radial-gradient(900px 420px at 50% 0%, rgba(212, 175, 55, 0.06), transparent 55%),
+                rgba(0, 0, 0, 0.25);
+}
+
+.gop-messenger-composer,
+.gop-gang-chat-composer {
+    flex: 0 0 auto;
+    padding: 0.85rem 1rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.06);
+    background: rgba(0, 0, 0, 0.35);
+}
+
+.gop-conversation-item {
+    transition: all 0.2s ease;
+    cursor: pointer;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.gop-conversation-item:hover,
+.gop-conversation-item.active {
+    background: rgba(212, 175, 55, 0.1);
+    border-right: 3px solid var(--gold-primary, #d4af37);
+}
+
+[dir="rtl"] .gop-conversation-item:hover,
+[dir="rtl"] .gop-conversation-item.active {
+    border-right: 0;
+    border-left: 3px solid var(--gold-primary, #d4af37);
+}
+
+.gop-chat-bubble {
+    max-width: 78%;
+    padding: 0.65rem 0.9rem;
+    border-radius: 14px;
+    margin-bottom: 0.65rem;
+    word-wrap: break-word;
+    position: relative;
+    line-height: 1.45;
+}
+
+.gop-chat-bubble--sent {
+    background: linear-gradient(135deg, #d4af37, #b8941f);
+    color: #111;
+    margin-right: auto;
+    border-bottom-right-radius: 4px;
+}
+
+.gop-chat-bubble--received {
+    background: rgba(255, 255, 255, 0.08);
+    color: #f2f2f2;
+    margin-left: auto;
+    border-bottom-left-radius: 4px;
+    border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.gop-chat-time {
+    font-size: 0.7rem;
+    opacity: 0.75;
+    margin-top: 0.35rem;
+    display: block;
+    text-align: left;
+}
+
+.gop-presence {
+    font-size: 0.75rem;
+}
+
+.gop-presence--online { color: #28a745; }
+.gop-presence--away { color: rgba(255, 255, 255, 0.45); }
+
+.gop-gang-chat-panel {
+    border: 1px solid rgba(212, 175, 55, 0.2);
+    border-radius: 10px;
+    overflow: hidden;
+    background: rgba(0, 0, 0, 0.2);
+}
+
+.gop-gang-chat-box {
+    height: 400px;
+}
+
+.gop-chat-row {
+    display: flex;
+    gap: 0.65rem;
+    margin-bottom: 0.85rem;
+    align-items: flex-start;
+}
+
+.gop-chat-row--me {
+    flex-direction: row-reverse;
+}
+
+.gop-chat-avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 1px solid rgba(212, 175, 55, 0.35);
+    flex: 0 0 auto;
+}
+
+.gop-chat-meta {
+    display: flex;
+    justify-content: space-between;
+    gap: 0.5rem;
+    font-size: 0.72rem;
+    margin-bottom: 0.2rem;
+    opacity: 0.85;
+}
+
+.gop-chat-name { font-weight: 600; color: var(--gold-primary, #d4af37); }
+
+.gop-chat-delete {
+    position: absolute;
+    top: 4px;
+    left: 4px;
+    border: 0;
+    background: transparent;
+    color: rgba(220, 53, 69, 0.9);
+    padding: 0;
+    font-size: 0.75rem;
+    cursor: pointer;
+}
+
+.gop-chat-row--me .gop-chat-delete {
+    left: auto;
+    right: 4px;
+}
+
+.gop-chat-empty {
+    text-align: center;
+    color: rgba(255, 255, 255, 0.45);
+    padding: 2.5rem 1rem;
+}
+
+@media (max-width: 767.98px) {
+    .gop-messenger-shell {
+        height: calc(100vh - 120px);
+        border-radius: 0;
+    }
+}

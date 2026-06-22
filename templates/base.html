@@ -172,7 +172,7 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/game-animations.css') }}?v=1.1">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/economy-academy.css') }}?v=1.0">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/phase3.css') }}?v=1.0">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/chat-hub.css') }}?v=1.0">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/chat-hub.css') }}?v=1.1">
     {% block extra_css %}{% endblock %}
 </head>
 <body class="hold-transition sidebar-mini layout-fixed theme-palestine {{ body_extra_class|default('') }}" data-gop-img-fallback="{{ url_for('static', filename='images/placeholders/scene.svg') }}" data-gop-scene-fallback="{{ url_for('static', filename='images/crimes/wallet.jpg') }}"{% if current_user.is_authenticated %} data-user-id="{{ current_user.id }}" data-max-energy="{{ current_user.max_energy }}" data-energy-title="{{ _('الطاقة ممتلئة!')|e }}" data-energy-body="{{ _('ارجع للجرائم واستغل طاقتك.')|e }}"{% endif %}>

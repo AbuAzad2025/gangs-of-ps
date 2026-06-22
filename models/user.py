@@ -865,6 +865,17 @@ class User(UserMixin, db.Model):
             UserRole.DEVELOPER]
 
     @property
+    def is_muted(self):
+        if getattr(self, 'is_chat_banned', False):
+            return True
+        until = getattr(self, 'chat_muted_until', None)
+        if not until:
+            return False
+        now = datetime.now(timezone.utc).replace(tzinfo=None)
+        until_naive = until.replace(tzinfo=None) if until.tzinfo else until
+        return until_naive > now
+
+    @property
     def is_developer(self):
         return self.role == UserRole.DEVELOPER
 

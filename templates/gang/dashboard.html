@@ -462,21 +462,23 @@
 
                     <!-- Chat Tab -->
                     <div class="tab-pane" id="chat">
-                        <div class="direct-chat-messages" id="gang-chat-box" style="height: 400px; overflow-y: scroll; border: 1px solid #444; padding: 10px; border-radius: 5px; background-color: rgba(0,0,0,0.2);">
-                            <!-- Messages will be loaded here -->
-                            <div class="text-center text-muted mt-5">
-                                <i class="fas fa-spinner fa-spin"></i> {{ _('جاري تحميل الدردشة...') }}
-                            </div>
-                        </div>
-                        <div class="card-footer bg-transparent border-top border-secondary mt-2">
-                            <form id="gang-chat-form">
-                                <div class="input-group">
-                                    <input type="text" id="gang-chat-input" name="message" placeholder="{{ _('اكتب رسالة للعصابة...') }}" class="form-control form-control-luxury" autocomplete="off" maxlength="500">
-                                    <span class="input-group-append">
-                                        <button type="submit" class="btn btn-gold">{{ _('إرسال') }}</button>
-                                    </span>
+                        <div class="gop-gang-chat-panel">
+                            <div class="gop-gang-chat-box custom-scrollbar" id="gang-chat-box">
+                                <div class="text-center text-muted mt-5">
+                                    <i class="fas fa-spinner fa-spin"></i> {{ _('جاري تحميل الدردشة...') }}
                                 </div>
-                            </form>
+                            </div>
+                            <div class="gop-gang-chat-composer">
+                                <form id="gang-chat-form">
+                                    <div class="input-group">
+                                        <input type="text" id="gang-chat-input" name="message" placeholder="{{ _('اكتب رسالة للعصابة...') }}" class="form-control form-control-luxury" autocomplete="off" maxlength="500">
+                                        <div class="input-group-append">
+                                            <button type="submit" class="btn btn-gold"><i class="fas fa-paper-plane ml-1"></i> {{ _('إرسال') }}</button>
+                                        </div>
+                                    </div>
+                                    <small class="text-muted d-block mt-2">{{ _('يُمنع إرسال الروابط وأرقام الهواتف في دردشة العصابة.') }}</small>
+                                </form>
+                            </div>
                         </div>
                     </div>
 
@@ -632,144 +634,30 @@
 {% endblock %}
 
 {% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/socket.io-client@4.7.5/dist/socket.io.min.js"></script>
+<script src="{{ url_for('static', filename='js/chat-utils.js') }}?v=1.1"></script>
+<script src="{{ url_for('static', filename='js/chat-realtime.js') }}?v=1.1"></script>
+<script src="{{ url_for('static', filename='js/gang-chat.js') }}?v=1.1"></script>
 <script>
 $(document).ready(function() {
-    // --- Gang Chat Logic ---
-    const chatBox = $('#gang-chat-box');
-    const chatForm = $('#gang-chat-form');
-    const chatInput = $('#gang-chat-input');
-    const AVATAR_BASE = "{{ url_for('static', filename='images/avatars/') }}";
-    let lastChatId = 0;
-    let isChatTabActive = false;
-
-    // Detect if chat tab is active to adjust polling frequency or scroll behavior
-    $('a[data-toggle="tab"]').on('shown.bs.tab', function (e) {
-        if ($(e.target).attr('href') === '#chat') {
-            isChatTabActive = true;
-            scrollToBottom();
-            loadGangMessages(); // Load immediately when tab is opened
-        } else {
-            isChatTabActive = false;
-        }
-    });
-
-    function scrollToBottom() {
-        chatBox.scrollTop(chatBox[0].scrollHeight);
-    }
-
-    function appendMessage(msg) {
-        const isMe = msg.user_id == {{ current_user.id }};
-        const align = isMe ? 'right' : 'left';
-        const bg = isMe ? 'bg-gold text-dark' : 'bg-secondary';
-        
-        let deleteBtn = '';
-        {% if is_leader or is_underboss or current_user.role.value >= 2 %} <!-- MODERATOR = 2 -->
-        deleteBtn = `<a href="#" class="text-danger ml-2 delete-gang-msg" data-id="${msg.id}" title="{{ _('حذف') }}"><i class="fas fa-times"></i></a>`;
-        {% endif %}
-        
-        // Allow user to delete their own message
-        if (isMe && !deleteBtn) {
-             deleteBtn = `<a href="#" class="text-danger ml-2 delete-gang-msg" data-id="${msg.id}" title="{{ _('حذف') }}"><i class="fas fa-times"></i></a>`;
-        }
-
-        const html = `
-            <div class="direct-chat-msg ${isMe ? 'right' : ''}" data-msg-id="${msg.id}">
-                <div class="direct-chat-infos clearfix">
-                    <span class="direct-chat-name float-${align}">${msg.username}</span>
-                    <span class="direct-chat-timestamp float-${isMe ? 'left' : 'right'}">${msg.created_at}</span>
-                </div>
-                <img class="direct-chat-img" src="${AVATAR_BASE}${(msg.avatar || 'default.png')}" alt="${msg.username}" onerror="this.src='https://ui-avatars.com/api/?name=${msg.username}&background=random';">
-                <div class="direct-chat-text ${bg}">
-                    ${msg.message}
-                    ${deleteBtn}
-                </div>
-            </div>
-        `;
-        chatBox.append(html);
-    }
-
-    function loadGangMessages() {
-        if (!isChatTabActive && lastChatId > 0) return; // Don't poll aggressively if not looking at tab
-
-        $.ajax({
-            url: "{{ url_for('gang.chat_messages') }}",
-            data: { since_id: lastChatId },
-            success: function(messages) {
-                if (messages.length > 0) {
-                    // If it's the first load (lastChatId == 0), clear the "Loading..." spinner
-                    if (lastChatId === 0) chatBox.empty();
-                    
-                    messages.forEach(msg => {
-                        if ($(`[data-msg-id="${msg.id}"]`).length === 0) {
-                            appendMessage(msg);
-                            lastChatId = Math.max(lastChatId, msg.id);
-                        }
-                    });
-                    scrollToBottom();
-                } else if (lastChatId === 0) {
-                    chatBox.html('<div class="text-center text-muted mt-5">{{ _("لا توجد رسائل بعد. ابدأ المحادثة!") }}</div>');
-                }
+    if (window.GopGangChat) {
+        GopGangChat.init({
+            gangId: {{ gang.id }},
+            userId: {{ current_user.id }},
+            messagesUrl: "{{ url_for('gang.chat_messages') }}",
+            sendUrl: "{{ url_for('gang.chat_send') }}",
+            deleteUrlBase: "{{ url_for('gang.chat_delete', msg_id=0) }}".replace('/0', '/'),
+            csrfToken: "{{ csrf_token() }}",
+            avatarBase: "{{ url_for('static', filename='images/avatars/') }}",
+            canModerate: {{ 'true' if (is_leader or is_underboss or current_user.role.value >= 2) else 'false' }},
+            labels: {
+                empty: {{ _('لا توجد رسائل بعد. ابدأ المحادثة!')|tojson }},
+                delete: {{ _('حذف')|tojson }},
+                confirmDelete: {{ _('حذف الرسالة؟')|tojson }},
+                deleteFailed: {{ _('فشل الحذف')|tojson }}
             }
         });
     }
-
-    chatForm.on('submit', function(e) {
-        e.preventDefault();
-        const msg = chatInput.val().trim();
-        if (!msg) return;
-
-        $.ajax({
-            url: "{{ url_for('gang.chat_send') }}",
-            method: 'POST',
-            data: { 
-                content: msg,
-                csrf_token: "{{ csrf_token() }}"
-            },
-            success: function(response) {
-                chatInput.val('');
-                if (lastChatId === 0) chatBox.empty(); // Clear "no messages" or "loading"
-                appendMessage(response);
-                lastChatId = Math.max(lastChatId, response.id);
-                scrollToBottom();
-            },
-            error: function(xhr) {
-                const err = xhr.responseJSON ? xhr.responseJSON.error : 'Error sending message';
-                toastr.error(err);
-            }
-        });
-    });
-
-    // Delete Message
-    $(document).on('click', '.delete-gang-msg', function(e) {
-        e.preventDefault();
-        if(!confirm('{{ _("حذف الرسالة؟") }}')) return;
-        
-        const btn = $(this);
-        const msgId = btn.data('id');
-        
-        $.ajax({
-            url: `/gang/chat/delete/${msgId}`,
-            method: 'POST',
-            data: { csrf_token: "{{ csrf_token() }}" },
-            success: function() {
-                btn.closest('.direct-chat-msg').fadeOut(300, function() { $(this).remove(); });
-            },
-            error: function() {
-                toastr.error('{{ _("فشل الحذف") }}');
-            }
-        });
-    });
-
-    // Initial load
-    // loadGangMessages(); // Wait for tab open to save requests? Or load once?
-    // Let's load once to have data ready, but interval poll only when active?
-    // User requested "Professional", so let's poll regularly but maybe slower if inactive.
-    
-    loadGangMessages();
-    setInterval(function() {
-        if (isChatTabActive) loadGangMessages();
-    }, 5000);
-
 });
 </script>
 {% endblock %}

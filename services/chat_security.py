@@ -3,7 +3,12 @@ from __future__ import annotations
 
 import os
 import re
+from datetime import datetime, timezone
 from typing import Optional, Tuple
+
+PROHIBITED_URL_RE = re.compile(r'(https?://|www\.)\S+', re.IGNORECASE)
+PROHIBITED_EMAIL_RE = re.compile(r'[\w\.-]+@[\w\.-]+\.\w+')
+PROHIBITED_PHONE_RE = re.compile(r'\d[\d\s-]{6,}\d')
 
 PUBLIC_CHAT_ROOMS = frozenset({
     'general', 'dating', 'strangers', 'beginners', 'trade', 'vip',
@@ -22,6 +27,56 @@ ALLOWED_UPLOAD_EXT = {
 
 MAX_CHAT_UPLOAD_BYTES = 8 * 1024 * 1024
 MAX_ASSISTANT_MESSAGE_LEN = 800
+ONLINE_WINDOW_MINUTES = 5
+
+
+def contains_prohibited_content(text: str) -> bool:
+    """Block URLs, emails, and phone numbers in player chat."""
+    if not text:
+        return False
+    if PROHIBITED_URL_RE.search(text):
+        return True
+    if PROHIBITED_EMAIL_RE.search(text):
+        return True
+    if PROHIBITED_PHONE_RE.search(text):
+        return True
+    return False
+
+
+def _utc_now() -> datetime:
+    return datetime.now(timezone.utc)
+
+
+def _as_utc_naive(dt: datetime) -> datetime:
+    if dt.tzinfo is not None:
+        return dt.astimezone(timezone.utc).replace(tzinfo=None)
+    return dt
+
+
+def chat_send_block_reason(user, now: Optional[datetime] = None) -> Optional[str]:
+    """Return a stable reason code if the user may not send chat messages."""
+    if user is None:
+        return 'not_authenticated'
+    if getattr(user, 'is_chat_banned', False):
+        return 'banned'
+    until = getattr(user, 'chat_muted_until', None)
+    if until:
+        now_utc = _utc_now()
+        now_naive = now_utc.replace(tzinfo=None) if now is None else _as_utc_naive(now)
+        until_naive = _as_utc_naive(until)
+        if until_naive > now_naive:
+            return 'muted'
+    return None
+
+
+def user_is_online(user, minutes: int = ONLINE_WINDOW_MINUTES) -> bool:
+    last_seen = getattr(user, 'last_seen', None) if user else None
+    if not last_seen:
+        return False
+    now = _utc_now()
+    if last_seen.tzinfo is None:
+        last_seen = last_seen.replace(tzinfo=timezone.utc)
+    return (now - last_seen).total_seconds() < max(1, minutes) * 60
 
 
 def normalize_room(room: str) -> str:

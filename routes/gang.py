@@ -13,8 +13,18 @@ from .utils import save_image, send_notification, update_daily_task_progress
 from sqlalchemy import or_, func
 
 from services.resource_service import ResourceService
+from services.chat_security import contains_prohibited_content, chat_send_block_reason
 
 bp = Blueprint('gang', __name__, url_prefix='/gang')
+
+
+def _gang_chat_block_json():
+    reason = chat_send_block_reason(current_user)
+    if reason == 'banned':
+        return jsonify({'error': _('عذراً، أنت محظور من الدردشة.')}), 403
+    if reason == 'muted':
+        return jsonify({'error': _('أنت تحت كتم مؤقت. حاول لاحقاً.')}), 403
+    return None
 
 
 def _load_gang_upgrades(gang):
@@ -1935,15 +1945,34 @@ def chat_send():
     if not current_user.gang_id:
         return jsonify({'error': 'Not in a gang'}), 403
 
-    if current_user.is_muted:
-        return jsonify({'error': _('أنت مكتوم لا يمكنك التحدث!')}), 403
+    blocked = _gang_chat_block_json()
+    if blocked:
+        return blocked
 
     content = request.form.get('content', '').strip()
     if not content:
-        return jsonify({'error': 'Empty message'}), 400
+        return jsonify({'error': _('الرسالة فارغة.')}), 400
 
     if len(content) > 500:
-        return jsonify({'error': 'Message too long'}), 400
+        return jsonify({'error': _('الرسالة طويلة جداً.')}), 400
+
+    if contains_prohibited_content(content):
+        return jsonify(
+            {'error': _('عذراً، يمنع إرسال الروابط أو الإيميلات أو أرقام الهواتف.')}), 400
+
+    last = GangChat.query.filter_by(
+        gang_id=current_user.gang_id,
+        user_id=current_user.id,
+    ).order_by(GangChat.created_at.desc()).first()
+    if last and last.message.strip() == content:
+        try:
+            now = datetime.now(timezone.utc)
+            last_dt = last.created_at
+            if last_dt and (
+                    now - last_dt.replace(tzinfo=timezone.utc)).total_seconds() < 30:
+                return jsonify({'error': _('رسالة مكررة. انتظر قليلاً.')}), 400
+        except Exception:
+            pass
 
     msg = GangChat(
         gang_id=current_user.gang_id,
@@ -1953,7 +1982,14 @@ def chat_send():
     db.session.add(msg)
     db.session.commit()
 
-    return jsonify(msg.to_dict())
+    payload = msg.to_dict()
+    try:
+        from services.chat_realtime import emit_gang_chat_message
+        emit_gang_chat_message(current_user.gang_id, payload)
+    except Exception:
+        pass
+
+    return jsonify(payload)
 
 
 @bp.route('/chat/delete/<int:msg_id>', methods=['POST'])
@@ -1975,7 +2011,14 @@ def chat_delete(msg_id):
     if not (is_leader or is_underboss or is_owner or is_admin):
         return jsonify({'error': 'Unauthorized'}), 403
 
+    gang_id = msg.gang_id
     db.session.delete(msg)
     db.session.commit()
+
+    try:
+        from services.chat_realtime import emit_gang_chat_delete
+        emit_gang_chat_delete(gang_id, msg_id)
+    except Exception:
+        pass
 
     return jsonify({'success': True, 'id': msg_id})

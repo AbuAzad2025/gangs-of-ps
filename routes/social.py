@@ -34,7 +34,21 @@ from services.chat_security import (
     scan_upload_file,
     is_safe_chat_upload_rel_path,
     MAX_CHAT_UPLOAD_BYTES,
+    contains_prohibited_content,
+    chat_send_block_reason,
+    user_is_online,
 )
+
+
+def _chat_block_response(user):
+    reason = chat_send_block_reason(user)
+    if reason == 'banned':
+        return jsonify({'error': _('عذراً، أنت محظور من الدردشة.')}), 403
+    if reason == 'muted':
+        return jsonify({'error': _('أنت تحت كتم مؤقت. حاول لاحقاً.')}), 403
+    if reason == 'not_authenticated':
+        return jsonify({'error': _('يجب تسجيل الدخول.')}), 403
+    return None
 
 
 def _user_is_vip(user) -> bool:
@@ -69,19 +83,6 @@ def _vip_plan_costs():
     except Exception:
         legacy = lifetime
     return monthly, lifetime, legacy
-
-
-def contains_prohibited_content(text):
-    # URLs
-    if re.search(r'(https?://|www\.)\S+', text):
-        return True
-    # Emails
-    if re.search(r'[\w\.-]+@[\w\.-]+\.\w+', text):
-        return True
-    # Phone numbers (7+ digits)
-    if re.search(r'\d[\d\s-]{6,}\d', text):
-        return True
-    return False
 
 
 def _is_privileged_chat_user(u) -> bool:
@@ -1469,7 +1470,9 @@ def messenger_conversations():
                 'last_message': msg.message,
                 'timestamp': msg.created_at.isoformat(),
                 'is_read': msg.is_read if msg.receiver_id == current_user.id else True,
-                'unread_count': 0}
+                'unread_count': 0,
+                'is_online': user_is_online(other_user) if other_user else False,
+            }
 
     # Calculate unread counts
     unread_counts = db.session.query(
@@ -1516,14 +1519,25 @@ def messenger_messages(user_id):
     return jsonify([msg.to_dict() for msg in messages])
 
 
+@bp.route('/api/messenger/presence/<int:user_id>')
+@login_required
+def messenger_presence(user_id):
+    other = db.session.get(User, user_id)
+    if not other:
+        return jsonify({'error': _('المستخدم غير موجود.')}), 404
+    return jsonify({
+        'user_id': other.id,
+        'is_online': user_is_online(other),
+    })
+
+
 @bp.route('/api/messenger/send', methods=['POST'])
 @login_required
 @limiter.limit("10 per minute")
 def messenger_send():
-    if current_user.is_muted:
-        return jsonify({'error': _('أنت مكتوم لا يمكنك التحدث!')}), 403
-    if getattr(current_user, 'is_chat_banned', False):
-        return jsonify({'error': _('أنت محظور من الدردشة.')}), 403
+    blocked = _chat_block_response(current_user)
+    if blocked:
+        return blocked
 
     data = request.get_json(silent=True) or {}
     receiver_id = data.get('receiver_id')
@@ -1574,7 +1588,16 @@ def messenger_send():
 
     db.session.commit()
 
-    return jsonify(msg.to_dict())
+    payload = msg.to_dict()
+    payload['sender_username'] = current_user.username
+    payload['sender_avatar'] = current_user.avatar or 'default.png'
+    try:
+        from services.chat_realtime import emit_messenger_message
+        emit_messenger_message(receiver_id, payload)
+    except Exception:
+        pass
+
+    return jsonify(payload)
 
 
 @bp.route('/api/messenger/mark_read/<int:user_id>', methods=['POST'])
