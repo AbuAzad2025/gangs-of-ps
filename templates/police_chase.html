@@ -23,11 +23,11 @@
                 </div>
                 <div class="card-body text-center p-5">
                     <div class="position-relative mb-4 d-inline-block rounded overflow-hidden shadow-lg border-gold">
-                        <img src="{{ url_for('static', filename='images/police_chase.jpg') }}" class="img-fluid mh-300px opacity-90" alt="Police Chase">
+                        <img src="{{ url_for('static', filename='images/police_chase.jpg') }}" class="img-fluid mh-300px opacity-90 gop-visual police-chase-img" alt="{{ _('مطاردة الشرطة') }}" loading="lazy" decoding="async" data-gop-fallback="{{ url_for('static', filename='images/placeholders/scene.svg') }}">
                         <div class="overlay-gradient"></div>
                     </div>
                     
-                    <p class="lead text-light mb-4">
+                    <p class="lead gop-page-sub mb-4">
                         {{ _('الشرطة تلاحقك! هل تعتقد أنك سائق محترف وتستطيع الهرب؟') }}<br>
                         <span class="text-muted">{{ _('إذا هربت ستكسب المال والخبرة، ولكن إذا قُبض عليك ستذهب للسجن!') }}</span>
                     </p>

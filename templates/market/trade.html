@@ -44,7 +44,7 @@
                 <div class="market-card-header py-2 text-muted small font-weight-bold">{{ _('سجل الطلبات') }}</div>
                 <div class="p-0">
                     <div class="d-flex justify-content-between text-muted small px-2 py-1 border-bottom border-secondary">
-                        <span>{{ _('السعر(USD)') }}</span>
+                        <span>{{ _('السعر (دولار اللعبة)') }}</span>
                         <span>{{ _('الكمية') }}</span>
                     </div>
                     
@@ -239,7 +239,7 @@
                                         <div class="input-group input-group-sm">
                                             <input type="number" step="any" name="price" id="limit-price" class="form-control form-control-dark" value="{{ asset.current_price }}" required>
                                             <div class="input-group-append">
-                                                <span class="input-group-text bg-dark border-secondary text-muted">USD</span>
+                                                <span class="input-group-text bg-dark border-secondary text-muted">$ {{ _('لعبة') }}</span>
                                             </div>
                                         </div>
                                     </div>
@@ -256,7 +256,7 @@
                                     
                                     <!-- Assets Info -->
                                     <div class="d-flex justify-content-between small mb-3">
-                                        <span class="text-muted">{{ _('كاش:') }} <span class="text-neon-gold">{{ "{:,.0f}".format(current_user.money) }}$</span></span>
+                                        <span class="text-muted">{{ _('رصيد اللعبة:') }} <span class="text-neon-gold">{{ "{:,.0f}".format(trading_power.total) }}$</span></span>
                                         <span class="text-muted">{{ _('أملك:') }} <span class="text-white">{{ "{:.4f}".format(investment.quantity if investment else 0) }}</span></span>
                                     </div>
 
@@ -283,15 +283,19 @@
                                     
                                     <!-- Buy Section -->
                                     <div class="mb-3">
-                                        <label class="small text-muted mb-1">{{ _('شراء (المبلغ بـ USD)') }}</label>
+                                        <label class="small text-muted mb-1">{{ _('شراء (مبلغ من مال اللعبة)') }}</label>
                                         <div class="input-group input-group-sm mb-2">
-                                            <input type="number" step="any" name="amount" class="form-control form-control-dark" placeholder="{{ _('Total USD') }}">
+                                            <input type="number" step="any" name="amount" class="form-control form-control-dark" min="{{ min_spot_trade|default(10) }}" placeholder="{{ _('المبلغ $') }}">
                                             <div class="input-group-append">
-                                                <span class="input-group-text bg-dark border-secondary text-muted">USD</span>
+                                                <span class="input-group-text bg-dark border-secondary text-muted">$</span>
                                             </div>
                                         </div>
                                         <button type="submit" name="type" value="buy" class="btn btn-buy btn-block btn-sm shadow-sm">{{ _('شراء') }} {{ asset.symbol }}</button>
-                                        <div class="small text-muted mt-1 text-right">{{ _('متاح:') }} <span class="text-neon-gold">{{ "{:,.0f}".format(current_user.money) }}$</span></div>
+                                        <div class="small text-muted mt-1 text-right">
+                                            {{ _('متاح للتداول:') }}
+                                            <span class="text-neon-gold">{{ "{:,.0f}".format(trading_power.total) }}$</span>
+                                            <span class="text-muted">({{ _('كاش') }} {{ "{:,.0f}".format(trading_power.cash) }}$ + {{ _('بنك') }} {{ "{:,.0f}".format(trading_power.bank) }}$)</span>
+                                        </div>
                                     </div>
 
                                     <hr class="border-secondary my-3">
@@ -337,14 +341,14 @@
                             </div>
                             
                             <div class="form-group mb-3">
-                                <label class="small text-muted mb-1">{{ _('الهامش (Margin USD)') }}</label>
+                                <label class="small text-muted mb-1">{{ _('الهامش (مال اللعبة)') }}</label>
                                 <div class="input-group input-group-sm">
-                                    <input type="number" step="any" name="amount" class="form-control form-control-dark" min="10" placeholder="Min 10$" required>
+                                    <input type="number" step="any" name="amount" class="form-control form-control-dark" min="{{ min_futures_margin|default(5) }}" placeholder="Min {{ min_futures_margin|default(5) }}$" required>
                                     <div class="input-group-append">
-                                        <span class="input-group-text bg-dark border-secondary text-muted">USD</span>
+                                        <span class="input-group-text bg-dark border-secondary text-muted">$</span>
                                     </div>
                                 </div>
-                                <div class="small text-muted mt-1 text-right">{{ _('متاح:') }} <span class="text-neon-gold">{{ "{:,.0f}".format(current_user.money) }}$</span></div>
+                                <div class="small text-muted mt-1 text-right">{{ _('متاح للتداول:') }} <span class="text-neon-gold">{{ "{:,.0f}".format(trading_power.total) }}$</span></div>
                             </div>
                             
                             <div class="row no-gutters">

@@ -492,6 +492,9 @@ def self_escape():
         'danger',
     )
     return redirect(url_for('jail.index', fx='escape_fail'))
+
+
+@bp.route('/gilboa_escape', methods=['POST'])
 @login_required
 @limiter.limit("4 per minute")
 def gilboa_escape():
@@ -633,6 +636,9 @@ def gilboa_escape():
         _('فشلت مغامرة جلبوع. تم تشديد الإجراءات وزادت عقوبتك %(min)s دقيقة.'),
         'danger')
     return redirect(url_for('jail.index', fx='escape_fail'))
+
+
+@bp.route('/self_bail', methods=['POST'])
 @login_required
 @limiter.limit("6 per minute")
 def self_bail():

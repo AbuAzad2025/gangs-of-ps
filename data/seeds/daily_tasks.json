@@ -279,8 +279,8 @@
     "is_active": true
   },
   {
-    "description": "مدرسة الحارة - يوم 3: زُر البورصة",
-    "target_type": "market_visit",
+    "description": "مدرسة الحارة - يوم 3: نفّذ صفقة في البورصة (شراء أو بيع)",
+    "target_type": "market_trade",
     "target_count": 1,
     "reward_money": 400,
     "reward_exp": 40,

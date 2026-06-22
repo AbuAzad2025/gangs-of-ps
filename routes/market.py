@@ -13,8 +13,22 @@ from services.resource_service import ResourceService
 from services.market_simulation import MarketSimulationService
 from utils.decorators import check_player_status
 from routes.utils import track_academy_visit
+from services.market_trading import (
+    MIN_FUTURES_MARGIN,
+    MIN_SPOT_TRADE,
+    get_trading_power,
+    pay_from_game_balance,
+    trade_success_flash,
+)
 
 bp = Blueprint('market', __name__, url_prefix='/market')
+
+
+def _track_market_trade(user):
+    try:
+        track_academy_visit(user, 'market_trade')
+    except Exception:
+        pass
 
 
 def check_liquidations(asset):
@@ -293,30 +307,33 @@ def update_market_prices():
                 check_liquidations(asset)
 
             current_app.logger.info("Market update committed.")
+            cache.delete('market_prices_snapshot')
         except Exception as e:
             current_app.logger.critical(f"Global simulation error: {e}")
 
 
 @bp.route('/api/prices')
 @login_required
-@cache.cached(timeout=60)
 def get_prices():
-    """API to get current prices for real-time updates"""
-    # Trigger lazy update if needed
-    update_market_prices()
-
-    allowed = MarketSimulationService.allowed_symbols()
-    assets = MarketAsset.query.filter(MarketAsset.symbol.in_(allowed)).all()
-    data = {}
-    for asset in assets:
-        data[asset.id] = {
-            'symbol': asset.symbol,
-            'price': asset.current_price,
-            'change': asset.price_change_24h,
-            'volume': asset.volume_24h,
-            'high': asset.high_24h,
-            'low': asset.low_24h
-        }
+    """API to get current prices for real-time updates."""
+    # Debounce simulation work — prices change on interval, not every poll
+    if not cache.get('market_prices_snapshot'):
+        update_market_prices()
+        allowed = MarketSimulationService.allowed_symbols()
+        assets = MarketAsset.query.filter(MarketAsset.symbol.in_(allowed)).all()
+        data = {}
+        for asset in assets:
+            data[str(asset.id)] = {
+                'symbol': asset.symbol,
+                'price': asset.current_price,
+                'change': asset.price_change_24h,
+                'volume': asset.volume_24h,
+                'high': asset.high_24h,
+                'low': asset.low_24h,
+            }
+        cache.set('market_prices_snapshot', data, timeout=15)
+    else:
+        data = cache.get('market_prices_snapshot') or {}
     return jsonify(data)
 
 
@@ -337,31 +354,47 @@ def index():
     total_profit = portfolio_value - total_invested
 
     try:
-        market_update_interval_seconds = int(
+        sim_interval = int(
             SystemConfig.get_value(
-                'market_update_interval_seconds', '5') or 5)
+                'market_update_interval_seconds', '300') or '300')
     except Exception:
-        market_update_interval_seconds = 5
-    market_update_interval_seconds = max(
-        2, min(market_update_interval_seconds, 300))
+        sim_interval = 300
+    sim_interval = max(30, min(sim_interval, 3600))
+    # UI poll: fast feel without hammering server (15–45s)
+    ui_poll_seconds = max(15, min(45, sim_interval // 4))
+
+    from services.market_education import analyze_portfolio, get_market_concepts
+    assets_by_id = {a.id: a for a in assets}
+    portfolio_insight = analyze_portfolio(
+        investments, assets_by_id,
+        cash=int(current_user.money or 0),
+        bank=int(current_user.bank_balance or 0),
+    )
+    trading_power = get_trading_power(current_user)
 
     return render_template(
         'market/index.html',
-        title=_('بورصة غسيل الأموال'),
+        title=_('بورصة الحارة'),
         assets=assets,
         investments=investments,
         portfolio_value=portfolio_value,
         total_profit=total_profit,
-        market_update_interval_ms=market_update_interval_seconds *
-        1000)
+        market_update_interval_ms=ui_poll_seconds * 1000,
+        market_concepts=get_market_concepts(),
+        portfolio_insight=portfolio_insight,
+        trading_power=trading_power,
+        min_spot_trade=MIN_SPOT_TRADE,
+    )
 
 
 @bp.route('/guide')
 @login_required
 def guide():
+    from services.market_education import get_market_concepts
     return render_template(
         'market/guide.html',
-        title=_('أكاديمية غسيل الأموال'))
+        title=_('أكاديمية السوق'),
+        concepts=get_market_concepts())
 
 
 @bp.route('/trade/<int:asset_id>')
@@ -395,6 +428,9 @@ def trade(asset_id):
         investment=investment,
         open_orders=open_orders,
         futures_positions=futures_positions,
+        trading_power=get_trading_power(current_user),
+        min_spot_trade=MIN_SPOT_TRADE,
+        min_futures_margin=MIN_FUTURES_MARGIN,
     )
 
 
@@ -496,16 +532,19 @@ def place_order(asset_id):
 
         if order_type == 'buy':
             usd_to_spend = amount
-            if user.money < usd_to_spend:
-                flash(_('لا تملك كاش كافي.'), 'danger')
+            if usd_to_spend < MIN_SPOT_TRADE:
+                db.session.rollback()
+                flash(
+                    _('الحد الأدنى للصفقة %(min)s$ من مال اللعبة.',
+                      min=MIN_SPOT_TRADE), 'warning')
                 return redirect(url_for('market.trade', asset_id=asset.id))
 
             quantity = usd_to_spend / asset.current_price
-            if not ResourceService.modify_resources(
-                user.id, {
-                    'money': -usd_to_spend}, 'spot_market_buy', auto_commit=False, expected_version=None):
+            ok, err, br = pay_from_game_balance(
+                user.id, usd_to_spend, 'spot_market_buy', auto_commit=False)
+            if not ok:
                 db.session.rollback()
-                flash(_('لا تملك كاش كافي.'), 'danger')
+                flash(err or _('رصيد اللعبة غير كافٍ.'), 'danger')
                 return redirect(url_for('market.trade', asset_id=asset.id))
 
             investment = UserInvestment.query.filter_by(
@@ -527,7 +566,11 @@ def place_order(asset_id):
                 db.session.add(investment)
 
             db.session.commit()
-            flash(_('تم تنفيذ شراء Market بنجاح.'), 'success')
+            _track_market_trade(user)
+            extra = trade_success_flash(br)
+            flash(
+                _('تم تنفيذ شراء Market بنجاح.') +
+                (f' {extra}' if extra else ''), 'success')
             return redirect(url_for('market.trade', asset_id=asset.id))
 
         if order_type == 'sell':
@@ -552,6 +595,7 @@ def place_order(asset_id):
                 return redirect(url_for('market.trade', asset_id=asset.id))
 
             db.session.commit()
+            _track_market_trade(user)
             flash(_('تم تنفيذ بيع Market بنجاح.'), 'success')
             return redirect(url_for('market.trade', asset_id=asset.id))
 
@@ -568,15 +612,18 @@ def place_order(asset_id):
 
         if order_type == 'buy':
             total_cost = price * quantity
-            if user.money < total_cost:
-                flash(_('لا تملك كاش كافي.'), 'danger')
+            if total_cost < MIN_SPOT_TRADE:
+                db.session.rollback()
+                flash(
+                    _('الحد الأدنى للصفقة %(min)s$ من مال اللعبة.',
+                      min=MIN_SPOT_TRADE), 'warning')
                 return redirect(url_for('market.trade', asset_id=asset.id))
 
-            if not ResourceService.modify_resources(
-                user.id, {
-                    'money': -total_cost}, 'spot_limit_buy_place', auto_commit=False, expected_version=None):
+            ok, err, br = pay_from_game_balance(
+                user.id, total_cost, 'spot_limit_buy_place', auto_commit=False)
+            if not ok:
                 db.session.rollback()
-                flash(_('لا تملك كاش كافي.'), 'danger')
+                flash(err or _('رصيد اللعبة غير كافٍ.'), 'danger')
                 return redirect(url_for('market.trade', asset_id=asset.id))
 
             order = SpotOrder(
@@ -588,7 +635,11 @@ def place_order(asset_id):
                 status='open')
             db.session.add(order)
             db.session.commit()
-            flash(_('تم وضع أمر Limit شراء.'), 'success')
+            _track_market_trade(user)
+            extra = trade_success_flash(br)
+            flash(
+                _('تم وضع أمر Limit شراء.') +
+                (f' {extra}' if extra else ''), 'success')
             return redirect(url_for('market.trade', asset_id=asset.id))
 
         investment = UserInvestment.query.filter_by(
@@ -611,6 +662,7 @@ def place_order(asset_id):
             status='open')
         db.session.add(order)
         db.session.commit()
+        _track_market_trade(user)
         flash(_('تم وضع أمر Limit بيع.'), 'success')
         return redirect(url_for('market.trade', asset_id=asset.id))
 
@@ -694,24 +746,26 @@ def open_futures(asset_id):
         flash(_('الهامش غير صحيح.'), 'danger')
         return redirect(url_for('market.trade', asset_id=asset.id))
 
+    if margin < MIN_FUTURES_MARGIN:
+        flash(
+            _('الحد الأدنى للهامش %(min)s$ من مال اللعبة.',
+              min=MIN_FUTURES_MARGIN), 'warning')
+        return redirect(url_for('market.trade', asset_id=asset.id))
+
     user = db.session.query(User).filter_by(
         id=current_user.id).with_for_update().first()
     if not user:
         abort(404)
 
-    if user.money < margin:
-        flash(_('لا تملك كاش كافي.'), 'danger')
-        return redirect(url_for('market.trade', asset_id=asset.id))
-
     if asset.current_price <= 0:
         flash(_('سعر غير صالح حالياً.'), 'danger')
         return redirect(url_for('market.trade', asset_id=asset.id))
 
-    if not ResourceService.modify_resources(
-        user.id, {
-            'money': -margin}, 'futures_open_margin', auto_commit=False, expected_version=None):
+    ok, err, br = pay_from_game_balance(
+        user.id, margin, 'futures_open_margin', auto_commit=False)
+    if not ok:
         db.session.rollback()
-        flash(_('لا تملك كاش كافي.'), 'danger')
+        flash(err or _('رصيد اللعبة غير كافٍ.'), 'danger')
         return redirect(url_for('market.trade', asset_id=asset.id))
 
     entry_price = asset.current_price
@@ -734,7 +788,10 @@ def open_futures(asset_id):
     )
     db.session.add(pos)
     db.session.commit()
-    flash(_('تم فتح صفقة Futures بنجاح.'), 'success')
+    extra = trade_success_flash(br)
+    flash(
+        _('تم فتح صفقة Futures بنجاح.') +
+        (f' {extra}' if extra else ''), 'success')
     return redirect(url_for('market.trade', asset_id=asset.id))
 
 
@@ -786,15 +843,10 @@ def buy_intel():
         cost = int(SystemConfig.get_value('market_intel_cost', '500') or 500)
     except Exception:
         cost = 500
-    if current_user.money < cost:
-        flash(_('لا تملك كاش كافي لشراء المعلومة!'), 'danger')
-        return redirect(url_for('market.index'))
-
-    # Atomic Deduction with logging
-    if not ResourceService.modify_resources(
-            current_user.id, {
-            'money': -cost}, 'buy_intel_market', auto_commit=False, expected_version=None):
-        flash(_('لا تملك كاش كافي لشراء المعلومة!'), 'danger')
+    ok, err, br = pay_from_game_balance(
+        current_user.id, cost, 'buy_intel_market', auto_commit=False)
+    if not ok:
+        flash(err or _('رصيد اللعبة غير كافٍ لشراء المعلومة!'), 'danger')
         return redirect(url_for('market.index'))
 
     update_market_prices()
@@ -916,26 +968,22 @@ def buy(asset_id):
     except ValueError:
         amount_to_invest = 0
 
-    if amount_to_invest <= 0:
-        flash(_('مبلغ غير صحيح!'), 'danger')
+    if amount_to_invest < MIN_SPOT_TRADE:
+        flash(
+            _('الحد الأدنى للصفقة %(min)s$ من مال اللعبة.',
+              min=MIN_SPOT_TRADE), 'warning')
         return redirect(url_for('market.index'))
 
-    if current_user.money < amount_to_invest:
-        flash(_('لا تملك كاش كافي للعملية!'), 'danger')
-        return redirect(url_for('market.index'))
-
-    # Calculate quantity
     if asset.current_price <= 0:
         flash(_('سعر السهم غير صالح للتداول حالياً!'), 'danger')
         return redirect(url_for('market.index'))
 
     quantity = amount_to_invest / asset.current_price
 
-    # Atomic Deduction with logging
-    if not ResourceService.modify_resources(
-            current_user.id, {
-            'money': -amount_to_invest}, 'buy_asset_spot', auto_commit=False, expected_version=None):
-        flash(_('لا تملك كاش كافي للعملية!'), 'danger')
+    ok, err, br = pay_from_game_balance(
+        current_user.id, amount_to_invest, 'buy_asset_spot', auto_commit=False)
+    if not ok:
+        flash(err or _('رصيد اللعبة غير كافٍ!'), 'danger')
         return redirect(url_for('market.index'))
 
     # Update/Create Investment
@@ -962,8 +1010,12 @@ def buy(asset_id):
         db.session.add(investment)
 
     db.session.commit()
+    _track_market_trade(current_user)
 
-    flash(_('تم شراء (غسيل) الأسهم بنجاح!'), 'success')
+    extra = trade_success_flash(br)
+    flash(
+        _('تم الشراء بنجاح — دُفع من مال اللعبة!') +
+        (f' {extra}' if extra else ''), 'success')
     return redirect(url_for('market.index'))
 
 
@@ -1010,6 +1062,7 @@ def sell(asset_id):
         # 4. Remove Investment
         db.session.delete(investment)
         db.session.commit()
+        _track_market_trade(current_user)
 
         flash(_('تم بيع الأسهم بنجاح وربح %(val)s', val=int(sell_value)), 'success')
 

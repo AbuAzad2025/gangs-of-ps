@@ -151,8 +151,6 @@ class UserView(SecureModelView):
         'banned_until')
     column_editable_list = (
         'role',
-        'money',
-        'diamonds',
         'banned_until',
         'ban_reason',
         'is_chat_banned')
@@ -239,6 +237,12 @@ class UserView(SecureModelView):
 
             if not deltas:
                 return
+
+            if not getattr(current_user, 'is_developer', False):
+                flash(
+                    _('تعديل الأرصدة (مال/ماس/بنك) مسموح للمطور فقط.'),
+                    'error')
+                raise RuntimeError('Developer-only balance edit')
 
             for field, old_i in revert.items():
                 setattr(model, field, old_i)
@@ -748,10 +752,21 @@ class PaymentView(SecureModelView):
 
     def on_model_change(self, form, model, is_created):
         try:
+            from sqlalchemy import inspect
+
+            just_verified = False
+            if not is_created:
+                hist = inspect(model).attrs.is_verified.history
+                if hist.has_changes():
+                    old_v = bool(hist.deleted[0]) if hist.deleted else False
+                    new_v = bool(hist.added[0]) if hist.added else bool(model.is_verified)
+                    just_verified = (not old_v) and new_v
+
             if (
                 (not is_created)
                 and str(model.status) == 'completed'
                 and bool(model.is_verified)
+                and just_verified
             ):
                 from models import UserLog
                 from services.resource_service import ResourceService
@@ -924,7 +939,7 @@ class WeeklyWinnerView(SecureModelView):
         'user': _('الفائز'),
         'week_number': _('الأسبوع'),
         'year': _('السنة'),
-        'amount_won': _('المبلغ'),
+        'amount_won': _('مكافأة اللعبة ($)'),
         'created_at': _('تاريخ الفوز')
     }
 

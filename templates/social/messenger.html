@@ -130,6 +130,8 @@ $(document).ready(function() {
     const AVATAR_BASE = "/static/images/avatars/";
 
     let currentReceiverId = null;
+    let lastMsgId = 0;
+    let messengerPollId = null;
     let pollInterval = null;
     
     // --- Load Conversations ---
@@ -175,6 +177,7 @@ $(document).ready(function() {
         if (currentReceiverId === userId) return;
         
         currentReceiverId = userId;
+        lastMsgId = 0;
         $('#empty-state').addClass('d-none');
         $('#chat-header').removeClass('d-none');
         $('#chat-messages').removeClass('d-none');
@@ -190,34 +193,45 @@ $(document).ready(function() {
     };
 
     // --- Load Messages ---
-    function loadMessages(userId) {
+    function appendMessageBubble(msg) {
+        const isMe = msg.sender_id == {{ current_user.id }};
+        const msgClass = isMe ? 'message-sent' : 'message-received';
+        const safeMessage = escapeHtml(msg.message || '');
+        const html = `
+            <div class="d-flex ${isMe ? 'flex-row' : 'flex-row-reverse'} mb-3" data-msg-id="${msg.id}">
+                <div class="message-bubble ${msgClass}">
+                    ${safeMessage}
+                    <span class="message-time">
+                        ${msg.created_at}
+                        ${isMe ? (msg.is_read ? '<i class="fas fa-check-double text-primary ml-1"></i>' : '<i class="fas fa-check ml-1"></i>') : ''}
+                    </span>
+                </div>
+            </div>
+        `;
+        $('#chat-messages').append(html);
+        if (msg.id) lastMsgId = Math.max(lastMsgId, parseInt(msg.id, 10) || 0);
+    }
+
+    function loadMessages(userId, incremental) {
+        const url = incremental && lastMsgId > 0
+            ? `/api/messenger/messages/${userId}?since_id=${lastMsgId}`
+            : `/api/messenger/messages/${userId}`;
         $.ajax({
-            url: `/api/messenger/messages/${userId}`,
+            url: url,
             success: function(messages) {
-                const container = $('#chat-messages');
-                container.empty();
-                
-                let lastDate = '';
-                
+                if (!incremental || lastMsgId === 0) {
+                    $('#chat-messages').empty();
+                    lastMsgId = 0;
+                }
+                if (!messages || !messages.length) {
+                    if (!incremental) scrollToBottom();
+                    return;
+                }
                 messages.forEach(msg => {
-                    const isMe = msg.sender_id == {{ current_user.id }};
-                    const msgClass = isMe ? 'message-sent' : 'message-received';
-                    const safeMessage = escapeHtml(msg.message || '');
-                    
-                    const html = `
-                        <div class="d-flex ${isMe ? 'flex-row' : 'flex-row-reverse'} mb-3">
-                            <div class="message-bubble ${msgClass}">
-                                ${safeMessage}
-                                <span class="message-time">
-                                    ${msg.created_at}
-                                    ${isMe ? (msg.is_read ? '<i class="fas fa-check-double text-primary ml-1"></i>' : '<i class="fas fa-check ml-1"></i>') : ''}
-                                </span>
-                            </div>
-                        </div>
-                    `;
-                    container.append(html);
+                    if (!document.querySelector(`[data-msg-id="${msg.id}"]`)) {
+                        appendMessageBubble(msg);
+                    }
                 });
-                
                 scrollToBottom();
             }
         });
@@ -250,8 +264,13 @@ $(document).ready(function() {
             }),
             success: function(msg) {
                 input.val('');
-                loadMessages(currentReceiverId); // Reload to show new message and status
-                loadConversations(); // Update sidebar snippet
+                if (msg && msg.id) {
+                    appendMessageBubble(msg);
+                    scrollToBottom();
+                } else {
+                    loadMessages(currentReceiverId, true);
+                }
+                loadConversations();
             },
             error: function(xhr) {
                 toastr.error(xhr.responseJSON ? xhr.responseJSON.error : 'Error sending message');
@@ -259,16 +278,25 @@ $(document).ready(function() {
         });
     });
 
-    // --- Polling ---
-    setInterval(function() {
-        loadConversations();
-        if (currentReceiverId) {
-            // Optimization: Only append new messages instead of full reload?
-            // For now, full reload is safer for sync (read status etc) but heavier.
-            // Let's stick to full reload for simplicity as per "no errors" request.
-            loadMessages(currentReceiverId);
+    function startMessengerPoll() {
+        if (messengerPollId) clearInterval(messengerPollId);
+        if (document.hidden) return;
+        messengerPollId = setInterval(function() {
+            if (document.hidden) return;
+            loadConversations();
+            if (currentReceiverId) loadMessages(currentReceiverId, true);
+        }, 8000);
+    }
+
+    document.addEventListener('visibilitychange', function() {
+        if (document.hidden) {
+            if (messengerPollId) { clearInterval(messengerPollId); messengerPollId = null; }
+        } else {
+            startMessengerPoll();
         }
-    }, 5000);
+    });
+
+    startMessengerPoll();
 
     // Initial Load
     loadConversations();

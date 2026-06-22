@@ -81,7 +81,7 @@ class ResourceService:
                         current_daily = user.daily_money_earned or 0
 
                         if current_daily >= limit:
-                            changes['money'] = 0  # Cap reached
+                            db.session.rollback()
                             try:
                                 flash(
                                     _(
@@ -91,8 +91,12 @@ class ResourceService:
                                     'warning')
                             except BaseException:
                                 pass
-                        elif current_daily + changes['money'] > limit:
+                            return False
+                        if current_daily + changes['money'] > limit:
                             allowed = limit - current_daily
+                            if allowed <= 0:
+                                db.session.rollback()
+                                return False
                             changes['money'] = allowed
                             user.daily_money_earned += allowed
                             try:

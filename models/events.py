@@ -12,7 +12,7 @@ class WeeklyWinner(db.Model):
     # e.g., week number of the year
     week_number = db.Column(db.Integer, nullable=False)
     year = db.Column(db.Integer, nullable=False)
-    amount_won = db.Column(db.Integer, default=100)  # $100
+    amount_won = db.Column(db.Integer, default=5_000_000)  # in-game $ (not real money)
     created_at = db.Column(
         db.DateTime,
         default=lambda: datetime.now(

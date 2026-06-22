@@ -18,40 +18,81 @@
     </div>
 </div>
 
+<div class="container-fluid px-0">
+    {% set variant = 'market' %}
+    {% include 'includes/economy_policy_banner.html' %}
+</div>
+
 <div class="row">
     <!-- Portfolio Summary & Sidebar -->
     <div class="col-lg-4 col-md-12 mb-4">
         <!-- Main Portfolio Card -->
         <div class="card card-luxury mb-4 border-gold shadow-lg">
             <div class="card-header bg-dark border-bottom border-secondary">
-                <h4 class="mb-0 text-neon-gold"><i class="fas fa-wallet mr-2"></i> {{ _('محفظة الغسيل') }}</h4>
+                <h4 class="mb-0 text-neon-gold"><i class="fas fa-wallet mr-2"></i> {{ _('محفظة اللعبة') }}</h4>
             </div>
             <div class="card-body text-center bg-gradient-dark">
-                <small class="text-muted text-uppercase letter-spacing-2">{{ _('إجمالي الثروة المقدرة') }}</small>
+                <small class="text-muted text-uppercase letter-spacing-2">{{ _('إجمالي الثروة (كاش + أصول)') }}</small>
                 <h1 class="display-4 font-weight-bold text-white mb-0">{{ "{:,.0f}".format(portfolio_value + current_user.money) }}$</h1>
+                <p class="small text-muted mb-0 mt-2">
+                    {{ _('تداول بمال اللعبة فقط — ليس دفعاً حقيقياً.') }}
+                </p>
                 
                 <div class="row mt-4">
-                    <div class="col-6 border-left border-secondary">
-                        <small class="text-muted d-block">{{ _('قيمة الأصول') }}</small>
-                        <h4 class="text-gold mb-0">{{ "{:,.0f}".format(portfolio_value) }}$</h4>
-                        <span class="small {{ 'text-success' if total_profit >= 0 else 'text-danger' }}">
-                            {{ "{:+,.0f}".format(total_profit) }}$ (PnL)
-                        </span>
+                    <div class="col-4 border-left border-secondary">
+                        <small class="text-muted d-block">{{ _('كاش جيب') }}</small>
+                        <h5 class="text-white mb-0">{{ "{:,.0f}".format(trading_power.cash) }}$</h5>
                     </div>
-                    <div class="col-6">
-                        <small class="text-muted d-block">{{ _('الكاش المتوفر') }}</small>
-                        <h4 class="text-white mb-0">{{ "{:,.0f}".format(current_user.money) }}$</h4>
-                        <small class="text-muted">{{ _('جاهز للتداول') }}</small>
+                    <div class="col-4 border-left border-secondary">
+                        <small class="text-muted d-block">{{ _('البنك') }}</small>
+                        <h5 class="text-info mb-0">{{ "{:,.0f}".format(trading_power.bank) }}$</h5>
+                        <small class="text-muted">{{ _('يُستخدم تلقائياً') }}</small>
+                    </div>
+                    <div class="col-4">
+                        <small class="text-muted d-block">{{ _('قيمة الأصول') }}</small>
+                        <h5 class="text-gold mb-0">{{ "{:,.0f}".format(portfolio_value) }}$</h5>
+                        <span class="small {{ 'text-success' if total_profit >= 0 else 'text-danger' }}">
+                            {{ "{:+,.0f}".format(total_profit) }}$
+                        </span>
                     </div>
                 </div>
                 
                 <hr class="border-secondary my-4">
                 
+                <div class="d-flex flex-wrap justify-content-center mb-2" style="gap:.35rem;">
+                    <span class="badge badge-dark border border-secondary">{{ _('حد أدنى للصفقة') }}: {{ min_spot_trade }}$</span>
+                    <a href="{{ url_for('bank.index') }}" class="badge badge-info">{{ _('سحب من البنك') }}</a>
+                </div>
+                
                 <a href="{{ url_for('market.guide') }}" class="btn btn-outline-light btn-sm btn-block">
-                    <i class="fas fa-graduation-cap mr-2"></i> {{ _('أكاديمية السوق (دليل)') }}
+                    <i class="fas fa-graduation-cap mr-2"></i> {{ _('أكاديمية السوق — تعلّم اقتصاداً حقيقياً') }}
                 </a>
             </div>
         </div>
+
+        {% if portfolio_insight %}
+        <div class="card card-luxury mb-4 border-info">
+            <div class="card-header bg-dark border-bottom border-secondary">
+                <h5 class="mb-0 text-info"><i class="fas fa-brain mr-2"></i> {{ _('مدرب المحفظة') }}</h5>
+            </div>
+            <div class="card-body bg-gradient-dark">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <span class="text-muted small">{{ _('تنويع المحفظة') }}</span>
+                    <span class="badge badge-{{ 'success' if portfolio_insight.diversification_score >= 75 else ('warning' if portfolio_insight.diversification_score >= 45 else 'danger') }}">
+                        {{ portfolio_insight.diversification_label }}
+                    </span>
+                </div>
+                <div class="progress mb-3" style="height:8px;">
+                    <div class="progress-bar bg-info" style="width: {{ portfolio_insight.diversification_score }}%"></div>
+                </div>
+                <ul class="small text-muted pl-3 mb-0">
+                    {% for tip in portfolio_insight.tips[:3] %}
+                    <li class="mb-1">{{ tip }}</li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+        {% endif %}
         
         <!-- Insider Intel -->
         <div class="card bg-dark border-danger mb-4 shadow">
@@ -210,12 +251,13 @@
 
 <script>
     document.addEventListener('DOMContentLoaded', function() {
-        // Intelligent Market Script
-        // Fetches prices every 5 seconds and updates UI with animations
-        
-        const priceCache = {}; // Store previous prices to detect changes
-        
+        // Intelligent Market Script — poll aligned with server, pause when tab hidden
+        const priceCache = {};
+        let marketPollMs = {{ market_update_interval_ms|default(30000) }};
+        let marketTimer = null;
+
         function updateMarket() {
+            if (document.hidden) return;
             fetch("{{ url_for('market.get_prices') }}")
                 .then(response => response.json())
                 .then(data => {
@@ -264,7 +306,7 @@
                 })
                 .catch(err => console.error('Market Intel Error:', err));
         }
-        
+
         function showMarketToast(symbol, price, isUp) {
             const container = document.getElementById('market-toast-container');
             const toast = document.createElement('div');
@@ -284,15 +326,33 @@
             `;
             
             container.appendChild(toast);
-            
-            // Remove after animation (5s)
-            setTimeout(() => {
-                toast.remove();
-            }, 5000);
+            setTimeout(() => { toast.remove(); }, 5000);
         }
-        
-        // Start the engine
-        setInterval(updateMarket, {{ market_update_interval_ms|default(5000) }});
+
+        function startMarketPoll() {
+            if (marketTimer) clearInterval(marketTimer);
+            if (document.hidden) return;
+            marketTimer = setInterval(updateMarket, marketPollMs);
+        }
+
+        function stopMarketPoll() {
+            if (marketTimer) {
+                clearInterval(marketTimer);
+                marketTimer = null;
+            }
+        }
+
+        document.addEventListener('visibilitychange', function() {
+            if (document.hidden) {
+                stopMarketPoll();
+            } else {
+                updateMarket();
+                startMarketPoll();
+            }
+        });
+
+        updateMarket();
+        startMarketPoll();
     });
 </script>
 

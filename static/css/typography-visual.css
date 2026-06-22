@@ -1,0 +1,569 @@
+/**
+ * Typography & visual polish — text-first game UI (Arabic-first).
+ */
+
+:root {
+    --gop-font-ui: "Cairo", "Segoe UI", Tahoma, system-ui, sans-serif;
+    --gop-font-display: "Reem Kufi", "Cairo", sans-serif;
+    --gop-font-narrative: "Tajawal", "Cairo", sans-serif;
+    --gop-text-base: 1rem;
+    --gop-text-lead: 1.125rem;
+    --gop-text-story: 1.2rem;
+    --gop-line-ui: 1.65;
+    --gop-line-story: 2;
+    --gop-img-radius: 14px;
+    --gop-img-ring: rgba(212, 175, 55, 0.35);
+}
+
+/* ── Base readability ── */
+html {
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+}
+
+body {
+    font-family: var(--gop-font-ui);
+    font-size: var(--gop-text-base);
+    line-height: var(--gop-line-ui);
+    font-feature-settings: "kern" 1, "liga" 1;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+}
+
+h1, h2, h3, h4, h5, h6,
+.brand-text-custom,
+.luxury-title,
+.display-4,
+.crime-title {
+    font-family: var(--gop-font-display);
+    letter-spacing: 0.01em;
+}
+
+.lead,
+.text-story,
+.story-text,
+.gop-narrative {
+    font-family: var(--gop-font-narrative);
+}
+
+/* Numbers & economy stats */
+.gop-stat-num,
+.stat-card-luxury h3,
+.stat-value,
+[data-count-to],
+.story-stat-counter,
+.crime-stat-row .value,
+.h3.text-warning,
+.h4.font-weight-bold {
+    font-variant-numeric: tabular-nums lining-nums;
+    font-feature-settings: "tnum" 1, "lnum" 1;
+}
+
+.content-wrapper p,
+.card-body p,
+.luxury-card p {
+    line-height: var(--gop-line-ui);
+}
+
+/* ── Narrative / story scenes (text game core) ── */
+.story-text {
+    font-family: var(--gop-font-narrative);
+    font-size: var(--gop-text-story);
+    line-height: var(--gop-line-story);
+    letter-spacing: 0.01em;
+    color: rgba(255, 255, 255, 0.94);
+    border-right: 3px solid rgba(212, 175, 55, 0.45);
+    border-left: none;
+    padding: 16px 18px;
+}
+
+[dir="ltr"] .story-text {
+    border-right: none;
+    border-left: 3px solid rgba(212, 175, 55, 0.45);
+}
+
+.story-title {
+    font-family: var(--gop-font-display);
+    font-size: clamp(1.35rem, 2.5vw, 1.75rem);
+    font-weight: 700;
+}
+
+.story-hero img,
+.story-combat-avatar,
+.gop-visual {
+    image-rendering: auto;
+    -webkit-backface-visibility: hidden;
+    backface-visibility: hidden;
+}
+
+.story-hero img.gop-visual,
+.gop-visual {
+    object-fit: cover;
+    object-position: center 35%;
+}
+
+/* ── Crime cards ── */
+.crime-card h5,
+.crime-card .crime-name {
+    font-family: var(--gop-font-display);
+    font-weight: 700;
+    font-size: 1.05rem;
+}
+
+.crime-desc,
+.crime-desc-clamp {
+    font-family: var(--gop-font-narrative);
+    font-size: 0.95rem;
+    line-height: 1.75;
+    color: rgba(255, 255, 255, 0.78);
+}
+
+.crime-image,
+.gop-img-thumb {
+    object-fit: cover;
+    border: 2px solid var(--gop-img-ring);
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.45);
+}
+
+.crime-icon-wrapper {
+    box-shadow: inset 0 0 20px rgba(212, 175, 55, 0.08);
+}
+
+/* ── Location cards (hara map) ── */
+.location-bg {
+    image-rendering: auto;
+    will-change: transform;
+    position: absolute;
+}
+
+.location-bg--fallback {
+    background-image: linear-gradient(145deg, #1f1a14 0%, #12100c 45%, #0a0806 100%) !important;
+    background-color: #14110c;
+}
+
+.location-bg--fallback::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle at 70% 20%, rgba(212, 175, 55, 0.12), transparent 55%);
+    pointer-events: none;
+}
+
+.location-info h4 {
+    font-family: var(--gop-font-display);
+    font-weight: 700;
+}
+
+.location-info p {
+    font-family: var(--gop-font-narrative);
+    line-height: 1.55;
+}
+
+/* ── Hara dashboard (missing layout polish) ── */
+.hara-dashboard {
+    padding-bottom: 2rem;
+}
+
+.hara-hero-section {
+    position: relative;
+    border-radius: 18px;
+    overflow: hidden;
+    margin-bottom: 1.5rem;
+    border: 1px solid rgba(212, 175, 55, 0.22);
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.45);
+}
+
+.hara-hero-bg {
+    position: absolute;
+    inset: 0;
+    background:
+        linear-gradient(135deg, rgba(18, 18, 18, 0.92) 0%, rgba(30, 25, 10, 0.75) 50%, rgba(18, 18, 18, 0.9) 100%),
+        radial-gradient(ellipse at 80% 20%, rgba(212, 175, 55, 0.15), transparent 50%),
+        linear-gradient(145deg, #1a1510 0%, #12100c 50%, #0a0907 100%);
+    filter: saturate(0.95) contrast(1.05);
+}
+
+.hara-hero-content {
+    position: relative;
+    z-index: 1;
+    padding: 2rem 1.75rem;
+}
+
+.hara-welcome h1 {
+    font-family: var(--gop-font-display);
+    font-size: clamp(1.5rem, 3vw, 2.1rem);
+    font-weight: 700;
+    color: #fff;
+    text-shadow: 0 2px 16px rgba(0, 0, 0, 0.65);
+    margin-bottom: 0.5rem;
+}
+
+.hara-welcome p {
+    font-family: var(--gop-font-narrative);
+    font-size: var(--gop-text-lead);
+    color: rgba(255, 255, 255, 0.82);
+    margin: 0;
+    max-width: 36rem;
+}
+
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 12px;
+    margin-bottom: 1.5rem;
+}
+
+.stat-card-luxury {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 14px 16px;
+    border-radius: 14px;
+    background: linear-gradient(145deg, rgba(28, 28, 28, 0.95), rgba(12, 12, 12, 0.98));
+    border: 1px solid rgba(212, 175, 55, 0.18);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+    min-height: 88px;
+}
+
+.stat-card-luxury .stat-content span {
+    display: block;
+    font-size: 0.8rem;
+    color: rgba(255, 255, 255, 0.55);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    margin-bottom: 4px;
+}
+
+.stat-card-luxury .stat-content h3 {
+    margin: 0;
+    font-family: var(--gop-font-display);
+    font-size: clamp(1.1rem, 2vw, 1.35rem);
+    font-weight: 800;
+    color: #fff;
+}
+
+.stat-card-luxury .stat-icon-wrapper {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.25rem;
+    background: rgba(212, 175, 55, 0.1);
+    border: 1px solid rgba(212, 175, 55, 0.2);
+}
+
+.stat-icon-green { color: #28a745; }
+.stat-icon-blue { color: #17a2b8; }
+.stat-icon-red { color: #dc3545; }
+.stat-icon-gold { color: var(--gold-primary, #ffd700); }
+
+/* ── Global image polish ── */
+.content-wrapper img:not(.fa):not([class*="icon"]) {
+    max-width: 100%;
+    height: auto;
+}
+
+.img-fluid.rounded,
+.card img {
+    border-radius: var(--gop-img-radius);
+}
+
+/* ── Forms & tables readability ── */
+.form-control,
+.custom-select {
+    font-family: var(--gop-font-ui);
+    font-size: 0.95rem;
+}
+
+.table {
+    font-size: 0.92rem;
+}
+
+.table thead th {
+    font-family: var(--gop-font-display);
+    font-weight: 600;
+    letter-spacing: 0.02em;
+}
+
+/* ── Alerts / flash ── */
+.alert {
+    font-family: var(--gop-font-ui);
+    line-height: var(--gop-line-ui);
+}
+
+@media (max-width: 576px) {
+    .story-text {
+        font-size: 1.05rem;
+        line-height: 1.85;
+        padding: 12px 14px;
+    }
+
+    .hara-hero-content {
+        padding: 1.25rem 1rem;
+    }
+
+    .stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .location-bg,
+    .group:hover .location-bg {
+        transition: none !important;
+        transform: none !important;
+    }
+}
+
+/* ── Page intros (crimes, tasks, market…) ── */
+.gop-page-intro {
+    text-align: center;
+    margin-bottom: 1.75rem;
+}
+
+.gop-page-intro .display-4,
+.gop-page-intro h1 {
+    font-family: var(--gop-font-display);
+    font-weight: 800;
+    color: var(--gold-primary, #ffd700);
+    text-shadow: 0 2px 14px rgba(212, 175, 55, 0.2);
+}
+
+.gop-page-intro .lead,
+.gop-page-intro .gop-page-sub {
+    font-family: var(--gop-font-narrative);
+    font-size: var(--gop-text-lead);
+    color: rgba(255, 255, 255, 0.72);
+    max-width: 40rem;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+/* ── Bank ── */
+.balance-box {
+    background: linear-gradient(160deg, rgba(22, 22, 22, 0.98), rgba(8, 8, 8, 0.99));
+    border: 1px solid rgba(212, 175, 55, 0.2);
+    border-radius: 16px;
+    padding: 1.5rem;
+    text-align: center;
+    box-shadow: 0 10px 32px rgba(0, 0, 0, 0.45);
+    height: 100%;
+}
+
+.balance-box.gold-border {
+    border-color: rgba(255, 215, 0, 0.35);
+    box-shadow: 0 10px 32px rgba(0, 0, 0, 0.45), 0 0 24px rgba(212, 175, 55, 0.08);
+}
+
+.balance-title {
+    font-family: var(--gop-font-display);
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: rgba(255, 255, 255, 0.65);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin-bottom: 0.5rem;
+}
+
+.balance-amount {
+    font-family: var(--gop-font-display);
+    font-size: clamp(1.75rem, 4vw, 2.35rem);
+    font-weight: 900;
+    color: #fff;
+    margin-bottom: 1.25rem;
+    font-variant-numeric: tabular-nums lining-nums;
+}
+
+.balance-amount.gold {
+    color: var(--gold-primary, #ffd700);
+    text-shadow: 0 0 20px rgba(212, 175, 55, 0.25);
+}
+
+.bank-page .story-hero {
+    height: 220px;
+}
+
+/* ── Heist / report modal ── */
+.report-hero img,
+.report-hero .gop-visual {
+    filter: contrast(1.06) saturate(1.08);
+}
+
+.report-title {
+    font-family: var(--gop-font-display);
+    font-weight: 800;
+    color: var(--gold-primary, #ffd700);
+}
+
+.report-sub,
+.timeline .timeline-line {
+    font-family: var(--gop-font-narrative);
+    line-height: 1.85;
+    color: rgba(255, 255, 255, 0.82);
+}
+
+.timeline .timeline-line {
+    padding: 10px 14px;
+    margin-bottom: 8px;
+    background: rgba(0, 0, 0, 0.28);
+    border-radius: 10px;
+    border-right: 2px solid rgba(212, 175, 55, 0.35);
+}
+
+[dir="ltr"] .timeline .timeline-line {
+    border-right: none;
+    border-left: 2px solid rgba(212, 175, 55, 0.35);
+}
+
+/* ── Organized crimes ── */
+.org-hero .lead,
+.org-hero p {
+    font-family: var(--gop-font-narrative);
+    font-size: var(--gop-text-lead);
+    line-height: 1.75;
+    color: rgba(255, 255, 255, 0.8);
+}
+
+.org-hero h1 {
+    font-family: var(--gop-font-display);
+}
+
+.heist-card .card-title,
+.heist-card h5 {
+    font-family: var(--gop-font-display);
+    font-weight: 700;
+}
+
+.heist-card p,
+.heist-card .text-muted {
+    font-family: var(--gop-font-narrative);
+    line-height: 1.65;
+}
+
+/* ── Daily tasks ── */
+.task-box h5 {
+    font-family: var(--gop-font-display);
+    font-weight: 700;
+}
+
+.task-box p,
+.task-box .text-muted {
+    font-family: var(--gop-font-narrative);
+    line-height: 1.7;
+}
+
+.task-icon {
+    font-size: 2rem;
+    color: var(--gold-primary, #ffd700);
+    margin-bottom: 0.75rem;
+    opacity: 0.85;
+}
+
+/* ── Jail ── */
+.jail-header h2 {
+    font-family: var(--gop-font-display);
+}
+
+.jail-header p {
+    font-family: var(--gop-font-narrative);
+    font-size: var(--gop-text-lead);
+}
+
+#jail-timer {
+    font-family: var(--gop-font-display);
+    font-variant-numeric: tabular-nums;
+}
+
+/* ── Crime stats rows ── */
+.crime-stat-label {
+    font-family: var(--gop-font-ui);
+    font-size: 0.85rem;
+    color: rgba(255, 255, 255, 0.6);
+}
+
+.crime-stat-value {
+    font-family: var(--gop-font-display);
+    font-weight: 800;
+    font-variant-numeric: tabular-nums;
+}
+
+/* ── Location fallback gradient (see .location-bg--fallback above) ── */
+
+.location-card-modern {
+    min-height: 172px;
+}
+
+/* ── Hara badge chips ── */
+.hara-badge-level-chip {
+    background: var(--gold-primary) !important;
+    color: #000 !important;
+    font-family: var(--gop-font-display);
+    font-weight: 800;
+    font-size: 1rem;
+}
+
+.hara-badge-rank-chip {
+    background: rgba(0, 0, 0, 0.5) !important;
+    border: 1px solid rgba(255, 193, 7, 0.45) !important;
+    color: #ffc107 !important;
+    font-family: var(--gop-font-narrative);
+    font-size: 1rem;
+}
+
+/* ── Police chase & scene images ── */
+.police-chase-img,
+.mh-300px.gop-visual {
+    border: 2px solid rgba(212, 175, 55, 0.3);
+    border-radius: var(--gop-img-radius);
+    box-shadow: 0 12px 36px rgba(0, 0, 0, 0.5);
+}
+
+.gop-img-fallback-active {
+    object-fit: cover;
+    background: #14110c;
+}
+
+/* ── Index landing hero ── */
+.hero-subtitle {
+    font-family: var(--gop-font-narrative);
+    font-size: clamp(1rem, 2.2vw, 1.2rem);
+    line-height: 1.85;
+}
+
+.cash-prize-box h4 {
+    font-family: var(--gop-font-display);
+}
+
+.cash-prize-box p {
+    font-family: var(--gop-font-narrative);
+    line-height: 1.75;
+}
+
+/* ── Sidebar & brand ── */
+.brand-text-custom {
+    font-family: var(--gop-font-display);
+    font-weight: 700;
+    letter-spacing: 0.02em;
+}
+
+/* ── Narrative log blocks (lobby, messages) ── */
+.gop-log-line,
+.narrative-line {
+    font-family: var(--gop-font-narrative);
+    font-size: 1.02rem;
+    line-height: 1.8;
+    padding: 8px 12px;
+    border-radius: 8px;
+    margin-bottom: 6px;
+    background: rgba(0, 0, 0, 0.2);
+}
+
+.gop-log-line:nth-child(even) {
+    background: rgba(212, 175, 55, 0.04);
+}
+

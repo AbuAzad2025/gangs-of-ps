@@ -370,6 +370,11 @@
 
                 <!-- Upgrades Tab -->
                 <div class="tab-pane" id="upgrades">
+                    <div class="d-flex justify-content-end mb-3">
+                        <a href="{{ url_for('gang.upgrades') }}" class="btn btn-sm btn-outline-warning">
+                            <i class="fas fa-external-link-alt"></i> {{ _('صفحة الترقيات') }}
+                        </a>
+                    </div>
                     <div class="row">
                         {% for upgrade in upgrades_data %}
                             {% set current_level = current_upgrades.get(upgrade.id, 0) %}
@@ -406,7 +411,7 @@
                                                 <p class="small mb-0 text-danger font-weight-bold">{{ _('التكلفة') }}: {{ "{:,}".format(next_level_data.cost) }}$</p>
                                             </div>
 
-                                            {% if is_leader or is_underboss %}
+                                            {% if is_leader %}
                                                 <form action="{{ url_for('gang.buy_upgrade', upgrade_id=upgrade.id, level=next_level_data.level) }}" method="POST">
                                                     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
                                                     <button type="submit" class="btn btn-luxury-action btn-block btn-sm" {% if gang.money < next_level_data.cost %}disabled{% endif %}>
@@ -415,7 +420,7 @@
                                                 </form>
                                             {% else %}
                                                 <button class="btn btn-secondary btn-block btn-sm" disabled>
-                                                    {{ _('للإدارة فقط') }}
+                                                    {{ _('للزعيم فقط') }}
                                                 </button>
                                             {% endif %}
                                         {% else %}

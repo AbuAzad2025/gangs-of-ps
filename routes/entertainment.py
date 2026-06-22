@@ -170,8 +170,6 @@ def create_room():
                 'turn': 'w',
                 'is_solo': True,
                 'engine': 'minimax'}
-            if stake_amount > 0:
-                room.pot_amount += stake_amount  # 1 Bot
         elif game_type == 'trix':
             room.game_state = {
                 'is_solo': True,
@@ -182,16 +180,12 @@ def create_room():
                 'trix_style': trix_style,
                 'team_mode': trix_team_mode}
             TrixGameLogic.init_game(room.game_state)
-            if stake_amount > 0:
-                room.pot_amount += (3 * stake_amount)  # 3 Bots
         elif game_type == 'tarneeb':
             room.game_state = {
                 'is_solo': True, 'bot_seats': [
                     1, 2, 3], 'team_mode': 'partnership'}
             TarneebGameLogic.init_game(room.game_state)
             TarneebGameLogic.deal(room.game_state)
-            if stake_amount > 0:
-                room.pot_amount += (3 * stake_amount)  # 3 Bots
 
     else:  # Multiplayer
         status = 'waiting'
@@ -946,10 +940,6 @@ def start_room(room_id):
                 'history': [],
                 'turn': 'w'}
 
-    # Bot Pot Contribution (System matches stake for bots)
-    if missing_bots > 0 and room.stake_amount > 0:
-        room.pot_amount += (missing_bots * room.stake_amount)
-
     db.session.commit()
     if socketio:
         payload = room.to_dict()
@@ -972,15 +962,26 @@ def finish_room(room_id):
         room_id=room.id, user_id=current_user.id).first()
     if not player or player.seat_index != 0:
         return jsonify({'error': 'Not authorized'}), 403
+
+    state = room.game_state or {}
+    if state.get('prizes_distributed'):
+        return jsonify({'status': 'ok'})
+
+    game_over = bool(state.get('result') or state.get('phase') == 'finished')
+    if not game_over:
+        return jsonify({'error': 'Game not finished yet'}), 400
+
     room.status = 'finished'
     if room.game_state:
         try:
-            state = room.game_state
+            state = dict(room.game_state)
             state['phase'] = 'finished'
             room.game_state = state
+            flag_modified(room, 'game_state')
         except Exception:
             pass
-    db.session.commit()
+
+    _distribute_prizes(room)
     if socketio:
         payload = room.to_dict()
         socketio.emit('room_update', payload, room=f'room-{room.id}')

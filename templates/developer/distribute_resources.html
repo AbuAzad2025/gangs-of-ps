@@ -41,7 +41,7 @@
                         <label class="text-gold">{{ _('سبب التوزيع') }}</label>
                         <select name="distribution_reason" id="distribution_reason" class="form-control form-control-luxury" onchange="toggleRealMoney()">
                             <option value="admin_distribution">{{ _('توزيع إداري عام') }}</option>
-                            <option value="real_money_purchase">{{ _('مقابل مال حقيقي') }}</option>
+                            <option value="real_money_purchase">{{ _('شراء ماس — دفع حقيقي (واتساب)') }}</option>
                             <option value="event_reward">{{ _('مكافأة فعالية/حدث') }}</option>
                             <option value="bug_compensation">{{ _('تعويض بسبب خلل') }}</option>
                             <option value="support_compensation">{{ _('تعويض دعم/إدارة') }}</option>
@@ -66,7 +66,7 @@
                             </div>
                             <input type="number" step="0.01" min="0.01" name="real_money_amount" id="real_money_amount" class="form-control form-control-luxury" placeholder="مثال: 9.99">
                         </div>
-                        <small class="text-muted d-block mt-2">{{ _('يُستخدم هذا فقط لحساب أرباح المال الحقيقي في ملف المطور.') }}</small>
+                        <small class="text-muted d-block mt-2">{{ _('لتسجيل دخل المطور عند تسليم ماس بعد دفع واتساب/تحويل — لا علاقة له بتداول اللعبة.') }}</small>
                     </div>
 
                     <div class="form-group mb-4">

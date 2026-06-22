@@ -1494,7 +1494,9 @@ def messenger_messages(user_id):
     if not other_user:
         return jsonify({'error': 'User not found'}), 404
 
-    messages = (
+    since_id = request.args.get('since_id', 0, type=int)
+
+    q = (
         PrivateChat.query.filter(
             or_(
                 (PrivateChat.sender_id == current_user.id)
@@ -1506,9 +1508,10 @@ def messenger_messages(user_id):
             )
         )
         .order_by(PrivateChat.created_at.asc())
-        .limit(100)
-        .all()
     )
+    if since_id > 0:
+        q = q.filter(PrivateChat.id > since_id)
+    messages = q.limit(100).all()
 
     return jsonify([msg.to_dict() for msg in messages])
 

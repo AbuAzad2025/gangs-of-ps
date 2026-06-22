@@ -444,9 +444,9 @@ def collect_task_reward(task_id):
     return redirect(url_for('main.daily_tasks'))
 
 
-@bp.route('/daily_reward')
+@bp.route('/daily_reward', methods=['POST'])
 @login_required
-@limiter.limit("1 per minute")  # Strict limit for daily reward
+@limiter.limit("3 per minute")
 def daily_reward():
     now = datetime.now(timezone.utc)
 
@@ -504,9 +504,7 @@ def daily_reward():
     if streak % 7 == 0:
         diamonds_reward = 1
 
-    user.last_daily_reward = now.replace(tzinfo=None)
-
-    # Atomic Resource Update
+    # Atomic Resource Update — last_daily_reward only on success via set_fields
     changes = {
         'money': money_reward,
         'energy': energy_reward,
@@ -527,6 +525,7 @@ def daily_reward():
         auto_commit=False,
         expected_version=None,
             set_fields=set_fields):
+        db.session.rollback()
         flash(_('حدث خطأ أثناء استلام المكافأة. حاول مرة أخرى.'), 'danger')
         return redirect(url_for('main.hara'))
 

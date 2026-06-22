@@ -475,6 +475,10 @@
     let cameraStream = null;
     let lastCapturedBlob = null;
     let chatPollMs = 3000;
+    let socketMode = false;
+    let msgPollId = null;
+    let typingPollId = null;
+    let onlinePollId = null;
     
     document.addEventListener('DOMContentLoaded', function() {
         soundEnabled = localStorage.getItem('chat_sound_enabled') !== '0';
@@ -486,16 +490,23 @@
         if (IS_AUTH) loadTyping();
 
         if (window.GopChatRealtime) {
-            var rt = GopChatRealtime.init(ROOM, function () { loadMessages(); }, function (msgId) {
+            var rt = GopChatRealtime.init(ROOM, function (msg) {
+                if (msg && msg.id) {
+                    const prev = lastId;
+                    if (appendChatMessage(msg, prev)) onNewMessage();
+                    lastId = Math.max(lastId, parseInt(msg.id, 10) || lastId);
+                }
+            }, function (msgId) {
                 var el = document.querySelector('[data-msg-id="' + msgId + '"]');
                 if (el) el.remove();
             });
-            if (rt && rt.mode === 'socket') chatPollMs = 12000;
+            if (rt && rt.mode === 'socket') {
+                socketMode = true;
+                chatPollMs = 45000;
+            }
         }
-        
-        setInterval(loadMessages, chatPollMs);
-        setInterval(loadOnlineUsers, 10000);
-        if (IS_AUTH) setInterval(loadTyping, 2000);
+
+        startChatPolls();
 
         const attachBtn = document.getElementById('attach-btn');
         const cameraBtn = document.getElementById('camera-btn');
@@ -571,8 +582,28 @@
         if (!document.hidden) {
             unreadCount = 0;
             document.title = baseTitle;
+            loadMessages();
+            startChatPolls();
+        } else {
+            stopChatPolls();
         }
     });
+
+    function startChatPolls() {
+        stopChatPolls();
+        if (document.hidden) return;
+        msgPollId = setInterval(loadMessages, chatPollMs);
+        onlinePollId = setInterval(loadOnlineUsers, socketMode ? 25000 : 15000);
+        if (IS_AUTH) {
+            typingPollId = setInterval(loadTyping, socketMode ? 5000 : 3500);
+        }
+    }
+
+    function stopChatPolls() {
+        if (msgPollId) { clearInterval(msgPollId); msgPollId = null; }
+        if (onlinePollId) { clearInterval(onlinePollId); onlinePollId = null; }
+        if (typingPollId) { clearInterval(typingPollId); typingPollId = null; }
+    }
 
     document.getElementById('toggle-sound').addEventListener('click', function() {
         soundEnabled = !soundEnabled;
@@ -600,10 +631,16 @@
         setTyping(false);
 
         sendChatMessage(content)
-            .then(() => {
+            .then((msg) => {
                 input.value = '';
                 closeEmojiPanel();
-                loadMessages();
+                if (msg && msg.id) {
+                    const prev = lastId;
+                    appendChatMessage(msg, prev);
+                    lastId = Math.max(lastId, parseInt(msg.id, 10) || lastId);
+                    const container = document.getElementById('chat-messages');
+                    if (container) container.scrollTop = container.scrollHeight;
+                }
             })
             .catch((err) => {
                 alert(err && err.message ? err.message : '{{ _("حدث خطأ.") }}');
@@ -678,62 +715,74 @@
             .catch(() => {});
     }
 
+    function appendChatMessage(msg, previousLastId) {
+        if (!msg || !msg.id) return false;
+        if (document.querySelector(`[data-msg-id="${msg.id}"]`)) return false;
+
+        const container = document.getElementById('chat-messages');
+        if (!container) return false;
+
+        const isMe = msg.user_id == CURRENT_USER_ID;
+        let hasNewFromOthers = false;
+        if (!isMe && previousLastId !== undefined && msg.id > previousLastId) {
+            hasNewFromOthers = true;
+        }
+
+        const badges = [];
+        if (msg.is_vip) badges.push(`<span class="badge badge-warning ml-1">VIP</span>`);
+        if (msg.is_guest) badges.push(`<span class="badge badge-secondary ml-1">{{ _('ضيف') }}</span>`);
+        const actions = [];
+        if (CAN_MODERATE) {
+            actions.push(`<button type="button" class="btn btn-xs btn-outline-danger" onclick="deleteChatMessage(${msg.id})" aria-label="{{ _('حذف') }}"><i class="fas fa-trash"></i></button>`);
+            if (msg.user_id && msg.user_id !== CURRENT_USER_ID) {
+                actions.push(`<button type="button" class="btn btn-xs btn-outline-warning" onclick="muteChatUser(${msg.user_id}, 30)" aria-label="{{ _('كتم') }}"><i class="fas fa-volume-mute"></i></button>`);
+                actions.push(`<button type="button" class="btn btn-xs btn-outline-secondary" onclick="banChatUser(${msg.user_id})" aria-label="{{ _('حظر') }}"><i class="fas fa-ban"></i></button>`);
+                actions.push(`<button type="button" class="btn btn-xs btn-outline-success" onclick="unmuteChatUser(${msg.user_id})" aria-label="{{ _('إلغاء كتم') }}"><i class="fas fa-volume-up"></i></button>`);
+                actions.push(`<button type="button" class="btn btn-xs btn-outline-info" onclick="unbanChatUser(${msg.user_id})" aria-label="{{ _('إلغاء حظر') }}"><i class="fas fa-unlock"></i></button>`);
+            }
+        }
+        actions.push(`<button type="button" class="btn btn-xs btn-outline-light" onclick="reportChatMessage(${msg.id})" aria-label="{{ _('بلاغ') }}"><i class="fas fa-flag"></i></button>`);
+        const div = document.createElement('div');
+        div.className = `msg-row ${isMe ? 'mine' : ''}`;
+        div.dataset.msgId = msg.id;
+        div.innerHTML = `
+            <img src="${AVATAR_BASE + (msg.avatar || 'default.png')}" class="msg-avatar" onclick="window.location.href='/profile/${msg.user_id}'" style="cursor:pointer" onerror="this.onerror=null; this.src='https://ui-avatars.com/api/?name=${msg.username}&background=random';">
+            <div>
+                <div class="small text-muted mb-1 ${isMe ? 'text-right' : ''}">
+                    <span>${escapeHtml(msg.username)} ${badges.join('')} <span class="text-gold text-xs ml-1">${escapeHtml(msg.created_at)}</span></span>
+                    <span class="chat-actions">${actions.join('')}</span>
+                </div>
+                <div class="message-content text-white">
+                    ${renderMessageContent(msg.message)}
+                </div>
+            </div>
+        `;
+        container.appendChild(div);
+        return hasNewFromOthers;
+    }
+
     function loadMessages() {
+        if (document.hidden) return;
         fetch(`{{ url_for('main.get_public_chat_messages') }}?room=${ROOM}&since_id=${lastId}`)
             .then(res => res.json())
             .then(data => {
                 const container = document.getElementById('chat-messages');
-                
-                if (lastId === 0) container.innerHTML = '';
-                
-                if (data.messages.length > 0) {
-                    const previousLastId = lastId;
-                    lastId = data.last_id;
-                    let hasNewFromOthers = false;
-                    
-                    data.messages.forEach(msg => {
-                        const isMe = msg.user_id == CURRENT_USER_ID;
-                        if (!isMe && msg.id > previousLastId) {
-                            hasNewFromOthers = true;
-                        }
-                        const badges = [];
-                        if (msg.is_vip) badges.push(`<span class="badge badge-warning ml-1">VIP</span>`);
-                        if (msg.is_guest) badges.push(`<span class="badge badge-secondary ml-1">{{ _('ضيف') }}</span>`);
-                        const actions = [];
-                        if (CAN_MODERATE) {
-                            actions.push(`<button type="button" class="btn btn-xs btn-outline-danger" onclick="deleteChatMessage(${msg.id})" aria-label="{{ _('حذف') }}"><i class="fas fa-trash"></i></button>`);
-                            if (msg.user_id && msg.user_id !== CURRENT_USER_ID) {
-                                actions.push(`<button type="button" class="btn btn-xs btn-outline-warning" onclick="muteChatUser(${msg.user_id}, 30)" aria-label="{{ _('كتم') }}"><i class="fas fa-volume-mute"></i></button>`);
-                                actions.push(`<button type="button" class="btn btn-xs btn-outline-secondary" onclick="banChatUser(${msg.user_id})" aria-label="{{ _('حظر') }}"><i class="fas fa-ban"></i></button>`);
-                                actions.push(`<button type="button" class="btn btn-xs btn-outline-success" onclick="unmuteChatUser(${msg.user_id})" aria-label="{{ _('إلغاء كتم') }}"><i class="fas fa-volume-up"></i></button>`);
-                                actions.push(`<button type="button" class="btn btn-xs btn-outline-info" onclick="unbanChatUser(${msg.user_id})" aria-label="{{ _('إلغاء حظر') }}"><i class="fas fa-unlock"></i></button>`);
-                            }
-                        }
-                        actions.push(`<button type="button" class="btn btn-xs btn-outline-light" onclick="reportChatMessage(${msg.id})" aria-label="{{ _('بلاغ') }}"><i class="fas fa-flag"></i></button>`);
-                        const div = document.createElement('div');
-                        div.className = `msg-row ${isMe ? 'mine' : ''}`;
-                        div.dataset.msgId = msg.id;
-                        div.innerHTML = `
-                            <img src="${AVATAR_BASE + (msg.avatar || 'default.png')}" class="msg-avatar" onclick="window.location.href='/profile/${msg.user_id}'" style="cursor:pointer" onerror="this.onerror=null; this.src='https://ui-avatars.com/api/?name=${msg.username}&background=random';">
-                            <div>
-                                <div class="small text-muted mb-1 ${isMe ? 'text-right' : ''}">
-                                    <span>${escapeHtml(msg.username)} ${badges.join('')} <span class="text-gold text-xs ml-1">${escapeHtml(msg.created_at)}</span></span>
-                                    <span class="chat-actions">${actions.join('')}</span>
-                                </div>
-                                <div class="message-content text-white">
-                                    ${renderMessageContent(msg.message)}
-                                </div>
-                            </div>
-                        `;
-                        container.appendChild(div);
-                    });
-                    
-                    container.scrollTop = container.scrollHeight;
+                if (!container) return;
 
-                    if (hasNewFromOthers) {
-                        onNewMessage();
-                    }
-                }
+                if (lastId === 0) container.innerHTML = '';
+
+                if (!data.messages || data.messages.length === 0) return;
+
+                const previousLastId = lastId;
+                if (data.last_id) lastId = data.last_id;
+                let hasNewFromOthers = false;
+
+                data.messages.forEach(msg => {
+                    if (appendChatMessage(msg, previousLastId)) hasNewFromOthers = true;
+                });
+
+                container.scrollTop = container.scrollHeight;
+                if (hasNewFromOthers) onNewMessage();
             });
     }
     
@@ -956,8 +1005,14 @@
             return;
         }
         try {
-            await sendChatMessage(data.token);
-            loadMessages();
+            const msg = await sendChatMessage(data.token);
+            if (msg && msg.id) {
+                const prev = lastId;
+                appendChatMessage(msg, prev);
+                lastId = Math.max(lastId, parseInt(msg.id, 10) || lastId);
+                const container = document.getElementById('chat-messages');
+                if (container) container.scrollTop = container.scrollHeight;
+            }
         } catch (e) {
             alert(e && e.message ? e.message : '{{ _("فشل إرسال الرسالة.") }}');
         }

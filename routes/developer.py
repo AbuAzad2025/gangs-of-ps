@@ -252,6 +252,7 @@ def create_backup():
 
 @bp.route('/developer/backup/restore/<filename>', methods=['POST'])
 @developer_required
+@double_verification_required
 def restore_backup(filename):
     success, message = BackupManager.restore_backup(filename)
     if success:

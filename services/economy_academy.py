@@ -72,12 +72,18 @@ def get_academy_lessons() -> List[AcademyLesson]:
         AcademyLesson(
             day=3,
             title=_msg("البورصة والمخاطرة"),
-            summary=_msg("استثمر الكاش في أسهم وهمية لغسل الأموال. الأسعار تتحرك — راقب قبل تشتري."),
-            tip=_msg("لا تستثمر كل مالك دفعة واحدة. جرّب بمبلغ صغير أولاً."),
+            summary=_msg(
+                "تداول بكاشك من الجرائم والبنك (مال اللعبة فقط). "
+                "اشترِ بمبلغ صغير من أصل واحد على الأقل وراقب الربح/الخسارة."
+            ),
+            tip=_msg(
+                "الحد الأدنى 10$ من مال اللعبة. إذا الكاش قليل، يُخصم من البنك تلقائياً. "
+                "لا تضع أكثر من 15%% من رصيدك في صفقة واحدة."
+            ),
             try_url=url_for("market.index"),
-            try_label=_msg("افتح البورصة"),
+            try_label=_msg("افتح البورصة وتداول"),
             icon="fa-chart-line",
-            target_type="market_visit",
+            target_type="market_trade",
         ),
         AcademyLesson(
             day=4,

@@ -1,1 +1,8 @@
 Single-database configuration for Flask.
+
+## Alembic revision IDs
+
+- Use lowercase hexadecimal IDs only for **new** migrations (e.g. `a1b2c3d4e5f6`).
+- Do **not** rename revision IDs that are already applied in production. The chain
+  includes legacy id `6b5c4d3e2f1g`; it is valid and must stay as-is on deployed DBs.
+- After adding a migration: `flask db upgrade` then `python scripts/check_integration.py`.

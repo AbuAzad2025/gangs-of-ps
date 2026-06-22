@@ -2,11 +2,11 @@
 
 {% block content %}
 <div class="row mb-4 fade-in">
-    <div class="col-12 text-center">
-        <h1 class="display-4 font-weight-bold text-uppercase crime-title">
+    <div class="col-12 gop-page-intro">
+        <h1 class="display-4 font-weight-bold crime-title">
             <i class="fas fa-mask mr-3"></i>{{ _('عالم الجريمة') }}
         </h1>
-        <p class="lead text-muted">{{ _('خاطر بحياتك من أجل المال والسلطة') }}</p>
+        <p class="lead gop-page-sub">{{ _('خاطر بحياتك من أجل المال والسلطة') }}</p>
         <div class="separator mx-auto mt-3 crime-header-separator"></div>
     </div>
 </div>
@@ -19,7 +19,7 @@
             <div class="gop-anim-bar mb-2" data-pct="{{ ((user.energy / user.max_energy) * 100)|int }}" data-color="warning">
                 <div class="gop-anim-bar-fill"></div>
             </div>
-            <span class="h4 text-warning font-weight-bold">
+            <span class="h4 text-warning font-weight-bold gop-stat-num">
               <span data-count-to="{{ user.energy }}" data-count-suffix=" / {{ user.max_energy }}">0</span>
             </span>
         </div>
@@ -70,8 +70,11 @@
                     {% else %}
                         {% if crime.image %}
                             <img src="{{ url_for('static', filename='images/' + crime.image) }}"
-                                 class="rounded-circle crime-image"
+                                 class="rounded-circle crime-image gop-img-thumb"
                                  alt="{{ _(crime.name) }}"
+                                 loading="lazy"
+                                 decoding="async"
+                                 data-gop-fallback="{{ url_for('static', filename='images/placeholders/scene.svg') }}"
                                  onerror="this.onerror=null; this.src='{{ url_for('static', filename='images/crimes/wallet.jpg') }}';">
                         {% else %}
                             <i class="fas fa-fist-raised fa-2x text-gold"></i>

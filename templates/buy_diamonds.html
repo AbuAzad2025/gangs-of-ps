@@ -4,7 +4,6 @@
 
 {% block content %}
 <div class="container-fluid position-relative">
-    <!-- Background Pattern -->
     <div class="diamonds-bg-pattern"></div>
 
     <div class="row justify-content-center position-relative" style="z-index: 1;">
@@ -14,41 +13,25 @@
                     <h1 class="display-4 mb-0 luxury-title">
                         <i class="fas fa-gem mr-3"></i> {{ _('متجر الماس') }}
                     </h1>
-                    <p class="lead text-light mt-2 mb-0">{{ _('استثمر في قوتك وسيطر على العالم السفلي') }}</p>
+                    <p class="lead text-light mt-2 mb-0">{{ _('الماس هو العملة الوحيدة القابلة للشراء بمال حقيقي') }}</p>
                 </div>
                 <div class="card-body p-4">
-                    <div class="alert alert-dark border-gold text-center mb-5 shadow-sm">
-                        <i class="fas fa-info-circle text-warning mr-2"></i>
-                        <span class="text-light">{{ _('يرجى تحويل المبلغ المطلوب إلى أحد الحسابات التالية، ثم تعبئة النموذج أسفل الصفحة لتأكيد العملية.') }}</span>
+                    {% set variant = 'diamonds' %}
+                    {% include 'includes/economy_policy_banner.html' %}
+
+                    <div class="alert alert-success border-success text-center mb-4 shadow-sm">
+                        <h4 class="text-white mb-2"><i class="fab fa-whatsapp mr-2"></i> {{ _('الطريقة الرسمية: واتساب المطور') }}</h4>
+                        <p class="text-light mb-3 small">
+                            {{ _('راسل المطور على واتساب لطلب باقة الماس، ثم حوّل المبلغ (بنك أو محفظة) وأرسل إثبات الدفع. التداول والرهانات والجرائم داخل اللعبة بكاش/بنك/ماس اللعبة فقط.') }}
+                        </p>
+                        <a id="whatsapp-diamond-cta" href="{{ whatsapp_url }}" target="_blank" rel="noopener"
+                           class="btn btn-success btn-lg px-5 font-weight-bold hover-scale shadow-lg">
+                            <i class="fab fa-whatsapp fa-lg mr-2"></i>
+                            {{ _('مراسلة المطور على واتساب') }} ({{ whatsapp_display }})
+                        </a>
                     </div>
 
-                    {% if stripe_message %}
-                    <div class="alert alert-info text-center">{{ stripe_message }}</div>
-                    {% endif %}
-
-                    {% if stripe_enabled and diamond_packages %}
-                    <div class="mb-5">
-                        <h3 class="text-center gold-text-gradient mb-4">{{ _('دفع فوري (Stripe)') }}</h3>
-                        <div class="row text-center">
-                            {% for key, pkg in diamond_packages.items() %}
-                            <div class="col-6 col-md-3 mb-3">
-                                <form method="POST" action="{{ url_for('main.stripe_checkout') }}">
-                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                                    <input type="hidden" name="package" value="{{ key }}">
-                                    <input type="hidden" name="next" value="{{ next_url or '' }}">
-                                    <button type="submit" class="btn btn-outline-gold btn-block py-3">
-                                        <div class="font-weight-bold">${{ pkg.usd }}</div>
-                                        <div class="small text-muted">{{ pkg.diamonds }} {{ _('ماس') }}</div>
-                                    </button>
-                                </form>
-                            </div>
-                            {% endfor %}
-                        </div>
-                    </div>
-                    <hr class="border-gold opacity-50 my-5">
-                    {% endif %}
-
-                    <div class="row text-center mb-5">
+                    <div class="row text-center mb-4">
                         <div class="col-md-6 mb-4">
                             <div class="card h-100 bg-dark border-gold payment-card">
                                 <div class="card-header border-bottom border-warning py-3">
@@ -68,22 +51,17 @@
                                 </div>
                                 <div class="card-body text-light">
                                     <p class="mb-2"><strong>{{ _('جوال باي (Jawwal Pay):') }}</strong> <span class="text-success font-weight-bold">00970598953362</span></p>
-                                    <p class="mb-0"><strong>{{ _('رقم التواصل:') }}</strong> <span class="text-white-50">00970598953362</span></p>
+                                    <p class="mb-0"><strong>{{ _('رقم التواصل:') }}</strong> <span class="text-white-50">{{ whatsapp_display }}</span></p>
                                 </div>
                             </div>
                         </div>
                     </div>
 
-                    <div class="text-center mb-5">
-                         <a href="https://wa.me/970598953362" target="_blank" class="btn btn-success btn-lg btn-block font-weight-bold hover-scale shadow-lg">
-                            <i class="fab fa-whatsapp fa-lg mr-2"></i> {{ _('تواصل وتأكيد عبر واتساب (+970598953362)') }}
-                        </a>
-                    </div>
+                    <hr class="border-gold opacity-50 my-4">
 
-                    <hr class="border-gold opacity-50 my-5">
-
-                    <h3 class="text-center gold-text-gradient mb-4">{{ _('نموذج تأكيد التحويل') }}</h3>
-                    <form method="POST" action="{% if next_url %}{{ url_for('main.buy_diamonds', next=next_url) }}{% else %}{{ url_for('main.buy_diamonds') }}{% endif %}" class="luxury-form">
+                    <h3 class="text-center gold-text-gradient mb-3">{{ _('نموذج تأكيد التحويل (اختياري)') }}</h3>
+                    <p class="text-center text-muted small mb-4">{{ _('بعد الدفع والمراسلة على واتساب، يمكنك تعبئة هذا النموذج لتسجيل الطلب في النظام.') }}</p>
+                    <form method="POST" action="{% if next_url %}{{ url_for('main.buy_diamonds', next=next_url) }}{% else %}{{ url_for('main.buy_diamonds') }}{% endif %}" class="luxury-form" id="diamond-confirm-form">
                         {{ form.hidden_tag() }}
                         <input type="hidden" name="next" value="{{ next_url or '' }}">
                         
@@ -94,7 +72,7 @@
                                     <div class="input-group-prepend">
                                         <span class="input-group-text bg-dark border-gold text-gold"><i class="fas fa-dollar-sign"></i></span>
                                     </div>
-                                    {{ form.amount_usd(class="form-select form-control bg-dark text-white border-gold") }}
+                                    {{ form.amount_usd(class="form-select form-control bg-dark text-white border-gold", id="amount_usd_field") }}
                                 </div>
                             </div>
 
@@ -121,10 +99,61 @@
                             {{ form.submit(class="btn btn-primary btn-lg px-5 font-weight-bold hover-scale shine-button", style="background: var(--gold-primary); border: none; color: black;") }}
                         </div>
                     </form>
+
+                    {% if stripe_enabled and diamond_packages %}
+                    <hr class="border-gold opacity-50 my-5">
+                    {% if stripe_message %}
+                    <div class="alert alert-info text-center">{{ stripe_message }}</div>
+                    {% endif %}
+                    <h3 class="text-center text-muted mb-2">{{ _('دفع فوري عبر Stripe (اختياري)') }}</h3>
+                    <p class="text-center text-muted small mb-4">{{ _('إن وُجدت. الطريقة المفضلة للشراء تبقى واتساب المطور.') }}</p>
+                    <div class="row text-center">
+                        {% for key, pkg in diamond_packages.items() %}
+                        <div class="col-6 col-md-3 mb-3">
+                            <form method="POST" action="{{ url_for('main.stripe_checkout') }}">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                <input type="hidden" name="package" value="{{ key }}">
+                                <input type="hidden" name="next" value="{{ next_url or '' }}">
+                                <button type="submit" class="btn btn-outline-secondary btn-block py-3">
+                                    <div class="font-weight-bold">${{ pkg.usd }}</div>
+                                    <div class="small text-muted">{{ pkg.diamonds }} {{ _('ماس') }}</div>
+                                </button>
+                            </form>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
                 </div>
             </div>
         </div>
     </div>
 </div>
 
+<script>
+(function () {
+    var username = {{ current_user.username|tojson }};
+    var cta = document.getElementById('whatsapp-diamond-cta');
+    var amountField = document.getElementById('amount_usd_field');
+    if (!cta || !amountField) return;
+
+    function buildWaUrl() {
+        var amt = parseInt(amountField.value, 10);
+        var lines = [
+            'مرحباً، أريد شراء ماس في لعبة عصابات فلسطين.',
+            'اسم المستخدم: ' + username
+        ];
+        if (!isNaN(amt) && amt > 0) {
+            lines.push('المبلغ المطلوب: ' + amt + '$');
+        }
+        lines.push('سأرسل إثبات التحويل بعد الدفع.');
+        return 'https://wa.me/970598953362?text=' + encodeURIComponent(lines.join('\n'));
+    }
+
+    function syncWa() {
+        cta.href = buildWaUrl();
+    }
+    amountField.addEventListener('change', syncWa);
+    syncWa();
+})();
+</script>
 {% endblock %}

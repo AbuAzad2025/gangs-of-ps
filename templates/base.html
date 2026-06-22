@@ -102,27 +102,29 @@
 
     <title>{% block title %}{{ seo.title }}{% endblock %}</title>
     <link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}" type="image/x-icon">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <!-- Custom CSS for Mobile App Feel -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/custom.css') }}?v=3.3">
     <link rel="manifest" href="{{ url_for('static', filename='manifest.json') }}">
     <meta name="theme-color" content="#1a1a1a">
 
-    <!-- Google Font: Source Sans Pro -->
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,400i,700&display=fallback">
+    {% if get_locale() == 'ar' %}
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800&family=Reem+Kufi:wght@400;500;600;700&family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
+    {% else %}
+    <!-- Google Font: Source Sans Pro (Latin UI) -->
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,400i,700&display=swap">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&family=Reem+Kufi:wght@400;600;700&display=swap" rel="stylesheet">
+    {% endif %}
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <!-- Theme style -->
     <link rel="stylesheet" href="{{ url_for('static', filename='adminlte/css/adminlte.min.css') }}">
     {% if get_locale() == 'ar' %}
-    <!-- RTL Support -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/rtl.css') }}">
     {% endif %}
-    <!-- Flag Icons (CDN) -->
+    <!-- Flag Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/flag-icon-css/3.5.0/css/flag-icon.min.css">
-    <!-- Cairo Font -->
-    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap" rel="stylesheet">
-    <!-- Reem Kufi Font -->
-    <link href="https://fonts.googleapis.com/css2?family=Reem+Kufi:wght@400;500;600;700&display=swap" rel="stylesheet">
     <!-- SweetAlert2 -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@sweetalert2/theme-dark@5/dark.min.css">
     
@@ -165,14 +167,15 @@
     </script>
 
     <!-- Custom Luxury CSS -->
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/palestine_luxury.css') }}?v=3.1">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/game-animations.css') }}?v=1.0">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/palestine_luxury.css') }}?v=3.2">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/typography-visual.css') }}?v=1.1">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/game-animations.css') }}?v=1.1">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/economy-academy.css') }}?v=1.0">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/phase3.css') }}?v=1.0">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/chat-hub.css') }}?v=1.0">
     {% block extra_css %}{% endblock %}
 </head>
-<body class="hold-transition sidebar-mini layout-fixed theme-palestine {{ body_extra_class|default('') }}"{% if current_user.is_authenticated %} data-user-id="{{ current_user.id }}" data-max-energy="{{ current_user.max_energy }}" data-energy-title="{{ _('الطاقة ممتلئة!')|e }}" data-energy-body="{{ _('ارجع للجرائم واستغل طاقتك.')|e }}"{% endif %}>
+<body class="hold-transition sidebar-mini layout-fixed theme-palestine {{ body_extra_class|default('') }}" data-gop-img-fallback="{{ url_for('static', filename='images/placeholders/scene.svg') }}" data-gop-scene-fallback="{{ url_for('static', filename='images/crimes/wallet.jpg') }}"{% if current_user.is_authenticated %} data-user-id="{{ current_user.id }}" data-max-energy="{{ current_user.max_energy }}" data-energy-title="{{ _('الطاقة ممتلئة!')|e }}" data-energy-body="{{ _('ارجع للجرائم واستغل طاقتك.')|e }}"{% endif %}>
 {% set gop_flashes = get_flashed_messages(with_categories=true) %}
 <div class="bg-keffiyeh-overlay"></div>
 <div class="wrapper">
@@ -524,7 +527,7 @@
           <li class="nav-item">
             <a href="{{ url_for('market.index') }}" class="nav-link">
               <i class="nav-icon fas fa-chart-line text-info"></i>
-              <p>{{ _('بورصة الغسيل') }}</p>
+              <p>{{ _('بورصة الحارة') }}</p>
             </a>
           </li>
           <li class="nav-item">
@@ -975,7 +978,28 @@
     }
 
     {% if current_user.is_authenticated %}
-        setInterval(updateStats, 5000);
+        (function() {
+            let statsTimer = null;
+            const statsMs = document.body.classList.contains('chatna-body') ? 20000 : 12000;
+            function tickStats() {
+                if (document.hidden) return;
+                updateStats();
+            }
+            function startStats() {
+                if (statsTimer) clearInterval(statsTimer);
+                if (document.hidden) return;
+                statsTimer = setInterval(tickStats, statsMs);
+            }
+            document.addEventListener('visibilitychange', function() {
+                if (document.hidden) {
+                    if (statsTimer) { clearInterval(statsTimer); statsTimer = null; }
+                } else {
+                    tickStats();
+                    startStats();
+                }
+            });
+            startStats();
+        })();
     {% endif %}
 
     // Clock
@@ -1185,6 +1209,7 @@
 <script src="{{ url_for('static', filename='js/youtube_widget.js') }}?v=4.0"></script>
 <script id="game-flash-meta" type="application/json">{{ gop_flashes|tojson }}</script>
 <script src="{{ url_for('static', filename='js/game-fx.js') }}?v=1.0"></script>
+<script src="{{ url_for('static', filename='js/gop-visual.js') }}?v=1.0"></script>
 <script src="{{ url_for('static', filename='js/economy-academy.js') }}?v=1.0"></script>
 <script src="{{ url_for('static', filename='js/pwa-notifications.js') }}?v=1.0"></script>
 {% if greeter_hostess %}

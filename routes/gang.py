@@ -17,6 +17,27 @@ from services.resource_service import ResourceService
 bp = Blueprint('gang', __name__, url_prefix='/gang')
 
 
+def _load_gang_upgrades(gang):
+    """Load upgrade definitions and current levels for a gang."""
+    import json
+
+    upgrades_data = []
+    try:
+        from utils.essentials import load_json_seed
+        upgrades_data = load_json_seed('gang_upgrades.json')
+    except Exception as e:
+        current_app.logger.error(f"Error loading gang upgrades: {e}")
+
+    current_upgrades = {}
+    if getattr(gang, 'upgrades', None):
+        try:
+            current_upgrades = json.loads(gang.upgrades)
+        except BaseException:
+            current_upgrades = {}
+
+    return upgrades_data, current_upgrades
+
+
 @bp.route('/')
 def index():
     from extensions import seo_manager
@@ -502,21 +523,7 @@ def dashboard():
         GangWar.status == 'active'
     ).all()
 
-    # Load Upgrades Data
-    import json
-    upgrades_data = []
-    try:
-        from utils.essentials import load_json_seed
-        upgrades_data = load_json_seed('gang_upgrades.json')
-    except Exception as e:
-        current_app.logger.error(f"Error loading gang upgrades: {e}")
-
-    current_upgrades = {}
-    if getattr(gang, 'upgrades', None):
-        try:
-            current_upgrades = json.loads(gang.upgrades)
-        except BaseException:
-            current_upgrades = {}
+    upgrades_data, current_upgrades = _load_gang_upgrades(gang)
 
     gang_items = GangItem.query.filter_by(gang_id=gang.id).all()
     user_items = UserItem.query.filter_by(
@@ -537,6 +544,30 @@ def dashboard():
         current_upgrades=current_upgrades,
         gang_items=gang_items,
         user_items=user_items)
+
+
+@bp.route('/upgrades')
+@login_required
+def upgrades():
+    if not current_user.gang_id:
+        flash(_('لست عضواً في أي عصابة!'), 'warning')
+        return redirect(url_for('gang.index'))
+
+    gang = db.session.get(Gang, current_user.gang_id)
+    if not gang:
+        flash(_('العصابة غير موجودة.'), 'warning')
+        return redirect(url_for('gang.index'))
+
+    upgrades_data, current_upgrades = _load_gang_upgrades(gang)
+    is_leader = (current_user.id == gang.leader_id)
+
+    return render_template(
+        'gang/upgrades.html',
+        title=_('ترقيات العصابة'),
+        gang=gang,
+        upgrades_data=upgrades_data,
+        current_upgrades=current_upgrades,
+        is_leader=is_leader)
 
 
 @bp.route('/buy_upgrade/<upgrade_id>', methods=['POST'])

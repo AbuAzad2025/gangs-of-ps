@@ -14,12 +14,18 @@
             {{ _('استخدم مهارتك لربح المال والألماس من اللاعبين الآخرين. الفائز يحصل على كل شيء!') }}
         </p>
         <p class="mb-0 text-white small">
-            <i class="fas fa-gem text-info"></i> {{ _('تنويه: يمكنك شراء الألماس عبر التواصل معنا على الواتساب، كما يمكنك استبدال أرباحك من الألماس بنقود حقيقية!') }}
-            <a href="https://wa.me/970598953362" target="_blank" class="btn btn-sm btn-success ml-2 rounded-pill">
-                <i class="fab fa-whatsapp"></i> {{ _('تواصل لشراء الألماس') }}
+            <i class="fas fa-coins text-warning mr-1"></i>
+            {{ _('الرهانات بكاش أو ماس داخل اللعبة فقط — لا دفع حقيقي في الألعاب.') }}
+            <i class="fas fa-gem text-info ml-2"></i>
+            {{ _('شراء الماس بالمال الحقيقي عبر واتساب المطور فقط.') }}
+            <a href="{{ url_for('main.buy_diamonds') }}" class="btn btn-sm btn-success ml-2 rounded-pill">
+                <i class="fab fa-whatsapp"></i> {{ _('شراء الماس') }}
             </a>
         </p>
     </div>
+
+    {% set variant = 'entertainment' %}
+    {% include 'includes/economy_policy_banner.html' %}
 
     <!-- Create Room Section -->
     <div class="card bg-dark text-white border-primary mb-5 shadow-lg">
@@ -179,10 +185,17 @@
     </div>
 
     <hr class="border-secondary my-5">
-    
-    <!-- Quick Solo Access (Optional, kept for convenience but smaller) -->
-    <div class="text-center opacity-50">
-        <small class="text-muted">{{ _('يمكنك أيضاً بدء لعبة فردية سريعة من الخيارات أعلاه') }}</small>
+
+    <!-- Quick solo (uses room system + online templates) -->
+    <div class="text-center mb-4">
+        <h5 class="text-muted mb-3"><i class="fas fa-robot"></i> {{ _('لعب فردي سريع') }}</h5>
+        <a href="{{ url_for('entertainment.chess_solo') }}" class="btn btn-outline-primary mx-2 mb-2">
+            <i class="fas fa-chess"></i> {{ _('شطرنج ضد الكمبيوتر') }}
+        </a>
+        <a href="{{ url_for('entertainment.trix') }}" class="btn btn-outline-warning mx-2 mb-2">
+            <i class="fas fa-crown"></i> {{ _('تريكس ضد البوتات') }}
+        </a>
+        <p class="text-muted small mt-2 mb-0">{{ _('أو اختر «فردي» من نموذج إنشاء الغرفة أعلاه مع رهان اختياري.') }}</p>
     </div>
 </div>
 {% endblock %}

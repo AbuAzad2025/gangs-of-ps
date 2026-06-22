@@ -18,16 +18,19 @@
     <div class="col-12 text-end">
         <div class="btn-group">
             <form action="{{ url_for('forum.lock_topic', id=topic.id) }}" method="post" class="d-inline">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
                 <button type="submit" class="btn btn-sm btn-{{ 'warning' if topic.is_locked else 'secondary' }}">
                     <i class="fas fa-{{ 'lock' if topic.is_locked else 'lock-open' }}"></i> {{ _('إغلاق') if not topic.is_locked else _('فتح') }}
                 </button>
             </form>
             <form action="{{ url_for('forum.pin_topic', id=topic.id) }}" method="post" class="d-inline ml-1">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
                 <button type="submit" class="btn btn-sm btn-{{ 'info' if topic.is_pinned else 'secondary' }}">
                     <i class="fas fa-thumbtack"></i> {{ _('تثبيت') if not topic.is_pinned else _('إلغاء التثبيت') }}
                 </button>
             </form>
             <form action="{{ url_for('forum.delete_topic', id=topic.id) }}" method="post" class="d-inline ml-1" onsubmit="return confirm('{{ _('هل أنت متأكد من حذف الموضوع؟') }}');">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
                 <button type="submit" class="btn btn-sm btn-danger">
                     <i class="fas fa-trash"></i> {{ _('حذف') }}
                 </button>
@@ -46,6 +49,7 @@
         <div>
         {% if current_user.id == post.user_id or current_user.is_admin or current_user.is_moderator %}
         <form action="{{ url_for('forum.delete_post', id=post.id) }}" method="post" class="d-inline ml-2" onsubmit="return confirm('{{ _('حذف الرد؟') }}');">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
             <button type="submit" class="btn btn-sm btn-outline-danger py-0 px-1">
                 <i class="fas fa-trash small"></i>
             </button>

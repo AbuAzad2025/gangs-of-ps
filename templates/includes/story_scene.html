@@ -18,10 +18,10 @@
     <div class="story-hero">
       {% if story.avatar_url %}
         <div class="d-flex align-items-center justify-content-center h-100" style="background: rgba(0,0,0,0.5);">
-          <img src="{{ story.avatar_url }}" alt="{{ story_title }}" class="story-combat-avatar">
+          <img src="{{ story.avatar_url }}" alt="{{ story_title }}" class="story-combat-avatar gop-visual" loading="lazy" decoding="async">
         </div>
       {% else %}
-        <img src="{{ hero_src }}" alt="{{ story_title }}" onerror="this.onerror=null; this.src='{{ url_for('static', filename='images/crimes/wallet.jpg') }}';">
+        <img src="{{ hero_src }}" alt="{{ story_title }}" class="gop-visual" loading="lazy" decoding="async" onerror="this.onerror=null; this.src='{{ url_for('static', filename='images/crimes/wallet.jpg') }}';">
       {% endif %}
       <div class="story-overlay {{ anim }}">
         {% if anim == 'smoke' %}

@@ -41,7 +41,17 @@
             </div>
         </div>
         
-        <div class="row no-gutters mt-3">
+        <div class="row no-gutters mt-2">
+            <div class="col-12 mb-2">
+                <form action="{{ url_for('market.buy', asset_id=asset.id) }}" method="POST" class="d-flex" style="gap:4px;">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                    <input type="number" name="amount" class="form-control form-control-sm bg-dark text-light border-secondary" min="{{ min_spot_trade|default(10) }}" placeholder="{{ _('مبلغ $') }}" required style="max-width:90px;">
+                    <button type="submit" class="btn btn-buy btn-sm flex-fill font-weight-bold">{{ _('شراء سريع') }}</button>
+                </form>
+                <div class="text-muted x-small mt-1 text-center">{{ _('من كاش/بنك اللعبة') }}</div>
+            </div>
+        </div>
+        <div class="row no-gutters mt-1">
             <div class="col-6 pr-1">
                 <a href="{{ url_for('market.trade', asset_id=asset.id, tab='spot') }}" class="btn btn-buy btn-block font-weight-bold shadow-sm market-nav-btn">
                     {{ _('Spot') }}

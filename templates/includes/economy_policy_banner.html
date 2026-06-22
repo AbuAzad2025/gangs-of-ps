@@ -1,0 +1,18 @@
+{# variant: market | entertainment | diamonds | general #}
+{% set variant = variant|default('general') %}
+<div class="alert alert-dark border-secondary mb-3 py-2 px-3 small economy-policy-banner">
+    <i class="fas fa-coins text-warning mr-1"></i>
+    {% if variant == 'diamonds' %}
+        <strong>{{ _('الماس فقط') }}</strong> —
+        {{ _('شراء الماس بالمال الحقيقي عبر واتساب المطور. باقي اللعبة (تداول، رهانات، جرائم) بكاش/بنك/ماس داخل اللعبة.') }}
+    {% elif variant == 'market' %}
+        <strong>{{ _('تداول اللعبة') }}</strong> —
+        {{ _('البورصة والسيناريوهات تُدفع من كاش وبنك اللعبة فقط — لا دفع حقيقي.') }}
+        <a href="{{ url_for('main.buy_diamonds') }}" class="text-info ml-1">{{ _('شراء ماس؟') }}</a>
+    {% elif variant == 'entertainment' %}
+        <strong>{{ _('رهانات اللعبة') }}</strong> —
+        {{ _('الرهانات بكاش أو ماس داخل اللعبة فقط. المال الحقيقي لشراء الماس عبر واتساب المطور.') }}
+    {% else %}
+        {{ _('اللعب والتداول بمال اللعبة. شراء الماس بالدفع الحقيقي عبر واتساب المطور فقط.') }}
+    {% endif %}
+</div>

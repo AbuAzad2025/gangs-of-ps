@@ -6,14 +6,14 @@
         <div class="col-md-10">
             <div class="story-card mb-4">
                 <div class="story-hero">
-                    <img src="{{ url_for('static', filename='images/locations/bank.jpg') }}" alt="{{ _('بنك فلسطين الدولي') }}" onerror="this.onerror=null; this.src='{{ url_for('static', filename='images/crimes/wallet.jpg') }}';">
+                    <img src="{{ url_for('static', filename='images/locations/bank.jpg') }}" alt="{{ _('بنك فلسطين الدولي') }}" class="gop-visual" loading="lazy" decoding="async" data-gop-fallback="{{ url_for('static', filename='images/placeholders/scene.svg') }}" onerror="this.onerror=null; this.src='{{ url_for('static', filename='images/crimes/wallet.jpg') }}';">
                     <div class="story-overlay bank"></div>
                 </div>
                 <div class="story-body text-center py-4">
                     <h1 class="story-title display-4 mb-2">
                         <i class="fas fa-university mr-3"></i>{{ _('بنك فلسطين الدولي') }}
                     </h1>
-                    <p class="lead text-muted mb-0">{{ _('المكان الأكثر أماناً لأموالك.. ربما.') }}</p>
+                    <p class="lead gop-page-sub mb-0">{{ _('المكان الأكثر أماناً لأموالك.. ربما.') }}</p>
                 </div>
             </div>
         </div>
@@ -23,7 +23,7 @@
         <div class="col-md-6 mb-4">
             <div class="balance-box card-lift">
                 <div class="balance-title">{{ _('الكاش في جيبك') }}</div>
-                <div class="balance-amount bank-balance-pulse"><span data-count-to="{{ user.money|int }}" data-count-prefix="$">0</span></div>
+                <div class="balance-amount bank-balance-pulse gop-stat-num"><span data-count-to="{{ user.money|int }}" data-count-prefix="$">0</span></div>
                 
                 <form method="POST" action="{{ url_for('bank.deposit') }}" class="transaction-form w-100" data-game-action="deposit">
                     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
@@ -43,7 +43,7 @@
         <div class="col-md-6 mb-4">
             <div class="balance-box gold-border card-lift">
                 <div class="balance-title text-gold">{{ _('رصيد البنك') }}</div>
-                <div class="balance-amount gold bank-balance-pulse"><span data-count-to="{{ user.bank_balance|int }}" data-count-prefix="$">0</span></div>
+                <div class="balance-amount gold bank-balance-pulse gop-stat-num"><span data-count-to="{{ user.bank_balance|int }}" data-count-prefix="$">0</span></div>
                 
                 <form method="POST" action="{{ url_for('bank.withdraw') }}" class="transaction-form w-100" data-game-action="withdraw">
                     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>

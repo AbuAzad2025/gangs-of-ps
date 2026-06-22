@@ -271,7 +271,7 @@ body.gop-page-enter .content-wrapper {
 .story-title {
     color: var(--gold-primary, #ffd700);
     font-weight: 800;
-    font-family: 'Cairo', sans-serif;
+    font-family: var(--gop-font-display, 'Reem Kufi', 'Cairo', sans-serif);
     text-shadow: 0 2px 8px rgba(0, 0, 0, 0.6);
 }
 

@@ -13,11 +13,11 @@
                     <h1>{{ _('أهلاً بك في منطقتك،') }} {{ user.username }}</h1>
                     <p>{{ _('الشارع ملكك، والقرار بيدك. أثبت وجودك اليوم.') }}</p>
                 </div>
-                <div class="mt-4 d-flex align-items-center">
-                    <span class="badge badge-pill px-4 py-2 mr-3" style="background: var(--gold-primary); color: #000; font-weight: bold; font-size: 1rem;">
-                        {{ _('المستوى') }} {{ user.level }}
+                <div class="mt-4 d-flex align-items-center flex-wrap">
+                    <span class="badge badge-pill px-4 py-2 mr-3 hara-badge-level-chip">
+                        {{ _('المستوى') }} <span class="gop-stat-num">{{ user.level }}</span>
                     </span>
-                    <span class="badge badge-pill px-4 py-2 border border-warning text-warning" style="background: rgba(0,0,0,0.5); font-size: 1rem;">
+                    <span class="badge badge-pill px-4 py-2 hara-badge-rank-chip">
                         {{ _(user.rank_title) }}
                     </span>
                 </div>
@@ -57,7 +57,7 @@
         <div class="stat-card-luxury">
             <div class="stat-content flex-grow-1">
                 <span>{{ _('الكاش') }}</span>
-                <h3>{{ "{:,}".format(user.money) }} $</h3>
+                <h3 class="gop-stat-num">{{ "{:,}".format(user.money) }} $</h3>
             </div>
             <div class="stat-icon-wrapper stat-icon-green">
                 <i class="fas fa-money-bill-wave"></i>
@@ -68,7 +68,7 @@
         <div class="stat-card-luxury">
             <div class="stat-content flex-grow-1">
                 <span>{{ _('الماس') }}</span>
-                <h3>{{ "{:,}".format(user.diamonds) }}</h3>
+                <h3 class="gop-stat-num">{{ "{:,}".format(user.diamonds) }}</h3>
             </div>
             <div class="stat-icon-wrapper stat-icon-blue">
                 <i class="fas fa-gem"></i>
@@ -79,7 +79,7 @@
         <div class="stat-card-luxury">
             <div class="stat-content flex-grow-1">
                 <span>{{ _('الخطر') }}</span>
-                <h3 class="{{ 'text-danger blink' if user.heat_points > 80 else '' }}">{{ user.heat_points }}%</h3>
+                <h3 class="gop-stat-num {{ 'text-danger blink' if user.heat_points > 80 else '' }}">{{ user.heat_points }}%</h3>
             </div>
             <div class="stat-icon-wrapper stat-icon-red">
                 <i class="fas fa-taxi"></i>
@@ -87,18 +87,23 @@
         </div>
 
         <!-- Daily Reward -->
-        <div class="stat-card-luxury" onclick="window.location.href='{{ url_for('main.daily_reward') }}'" style="cursor: pointer;">
-            <div class="stat-content flex-grow-1">
-                <span>{{ _('الهدية اليومية') }}</span>
-                {% if daily_reward_meta and daily_reward_meta.can_claim %}
-                    <h3 class="text-warning">{{ _('جاهزة!') }}</h3>
-                {% else %}
-                    <h3 class="text-muted">{{ _('لاحقاً') }}</h3>
-                {% endif %}
-            </div>
-            <div class="stat-icon-wrapper stat-icon-gold">
-                <i class="fas fa-gift"></i>
-            </div>
+        <div class="stat-card-luxury">
+            <form method="POST" action="{{ url_for('main.daily_reward') }}" class="d-flex align-items-center w-100 m-0">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                <button type="submit" class="d-flex align-items-center w-100 border-0 bg-transparent p-0 text-start" style="cursor: pointer; color: inherit;" {% if not daily_reward_meta or not daily_reward_meta.can_claim %}disabled{% endif %}>
+                    <div class="stat-content flex-grow-1">
+                        <span>{{ _('الهدية اليومية') }}</span>
+                        {% if daily_reward_meta and daily_reward_meta.can_claim %}
+                            <h3 class="text-warning">{{ _('جاهزة!') }}</h3>
+                        {% else %}
+                            <h3 class="text-muted">{{ _('لاحقاً') }}</h3>
+                        {% endif %}
+                    </div>
+                    <div class="stat-icon-wrapper stat-icon-gold">
+                        <i class="fas fa-gift"></i>
+                    </div>
+                </button>
+            </form>
         </div>
     </div>
 

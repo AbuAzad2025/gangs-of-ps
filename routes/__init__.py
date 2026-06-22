@@ -55,10 +55,24 @@ def register_main_routes():
 @bp.before_app_request
 def before_request():
     if current_user.is_authenticated:
-        # Update Last Seen
+        # Throttle last_seen DB writes (every ~90s) — cuts load on chat/market polls
         try:
-            current_user.last_seen = datetime.now(timezone.utc)
-            db.session.commit()
+            from flask import session
+            now = datetime.now(timezone.utc)
+            touch = True
+            prev_raw = session.get('last_seen_touch')
+            if prev_raw:
+                try:
+                    prev = datetime.fromisoformat(prev_raw)
+                    if prev.tzinfo is None:
+                        prev = prev.replace(tzinfo=timezone.utc)
+                    touch = (now - prev).total_seconds() >= 90
+                except Exception:
+                    touch = True
+            if touch:
+                current_user.last_seen = now
+                session['last_seen_touch'] = now.isoformat()
+                db.session.commit()
         except Exception:
             db.session.rollback()
 

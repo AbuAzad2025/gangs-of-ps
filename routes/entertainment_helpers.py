@@ -3,10 +3,15 @@ from models.user import User
 from flask import current_app
 from models.system import SystemConfig
 from services.resource_service import ResourceService
+from sqlalchemy.orm.attributes import flag_modified
 
 
 def _distribute_prizes(room):
     if room.pot_amount <= 0 or room.status != 'finished':
+        return
+
+    state = room.game_state or {}
+    if state.get('prizes_distributed'):
         return
 
     try:
@@ -166,6 +171,10 @@ def _distribute_prizes(room):
         # 5. Commit
         if success:
             room.pot_amount = 0
+            state = dict(room.game_state or {})
+            state['prizes_distributed'] = True
+            room.game_state = state
+            flag_modified(room, 'game_state')
             db.session.commit()
         else:
             db.session.rollback()

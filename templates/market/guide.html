@@ -2,73 +2,49 @@
 
 {% block content %}
 <div class="row justify-content-center">
-    <div class="col-md-8">
-        <div class="market-card shadow-lg">
+    <div class="col-lg-10">
+        <div class="market-card shadow-lg mb-4">
             <div class="market-card-header">
-                <h3 class="mb-0 text-neon-gold"><i class="fas fa-graduation-cap mr-2"></i> {{ _('أكاديمية غسيل الأموال') }}</h3>
+                <h3 class="mb-0 text-neon-gold"><i class="fas fa-graduation-cap mr-2"></i> {{ _('أكاديمية السوق — تعلّم اقتصاداً حقيقياً') }}</h3>
             </div>
             <div class="market-card-body">
-                <div class="alert bg-dark border-secondary text-light mb-4">
-                    <h5 class="text-gold"><i class="fas fa-info-circle mr-2"></i> {{ _('مرحباً بك في عالم المال!') }}</h5>
-                    <p class="mb-0 text-muted">{{ _('هنا تتعلم كيف تحول الكاش الوسخ لفلوس نظيفة وتستثمرها.') }}</p>
+                <div class="alert bg-dark border-warning text-light mb-4">
+                    <h5 class="text-gold mb-2"><i class="fas fa-lightbulb mr-2"></i> {{ _('لماذا هذا القسم؟') }}</h5>
+                    <p class="mb-0 text-muted">
+                        {{ _('كل الصفقات تُدفع من كاشك وبنكك داخل اللعبة — أموال الجرائم والبنك — وليس من بطاقة أو دولار حقيقي.') }}
+                    </p>
                 </div>
 
-                <div class="accordion" id="accordionExample">
-                    <div class="card market-card border-secondary mb-2">
-                        <div class="card-header bg-dark border-bottom border-secondary p-0" id="headingOne">
-                            <h2 class="mb-0">
-                                <button class="btn btn-link btn-block text-left text-white font-weight-bold collapsed py-3" type="button" data-toggle="collapse" data-target="#collapseOne">
-                                    <span class="text-gold mr-2">1.</span> {{ _('أساسيات التداول') }}
-                                </button>
-                            </h2>
-                        </div>
-                        <div id="collapseOne" class="collapse" data-parent="#accordionExample">
-                            <div class="card-body bg-dark text-muted">
-                                <p>{{ _('التداول هو شراء وبيع الأصول مثل الأسهم والعملات الرقمية.') }}</p>
-                                <ul class="list-unstyled">
-                                    <li class="mb-2"><strong class="text-up">{{ _('شراء (Long):') }}</strong> {{ _('عندما تتوقع ارتفاع السعر.') }}</li>
-                                    <li><strong class="text-down">{{ _('بيع (Short):') }}</strong> {{ _('لجني الأرباح أو وقف الخسارة.') }}</li>
-                                </ul>
-                            </div>
+                <div class="row">
+                    {% for c in concepts %}
+                    <div class="col-md-6 mb-3">
+                        <div class="p-3 rounded h-100 bg-dark border border-secondary">
+                            <h6 class="text-gold"><i class="fas {{ c.icon }} mr-2"></i>{{ c.title }}</h6>
+                            <p class="text-muted small mb-0">{{ c.body }}</p>
                         </div>
                     </div>
-
-                    <div class="card market-card border-secondary mb-2">
-                        <div class="card-header bg-dark border-bottom border-secondary p-0" id="headingTwo">
-                            <h2 class="mb-0">
-                                <button class="btn btn-link btn-block text-left text-white font-weight-bold collapsed py-3" type="button" data-toggle="collapse" data-target="#collapseTwo">
-                                    <span class="text-gold mr-2">2.</span> {{ _('أنواع الأصول') }}
-                                </button>
-                            </h2>
-                        </div>
-                        <div id="collapseTwo" class="collapse" data-parent="#accordionExample">
-                            <div class="card-body bg-dark text-muted">
-                                <ul class="list-unstyled">
-                                    <li class="mb-2"><strong class="text-white">Crypto:</strong> {{ _('عملات رقمية عالية المخاطرة والربح.') }}</li>
-                                    <li><strong class="text-white">Stocks:</strong> {{ _('أسهم شركات عالمية، أكثر استقراراً.') }}</li>
-                                </ul>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="card market-card border-secondary mb-2">
-                        <div class="card-header bg-dark border-bottom border-secondary p-0" id="headingThree">
-                            <h2 class="mb-0">
-                                <button class="btn btn-link btn-block text-left text-white font-weight-bold collapsed py-3" type="button" data-toggle="collapse" data-target="#collapseThree">
-                                    <span class="text-gold mr-2">3.</span> {{ _('غسيل الأموال') }}
-                                </button>
-                            </h2>
-                        </div>
-                        <div id="collapseThree" class="collapse" data-parent="#accordionExample">
-                            <div class="card-body bg-dark text-muted">
-                                <p class="mb-0">{{ _('عندما تشتري أصولاً بالكاش المتوفر لديك، يتم "تبييض" هذه الأموال. عند البيع، تعود لك كأرباح شرعية (نظرياً).') }}</p>
-                            </div>
-                        </div>
-                    </div>
+                    {% endfor %}
                 </div>
 
-                <div class="mt-4 text-center">
-                    <a href="{{ url_for('market.index') }}" class="btn btn-buy px-5 py-2 shadow-lg">{{ _('ابدأ التداول الآن') }}</a>
+                <hr class="border-secondary my-4">
+
+                <h5 class="text-white mb-3">{{ _('خطة تعلم عملية (30 دقيقة)') }}</h5>
+                <ol class="text-muted">
+                    <li class="mb-2">{{ _('اقرأ بطاقة «حجم الصفقة» — حدّد مبلغاً لا يتجاوز 15%% من كاشك.') }}</li>
+                    <li class="mb-2">{{ _('اشترِ سهماً من فئة Stocks بمبلغ صغير، ولاحظ متوسط التكلفة في محفظتك.') }}</li>
+                    <li class="mb-2">{{ _('اشترِ عملة رقمية Crypto بمبلغ أصغر — قارن سرعة تغيّر السعر.') }}</li>
+                    <li class="mb-2">{{ _('لا تبع بذعر عند أول هبوط؛ راجع هل الخسارة «على الورق» فقط أم بعد البيع.') }}</li>
+                    <li class="mb-2">{{ _('بعد أسبوع لعب: جرّب أمر Limit بسعر أقل من السوق الحالي (مثل انتظار تخفيض).') }}</li>
+                </ol>
+
+                <div class="alert alert-secondary border-0">
+                    <strong class="text-warning">{{ _('تنبيه:') }}</strong>
+                    {{ _('البيع (Short) الحقيقي يعني اقتراض الأصل وبيعه ثم إعادة شرائه لاحقاً. في اللعبة، البيع العادي يعني تصفية ما تملكه فقط — والفيوتشر للمتقدمين بعد فهم الرافعة.') }}
+                </div>
+
+                <div class="text-center mt-4">
+                    <a href="{{ url_for('market.index') }}" class="btn btn-buy px-5 py-2 shadow-lg mr-2">{{ _('ابدأ التداول') }}</a>
+                    <a href="{{ url_for('economy.academy') }}" class="btn btn-outline-light px-4 py-2">{{ _('مدرسة الحارة') }}</a>
                 </div>
             </div>
         </div>

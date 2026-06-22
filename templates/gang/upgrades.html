@@ -19,8 +19,8 @@
                     <h3 class="text-success">{{ "{:,}".format(gang.money) }} ₪</h3>
                 </div>
                 <div class="col-md-6">
-                    <h5>{{ _('نقاط الاحترام') }}</h5>
-                    <h3 class="text-primary">{{ "{:,}".format(gang.respect) }}</h3>
+                    <h5>{{ _('خبرة العصابة') }}</h5>
+                    <h3 class="text-primary gop-stat-num">{{ "{:,}".format(gang.exp) }}</h3>
                 </div>
             </div>
         </div>
@@ -64,15 +64,22 @@
                                     {{ _('التكلفة:') }} {{ "{:,}".format(next_level_data.cost) }} ₪
                                 </p>
                                 
-                                {% if gang.money >= next_level_data.cost %}
-                                    <form action="{{ url_for('gang.buy_upgrade', upgrade_id=upgrade.id, level=next_level_data.level) }}" method="POST">
-                                        <button type="submit" class="btn btn-success btn-block">
-                                            <i class="fas fa-arrow-up"></i> {{ _('ترقية الآن') }}
+                                {% if is_leader %}
+                                    {% if gang.money >= next_level_data.cost %}
+                                        <form action="{{ url_for('gang.buy_upgrade', upgrade_id=upgrade.id, level=next_level_data.level) }}" method="POST">
+                                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                                            <button type="submit" class="btn btn-success btn-block">
+                                                <i class="fas fa-arrow-up"></i> {{ _('ترقية الآن') }}
+                                            </button>
+                                        </form>
+                                    {% else %}
+                                        <button class="btn btn-secondary btn-block" disabled>
+                                            {{ _('لا يوجد مال كافي') }}
                                         </button>
-                                    </form>
+                                    {% endif %}
                                 {% else %}
                                     <button class="btn btn-secondary btn-block" disabled>
-                                        {{ _('لا يوجد مال كافي') }}
+                                        {{ _('للزعيم فقط') }}
                                     </button>
                                 {% endif %}
                             </div>
