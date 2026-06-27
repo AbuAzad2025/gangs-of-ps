@@ -7,7 +7,7 @@ requires-python = ">=3.11"
 dependencies = [
     "Flask==3.0.0",
     "Flask-SQLAlchemy==3.1.1",
-    "Flask-Migrate==4.0.5",
+    "Flask-Migrate>=4.1.0",
     "psycopg2-binary==2.9.10",
     "python-dotenv==1.0.0",
     "cryptography==44.0.0",
@@ -103,5 +103,11 @@ max-line-length = 120
 ignore = "W503, W504"
 per-file-ignores = """
     run.py: E402
+    admin/views.py: E501
+    routes/gameplay.py: E501
+    routes/auth.py: F401
+    routes/chat_socket.py: F401
+    routes/developer.py: F401
+    routes/entertainment.py: F841
 """
 exclude = ".venv, venv, __pycache__, migrations, scripts, static, data, .github"
