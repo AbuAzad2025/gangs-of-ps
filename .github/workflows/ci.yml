@@ -96,8 +96,10 @@ jobs:
           python-version: ${{ env.PYTHON_VERSION }}
           cache: pip
 
-      - name: Install production deps only
-        run: pip install -e "."
+      - name: Install production deps + pip-audit
+        run: |
+          pip install -e "."
+          pip install pip-audit>=2.7.0
 
       - name: pip-audit
         run: pip-audit --strict

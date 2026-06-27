@@ -43,11 +43,8 @@ jobs:
       - name: Debug app import
         run: |
           python -c "
-          import sys, traceback, os
+          import sys, traceback
           sys.path.insert(0, '.')
-          url = os.environ.get('DATABASE_URL', '')
-          print(f'DATABASE_URL={url[:60]}...')
-          print(f'PG_CONNECT_TIMEOUT={os.environ.get(\"PG_CONNECT_TIMEOUT\", \"not set\")}')
           try:
               from config import Config
               from factory import create_app
