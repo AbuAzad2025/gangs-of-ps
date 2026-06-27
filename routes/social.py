@@ -1,9 +1,9 @@
 from flask import render_template, redirect, url_for, flash, abort, request, current_app, jsonify, session
 from flask_login import login_required, current_user
-from extensions import db, limiter, cache, csrf
+from extensions import db, limiter, cache
 from sqlalchemy import or_, func
 from sqlalchemy.exc import ProgrammingError, OperationalError
-from models import Gang, Message, User, Notification, CombatLog, Hostess, Location, LocationControl
+from models import Gang, Message, User, Notification, CombatLog, Location, LocationControl
 from models.social import PublicChat, PrivateChat, Friendship
 from models.user import UserRole
 from models.system import SystemConfig, SecurityLog
@@ -19,14 +19,12 @@ import secrets
 from services.budget_service import BudgetService
 from services.revenue_service import RevenueService
 from services.resource_service import ResourceService
-from services.ai_hostess_service import AIHostessService
 from services.vip_service import (
     expire_vip_if_needed,
     grant_vip,
     user_has_active_vip,
 )
 from services.chat_security import (
-    PUBLIC_CHAT_ROOMS,
     normalize_room,
     moderator_can_act,
     validate_message_attachments,
@@ -1656,7 +1654,6 @@ def chat_room(room_name):
             chat_user_id = 0
 
     monthly_cost, lifetime_cost, legacy_cost = _vip_plan_costs()
-    vip_upgrade_cost_diamonds = legacy_cost
 
     if room_name == 'vip' and current_user.is_authenticated and not _user_is_vip(current_user):
         try:

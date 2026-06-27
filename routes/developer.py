@@ -7,7 +7,7 @@ from flask_babel import _
 from sqlalchemy import or_
 from . import bp
 from utils.decorators import developer_required, double_verification_required
-from models.user import User, UserRank, UserRole
+from models.user import User, UserRole
 from models.social import Gang, Message, GangWar, GangAlliance
 from models.gameplay import Crime, DailyTask, HeistHistory, CrimeLobby, OrganizedCrime, ResurrectionRequest
 from models.knowledge import HostessKnowledge

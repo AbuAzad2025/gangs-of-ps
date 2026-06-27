@@ -630,7 +630,7 @@ def hara():
     if current_user.level < 5 and not session.get('hara_guidance_shown'):
         session['hara_guidance_shown'] = True
         flash(_('مرحباً بك في عصابات فلسطين! لتطوير شخصيتك بسرعة، ابدأ بتنفيذ الجرائم البسيطة مثل "نشل محفظة" من عالم الجريمة.'), 'info')
-    
+
     return render_template(
         'hara.html',
         user=current_user,
@@ -726,7 +726,6 @@ def empire():
 def season():
     from services.season_service import (
         ensure_season_active,
-        get_current_season,
         get_season_leaderboard,
         get_user_season_rank,
     )

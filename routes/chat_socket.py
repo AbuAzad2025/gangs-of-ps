@@ -4,7 +4,7 @@ from __future__ import annotations
 from flask_login import current_user
 
 from extensions import socketio
-from services.chat_security import PUBLIC_CHAT_ROOMS, normalize_room
+from services.chat_security import normalize_room
 from services.chat_realtime import dm_user_room, gang_chat_room
 from services.vip_service import user_has_active_vip
 

@@ -898,7 +898,6 @@ def start_room(room_id):
         room_id=room.id, user_id=current_user.id).first()
     if not player or player.seat_index != 0:
         return jsonify({'error': 'Not authorized'}), 403
-    missing_bots = 0
     if room.status != 'playing':
         room.status = 'playing'
         state = room.game_state or {}
@@ -914,8 +913,6 @@ def start_room(room_id):
                     i for i in range(4) if i not in existing_seats]
                 state['bot_seats'] = missing_seats
                 state['is_solo'] = True  # Enable bot driver
-                missing_bots = len(missing_seats)
-
             TrixGameLogic.init_game(state)
             room.game_state = state
             flag_modified(room, 'game_state')
@@ -927,8 +924,6 @@ def start_room(room_id):
                     i for i in range(4) if i not in existing_seats]
                 state['bot_seats'] = missing_seats
                 state['is_solo'] = True  # Enable bot driver
-                missing_bots = len(missing_seats)
-
             TarneebGameLogic.init_game(state)
             TarneebGameLogic.deal(state)
             room.game_state = state

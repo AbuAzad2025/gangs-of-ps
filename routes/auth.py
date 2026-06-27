@@ -7,7 +7,6 @@ from flask_login import login_user, logout_user, current_user, login_required
 from flask_babel import _
 from extensions import db, login, limiter, csrf, seo_manager
 from models import User, Referral, Gang, CombatLog, SystemConfig, UserRole, Hostess, UserLog
-from services.ai_hostess_service import AIHostessService
 from forms.auth import LoginForm, RegistrationForm
 from . import bp
 from datetime import datetime, timezone, timedelta
@@ -307,7 +306,7 @@ def login():
             session.pop('first_time_user', None)  # Remove the flag
             flash(_('مرحباً بك في عصابات فلسطين! ابدأ رحلتك بتنفيذ أول جريمة لك: "نشل محفظة"'), 'info')
             return redirect(_get_safe_next_url() or url_for('main.crimes'))
-            
+
         return redirect(_get_safe_next_url() or url_for('main.hara'))
 
     return render_template(
