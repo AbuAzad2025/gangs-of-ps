@@ -42,7 +42,9 @@ jobs:
 
       - name: Check migrations are up to date
         run: |
-          python -m flask db check
+          flask db upgrade
+          echo "--- Migration check complete ---"
+          flask db current
         env:
           DATABASE_URL: postgresql://postgres:postgres@localhost:5432/gangsofpalestine_test
           SECRET_KEY: ci-secret

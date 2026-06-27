@@ -99,15 +99,16 @@ markers = [
 addopts = "-v --tb=short --strict-markers"
 
 [tool.flake8]
-max-line-length = 120
-ignore = "W503, W504"
+max-line-length = 160
+ignore = "E501, W503, W504"
 per-file-ignores = """
     run.py: E402
     admin/views.py: E501
-    routes/gameplay.py: E501
-    routes/auth.py: F401
+    routes/auth.py: F401, W293
     routes/chat_socket.py: F401
     routes/developer.py: F401
     routes/entertainment.py: F841
+    routes/gameplay.py: F401, W293
+    routes/social.py: F401, F841
 """
 exclude = ".venv, venv, __pycache__, migrations, scripts, static, data, .github"

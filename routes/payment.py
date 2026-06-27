@@ -1,3 +1,5 @@
+import uuid
+
 from flask import render_template, redirect, url_for, flash, request, current_app
 from flask_login import login_required, current_user
 from extensions import db, csrf
