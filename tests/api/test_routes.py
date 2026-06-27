@@ -43,7 +43,7 @@ class TestAuthenticatedRoutes:
         assert resp.status_code in (200, 302)
 
     def test_profile_page(self, logged_in_client):
-        resp = logged_in_client.get('/profile', follow_redirects=True)
+        resp = logged_in_client.get('/profile/1', follow_redirects=True)
         assert resp.status_code in (200, 302)
 
 

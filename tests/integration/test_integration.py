@@ -36,13 +36,13 @@ class TestDatabaseIntegration:
 
 class TestTemplateIntegration:
     def test_base_template_exists(self):
-        import os
-        path = os.path.join(os.path.dirname(__file__), '..', 'templates', 'base.html')
-        assert os.path.exists(path)
+        from pathlib import Path
+        path = Path(__file__).resolve().parents[2] / 'templates' / 'base.html'
+        assert path.exists()
 
     def test_key_templates_exist(self):
-        import os
-        base = os.path.join(os.path.dirname(__file__), '..', 'templates')
+        from pathlib import Path
+        base = Path(__file__).resolve().parents[2] / 'templates'
         required = ['login.html', 'register.html', 'hara.html', 'crimes.html', 'profile.html']
         for t in required:
-            assert os.path.exists(os.path.join(base, t)), f"Missing template: {t}"
+            assert (base / t).exists(), f"Missing template: {t}"
