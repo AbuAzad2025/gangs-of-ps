@@ -38,7 +38,7 @@ jobs:
 
       - name: Install deps
         run: |
-          pip install -r requirements-dev.txt
+          pip install -e ".[dev]"
 
       - name: Check migrations are up to date
         run: |
@@ -60,7 +60,7 @@ jobs:
 
       - name: Install deps
         run: |
-          pip install -r requirements-dev.txt
+          pip install -e ".[dev]"
 
       - name: Check templates
         run: |
