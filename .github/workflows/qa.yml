@@ -49,13 +49,6 @@ jobs:
           print(f'DATABASE_URL={url[:60]}...')
           print(f'PG_CONNECT_TIMEOUT={os.environ.get(\"PG_CONNECT_TIMEOUT\", \"not set\")}')
           try:
-              import psycopg2
-              conn = psycopg2.connect(url, connect_timeout=5)
-              print('psycopg2 direct connect: OK')
-              conn.close()
-          except Exception as e:
-              print(f'psycopg2 direct connect: FAILED: {e}')
-          try:
               from config import Config
               from factory import create_app
               app = create_app(Config)

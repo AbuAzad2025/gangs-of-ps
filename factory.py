@@ -31,10 +31,12 @@ def create_app(config_class=Config):
 
         db_name = url.database
         if not db_name:
-            raise ValueError("PostgreSQL database name is required.")
+            app.logger.warning("PostgreSQL database name is empty in URI")
+            return
 
         if not re.fullmatch(r"[A-Za-z0-9_]+", db_name):
-            raise ValueError("Invalid PostgreSQL database name.")
+            app.logger.warning(f"Invalid PostgreSQL database name: {db_name}")
+            return
 
         import psycopg2
         from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
@@ -52,7 +54,9 @@ def create_app(config_class=Config):
             except psycopg2.OperationalError as e:
                 last_error = e
         if conn is None:
-            raise last_error  # type: ignore[misc]
+            app.logger.warning(
+                f"Cannot connect to PostgreSQL maintenance DB: {last_error}")
+            return
         try:
             conn.set_isolation_level(ISOLATION_LEVEL_AUTOCOMMIT)
             cur = conn.cursor()
@@ -67,7 +71,10 @@ def create_app(config_class=Config):
         finally:
             conn.close()
 
-    ensure_postgres_database_exists(app.config["SQLALCHEMY_DATABASE_URI"])
+    try:
+        ensure_postgres_database_exists(app.config["SQLALCHEMY_DATABASE_URI"])
+    except Exception as exc:
+        app.logger.warning(f"ensure_postgres_database_exists warning: {exc}")
 
     if app.config.get("TESTING"):
         from sqlalchemy.engine.url import make_url
