@@ -80,8 +80,18 @@ _patch_platform_for_restricted_windows()
 
 try:
     from flask_socketio import SocketIO
+    _async_mode = 'threading'
     try:
-        socketio = SocketIO(cors_allowed_origins="*", async_mode='eventlet')
+        import eventlet
+        _async_mode = 'eventlet'
+    except ImportError:
+        try:
+            import gevent
+            _async_mode = 'gevent'
+        except ImportError:
+            pass
+    try:
+        socketio = SocketIO(cors_allowed_origins="*", async_mode=_async_mode)
     except Exception:
         socketio = SocketIO(cors_allowed_origins="*", async_mode='threading')
 except Exception:

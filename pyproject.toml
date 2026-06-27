@@ -100,17 +100,8 @@ addopts = "-v --tb=short --strict-markers"
 
 [tool.flake8]
 max-line-length = 120
-ignore = ["W503", "W504"]
-per-file-ignores = [
-    { pattern = "run.py", ignores = ["E402"] },
-]
-exclude = [
-    ".venv",
-    "venv",
-    "__pycache__",
-    "migrations",
-    "scripts",
-    "static",
-    "data",
-    ".github",
-]
+ignore = "W503, W504"
+per-file-ignores = """
+    run.py: E402
+"""
+exclude = ".venv, venv, __pycache__, migrations, scripts, static, data, .github"
