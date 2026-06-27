@@ -25,10 +25,10 @@ jobs:
         ports:
           - 5432:5432
         options: >-
-          --health-cmd pg_isready
-          --health-interval 10s
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
           --health-timeout 5s
-          --health-retries 5
+          --health-retries 10
     steps:
       - uses: actions/checkout@v7
 
@@ -43,8 +43,18 @@ jobs:
       - name: Debug app import
         run: |
           python -c "
-          import sys, traceback
+          import sys, traceback, os
           sys.path.insert(0, '.')
+          url = os.environ.get('DATABASE_URL', '')
+          print(f'DATABASE_URL={url[:60]}...')
+          print(f'PG_CONNECT_TIMEOUT={os.environ.get(\"PG_CONNECT_TIMEOUT\", \"not set\")}')
+          try:
+              import psycopg2
+              conn = psycopg2.connect(url, connect_timeout=5)
+              print('psycopg2 direct connect: OK')
+              conn.close()
+          except Exception as e:
+              print(f'psycopg2 direct connect: FAILED: {e}')
           try:
               from config import Config
               from factory import create_app
@@ -57,16 +67,21 @@ jobs:
         env:
           DATABASE_URL: postgresql://postgres:postgres@localhost:5432/gangsofpalestine_test
           SECRET_KEY: ci-secret
+          PG_CONNECT_TIMEOUT: 15
 
-      - name: Check migrations
-        run: |
-          flask db upgrade 2>&1
-          echo "--- Migration check complete ---"
-          flask db current
+      - name: Run DB upgrade
+        run: python scripts/qa/run_db_upgrade.py
         env:
           DATABASE_URL: postgresql://postgres:postgres@localhost:5432/gangsofpalestine_test
           SECRET_KEY: ci-secret
-          FLASK_APP: wsgi.py
+          PG_CONNECT_TIMEOUT: 15
+
+      - name: Verify migration state
+        run: python scripts/qa/check_db_migrations.py
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/gangsofpalestine_test
+          SECRET_KEY: ci-secret
+          PG_CONNECT_TIMEOUT: 15
 
   orphan-templates:
     name: Orphan Template Report
@@ -99,6 +114,20 @@ jobs:
         env:
           DATABASE_URL: sqlite:///qa-check.db
           SECRET_KEY: ci-secret
+
+      - name: Create DB tables
+        run: |
+          python -c "
+          import os
+          os.environ['DATABASE_URL'] = 'sqlite:///qa-check.db'
+          os.environ['SECRET_KEY'] = 'ci-secret'
+          from factory import create_app
+          from extensions import db
+          app = create_app()
+          with app.app_context():
+              db.create_all()
+              print(f'Created {len(db.metadata.tables)} tables')
+          " 2>&1
 
       - name: Check templates
         run: |

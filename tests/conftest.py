@@ -27,10 +27,25 @@ def app():
 
     with application.app_context():
         from extensions import db
+        from sqlalchemy import text
+
+        enum_types = [
+            c.type.name for t in db.metadata.sorted_tables
+            for c in t.columns
+            if hasattr(c.type, 'name') and c.type.name
+        ]
+
         db.create_all()
         yield application
         db.session.remove()
         db.drop_all()
+
+        for et in set(enum_types):
+            try:
+                db.session.execute(text(f'DROP TYPE IF EXISTS "{et}" CASCADE'))
+                db.session.commit()
+            except Exception:
+                db.session.rollback()
 
 
 @pytest.fixture(scope='function')
