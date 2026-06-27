@@ -97,6 +97,10 @@ class TestConfig(Config):
             env_test_db_url.startswith('sqlite://')):
         raise ValueError(
             'TEST_DATABASE_URL must start with postgresql:// or sqlite://')
-    SQLALCHEMY_DATABASE_URI = env_test_db_url or default_test_db_url
+    _target_test_url = env_test_db_url or default_test_db_url
+    SQLALCHEMY_DATABASE_URI = _target_test_url
+    SQLALCHEMY_ENGINE_OPTIONS = {}
+    if _target_test_url and _target_test_url.startswith('postgresql'):
+        SQLALCHEMY_ENGINE_OPTIONS = Config._engine_options
     WTF_CSRF_ENABLED = False
     RATELIMIT_ENABLED = False

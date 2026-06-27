@@ -8,7 +8,7 @@ from flask import flash, redirect, render_template, request, url_for
 from flask_babel import _
 from flask_login import current_user
 
-from decorators import moderator_required, role_required
+from utils.decorators import moderator_required, role_required
 from extensions import db
 from models.social import PublicChat
 from models.system import SecurityLog, SystemConfig

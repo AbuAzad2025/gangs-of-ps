@@ -13,13 +13,10 @@ from extensions import db
 
 class SecureModelView(ModelView):
     def is_accessible(self):
-        # Allow ADMIN, SUPER_ADMIN, and DEVELOPER to access
         return current_user.is_authenticated and current_user.is_admin
 
     def inaccessible_callback(self, name, **kwargs):
-        flash(
-            _('يجب عليك تسجيل الدخول بصلاحيات المسؤول للوصول إلى هذه الصفحة.'),
-            'error')
+        flash(_('يجب عليك تسجيل الدخول بصلاحيات المسؤول للوصول إلى هذه الصفحة.'), 'error')
         return redirect(url_for('main.login'))
 
     page_size = 20
@@ -32,19 +29,10 @@ class SecureModelView(ModelView):
     def scaffold_form(self):
         form_class = super().scaffold_form()
         try:
-            # Replace unsupported JSONField with TextAreaField to avoid widget
-            # errors in bootstrap4
-            for name, field in list(
-                form_class.__dict__.get('_unbound_fields', [])
-            ):
-                if getattr(
-                    field,
-                    'field_class',
-                        None) is admin_form_fields.JSONField:
-                    setattr(
-                        form_class, name, TextAreaField(
-                            field.label.text if hasattr(
-                                field, 'label') else name))
+            for name, field in list(form_class.__dict__.get('_unbound_fields', [])):
+                if getattr(field, 'field_class', None) is admin_form_fields.JSONField:
+                    setattr(form_class, name, TextAreaField(
+                        field.label.text if hasattr(field, 'label') else name))
         except Exception:
             pass
         return form_class
@@ -94,12 +82,7 @@ class HostessKnowledgeView(SecureModelView):
 
 
 class LearningLogView(SecureModelView):
-    column_list = (
-        'user_id',
-        'user_question',
-        'ai_response',
-        'was_helpful',
-        'created_at')
+    column_list = ('user_id', 'user_question', 'ai_response', 'was_helpful', 'created_at')
     column_searchable_list = ('user_question', 'ai_response')
     column_filters = ('was_helpful', 'created_at')
     column_default_sort = ('created_at', True)
@@ -131,46 +114,15 @@ class AnnouncementView(SecureModelView):
 
 
 class UserView(SecureModelView):
-    column_list = (
-        'id',
-        'username',
-        'role',
-        'level',
-        'money',
-        'diamonds',
-        'location',
-        'gang',
-        'inventory',
-        'banned_until')
+    column_list = ('id', 'username', 'role', 'level', 'money', 'diamonds', 'location', 'gang', 'inventory', 'banned_until')
     column_searchable_list = ('username',)
-    column_filters = (
-        'role',
-        'level',
-        'location.name',
-        'gang.name',
-        'banned_until')
-    column_editable_list = (
-        'role',
-        'banned_until',
-        'ban_reason',
-        'is_chat_banned')
+    column_filters = ('role', 'level', 'location.name', 'gang.name', 'banned_until')
+    column_editable_list = ('role', 'banned_until', 'ban_reason', 'is_chat_banned')
     form_excluded_columns = (
-        'password_hash',
-        'items',
-        'vehicles',
-        'messages_sent',
-        'messages_received',
-        'notifications',
-        'tasks',
-        'combat_history_attacker',
-        'combat_history_defender',
-        'daily_tasks',
-        'organized_crimes',
-        'bounties_placed',
-        'bounties_claimed',
-        'topics',
-        'posts',
-        'crime_cooldowns')
+        'password_hash', 'items', 'vehicles', 'messages_sent', 'messages_received',
+        'notifications', 'tasks', 'combat_history_attacker', 'combat_history_defender',
+        'daily_tasks', 'organized_crimes', 'bounties_placed', 'bounties_claimed',
+        'topics', 'posts', 'crime_cooldowns')
 
     inline_models = (UserVehicle, UserInvestment, UserItem)
 
@@ -196,18 +148,14 @@ class UserView(SecureModelView):
             items = model.inventory.limit(3).all()
             if not items:
                 return _('لا يوجد')
-
-            item_list = [
-                f"{item.item.name} ({item.quantity})" for item in items]
+            item_list = [f"{item.item.name} ({item.quantity})" for item in items]
             if model.inventory.count() > 3:
                 item_list.append('...')
             return ", ".join(item_list)
         except BaseException:
             return _('خطأ')
 
-    column_formatters = {
-        'inventory': _inventory_formatter
-    }
+    column_formatters = {'inventory': _inventory_formatter}
 
     def on_model_change(self, form, model, is_created):
         try:
@@ -226,7 +174,6 @@ class UserView(SecureModelView):
                     continue
                 if not hist.has_changes():
                     continue
-
                 old_v = hist.deleted[0] if hist.deleted else None
                 new_v = hist.added[0] if hist.added else getattr(model, field)
                 old_i = int(old_v or 0)
@@ -239,24 +186,16 @@ class UserView(SecureModelView):
                 return
 
             if not getattr(current_user, 'is_developer', False):
-                flash(
-                    _('تعديل الأرصدة (مال/ماس/بنك) مسموح للمطور فقط.'),
-                    'error')
+                flash(_('تعديل الأرصدة (مال/ماس/بنك) مسموح للمطور فقط.'), 'error')
                 raise RuntimeError('Developer-only balance edit')
 
             for field, old_i in revert.items():
                 setattr(model, field, old_i)
 
             ok = ResourceService.modify_resources(
-                int(model.id),
-                deltas,
-                'admin_panel_edit',
-                check_balance=True,
-                auto_commit=False,
-                expected_version=None,
-                log_extra={
-                    'admin_id': int(getattr(current_user, "id", 0) or 0)
-                },
+                int(model.id), deltas, 'admin_panel_edit', check_balance=True,
+                auto_commit=False, expected_version=None,
+                log_extra={'admin_id': int(getattr(current_user, "id", 0) or 0)},
             )
             if not ok:
                 raise RuntimeError("Failed to update resources")
@@ -265,22 +204,12 @@ class UserView(SecureModelView):
             raise
 
     def delete_model(self, model):
-        """
-        Override delete_model to handle related records cleanup
-        for permanent removal.
-        """
-        # Check if gang leader
         if model.gang and model.gang.leader_id == model.id:
-            flash(
-                _('لا يمكن حذف المستخدم %(username)s لأنه قائد عصابة '
-                  '%(gang_name)s. يرجى نقل القيادة أو حذف العصابة أولاً.',
-                  username=model.username, gang_name=model.gang.name),
-                'error'
-            )
+            flash(_('لا يمكن حذف المستخدم %(username)s لأنه قائد عصابة %(gang_name)s. يرجى نقل القيادة أو حذف العصابة أولاً.',
+                    username=model.username, gang_name=model.gang.name), 'error')
             return False
 
         try:
-            # Import models locally to avoid circular imports
             from models import (
                 UserItem, UserVehicle, UserDailyTask, UserCrimeCooldown,
                 Message, Notification, Bounty, CombatLog, UserInvestment,
@@ -289,21 +218,11 @@ class UserView(SecureModelView):
                 ForumPost, Referral, RaceParticipant
             )
 
-            # Delete related data
             UserItem.query.filter_by(user_id=model.id).delete()
-            uv_ids = [
-                row[0]
-                for row in self.session.query(UserVehicle.id)
-                .filter_by(user_id=model.id)
-                .all()
-            ]
+            uv_ids = [row[0] for row in self.session.query(UserVehicle.id).filter_by(user_id=model.id).all()]
             if uv_ids:
-                RaceParticipant.query.filter(
-                    RaceParticipant.user_vehicle_id.in_(uv_ids)
-                ).delete(synchronize_session=False)
-            RaceParticipant.query.filter_by(user_id=model.id).delete(
-                synchronize_session=False
-            )
+                RaceParticipant.query.filter(RaceParticipant.user_vehicle_id.in_(uv_ids)).delete(synchronize_session=False)
+            RaceParticipant.query.filter_by(user_id=model.id).delete(synchronize_session=False)
             UserVehicle.query.filter_by(user_id=model.id).delete()
             UserDailyTask.query.filter_by(user_id=model.id).delete()
             UserCrimeCooldown.query.filter_by(user_id=model.id).delete()
@@ -313,39 +232,21 @@ class UserView(SecureModelView):
             PaymentTransaction.query.filter_by(user_id=model.id).delete()
             GangInvite.query.filter_by(user_id=model.id).delete()
 
-            # Forum
             ForumPost.query.filter_by(user_id=model.id).delete()
             ForumTopic.query.filter_by(user_id=model.id).delete()
 
-            # Referral
-            Referral.query.filter(
-                (Referral.referrer_id == model.id) | (
-                    Referral.referred_id == model.id)).delete()
+            Referral.query.filter((Referral.referrer_id == model.id) | (Referral.referred_id == model.id)).delete()
 
-            # Messages
-            Message.query.filter(
-                (Message.sender_id == model.id) | (
-                    Message.receiver_id == model.id)).delete()
+            Message.query.filter((Message.sender_id == model.id) | (Message.receiver_id == model.id)).delete()
             Notification.query.filter_by(user_id=model.id).delete()
 
-            # Combat
-            Bounty.query.filter(
-                (Bounty.placer_id == model.id) | (
-                    Bounty.target_id == model.id)).delete()
-            CombatLog.query.filter(
-                (CombatLog.attacker_id == model.id) | (
-                    CombatLog.defender_id == model.id)).delete()
+            Bounty.query.filter((Bounty.placer_id == model.id) | (Bounty.target_id == model.id)).delete()
+            CombatLog.query.filter((CombatLog.attacker_id == model.id) | (CombatLog.defender_id == model.id)).delete()
 
-            # Lobby
-            # First, delete all participants in lobbies led by this user
             lobbies_led = CrimeLobby.query.filter_by(leader_id=model.id).all()
             for lobby in lobbies_led:
                 LobbyParticipant.query.filter_by(lobby_id=lobby.id).delete()
-
-            # Then delete the user's participation in other lobbies
             LobbyParticipant.query.filter_by(user_id=model.id).delete()
-
-            # Finally delete the lobbies led by user
             CrimeLobby.query.filter_by(leader_id=model.id).delete()
 
             self.session.flush()
@@ -359,13 +260,7 @@ class UserView(SecureModelView):
 
 
 class UserRankView(SecureModelView):
-    column_list = (
-        'id',
-        'name',
-        'min_level',
-        'resurrection_cost',
-        'user_count',
-        'sample_users')
+    column_list = ('id', 'name', 'min_level', 'resurrection_cost', 'user_count', 'sample_users')
     column_editable_list = ('name', 'min_level', 'resurrection_cost')
     column_labels = {
         'name': _('اسم الرتبة'),
@@ -376,22 +271,17 @@ class UserRankView(SecureModelView):
     }
 
     def _user_count_formatter(view, context, model, name):
-        next_rank = UserRank.query.filter(
-            UserRank.min_level > model.min_level).order_by(
-            UserRank.min_level.asc()).first()
+        next_rank = UserRank.query.filter(UserRank.min_level > model.min_level).order_by(UserRank.min_level.asc()).first()
         query = User.query.filter(User.level >= model.min_level)
         if next_rank:
             query = query.filter(User.level < next_rank.min_level)
         return query.count()
 
     def _users_list_formatter(view, context, model, name):
-        next_rank = UserRank.query.filter(
-            UserRank.min_level > model.min_level).order_by(
-            UserRank.min_level.asc()).first()
+        next_rank = UserRank.query.filter(UserRank.min_level > model.min_level).order_by(UserRank.min_level.asc()).first()
         query = User.query.filter(User.level >= model.min_level)
         if next_rank:
             query = query.filter(User.level < next_rank.min_level)
-
         users = query.limit(5).all()
         names = [u.username for u in users]
         if query.count() > 5:
@@ -412,24 +302,13 @@ class UserRankView(SecureModelView):
 
 
 class ItemView(SecureModelView):
-    column_list = (
-        'id',
-        'name',
-        'type',
-        'cost',
-        'bonus_strength',
-        'bonus_defense',
-        'is_black_market')
+    column_list = ('id', 'name', 'type', 'cost', 'bonus_strength', 'bonus_defense', 'is_black_market')
     column_searchable_list = ('name', 'description')
     column_filters = ('type', 'is_black_market')
     column_editable_list = ('cost', 'is_black_market')
-
     column_labels = {
-        'name': _('الاسم'),
-        'type': _('النوع'),
-        'cost': _('السعر'),
-        'bonus_strength': _('قوة إضافية'),
-        'bonus_defense': _('دفاع إضافي'),
+        'name': _('الاسم'), 'type': _('النوع'), 'cost': _('السعر'),
+        'bonus_strength': _('قوة إضافية'), 'bonus_defense': _('دفاع إضافي'),
         'is_black_market': _('سوق سوداء')
     }
 
@@ -438,12 +317,8 @@ class UserItemView(SecureModelView):
     column_list = ('user', 'item', 'quantity', 'is_equipped')
     column_filters = ('user.username', 'item.name', 'is_equipped')
     column_editable_list = ('quantity', 'is_equipped')
-
     column_labels = {
-        'user': _('المستخدم'),
-        'item': _('الغرض'),
-        'quantity': _('الكمية'),
-        'is_equipped': _('مجهز')
+        'user': _('المستخدم'), 'item': _('الغرض'), 'quantity': _('الكمية'), 'is_equipped': _('مجهز')
     }
 
 
@@ -451,14 +326,9 @@ class VehicleView(SecureModelView):
     column_list = ('id', 'name', 'type', 'price', 'speed', 'defense', 'risk')
     column_searchable_list = ('name',)
     column_filters = ('type',)
-
     column_labels = {
-        'name': _('الاسم'),
-        'type': _('النوع'),
-        'price': _('السعر'),
-        'speed': _('السرعة'),
-        'defense': _('الدفاع'),
-        'risk': _('نسبة الخطر')
+        'name': _('الاسم'), 'type': _('النوع'), 'price': _('السعر'),
+        'speed': _('السرعة'), 'defense': _('الدفاع'), 'risk': _('نسبة الخطر')
     }
 
 
@@ -466,95 +336,38 @@ class UserVehicleView(SecureModelView):
     column_list = ('user', 'vehicle', 'is_active', 'condition')
     column_filters = ('user.username', 'vehicle.name', 'is_active')
     column_editable_list = ('is_active', 'condition')
-
     column_labels = {
-        'user': _('المستخدم'),
-        'vehicle': _('المركبة'),
-        'is_active': _('مستخدمة حالياً'),
-        'condition': _('الحالة')
+        'user': _('المستخدم'), 'vehicle': _('المركبة'), 'is_active': _('مستخدمة حالياً'), 'condition': _('الحالة')
     }
 
 
 class LocationView(SecureModelView):
     column_list = ('id', 'name', 'cost', 'cooldown', 'specialty')
     column_labels = {
-        'name': _('الاسم'),
-        'cost': _('تكلفة السفر'),
-        'cooldown': _('وقت الانتظار'),
-        'specialty': _('الميزة الخاصة')
+        'name': _('الاسم'), 'cost': _('تكلفة السفر'), 'cooldown': _('وقت الانتظار'), 'specialty': _('الميزة الخاصة')
     }
 
 
 class CrimeView(SecureModelView):
-    column_list = (
-        'id',
-        'name',
-        'min_level',
-        'energy_cost',
-        'cooldown',
-        'money_reward_min',
-        'money_reward_max',
-        'is_active')
+    column_list = ('id', 'name', 'min_level', 'energy_cost', 'cooldown', 'money_reward_min', 'money_reward_max', 'is_active')
     column_filters = ('min_level', 'energy_cost', 'cooldown', 'is_active')
-    column_editable_list = (
-        'name',
-        'min_level',
-        'energy_cost',
-        'cooldown',
-        'money_reward_min',
-        'money_reward_max',
-        'is_active')
+    column_editable_list = ('name', 'min_level', 'energy_cost', 'cooldown', 'money_reward_min', 'money_reward_max', 'is_active')
     column_labels = {
-        'name': _('اسم الجريمة'),
-        'min_level': _('المستوى المطلوب'),
-        'energy_cost': _('الطاقة المطلوبة'),
-        'cooldown': _('وقت الانتظار (ثواني)'),
-        'money_reward_min': _('أقل مكافأة'),
-        'money_reward_max': _('أعلى مكافأة'),
-        'is_active': _('نشط')
+        'name': _('اسم الجريمة'), 'min_level': _('المستوى المطلوب'), 'energy_cost': _('الطاقة المطلوبة'),
+        'cooldown': _('وقت الانتظار (ثواني)'), 'money_reward_min': _('أقل مكافأة'),
+        'money_reward_max': _('أعلى مكافأة'), 'is_active': _('نشط')
     }
 
 
 class OrganizedCrimeView(SecureModelView):
-    column_list = (
-        'id',
-        'name',
-        'min_members',
-        'energy_cost',
-        'money_reward_min',
-        'money_reward_max',
-        'exp_reward',
-        'cooldown_hours',
-        'is_active',
-        'roles_config',
-        'requirements')
-    column_filters = (
-        'min_members',
-        'energy_cost',
-        'cooldown_hours',
-        'is_active')
-    # Removed roles_config and requirements from editable list to avoid
-    # JSONField errors
-    column_editable_list = (
-        'name',
-        'min_members',
-        'energy_cost',
-        'money_reward_min',
-        'money_reward_max',
-        'exp_reward',
-        'cooldown_hours',
-        'is_active')
+    column_list = ('id', 'name', 'min_members', 'energy_cost', 'money_reward_min', 'money_reward_max', 'exp_reward', 'cooldown_hours', 'is_active', 'roles_config', 'requirements')
+    column_filters = ('min_members', 'energy_cost', 'cooldown_hours', 'is_active')
+    column_editable_list = ('name', 'min_members', 'energy_cost', 'money_reward_min', 'money_reward_max', 'exp_reward', 'cooldown_hours', 'is_active')
     column_labels = {
-        'name': _('اسم الجريمة المنظمة'),
-        'min_members': _('عدد الأعضاء المطلوب'),
-        'energy_cost': _('تكلفة الطاقة'),
-        'money_reward_min': _('أقل مكافأة'),
-        'money_reward_max': _('أعلى مكافأة'),
-        'exp_reward': _('مكافأة الخبرة'),
-        'cooldown_hours': _('الهدنة (ساعات)'),
-        'is_active': _('نشط'),
-        'roles_config': _('إعدادات الأدوار (JSON)'),
-        'requirements': _('المتطلبات (JSON)')
+        'name': _('اسم الجريمة المنظمة'), 'min_members': _('عدد الأعضاء المطلوب'), 'energy_cost': _('تكلفة الطاقة'),
+        'money_reward_min': _('أقل مكافأة'), 'money_reward_max': _('أعلى مكافأة'), 'exp_reward': _('مكافأة الخبرة'),
+        'cooldown_hours': _('الهدنة (ساعات)'), 'is_active': _('نشط'),
+        'roles_config': _('إعدادات الأدوار (JSON)'), 'requirements': _('المتطلبات (JSON)')
     }
 
     def _json_formatter(view, context, model, name):
@@ -567,20 +380,14 @@ class OrganizedCrimeView(SecureModelView):
         except BaseException:
             return str(val)
 
-    column_formatters = {
-        'roles_config': _json_formatter,
-        'requirements': _json_formatter
-    }
+    column_formatters = {'roles_config': _json_formatter, 'requirements': _json_formatter}
 
 
 class GangView(SecureModelView):
     column_list = ('id', 'name', 'leader', 'level', 'points', 'money')
     column_labels = {
-        'name': _('اسم العصابة'),
-        'leader': _('القائد'),
-        'level': _('المستوى'),
-        'points': _('النقاط'),
-        'money': _('خزينة العصابة')
+        'name': _('اسم العصابة'), 'leader': _('القائد'), 'level': _('المستوى'),
+        'points': _('النقاط'), 'money': _('خزينة العصابة')
     }
 
 
@@ -588,25 +395,12 @@ class CombatLogView(SecureModelView):
     can_create = False
     can_edit = False
     can_delete = False
-    column_list = (
-        'timestamp',
-        'attacker',
-        'defender',
-        'winner',
-        'money_stolen',
-        'exp_gain')
-    column_filters = (
-        'attacker.username',
-        'defender.username',
-        'winner.username')
+    column_list = ('timestamp', 'attacker', 'defender', 'winner', 'money_stolen', 'exp_gain')
+    column_filters = ('attacker.username', 'defender.username', 'winner.username')
     column_default_sort = ('timestamp', True)
     column_labels = {
-        'timestamp': _('الوقت'),
-        'attacker': _('المهاجم'),
-        'defender': _('المدافع'),
-        'winner': _('الفائز'),
-        'money_stolen': _('المال المسروق'),
-        'exp_gain': _('الخبرة المكتسبة')
+        'timestamp': _('الوقت'), 'attacker': _('المهاجم'), 'defender': _('المدافع'),
+        'winner': _('الفائز'), 'money_stolen': _('المال المسروق'), 'exp_gain': _('الخبرة المكتسبة')
     }
 
 
@@ -618,10 +412,7 @@ class GangLogView(SecureModelView):
     column_filters = ('gang.name', 'user.username', 'action')
     column_default_sort = ('timestamp', True)
     column_labels = {
-        'timestamp': _('الوقت'),
-        'gang': _('العصابة'),
-        'user': _('العضو'),
-        'action': _('الحدث')
+        'timestamp': _('الوقت'), 'gang': _('العصابة'), 'user': _('العضو'), 'action': _('الحدث')
     }
 
     def _action_formatter(view, context, model, name):
@@ -635,27 +426,16 @@ class GangLogView(SecureModelView):
         }
         return translations.get(model.action, model.action)
 
-    column_formatters = {
-        'action': _action_formatter
-    }
+    column_formatters = {'action': _action_formatter}
 
 
 class GangWarView(SecureModelView):
-    column_list = (
-        'gang1',
-        'gang2',
-        'score_gang1',
-        'score_gang2',
-        'status',
-        'start_time')
+    column_list = ('gang1', 'gang2', 'score_gang1', 'score_gang2', 'status', 'start_time')
     column_filters = ('gang1.name', 'gang2.name', 'status')
     column_labels = {
-        'gang1': _('العصابة 1'),
-        'gang2': _('العصابة 2'),
-        'score_gang1': _('نقاط 1'),
-        'score_gang2': _('نقاط 2'),
-        'status': _('الحالة'),
-        'start_time': _('وقت البدء')
+        'gang1': _('العصابة 1'), 'gang2': _('العصابة 2'),
+        'score_gang1': _('نقاط 1'), 'score_gang2': _('نقاط 2'),
+        'status': _('الحالة'), 'start_time': _('وقت البدء')
     }
 
 
@@ -667,10 +447,7 @@ class LogView(SecureModelView):
     column_default_sort = ('timestamp', True)
     column_filters = ('admin.username', 'action')
     column_labels = {
-        'timestamp': _('الوقت'),
-        'admin': _('المسؤول'),
-        'action': _('الحدث'),
-        'details': _('التفاصيل')
+        'timestamp': _('الوقت'), 'admin': _('المسؤول'), 'action': _('الحدث'), 'details': _('التفاصيل')
     }
 
 
@@ -678,30 +455,14 @@ class UserLogView(SecureModelView):
     can_create = False
     can_edit = False
     can_delete = False
-    column_list = (
-        'timestamp',
-        'user',
-        'action',
-        'details',
-        'result',
-        'before_state',
-        'after_state',
-        'ip_address')
+    column_list = ('timestamp', 'user', 'action', 'details', 'result', 'before_state', 'after_state', 'ip_address')
     column_default_sort = ('timestamp', True)
     column_filters = ('user.username', 'action', 'result', 'ip_address')
     column_searchable_list = ('action', 'details', 'ip_address')
     column_labels = {
-        'timestamp': _('الوقت'),
-        'user': _('المستخدم'),
-        'action': _('الحدث'),
-        'details': _('التفاصيل'),
-        'result': _('النتيجة'),
-        'before_state': _('قبل'),
-        'after_state': _('بعد'),
-        'ip_address': _('IP')
+        'timestamp': _('الوقت'), 'user': _('المستخدم'), 'action': _('الحدث'), 'details': _('التفاصيل'),
+        'result': _('النتيجة'), 'before_state': _('قبل'), 'after_state': _('بعد'), 'ip_address': _('IP')
     }
-    # Avoid rendering JSONField in Bootstrap4 templates (causes Unsupported
-    # field type)
     details_modal = False
 
     @staticmethod
@@ -712,47 +473,33 @@ class UserLogView(SecureModelView):
             return json.dumps(data, ensure_ascii=False, indent=2)
         except Exception:
             return data if data is not None else ''
-    column_formatters = {
-        'before_state': _pretty_json,
-        'after_state': _pretty_json
-    }
+
+    column_formatters = {'before_state': _pretty_json, 'after_state': _pretty_json}
 
 
 class AssetView(SecureModelView):
     column_list = ('id', 'name', 'type', 'base_price', 'income_per_day')
     column_labels = {
-        'name': _('اسم العقار'),
-        'type': _('النوع'),
-        'base_price': _('السعر الأساسي'),
-        'income_per_day': _('الدخل اليومي')
+        'name': _('اسم العقار'), 'type': _('النوع'), 'base_price': _('السعر الأساسي'), 'income_per_day': _('الدخل اليومي')
     }
 
 
 class PaymentView(SecureModelView):
     can_create = False
-    column_list = (
-        'id',
-        'user',
-        'amount_usd',
-        'diamonds_amount',
-        'status',
-        'created_at',
-        'is_verified')
+    column_list = ('id', 'user', 'amount_usd', 'diamonds_amount', 'status', 'created_at', 'is_verified')
     column_editable_list = ('status', 'is_verified')
     column_filters = ('status', 'is_verified')
     column_default_sort = ('created_at', True)
     column_labels = {
-        'user': _('المستخدم'),
-        'amount_usd': _('المبلغ (دولار)'),
-        'diamonds_amount': _('الماس'),
-        'status': _('الحالة'),
-        'created_at': _('تاريخ الطلب'),
-        'is_verified': _('تم التحقق')
+        'user': _('المستخدم'), 'amount_usd': _('المبلغ (دولار)'), 'diamonds_amount': _('الماس'),
+        'status': _('الحالة'), 'created_at': _('تاريخ الطلب'), 'is_verified': _('تم التحقق')
     }
 
     def on_model_change(self, form, model, is_created):
         try:
             from sqlalchemy import inspect
+            from models import UserLog
+            from services.resource_service import ResourceService
 
             just_verified = False
             if not is_created:
@@ -762,68 +509,34 @@ class PaymentView(SecureModelView):
                     new_v = bool(hist.added[0]) if hist.added else bool(model.is_verified)
                     just_verified = (not old_v) and new_v
 
-            if (
-                (not is_created)
-                and str(model.status) == 'completed'
-                and bool(model.is_verified)
-                and just_verified
-            ):
-                from models import UserLog
-                from services.resource_service import ResourceService
-
+            if (not is_created) and str(model.status) == 'completed' and bool(model.is_verified) and just_verified:
                 reason = 'real_money_diamonds_credit'
                 trans_id = str(getattr(model, 'transaction_id', '') or '')
                 already = None
                 if trans_id:
-                    already = UserLog.query.filter_by(
-                        user_id=int(model.user_id),
-                        action=reason.upper(),
-                    ).filter(UserLog.details.contains(trans_id)).first()
+                    already = UserLog.query.filter_by(user_id=int(model.user_id), action=reason.upper()).filter(
+                        UserLog.details.contains(trans_id)).first()
 
                 if not already:
-                    diamonds_amount = int(
-                        getattr(model, 'diamonds_amount', 0) or 0
-                    )
+                    diamonds_amount = int(getattr(model, 'diamonds_amount', 0) or 0)
                     if diamonds_amount > 0:
                         ok = ResourceService.modify_resources(
-                            int(model.user_id),
-                            {'diamonds': diamonds_amount},
-                            reason,
-                            check_balance=False,
-                            auto_commit=False,
-                            expected_version=None,
+                            int(model.user_id), {'diamonds': diamonds_amount}, reason,
+                            check_balance=False, auto_commit=False, expected_version=None,
                             log_extra={
                                 'payment_transaction_id': int(model.id),
                                 'transaction_id': trans_id,
-                                'real_money_amount': float(
-                                    getattr(model, 'amount_usd', 0) or 0
-                                ),
+                                'real_money_amount': float(getattr(model, 'amount_usd', 0) or 0),
                                 'real_money_currency': 'USD',
                             },
                         )
                         if not ok:
                             model.status = 'pending'
                             model.is_verified = False
-                            flash(
-                                _(
-                                    'فشل شحن الماس تلقائياً. '
-                                    'تم إعادة الطلب إلى قيد الانتظار.'
-                                ),
-                                'error',
-                            )
+                            flash(_('فشل شحن الماس تلقائياً. تم إعادة الطلب إلى قيد الانتظار.'), 'error')
 
-            log_details = (
-                f"Payment (ID: {model.id}) for user '{model.user.username}' "
-                f"was {'created' if is_created else 'updated'}."
-            )
-            db.session.add(
-                GameLog(
-                    admin_id=current_user.id,
-                    action="Payment Change",
-                    target_id=int(model.user_id),
-                    details=log_details,
-                )
-            )
+            log_details = f"Payment (ID: {model.id}) for user '{model.user.username}' was {'created' if is_created else 'updated'}."
+            db.session.add(GameLog(admin_id=current_user.id, action="Payment Change", target_id=int(model.user_id), details=log_details))
         except Exception as e:
             flash(f"Failed to process payment change: {e}", "error")
 
@@ -832,27 +545,16 @@ class SystemConfigView(SecureModelView):
     column_list = ('key', 'value', 'description')
     column_editable_list = ('value', 'description')
     column_labels = {
-        'key': _('المفتاح'),
-        'value': _('القيمة'),
-        'description': _('الوصف')
+        'key': _('المفتاح'), 'value': _('القيمة'), 'description': _('الوصف')
     }
 
 
 class BountyView(SecureModelView):
-    column_list = (
-        'id',
-        'placer',
-        'target',
-        'amount',
-        'is_anonymous',
-        'created_at')
+    column_list = ('id', 'placer', 'target', 'amount', 'is_anonymous', 'created_at')
     column_filters = ('placer.username', 'target.username', 'is_anonymous')
     column_labels = {
-        'placer': _('واضع المكافأة'),
-        'target': _('المستهدف'),
-        'amount': _('المبلغ'),
-        'is_anonymous': _('مجهول'),
-        'created_at': _('تاريخ الإنشاء')
+        'placer': _('واضع المكافأة'), 'target': _('المستهدف'), 'amount': _('المبلغ'),
+        'is_anonymous': _('مجهول'), 'created_at': _('تاريخ الإنشاء')
     }
 
 
@@ -860,31 +562,17 @@ class ForumCategoryView(SecureModelView):
     column_list = ('id', 'title', 'order', 'min_rank')
     column_editable_list = ('title', 'order', 'min_rank')
     column_labels = {
-        'title': _('العنوان'),
-        'description': _('الوصف'),
-        'order': _('الترتيب'),
-        'min_rank': _('أقل رتبة')
+        'title': _('العنوان'), 'description': _('الوصف'), 'order': _('الترتيب'), 'min_rank': _('أقل رتبة')
     }
 
 
 class ForumTopicView(SecureModelView):
-    column_list = (
-        'id',
-        'title',
-        'category',
-        'user',
-        'is_pinned',
-        'is_locked',
-        'created_at')
+    column_list = ('id', 'title', 'category', 'user', 'is_pinned', 'is_locked', 'created_at')
     column_filters = ('category', 'is_pinned', 'is_locked')
     column_editable_list = ('is_pinned', 'is_locked')
     column_labels = {
-        'title': _('العنوان'),
-        'category': _('القسم'),
-        'user': _('الكاتب'),
-        'is_pinned': _('مثبت'),
-        'is_locked': _('مغلق'),
-        'created_at': _('تاريخ الإنشاء')
+        'title': _('العنوان'), 'category': _('القسم'), 'user': _('الكاتب'),
+        'is_pinned': _('مثبت'), 'is_locked': _('مغلق'), 'created_at': _('تاريخ الإنشاء')
     }
 
 
@@ -892,55 +580,26 @@ class ForumPostView(SecureModelView):
     column_list = ('id', 'topic', 'user', 'content', 'created_at')
     column_filters = ('topic.title', 'user.username')
     column_labels = {
-        'topic': _('الموضوع'),
-        'user': _('الكاتب'),
-        'content': _('المحتوى'),
-        'created_at': _('تاريخ الإنشاء')
+        'topic': _('الموضوع'), 'user': _('الكاتب'), 'content': _('المحتوى'), 'created_at': _('تاريخ الإنشاء')
     }
 
 
 class DailyTaskView(SecureModelView):
-    column_list = (
-        'id',
-        'description',
-        'target_type',
-        'target_count',
-        'reward_money',
-        'reward_exp',
-        'is_active')
+    column_list = ('id', 'description', 'target_type', 'target_count', 'reward_money', 'reward_exp', 'is_active')
     column_filters = ('target_type', 'is_active')
-    column_editable_list = (
-        'description',
-        'target_type',
-        'target_count',
-        'reward_money',
-        'reward_exp',
-        'is_active')
+    column_editable_list = ('description', 'target_type', 'target_count', 'reward_money', 'reward_exp', 'is_active')
     column_labels = {
-        'description': _('الوصف'),
-        'target_type': _('النوع'),
-        'target_count': _('العدد المطلوب'),
-        'reward_money': _('مكافأة مالية'),
-        'reward_exp': _('مكافأة خبرة'),
-        'is_active': _('نشط')
+        'description': _('الوصف'), 'target_type': _('النوع'), 'target_count': _('العدد المطلوب'),
+        'reward_money': _('مكافأة مالية'), 'reward_exp': _('مكافأة خبرة'), 'is_active': _('نشط')
     }
 
 
 class WeeklyWinnerView(SecureModelView):
-    column_list = (
-        'id',
-        'user',
-        'week_number',
-        'year',
-        'amount_won',
-        'created_at')
+    column_list = ('id', 'user', 'week_number', 'year', 'amount_won', 'created_at')
     column_filters = ('user.username', 'year')
     column_labels = {
-        'user': _('الفائز'),
-        'week_number': _('الأسبوع'),
-        'year': _('السنة'),
-        'amount_won': _('مكافأة اللعبة ($)'),
-        'created_at': _('تاريخ الفوز')
+        'user': _('الفائز'), 'week_number': _('الأسبوع'), 'year': _('السنة'),
+        'amount_won': _('مكافأة اللعبة ($)'), 'created_at': _('تاريخ الفوز')
     }
 
 
@@ -948,54 +607,25 @@ class ReferralView(SecureModelView):
     column_list = ('id', 'referrer', 'referred', 'status', 'created_at')
     column_filters = ('referrer.username', 'referred.username', 'status')
     column_labels = {
-        'referrer': _('المرسل'),
-        'referred': _('المستلم'),
-        'status': _('الحالة'),
-        'created_at': _('تاريخ الدعوة')
+        'referrer': _('المرسل'), 'referred': _('المستلم'), 'status': _('الحالة'), 'created_at': _('تاريخ الدعوة')
     }
 
 
 class MessageView(SecureModelView):
-    column_list = (
-        'id',
-        'sender',
-        'receiver',
-        'subject',
-        'is_read',
-        'timestamp')
+    column_list = ('id', 'sender', 'receiver', 'subject', 'is_read', 'timestamp')
     column_filters = ('sender.username', 'receiver.username', 'is_read')
     column_labels = {
-        'sender': _('المرسل'),
-        'receiver': _('المستلم'),
-        'subject': _('العنوان'),
-        'body': _('المحتوى'),
-        'is_read': _('مقرؤة'),
-        'timestamp': _('الوقت')
+        'sender': _('المرسل'), 'receiver': _('المستلم'), 'subject': _('العنوان'),
+        'body': _('المحتوى'), 'is_read': _('مقرؤة'), 'timestamp': _('الوقت')
     }
 
 
 class MarketAssetView(SecureModelView):
-    column_list = (
-        'id',
-        'symbol',
-        'name',
-        'asset_type',
-        'current_price',
-        'price_change_24h',
-        'last_updated')
-    column_editable_list = (
-        'symbol',
-        'name',
-        'asset_type',
-        'current_price',
-        'price_change_24h')
+    column_list = ('id', 'symbol', 'name', 'asset_type', 'current_price', 'price_change_24h', 'last_updated')
+    column_editable_list = ('symbol', 'name', 'asset_type', 'current_price', 'price_change_24h')
     column_labels = {
-        'symbol': _('الرمز'),
-        'name': _('الاسم'),
-        'asset_type': _('النوع'),
-        'current_price': _('السعر الحالي'),
-        'price_change_24h': _('التغير (24س)'),
-        'last_updated': _('آخر تحديث')
+        'symbol': _('الرمز'), 'name': _('الاسم'), 'asset_type': _('النوع'),
+        'current_price': _('السعر الحالي'), 'price_change_24h': _('التغير (24س)'), 'last_updated': _('آخر تحديث')
     }
 
 
@@ -1003,8 +633,5 @@ class UserInvestmentView(SecureModelView):
     column_list = ('id', 'user', 'asset', 'quantity', 'average_buy_price')
     column_filters = ('user.username', 'asset.symbol')
     column_labels = {
-        'user': _('المستثمر'),
-        'asset': _('الأصل'),
-        'quantity': _('الكمية'),
-        'average_buy_price': _('متوسط الشراء')
+        'user': _('المستثمر'), 'asset': _('الأصل'), 'quantity': _('الكمية'), 'average_buy_price': _('متوسط الشراء')
     }

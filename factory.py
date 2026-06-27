@@ -868,7 +868,7 @@ def create_app(config_class=Config):
     # Register Admin Views
     from flask_admin.menu import MenuLink
     from models.user import UserRole
-    from admin_views import (
+    from admin.views import (
         UserView,
         ItemView,
         VehicleView,

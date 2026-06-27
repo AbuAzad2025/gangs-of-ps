@@ -36,7 +36,7 @@ from services.requirements import check_requirements
 from services.resource_service import ResourceService
 from sqlalchemy import select, or_
 from sqlalchemy.orm import selectinload, joinedload
-from decorators import check_maintenance, player_only
+from utils.decorators import check_maintenance, player_only
 from utils.decorators import check_player_status
 
 _broadcast_cache = {}

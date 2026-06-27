@@ -4,7 +4,7 @@ from flask_babel import _
 from extensions import db, limiter
 from models.user import User
 from datetime import datetime, timezone
-from decorators import check_maintenance, player_only
+from utils.decorators import check_maintenance, player_only
 from services.resource_service import ResourceService
 from routes.utils import track_academy_visit, update_daily_task_progress
 

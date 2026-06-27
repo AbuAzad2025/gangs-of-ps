@@ -24,7 +24,6 @@ env/
 
 instance/
 uploads/
-tests/
 
 *.mp4
 *.wav
@@ -32,13 +31,21 @@ temp_*
 *.avi
 *.mov
 
-# BLACKBOX/CLI artifacts
 .blackboxcli/
 .blackbox/
 
-# Additional temp/backup files
 *.bak
 *.tmp
 
-# (If present) admin bundle artifacts
 static/adminlte/
+
+# Coverage artifacts
+.coverage
+.coverage.*
+coverage.xml
+htmlcov/
+
+# Distribution packages
+*.egg-info/
+dist/
+build/
