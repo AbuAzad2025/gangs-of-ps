@@ -36,6 +36,7 @@ dependencies = [
     "sentry-sdk>=1.40.6,<2",
     "stripe>=8.0.0,<10",
     "captcha>=0.7.1,<0.8",
+    "pandas>=2.2.0,<3",
 ]
 
 [build-system]

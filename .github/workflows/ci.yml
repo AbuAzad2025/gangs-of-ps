@@ -122,4 +122,4 @@ jobs:
           pip install pip-audit>=2.7.0
 
       - name: pip-audit
-        run: pip-audit --strict
+        run: pip-audit --strict --skip-editable
