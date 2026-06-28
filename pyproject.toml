@@ -37,6 +37,7 @@ dependencies = [
     "stripe>=8.0.0,<10",
     "captcha>=0.7.1,<0.8",
     "pandas>=2.2.0,<3",
+    "python-chess>=1.10.0,<2",
 ]
 
 [build-system]
