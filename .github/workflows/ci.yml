@@ -5,6 +5,7 @@ on:
     branches: [main, master, develop]
   pull_request:
     branches: [main, master, develop]
+  workflow_dispatch:
 
 concurrency:
   group: ci-${{ github.workflow }}-${{ github.ref }}
@@ -118,8 +119,14 @@ jobs:
 
       - name: Install production deps + pip-audit
         run: |
-          pip install .
+          python - <<'PY'
+          import tomllib
+          from pathlib import Path
+          deps = tomllib.loads(Path("pyproject.toml").read_text(encoding="utf-8"))["project"]["dependencies"]
+          Path("deps-audit.txt").write_text("\n".join(deps) + "\n", encoding="utf-8")
+          PY
           pip install pip-audit>=2.7.0
+          pip install -r deps-audit.txt
 
       - name: pip-audit
-        run: pip-audit --strict
+        run: pip-audit -r deps-audit.txt --strict
