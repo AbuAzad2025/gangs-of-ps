@@ -6,6 +6,7 @@ from typing import Dict, Optional, Tuple
 from extensions import db
 from models.user import User
 from services.resource_service import ResourceService
+from services.economy_integrity import parse_bank_amount
 
 
 MIN_SPOT_TRADE = 10
@@ -46,13 +47,10 @@ def pay_from_game_balance(
     auto_commit: bool = True,
 ) -> Tuple[bool, Optional[str], Dict[str, int]]:
     """Pay using in-game cash first, then bank if needed."""
-    try:
-        amount_int = int(round(float(amount)))
-    except (TypeError, ValueError):
+    parsed = parse_bank_amount(amount, min_value=1)
+    if parsed is None:
         return False, _msg('مبلغ غير صالح.'), {}
-
-    if amount_int <= 0:
-        return False, _msg('مبلغ غير صالح.'), {}
+    amount_int = parsed
 
     user = db.session.get(User, user_id)
     if not user:

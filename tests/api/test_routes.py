@@ -4,7 +4,7 @@ from unittest.mock import patch
 from extensions import db
 from models.payment import PaymentTransaction
 from models.user import User
-from tests.support.factories import make_user
+from tests.support.factories import make_user, make_user_id
 
 
 class TestPublicRoutes:
@@ -239,3 +239,135 @@ class TestCaptcha:
         resp = client.get('/captcha/image')
         assert resp.status_code == 200
         assert resp.content_type.startswith('image/')
+
+
+class TestEconomyForms:
+    def test_send_money_form_valid(self, app):
+        from forms.economy import DepositForm, SendMoneyForm
+        with app.app_context():
+            assert SendMoneyForm(data={'username': 'player', 'amount': 100}).validate()
+            assert DepositForm(data={'amount': 50}).validate()
+
+    def test_send_money_form_rejects_zero(self, app):
+        from forms.economy import SendMoneyForm
+        with app.app_context():
+            form = SendMoneyForm(data={'username': 'player', 'amount': 0})
+            assert form.validate() is False
+
+
+class TestGameplayForms:
+    def test_attack_and_heal_forms(self, app):
+        from forms.gameplay import AttackForm, HealForm
+        with app.app_context():
+            assert AttackForm().validate() is True
+            assert HealForm().validate() is True
+
+
+class TestEmpireAndMarketPages:
+    def test_empire_page_authenticated(self, logged_in_client):
+        resp = logged_in_client.get('/empire', follow_redirects=True)
+        assert resp.status_code == 200
+
+    def test_market_guide_page(self, logged_in_client):
+        resp = logged_in_client.get('/market/guide', follow_redirects=True)
+        assert resp.status_code == 200
+
+
+class TestResourcesLedger:
+    def test_my_ledger_requires_login(self, client):
+        resp = client.get('/resources/ledger', follow_redirects=False)
+        assert resp.status_code == 302
+
+    def test_my_ledger_renders(self, logged_in_client):
+        resp = logged_in_client.get('/resources/ledger', follow_redirects=True)
+        assert resp.status_code == 200
+
+
+class TestPublicHostessChat:
+    @pytest.fixture
+    def greeter(self, app, db):
+        from models.hostess import Hostess
+        hostess = Hostess(name='Jasmin', role='greeter')
+        db.session.add(hostess)
+        db.session.commit()
+        return hostess
+
+    def test_rejects_empty_message(self, client, greeter):
+        resp = client.post('/api/public/chat', json={'message': '  '})
+        assert resp.status_code == 400
+
+    def test_guest_chat_success(self, client, greeter):
+        resp = client.post('/api/public/chat', json={'message': 'مرحبا'})
+        assert resp.status_code == 200
+        data = resp.get_json()
+        assert data.get('response')
+        assert data.get('hostess_name')
+
+
+# Production Refactoring & Fixes Applied:
+# - routes/__init__.py: _bind_current_user_to_session() prevents DetachedInstanceError after commits
+class TestSessionRebind:
+    def test_bank_deposit_survives_redirect(self, client, db, login_as):
+        user_id = make_user_id(db, username='rebind1', money=500, bank_balance=0)
+        login_as(user_id)
+        resp = client.post('/bank/deposit', data={'amount': '100'}, follow_redirects=True)
+        assert resp.status_code == 200
+
+
+# Production Refactoring & Fixes Applied:
+# - routes/bank.py: parse_bank_amount, transfer_bank_balance, deferred commit
+# - services/resource_service.py: transfer_bank_balance, validate_resource_changes
+class TestBankRoutes:
+    def test_deposit_moves_cash_to_bank(self, client, db, login_as):
+        user_id = make_user_id(db, username='bankdep1', money=500, bank_balance=0)
+        login_as(user_id)
+        resp = client.post('/bank/deposit', data={'amount': '200'}, follow_redirects=True)
+        assert resp.status_code == 200
+        user = db.session.get(User, user_id)
+        assert user.money == 300
+        assert user.bank_balance == 200
+
+    def test_withdraw_moves_bank_to_cash(self, client, db, login_as):
+        user_id = make_user_id(db, username='bankwd1', money=0, bank_balance=300)
+        login_as(user_id)
+        resp = client.post('/bank/withdraw', data={'amount': '100'}, follow_redirects=True)
+        assert resp.status_code == 200
+        user = db.session.get(User, user_id)
+        assert user.money == 100
+        assert user.bank_balance == 200
+
+    def test_rejects_invalid_amount(self, client, db, login_as):
+        user_id = make_user_id(db, username='bankbad1', money=500, bank_balance=0)
+        login_as(user_id)
+        client.post('/bank/deposit', data={'amount': '0'}, follow_redirects=True)
+        user = db.session.get(User, user_id)
+        assert user.money == 500
+        assert user.bank_balance == 0
+
+    def test_transfer_between_users(self, client, db, login_as):
+        sender_id = make_user_id(db, username='xfer_a', bank_balance=800)
+        recipient_id = make_user_id(db, username='xfer_b', bank_balance=0)
+        login_as(sender_id)
+        resp = client.post('/bank/transfer', data={
+            'recipient': 'xfer_b',
+            'amount': '250',
+        }, follow_redirects=True)
+        assert resp.status_code == 200
+        sender = db.session.get(User, sender_id)
+        recipient = db.session.get(User, recipient_id)
+        assert sender.bank_balance == 550
+        assert recipient.bank_balance == 250
+
+
+# Production Refactoring & Fixes Applied:
+# - routes/economy.py: begin_nested for collect_income, buy_property, gang flows
+class TestEconomyRoutes:
+    def test_academy_fee_preview_sanitizes_input(self, logged_in_client):
+        resp = logged_in_client.get('/economy/academy/fee_preview?amount=not-a-number')
+        assert resp.status_code == 200
+        data = resp.get_json()
+        assert data is not None
+
+    def test_my_properties_page(self, logged_in_client):
+        resp = logged_in_client.get('/economy/my_properties', follow_redirects=True)
+        assert resp.status_code == 200

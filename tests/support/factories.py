@@ -46,6 +46,12 @@ def make_user(
     return db.session.get(User, user_id)
 
 
+def make_user_id(db, **kwargs) -> int:
+    """Stable user id for tests that survive session.remove() after HTTP."""
+    user = make_user(db, **kwargs)
+    return int(user.__dict__['id'])
+
+
 def make_jailed_user(db, *, minutes: int = 60, **kwargs) -> User:
     until = utc_now() + timedelta(minutes=minutes)
     return make_user(db, jail_until=until.replace(tzinfo=None), **kwargs)

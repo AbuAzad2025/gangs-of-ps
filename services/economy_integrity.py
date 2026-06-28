@@ -43,6 +43,33 @@ def resolve_manual_diamond_purchase(amount_usd: int) -> int:
     return diamonds
 
 
+def parse_bank_amount(raw, *, min_value: int = 1) -> int | None:
+    """Sanitize bank/market currency amounts."""
+    return parse_positive_int(
+        raw, min_value=min_value, max_value=ABSOLUTE_MAX_MONEY_DELTA)
+
+
+def validate_resource_changes(
+    changes: dict | None,
+    set_fields: dict | None = None,
+) -> None:
+    """Reject empty, invalid, or extreme resource deltas before ledger mutation."""
+    if not changes and not set_fields:
+        raise SecurityBoundaryViolation('empty resource mutation')
+    if not changes:
+        return
+    if not isinstance(changes, dict):
+        raise SecurityBoundaryViolation('invalid resource changes')
+    for res, amount in changes.items():
+        if not isinstance(amount, (int, float)):
+            raise SecurityBoundaryViolation(f'invalid amount for {res}')
+        delta = int(amount)
+        if res in ('money', 'bank_balance') and abs(delta) > ABSOLUTE_MAX_MONEY_DELTA:
+            raise SecurityBoundaryViolation(f'{res} delta exceeds limit')
+        if res == 'diamonds' and abs(delta) > ABSOLUTE_MAX_DIAMOND_DELTA:
+            raise SecurityBoundaryViolation('diamonds delta exceeds limit')
+
+
 def parse_positive_int(
     raw,
     *,

@@ -296,3 +296,50 @@ class TestResourceAudit:
         disallow_resource_mutation(token)
         assert is_resource_mutation_allowed() is False
 
+
+class TestConfigModule:
+    def test_config_secret_key_exists(self):
+        from config import Config
+        assert Config.SECRET_KEY
+
+    def test_test_config_flags(self):
+        from config import TestConfig
+        assert TestConfig.TESTING is True
+        assert TestConfig.WTF_CSRF_ENABLED is False
+        assert TestConfig.RATELIMIT_ENABLED is False
+
+    def test_postgres_engine_options_have_pool_pre_ping(self):
+        from config import Config
+        opts = Config.SQLALCHEMY_ENGINE_OPTIONS
+        assert opts.get('pool_pre_ping') is True
+
+
+class TestExtensions:
+    def test_extension_singletons_importable(self):
+        from extensions import admin, babel, cache, csrf, db, limiter, login, mail, seo_manager
+        assert db is not None
+        assert login.login_view == 'main.login'
+        assert cache is not None
+        assert seo_manager is not None
+
+    def test_admin_index_requires_admin(self, app, db):
+        from extensions import MyAdminIndexView
+        from tests.support.factories import make_admin, make_user
+        admin_user = make_admin(db, username='extadmin')
+        regular = make_user(db, username='extuser')
+        view = MyAdminIndexView()
+        with app.test_request_context('/'):
+            from flask_login import login_user
+            login_user(regular)
+            assert view.is_accessible() is False
+            login_user(admin_user)
+            assert view.is_accessible() is True
+
+    def test_platform_patch_on_windows(self):
+        import platform
+        from extensions import _patch_platform_for_restricted_windows
+        _patch_platform_for_restricted_windows()
+        release, version, csd, ptype = platform.win32_ver()
+        assert isinstance(release, str)
+        uname = platform.uname()
+        assert uname.system

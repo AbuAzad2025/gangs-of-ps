@@ -5,11 +5,30 @@ from flask_babel import _
 from flask_login import current_user
 
 from extensions import db
-from models.user import UserRole
+from models.user import User, UserRole
 
 bp = Blueprint('main', __name__)
 
 REGISTERED_ROUTE_MODULES = ()
+
+
+def _bind_current_user_to_session():
+    """Re-attach the login user to the active DB session after prior commits."""
+    if not current_user.is_authenticated:
+        return None
+    from flask import g, session as flask_session
+    from sqlalchemy import inspect as sa_inspect
+
+    user_id = flask_session.get('_user_id')
+    if user_id is None:
+        ident = sa_inspect(current_user).identity
+        if not ident:
+            return None
+        user_id = ident[0]
+    user = db.session.get(User, int(user_id))
+    if user is not None:
+        g._login_user = user
+    return user
 
 
 def register_main_routes():
@@ -55,6 +74,8 @@ def register_main_routes():
 @bp.before_app_request
 def before_request():
     if current_user.is_authenticated:
+        if _bind_current_user_to_session() is None:
+            return
         # Throttle last_seen DB writes (every ~90s) — cuts load on chat/market polls
         try:
             from flask import session
@@ -75,6 +96,8 @@ def before_request():
                 db.session.commit()
         except Exception:
             db.session.rollback()
+
+        _bind_current_user_to_session()
 
         # 1. Jail Check (Integration)
         if current_user.jail_until:

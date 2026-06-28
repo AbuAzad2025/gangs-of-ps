@@ -9,9 +9,49 @@ from sqlalchemy.orm.exc import StaleDataError
 import json
 from datetime import datetime, timezone
 from utils.resource_audit import allow_resource_mutation, disallow_resource_mutation
+from services.economy_integrity import (
+    SecurityBoundaryViolation,
+    validate_resource_changes,
+)
 
 
 class ResourceService:
+    @staticmethod
+    def _abort_transaction() -> bool:
+        db.session.rollback()
+        return False
+
+    @staticmethod
+    def transfer_bank_balance(sender_id: int, recipient_id: int, amount: int) -> bool:
+        """Atomic P2P bank transfer with ordered row locks and savepoint rollback."""
+        if sender_id == recipient_id or amount <= 0:
+            return False
+        first_id = min(sender_id, recipient_id)
+        second_id = max(sender_id, recipient_id)
+        try:
+            with db.session.begin_nested():
+                db.session.query(User).filter_by(id=first_id).with_for_update().first()
+                db.session.query(User).filter_by(id=second_id).with_for_update().first()
+                if not ResourceService.modify_resources(
+                    sender_id,
+                    {'bank_balance': -amount},
+                    f'bank_transfer_sent_to_{recipient_id}',
+                    auto_commit=False,
+                ):
+                    raise SecurityBoundaryViolation('sender debit failed')
+                if not ResourceService.modify_resources(
+                    recipient_id,
+                    {'bank_balance': amount},
+                    f'bank_transfer_received_from_{sender_id}',
+                    auto_commit=False,
+                ):
+                    raise SecurityBoundaryViolation('recipient credit failed')
+            db.session.commit()
+            return True
+        except (SecurityBoundaryViolation, SQLAlchemyError):
+            db.session.rollback()
+            return False
+
     @staticmethod
     def modify_resources(
             user_id,
@@ -37,18 +77,24 @@ class ResourceService:
         """
         token = allow_resource_mutation()
         try:
+            try:
+                validate_resource_changes(changes, set_fields)
+            except SecurityBoundaryViolation as exc:
+                current_app.logger.warning('Resource validation failed: %s', exc)
+                return ResourceService._abort_transaction()
+
             # 1. Fetch current state
             user = db.session.query(User).filter_by(
                 id=user_id).populate_existing().with_for_update().first()
             if not user:
-                return False
+                return ResourceService._abort_transaction()
 
             # Optimistic Locking Check
             if expected_version is not None and user.version != expected_version:
                 got_version = user.version
                 current_app.logger.warning(
                     f"Transaction Failed: Version Mismatch (Expected {expected_version}, Got {got_version})")
-                return False
+                return ResourceService._abort_transaction()
 
             # Daily Money Limit Check
             if 'money' in changes and changes['money'] > 0:
@@ -81,7 +127,6 @@ class ResourceService:
                         current_daily = user.daily_money_earned or 0
 
                         if current_daily >= limit:
-                            db.session.rollback()
                             try:
                                 flash(
                                     _(
@@ -91,12 +136,11 @@ class ResourceService:
                                     'warning')
                             except BaseException:
                                 pass
-                            return False
+                            return ResourceService._abort_transaction()
                         if current_daily + changes['money'] > limit:
                             allowed = limit - current_daily
                             if allowed <= 0:
-                                db.session.rollback()
-                                return False
+                                return ResourceService._abort_transaction()
                             changes['money'] = allowed
                             user.daily_money_earned += allowed
                             try:
@@ -142,7 +186,7 @@ class ResourceService:
                                 current_val,
                                 amount,
                             )
-                            return False  # Insufficient funds
+                            return ResourceService._abort_transaction()  # Insufficient funds
 
             # 3. Apply Changes
             # Since we used with_for_update(), we can safely modify the object.
@@ -213,11 +257,9 @@ class ResourceService:
             return True
 
         except StaleDataError:
-            db.session.rollback()
-            # Optimistic locking failure - data changed concurrently
             current_app.logger.warning(
                 "Transaction Failed: StaleDataError (Concurrent Modification)")
-            return False
+            return ResourceService._abort_transaction()
 
         except SQLAlchemyError as e:
             db.session.rollback()

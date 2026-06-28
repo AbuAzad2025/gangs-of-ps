@@ -84,21 +84,30 @@ def apply_daily_sinks():
 
             fee, reason = calculate_bank_fee(user.bank_balance, config)
             if fee > 0:
-                # Use ResourceService for atomic update and locking
-                if ResourceService.modify_resources(
-                    user.id, {
-                        'bank_balance': -fee}, 'bank_fee', auto_commit=False, expected_version=None):
-                    log = MoneySinkLog(
-                        user_id=user.id,
-                        sink_type="bank_fee",
-                        amount=fee,
-                        details=reason
-                    )
-                    db.session.add(log)
+                try:
+                    with db.session.begin_nested():
+                        if not ResourceService.modify_resources(
+                            user.id,
+                            {'bank_balance': -fee},
+                            'bank_fee',
+                            auto_commit=False,
+                            expected_version=None,
+                        ):
+                            raise ValueError('bank fee debit failed')
+                        log = MoneySinkLog(
+                            user_id=user.id,
+                            sink_type="bank_fee",
+                            amount=fee,
+                            details=reason,
+                        )
+                        db.session.add(log)
                     db.session.commit()
-
                     total_fees += fee
                     count += 1
+                except Exception as sink_exc:
+                    current_app.logger.error(
+                        f"Bank fee sink failed for user {uid}: {sink_exc}")
+                    db.session.rollback()
         except Exception as e:
             current_app.logger.error(f"Error applying fee for user {uid}: {e}")
             db.session.rollback()

@@ -17,7 +17,9 @@ from services.economy_integrity import (
     SecurityBoundaryViolation,
     log_suspicious,
     parse_positive_int,
+    parse_bank_amount,
     resolve_manual_diamond_purchase,
+    validate_resource_changes,
     validate_stripe_webhook_credit,
 )
 from services.economy_policy import (
@@ -141,6 +143,36 @@ class TestParsePositiveInt:
 
     def test_default_zero_allowed(self):
         assert parse_positive_int(0, min_value=0) == 0
+
+
+# Production Refactoring & Fixes Applied:
+# - services/economy_integrity.py: parse_bank_amount, validate_resource_changes
+class TestParseBankAmount:
+    def test_valid_amount(self):
+        assert parse_bank_amount(500) == 500
+
+    def test_rejects_zero(self):
+        assert parse_bank_amount(0) is None
+
+    def test_rejects_huge_amount(self):
+        assert parse_bank_amount(ABSOLUTE_MAX_MONEY_DELTA + 1) is None
+
+
+class TestValidateResourceChanges:
+    def test_rejects_empty_mutation(self):
+        with pytest.raises(SecurityBoundaryViolation):
+            validate_resource_changes({}, set_fields=None)
+
+    def test_allows_set_fields_only(self):
+        validate_resource_changes({}, set_fields={'jail_until': None})
+
+    def test_rejects_extreme_money_delta(self):
+        with pytest.raises(SecurityBoundaryViolation):
+            validate_resource_changes({'money': ABSOLUTE_MAX_MONEY_DELTA + 1})
+
+    def test_rejects_extreme_diamond_delta(self):
+        with pytest.raises(SecurityBoundaryViolation):
+            validate_resource_changes({'diamonds': ABSOLUTE_MAX_DIAMOND_DELTA + 1})
 
     def test_constants_sane(self):
         assert ABSOLUTE_MAX_MONEY_DELTA > 0
@@ -326,6 +358,73 @@ class TestResourceService:
         assert ok is True
         user = db.session.get(User, user_id)
         assert user.daily_money_earned == 50
+
+    def test_rejects_extreme_money_delta(self, app, db):
+        user = make_user(db, username='res9', money=100)
+        with app.test_request_context('/'):
+            ok = ResourceService.modify_resources(
+                user.id,
+                {'money': ABSOLUTE_MAX_MONEY_DELTA + 1},
+                'exploit',
+            )
+        assert ok is False
+
+
+# Production Refactoring & Fixes Applied:
+# - services/resource_service.py: transfer_bank_balance with begin_nested savepoint
+class TestBankTransferAtomic:
+    def test_transfer_moves_bank_balance(self, app, db):
+        sender = make_user(db, username='banksend', bank_balance=1000, money=0)
+        recipient = make_user(db, username='bankrecv', bank_balance=0, money=0)
+        sender_id, recipient_id = int(sender.id), int(recipient.id)
+        with app.test_request_context('/'):
+            ok = ResourceService.transfer_bank_balance(sender_id, recipient_id, 400)
+        assert ok is True
+        sender = db.session.get(User, sender_id)
+        recipient = db.session.get(User, recipient_id)
+        assert sender.bank_balance == 600
+        assert recipient.bank_balance == 400
+
+    def test_transfer_rolls_back_on_insufficient_funds(self, app, db):
+        sender = make_user(db, username='bankpoor', bank_balance=50)
+        recipient = make_user(db, username='bankrich', bank_balance=0)
+        sender_id, recipient_id = int(sender.id), int(recipient.id)
+        with app.test_request_context('/'):
+            ok = ResourceService.transfer_bank_balance(sender_id, recipient_id, 100)
+        assert ok is False
+        sender = db.session.get(User, sender_id)
+        recipient = db.session.get(User, recipient_id)
+        assert sender.bank_balance == 50
+        assert recipient.bank_balance == 0
+
+    def test_transfer_rejects_self(self, app, db):
+        user = make_user(db, username='bankself', bank_balance=100)
+        with app.test_request_context('/'):
+            assert ResourceService.transfer_bank_balance(int(user.id), int(user.id), 10) is False
+
+
+# Production Refactoring & Fixes Applied:
+# - services/market_trading.py: parse_bank_amount boundary sanitization
+class TestMarketTradingPay:
+    def test_rejects_negative_amount(self, app, db):
+        from services.market_trading import pay_from_game_balance
+        user = make_user(db, username='trader1', money=1000)
+        with app.app_context():
+            ok, err, _ = pay_from_game_balance(user.id, -5, 'market_buy')
+        assert ok is False
+        assert err is not None
+
+    def test_pays_from_cash(self, app, db):
+        from services.market_trading import pay_from_game_balance
+        user = make_user(db, username='trader2', money=500, bank_balance=200)
+        user_id = int(user.id)
+        with app.test_request_context('/'):
+            ok, err, breakdown = pay_from_game_balance(user_id, 100, 'market_buy')
+        assert ok is True
+        assert err is None
+        assert breakdown['from_cash'] == 100
+        user = db.session.get(User, user_id)
+        assert user.money == 400
 
 
 class TestStripeEnabled:
@@ -590,3 +689,143 @@ class TestGangService:
         from services.gang_service import GangService
         with app.app_context():
             assert GangService.get_gang_buff(gang_with_upgrades.id, 'nonexistent_buff') == 0
+
+
+class TestEmpireService:
+    def test_dashboard_wealth_and_score(self, app, db):
+        from services.empire_service import get_empire_dashboard
+        user = make_user(db, username='empire1', money=50_000, bank_balance=25_000, level=5)
+        with app.app_context():
+            dash = get_empire_dashboard(user, heat=3, gang=None)
+        assert dash['wealth'] == 75_000
+        assert dash['cash'] == 50_000
+        assert dash['bank'] == 25_000
+        assert 5 <= dash['empire_score'] <= 100
+        assert len(dash['quick_actions']) >= 4
+        assert dash['economy_health']['score'] >= 0
+
+    def test_dashboard_with_gang_boosts_score(self, app, db, gang_with_upgrades):
+        from services.empire_service import get_empire_dashboard
+        user = make_user(db, username='empire2', money=10_000, level=3)
+        with app.app_context():
+            no_gang = get_empire_dashboard(user, heat=0, gang=None)['empire_score']
+            with_gang = get_empire_dashboard(
+                user, heat=0, gang=gang_with_upgrades)['empire_score']
+        assert with_gang >= no_gang
+
+
+class TestMarketEducation:
+    def test_concepts_list_not_empty(self, app):
+        from services.market_education import get_market_concepts
+        with app.app_context():
+            concepts = get_market_concepts()
+        assert len(concepts) >= 5
+        assert all('title' in c and 'body' in c for c in concepts)
+
+    def test_empty_portfolio_tips(self, app):
+        from services.market_education import analyze_portfolio
+        with app.app_context():
+            result = analyze_portfolio([], cash=1000, bank=500)
+        assert result['diversification_score'] == 0
+        assert result['asset_count'] == 0
+        assert len(result['tips']) >= 1
+
+    def test_concentrated_portfolio_warning(self, app, db):
+        from models.market import MarketAsset, UserInvestment
+        from services.market_education import analyze_portfolio
+        user = make_user(db, username='investor1', money=5000)
+        stock = MarketAsset(symbol='TST', name='Test Co', asset_type='stock', current_price=10.0)
+        db.session.add(stock)
+        db.session.flush()
+        inv = UserInvestment(
+            user_id=user.id,
+            asset_id=stock.id,
+            quantity=100.0,
+            average_buy_price=8.0,
+        )
+        db.session.add(inv)
+        db.session.commit()
+        with app.app_context():
+            result = analyze_portfolio([inv], assets_by_id={stock.id: stock}, cash=100)
+        assert result['asset_count'] == 1
+        assert result['largest_weight_pct'] == 100
+        assert result['diversification_score'] < 50
+
+    def test_diversified_portfolio_scores_higher(self, app, db):
+        from models.market import MarketAsset, UserInvestment
+        from services.market_education import analyze_portfolio
+        user = make_user(db, username='investor2')
+        assets = [
+            MarketAsset(symbol='AAA', name='Alpha', asset_type='stock', current_price=10.0),
+            MarketAsset(symbol='BBB', name='Beta', asset_type='crypto', current_price=5.0),
+        ]
+        db.session.add_all(assets)
+        db.session.flush()
+        invs = [
+            UserInvestment(user_id=user.id, asset_id=assets[0].id, quantity=50.0, average_buy_price=9.0),
+            UserInvestment(user_id=user.id, asset_id=assets[1].id, quantity=40.0, average_buy_price=4.0),
+        ]
+        db.session.add_all(invs)
+        db.session.commit()
+        assets_by_id = {a.id: a for a in assets}
+        with app.app_context():
+            result = analyze_portfolio(invs, assets_by_id=assets_by_id, cash=500)
+        assert result['asset_count'] == 2
+        assert result['diversification_score'] >= 45
+
+
+class TestHostessTrainingService:
+    def test_build_greeter_prompt(self, app):
+        from services.hostess_training_service import build_greeter_leader_prompt
+        hostess = type('H', (), {'name': 'Jasmin', 'dialogue_style': 'friendly'})()
+        with app.app_context():
+            prompt = build_greeter_leader_prompt(hostess)
+        assert 'Jasmin' in prompt or len(prompt) > 20
+
+    def test_training_examples_json(self, app):
+        import json
+        from services.hostess_training_service import (
+            build_greeter_leader_examples,
+            build_greeter_leader_training_json,
+        )
+        hostess = type('H', (), {'name': 'Greeter'})()
+        with app.app_context():
+            examples = build_greeter_leader_examples()
+            payload = build_greeter_leader_training_json(hostess)
+        assert len(examples) >= 3
+        parsed = json.loads(payload)
+        assert isinstance(parsed, list)
+
+
+class TestGreeterService:
+    @pytest.fixture
+    def greeter_hostess(self, app, db):
+        from models.hostess import Hostess
+        hostess = Hostess(name='Jasmin', role='greeter', dialogue_style='friendly')
+        db.session.add(hostess)
+        db.session.commit()
+        return hostess
+
+    def test_get_greeter_by_role(self, app, greeter_hostess):
+        from services.greeter_service import get_greeter_hostess
+        with app.app_context():
+            found = get_greeter_hostess()
+        assert found is not None
+        assert found.role == 'greeter'
+
+    def test_process_empty_message_rejected(self, app, greeter_hostess):
+        from services.greeter_service import process_assistant_message
+        with app.app_context():
+            payload, err, status = process_assistant_message('   ')
+        assert payload is None
+        assert status == 400
+
+    def test_process_message_rule_based_fallback(self, app, greeter_hostess, client):
+        from services.greeter_service import process_assistant_message
+        with app.app_context():
+            with client.session_transaction() as sess:
+                sess['_user_id'] = None
+            payload, err, status = process_assistant_message('كيف أبدأ؟')
+        assert status == 200
+        assert payload is not None
+        assert 'response' in payload

@@ -78,29 +78,32 @@ def collect_income(asset_id):
     maintenance = asset.maintenance_cost or 0
     net_income = asset.income - maintenance
 
-    # Atomic update via ResourceService
-    if not ResourceService.modify_resources(
-        current_user.id,
-        {'money': net_income},
-        'property_income_collection',
-        auto_commit=False,
-        expected_version=current_user.version
-    ):
+    try:
+        with db.session.begin_nested():
+            if not ResourceService.modify_resources(
+                current_user.id,
+                {'money': net_income},
+                'property_income_collection',
+                auto_commit=False,
+                expected_version=current_user.version,
+            ):
+                raise ValueError('property income credit failed')
+
+            if maintenance > 0:
+                sink_log = MoneySinkLog(
+                    user_id=current_user.id,
+                    sink_type='property_maintenance',
+                    amount=maintenance,
+                    details=f"Maintenance for {asset.name}",
+                )
+                db.session.add(sink_log)
+
+            asset.last_collected = datetime.now(timezone.utc).replace(tzinfo=None)
+        db.session.commit()
+    except Exception:
+        db.session.rollback()
         flash(_('حدث خطأ أثناء جمع الدخل. يرجى المحاولة مرة أخرى.'), 'danger')
         return redirect(url_for('economy.my_properties'))
-
-    # Log sink
-    if maintenance > 0:
-        sink_log = MoneySinkLog(
-            user_id=current_user.id,
-            sink_type='property_maintenance',
-            amount=maintenance,
-            details=f"Maintenance for {asset.name}"
-        )
-        db.session.add(sink_log)
-
-    asset.last_collected = datetime.now(timezone.utc).replace(tzinfo=None)
-    db.session.commit()
 
     if maintenance > 0:
         flash(_('تم جمع الدخل %(income)s $ ودفع صيانة %(maint)s $. الصافي: %(net)s $',
@@ -189,33 +192,36 @@ def collect_gang_income(asset_id):
     except Exception:
         pass
 
-    # Update Gang Money Atomic
-    Gang.query.filter(Gang.id == gang.id).update({
-        Gang.money: Gang.money + net_income
-    }, synchronize_session=False)
+    try:
+        with db.session.begin_nested():
+            Gang.query.filter(Gang.id == gang.id).update({
+                Gang.money: Gang.money + net_income,
+            }, synchronize_session=False)
 
-    # Log sink
-    if maintenance > 0:
-        sink_log = MoneySinkLog(
-            user_id=current_user.id,
-            # Logged under user who collected, or maybe null? User is fine.
-            sink_type='gang_property_maintenance',
-            amount=maintenance,
-            details=f"Gang Maintenance for {asset.name} (Gang {gang.name})"
-        )
-        db.session.add(sink_log)
+            if maintenance > 0:
+                sink_log = MoneySinkLog(
+                    user_id=current_user.id,
+                    sink_type='gang_property_maintenance',
+                    amount=maintenance,
+                    details=f"Gang Maintenance for {asset.name} (Gang {gang.name})",
+                )
+                db.session.add(sink_log)
 
-    # Gang Log
-    log = GangLog(
-        gang_id=gang.id,
-        user_id=current_user.id,
-        action=_('جمع دخل عقار %(asset)s: +%(net)s$ (صيانة: -%(maint)s$)',
-                 asset=asset.name, net=net_income, maint=maintenance)
-    )
-    db.session.add(log)
-
-    asset.last_collected = datetime.now(timezone.utc).replace(tzinfo=None)
-    db.session.commit()
+            log = GangLog(
+                gang_id=gang.id,
+                user_id=current_user.id,
+                action=_(
+                    'جمع دخل عقار %(asset)s: +%(net)s$ (صيانة: -%(maint)s$)',
+                    asset=asset.name, net=net_income, maint=maintenance,
+                ),
+            )
+            db.session.add(log)
+            asset.last_collected = datetime.now(timezone.utc).replace(tzinfo=None)
+        db.session.commit()
+    except Exception:
+        db.session.rollback()
+        flash(_('حدث خطأ أثناء جمع إيجار العصابة.'), 'danger')
+        return redirect(url_for('gang.dashboard'))
 
     flash(_('تم جمع الدخل لصالح العصابة بنجاح!'), 'success')
     return redirect(url_for('gang.dashboard'))
@@ -237,35 +243,32 @@ def buy_property(asset_id):
         flash(_('معكش مصاري كفاية يا معلم!'), 'danger')
         return redirect(url_for('economy.properties'))
 
-    # Lock user to prevent race conditions
-    db.session.query(User).filter_by(
-        id=current_user.id).with_for_update().first()
+    try:
+        with db.session.begin_nested():
+            if not ResourceService.modify_resources(
+                current_user.id,
+                {'money': -asset_template.value},
+                'buy_property',
+                auto_commit=False,
+                expected_version=None,
+            ):
+                raise ValueError('insufficient funds')
 
-    # Atomic deduction via ResourceService
-    if not ResourceService.modify_resources(
-        current_user.id,
-        {'money': -asset_template.value},
-        'buy_property',
-        auto_commit=False,
-        expected_version=None
-    ):
+            new_asset = Asset(
+                name=asset_template.name,
+                type=asset_template.type,
+                owner_id=current_user.id,
+                value=asset_template.value,
+                income=asset_template.income,
+                image=asset_template.image,
+                is_active=True,
+            )
+            db.session.add(new_asset)
+        db.session.commit()
+    except Exception:
         db.session.rollback()
         flash(_('معكش مصاري كفاية يا معلم! أو حدث خطأ.'), 'danger')
         return redirect(url_for('economy.properties'))
-
-    # Create new owned asset based on template
-    new_asset = Asset(
-        name=asset_template.name,
-        type=asset_template.type,
-        owner_id=current_user.id,
-        value=asset_template.value,
-        income=asset_template.income,
-        image=asset_template.image,
-        is_active=True
-    )
-
-    db.session.add(new_asset)
-    db.session.commit()
 
     flash(_('مبروك! اشتريت %(name)s بنجاح.', name=asset_template.name), 'success')
     return redirect(url_for('economy.properties'))
@@ -327,24 +330,33 @@ def buy_gang_property(asset_id):
         flash(_('خزينة العصابة لا تكفي!'), 'danger')
         return redirect(url_for('economy.properties'))
 
-    rows = Gang.query.filter(Gang.id == gang.id, Gang.money >= asset_template.value).update(
-        {Gang.money: Gang.money - asset_template.value}, synchronize_session=False, )
-    if rows == 0:
+    try:
+        with db.session.begin_nested():
+            rows = Gang.query.filter(
+                Gang.id == gang.id,
+                Gang.money >= asset_template.value,
+            ).update(
+                {Gang.money: Gang.money - asset_template.value},
+                synchronize_session=False,
+            )
+            if rows == 0:
+                raise ValueError('insufficient gang treasury')
+
+            new_asset = Asset(
+                name=asset_template.name,
+                type=asset_template.type,
+                gang_id=gang.id,
+                value=asset_template.value,
+                income=asset_template.income,
+                image=asset_template.image,
+                is_active=True,
+            )
+            db.session.add(new_asset)
+        db.session.commit()
+    except Exception:
+        db.session.rollback()
         flash(_('خزينة العصابة لا تكفي!'), 'danger')
         return redirect(url_for('economy.properties'))
-
-    new_asset = Asset(
-        name=asset_template.name,
-        type=asset_template.type,
-        gang_id=gang.id,
-        value=asset_template.value,
-        income=asset_template.income,
-        image=asset_template.image,
-        is_active=True
-    )
-
-    db.session.add(new_asset)
-    db.session.commit()
 
     flash(_('مبروك! تم شراء %(name)s للعصابة.',
           name=asset_template.name), 'success')
@@ -386,10 +398,8 @@ def academy():
 @bp.route('/academy/fee_preview')
 @login_required
 def academy_fee_preview():
-    try:
-        amount = int(request.args.get('amount', 0))
-    except (TypeError, ValueError):
-        amount = 0
+    from services.economy_integrity import parse_bank_amount
     from services.economy_academy import preview_bank_fee
 
+    amount = parse_bank_amount(request.args.get('amount', 0), min_value=0) or 0
     return jsonify(preview_bank_fee(amount))

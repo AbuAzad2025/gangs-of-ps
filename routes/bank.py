@@ -6,9 +6,41 @@ from models.user import User
 from datetime import datetime, timezone
 from utils.decorators import check_maintenance, player_only
 from services.resource_service import ResourceService
+from services.economy_integrity import parse_bank_amount
 from routes.utils import track_academy_visit, update_daily_task_progress
 
 bp = Blueprint('bank', __name__, url_prefix='/bank')
+
+
+def _parse_amount(raw) -> int | None:
+    return parse_bank_amount(raw, min_value=1)
+
+
+def _bank_blocked_redirect():
+    """Disaster recovery: status checks return user to the correct blocking screen."""
+    now = datetime.now(timezone.utc)
+    if current_user.jail_until:
+        jail_until = current_user.jail_until
+        if jail_until.tzinfo is None:
+            jail_until = jail_until.replace(tzinfo=timezone.utc)
+        if jail_until > now:
+            flash(_('أنت في السجن ولا يمكنك استخدام البنك!'), 'danger')
+            return redirect(url_for('jail.index'))
+    if current_user.hospital_until:
+        hospital_until = current_user.hospital_until
+        if hospital_until.tzinfo is None:
+            hospital_until = hospital_until.replace(tzinfo=timezone.utc)
+        if hospital_until > now:
+            flash(_('أنت في المستشفى ولا يمكنك استخدام البنك!'), 'danger')
+            return redirect(url_for('hospital.index'))
+    if current_user.gym_until:
+        gym_until = current_user.gym_until
+        if gym_until.tzinfo is None:
+            gym_until = gym_until.replace(tzinfo=timezone.utc)
+        if gym_until > now:
+            flash(_('أنت تتدرب ولا يمكنك استخدام البنك!'), 'danger')
+            return redirect(url_for('gym.index'))
+    return None
 
 
 @bp.route('/')
@@ -37,39 +69,12 @@ def index():
 @login_required
 @limiter.limit("20 per minute")
 def deposit():
-    # Status Check
-    now = datetime.now(timezone.utc)
-    if current_user.jail_until:
-        jail_until = current_user.jail_until
-        if jail_until.tzinfo is None:
-            jail_until = jail_until.replace(tzinfo=timezone.utc)
-        if jail_until > now:
-            flash(_('أنت في السجن ولا يمكنك استخدام البنك!'), 'danger')
-            return redirect(url_for('jail.index'))
+    blocked = _bank_blocked_redirect()
+    if blocked:
+        return blocked
 
-    if current_user.hospital_until:
-        hospital_until = current_user.hospital_until
-        if hospital_until.tzinfo is None:
-            hospital_until = hospital_until.replace(tzinfo=timezone.utc)
-        if hospital_until > now:
-            flash(_('أنت في المستشفى ولا يمكنك استخدام البنك!'), 'danger')
-            return redirect(url_for('hospital.index'))
-
-    if current_user.gym_until:
-        gym_until = current_user.gym_until
-        if gym_until.tzinfo is None:
-            gym_until = gym_until.replace(tzinfo=timezone.utc)
-        if gym_until > now:
-            flash(_('أنت تتدرب ولا يمكنك استخدام البنك!'), 'danger')
-            return redirect(url_for('gym.index'))
-
-    try:
-        amount = int(request.form.get('amount', 0))
-    except ValueError:
-        flash(_('مبلغ غير صالح!'), 'danger')
-        return redirect(url_for('bank.index'))
-
-    if amount <= 0:
+    amount = _parse_amount(request.form.get('amount', 0))
+    if amount is None:
         flash(_('مبلغ غير صالح!'), 'danger')
         return redirect(url_for('bank.index'))
 
@@ -77,18 +82,25 @@ def deposit():
         flash(_('لا تملك مالاً كافياً للإيداع!'), 'danger')
         return redirect(url_for('bank.index'))
 
-    # Atomic Update using ResourceService (logs before/after)
     if not ResourceService.modify_resources(
         current_user.id,
         {'money': -amount, 'bank_balance': amount},
         'bank_deposit',
-        auto_commit=True
+        auto_commit=False,
     ):
+        db.session.rollback()
         flash(_('لا تملك مالاً كافياً للإيداع!'), 'danger')
         return redirect(url_for('bank.index'))
 
+    try:
+        user_ref = db.session.get(User, current_user.id)
+        update_daily_task_progress(user_ref, 'bank_deposit')
+        db.session.commit()
+    except Exception:
+        db.session.rollback()
+        flash(_('حدث خطأ أثناء الإيداع. حاول مرة أخرى.'), 'danger')
+        return redirect(url_for('bank.index'))
     flash(_('تم إيداع %(amount)s في البنك.', amount=amount), 'success')
-    update_daily_task_progress(current_user, 'bank_deposit')
     return redirect(url_for('bank.index', fx='deposit', amt=amount))
 
 
@@ -96,35 +108,12 @@ def deposit():
 @login_required
 @limiter.limit("20 per minute")
 def withdraw():
-    # Status Check
-    now = datetime.now(timezone.utc)
-    if current_user.jail_until:
-        jail_until = current_user.jail_until
-        if jail_until.tzinfo is None:
-            jail_until = jail_until.replace(tzinfo=timezone.utc)
-        if jail_until > now:
-            flash(_('أنت في السجن ولا يمكنك استخدام البنك!'), 'danger')
-            return redirect(url_for('jail.index'))
+    blocked = _bank_blocked_redirect()
+    if blocked:
+        return blocked
 
-    if current_user.hospital_until:
-        hospital_until = current_user.hospital_until
-        if hospital_until.tzinfo is None:
-            hospital_until = hospital_until.replace(tzinfo=timezone.utc)
-        if hospital_until > now:
-            flash(_('أنت في المستشفى ولا يمكنك استخدام البنك!'), 'danger')
-            return redirect(url_for('hospital.index'))
-
-    if current_user.gym_until:
-        gym_until = current_user.gym_until
-        if gym_until.tzinfo is None:
-            gym_until = gym_until.replace(tzinfo=timezone.utc)
-        if gym_until > now:
-            flash(_('أنت تتدرب ولا يمكنك استخدام البنك!'), 'danger')
-            return redirect(url_for('gym.index'))
-
-    amount = int(request.form.get('amount', 0))
-
-    if amount <= 0:
+    amount = _parse_amount(request.form.get('amount', 0))
+    if amount is None:
         flash(_('مبلغ غير صالح!'), 'danger')
         return redirect(url_for('bank.index'))
 
@@ -132,18 +121,21 @@ def withdraw():
         flash(_('رصيدك في البنك غير كافٍ!'), 'danger')
         return redirect(url_for('bank.index'))
 
-    # Atomic Update using ResourceService (logs before/after)
-    # Check bank_balance explicitly in ResourceService call via check_balance logic
-    # Note: ResourceService checks balance for negative changes.
-    # Here we decrement bank_balance, so it will check if bank_balance >=
-    # amount.
     if not ResourceService.modify_resources(
         current_user.id,
         {'bank_balance': -amount, 'money': amount},
         'bank_withdraw',
-        auto_commit=True
+        auto_commit=False,
     ):
+        db.session.rollback()
         flash(_('رصيدك في البنك غير كافٍ!'), 'danger')
+        return redirect(url_for('bank.index'))
+
+    try:
+        db.session.commit()
+    except Exception:
+        db.session.rollback()
+        flash(_('حدث خطأ أثناء السحب. حاول مرة أخرى.'), 'danger')
         return redirect(url_for('bank.index'))
 
     flash(_('تم سحب %(amount)s من البنك.', amount=amount), 'success')
@@ -156,44 +148,18 @@ def withdraw():
 @player_only
 @limiter.limit("5 per hour")
 def transfer():
-    # Status Check
-    now = datetime.now(timezone.utc)
-    if current_user.jail_until:
-        jail_until = current_user.jail_until
-        if jail_until.tzinfo is None:
-            jail_until = jail_until.replace(tzinfo=timezone.utc)
-        if jail_until > now:
-            flash(_('أنت في السجن ولا يمكنك استخدام البنك!'), 'danger')
-            return redirect(url_for('jail.index'))
+    blocked = _bank_blocked_redirect()
+    if blocked:
+        return blocked
 
-    if current_user.hospital_until:
-        hospital_until = current_user.hospital_until
-        if hospital_until.tzinfo is None:
-            hospital_until = hospital_until.replace(tzinfo=timezone.utc)
-        if hospital_until > now:
-            flash(_('أنت في المستشفى ولا يمكنك استخدام البنك!'), 'danger')
-            return redirect(url_for('hospital.index'))
-
-    if current_user.gym_until:
-        gym_until = current_user.gym_until
-        if gym_until.tzinfo is None:
-            gym_until = gym_until.replace(tzinfo=timezone.utc)
-        if gym_until > now:
-            flash(_('أنت تتدرب ولا يمكنك استخدام البنك!'), 'danger')
-            return redirect(url_for('gym.index'))
-
-    recipient_name = request.form.get('recipient')
-    try:
-        amount = int(request.form.get('amount', 0))
-    except ValueError:
-        flash(_('مبلغ غير صالح!'), 'danger')
-        return redirect(url_for('bank.index'))
+    recipient_name = (request.form.get('recipient') or '').strip()
+    amount = _parse_amount(request.form.get('amount', 0))
 
     if not recipient_name:
         flash(_('يجب تحديد اسم المستلم!'), 'danger')
         return redirect(url_for('bank.index'))
 
-    if amount <= 0:
+    if amount is None:
         flash(_('مبلغ غير صالح!'), 'danger')
         return redirect(url_for('bank.index'))
 
@@ -202,7 +168,6 @@ def transfer():
         return redirect(url_for('bank.index'))
 
     recipient = User.query.filter_by(username=recipient_name).first()
-
     if not recipient:
         flash(_('المستخدم غير موجود!'), 'danger')
         return redirect(url_for('bank.index'))
@@ -211,45 +176,9 @@ def transfer():
         flash(_('لا يمكنك التحويل لنفسك!'), 'danger')
         return redirect(url_for('bank.index'))
 
-    # Prevent Deadlock: Lock users in ID order (consistent locking order)
-    # This ensures that if A sends to B and B sends to A simultaneously,
-    # both threads will try to lock the lower ID first, preventing deadlock.
-    first_id = min(current_user.id, recipient.id)
-    second_id = max(current_user.id, recipient.id)
-
-    # We must lock both before modifying any to avoid deadlock waiting
-    # Note: We don't use the result here, just acquiring the row lock for the
-    # transaction.
-    db.session.query(User).filter_by(id=first_id).with_for_update().first()
-    db.session.query(User).filter_by(id=second_id).with_for_update().first()
-
-    # Atomic Update using ResourceService
-    # 1. Deduct from sender
-    if not ResourceService.modify_resources(
-        current_user.id,
-        {'bank_balance': -amount},
-        f'bank_transfer_sent_to_{recipient.id}',
-        auto_commit=False,
-        expected_version=None
-    ):
-        flash(_('رصيدك في البنك غير كافٍ!'), 'danger')
-        db.session.rollback()
-        return redirect(url_for('bank.index'))
-
-    # 2. Add to recipient
-    if not ResourceService.modify_resources(
-        recipient.id,
-        {'bank_balance': amount},
-        f'bank_transfer_received_from_{current_user.id}',
-        auto_commit=False,
-        expected_version=None
-    ):
-        # Should not happen unless recipient deleted or locked?
-        db.session.rollback()
+    if not ResourceService.transfer_bank_balance(current_user.id, recipient.id, amount):
         flash(_('حدث خطأ أثناء التحويل!'), 'danger')
         return redirect(url_for('bank.index'))
-
-    db.session.commit()
 
     flash(_('تم تحويل %(amount)s إلى %(name)s بنجاح.',
           amount=amount, name=recipient.username), 'success')
