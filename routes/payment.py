@@ -15,6 +15,11 @@ from services.stripe_service import (
     stripe_enabled,
 )
 from sqlalchemy.exc import IntegrityError
+from services.economy_integrity import (
+    SecurityBoundaryViolation,
+    resolve_manual_diamond_purchase,
+    validate_stripe_webhook_credit,
+)
 from services.economy_policy import (
     SUPPORT_WHATSAPP_DISPLAY,
     get_whatsapp_diamond_purchase_url,
@@ -40,14 +45,12 @@ def buy_diamonds():
         'next') or request.form.get('next') or '')
     form = ManualPaymentForm()
     if form.validate_on_submit():
-        amount = int(form.amount_usd.data)
-        diamonds_map = {
-            5: 100,
-            10: 250,
-            50: 1500,
-            100: 4000
-        }
-        diamonds = diamonds_map.get(amount, 0)
+        try:
+            amount = int(form.amount_usd.data)
+            diamonds = resolve_manual_diamond_purchase(amount)
+        except (ValueError, TypeError, SecurityBoundaryViolation):
+            flash(_('قيمة الشحن غير صالحة.'), 'danger')
+            return redirect(url_for('main.buy_diamonds'))
 
         trans_id = str(uuid.uuid4())
         transaction = PaymentTransaction(
@@ -138,8 +141,11 @@ def stripe_webhook():
 
     user_id = int(result.get('user_id') or 0)
     diamonds = int(result.get('diamonds') or 0)
-    if user_id <= 0 or diamonds <= 0:
-        return {'ok': False, 'error': 'invalid metadata'}, 400
+    try:
+        validate_stripe_webhook_credit(user_id, diamonds)
+    except SecurityBoundaryViolation as exc:
+        current_app.logger.warning('Stripe webhook boundary: %s', exc)
+        return {'ok': False, 'error': str(exc)}, 400
 
     session_id = result.get('session_id') or ''
     if not session_id:
@@ -152,18 +158,30 @@ def stripe_webhook():
         return {'ok': True}, 200
 
     try:
-        tx = PaymentTransaction(
-            user_id=user_id,
-            amount_usd=float(result.get('amount_usd') or 0),
-            diamonds_amount=diamonds,
-            transaction_id=session_id,
-            status='processing',
-            payment_method='stripe',
-            payment_proof='stripe webhook',
-            is_verified=False,
-        )
-        db.session.add(tx)
-        db.session.flush()
+        with db.session.begin_nested():
+            tx = PaymentTransaction(
+                user_id=user_id,
+                amount_usd=float(result.get('amount_usd') or 0),
+                diamonds_amount=diamonds,
+                transaction_id=session_id,
+                status='processing',
+                payment_method='stripe',
+                payment_proof='stripe webhook',
+                is_verified=False,
+            )
+            db.session.add(tx)
+            db.session.flush()
+            if not ResourceService.modify_resources(
+                user_id,
+                {'diamonds': diamonds},
+                'stripe_checkout',
+                auto_commit=False,
+                expected_version=None,
+            ):
+                raise SecurityBoundaryViolation('resource credit failed')
+            tx.status = 'completed'
+            tx.is_verified = True
+        db.session.commit()
     except IntegrityError:
         db.session.rollback()
         dup = PaymentTransaction.query.filter_by(transaction_id=session_id).first()
@@ -172,20 +190,10 @@ def stripe_webhook():
         current_app.logger.warning(
             'Stripe webhook duplicate race for session %s', session_id)
         return {'ok': True}, 200
-
-    if not ResourceService.modify_resources(
-        user_id,
-        {'diamonds': diamonds},
-        'stripe_checkout',
-        auto_commit=False,
-        expected_version=None,
-    ):
+    except SecurityBoundaryViolation:
         db.session.rollback()
         return {'ok': False}, 500
 
-    tx.status = 'completed'
-    tx.is_verified = True
-    db.session.commit()
     return {'ok': True}, 200
 
 # Secure or remove the debug route

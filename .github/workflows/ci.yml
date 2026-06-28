@@ -96,14 +96,23 @@ jobs:
             --cov \
             --cov-fail-under=0 \
             --cov-report=term-missing \
-            --cov-report=xml:coverage.xml
+            --cov-report=xml:coverage.xml \
+            --cov-report=html:htmlcov \
+            --cov-report=json:coverage.json
 
-      - name: Upload coverage
+      - name: Full per-file coverage inventory
+        run: python tests/support/coverage_inventory.py
+
+      - name: Upload coverage reports
         uses: actions/upload-artifact@v7
         with:
           name: coverage-reports
-          path: coverage.xml
-          retention-days: 14
+          path: |
+            coverage.xml
+            coverage.json
+            coverage-by-file.txt
+            htmlcov/
+          retention-days: 30
 
   security:
     name: Dependency audit

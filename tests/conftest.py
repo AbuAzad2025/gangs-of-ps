@@ -150,18 +150,59 @@ def new_user(app, db):
     )
     user.set_password('password123')
     db.session.add(user)
+    db.session.flush()
+    user_id = int(user.id)
     db.session.commit()
-    return user
+
+    class _TestPlayer:
+        id = user_id
+        username = 'testplayer'
+
+    return _TestPlayer()
+
+
+@pytest.fixture
+def auth_user_id(new_user):
+    """Stable user id before HTTP requests expire ORM instances."""
+    return int(new_user.id)
 
 
 @pytest.fixture
 def logged_in_client(client, new_user, app):
-    with client:
-        with app.app_context():
-            from models.user import User
-            from extensions import db
-            from flask_login import login_user
-            user = db.session.get(User, new_user.id)
-            login_user(user, remember=True)
-            db.session.commit()
+    from tests.support.client_helpers import login_client
+    login_client(client, app, new_user)
     return client
+
+
+@pytest.fixture
+def login_as(client, app):
+    from tests.support.client_helpers import login_client
+
+    def _login(user):
+        return login_client(client, app, user)
+
+    return _login
+
+
+@pytest.fixture
+def admin_user(app, db):
+    from tests.support.factories import make_admin
+    return make_admin(db, username='admintest')
+
+
+@pytest.fixture
+def moderator_user(app, db):
+    from tests.support.factories import make_moderator
+    return make_moderator(db, username='modtest')
+
+
+@pytest.fixture
+def developer_user(app, db):
+    from tests.support.factories import make_developer
+    return make_developer(db, username='devtest')
+
+
+@pytest.fixture
+def rich_user(app, db):
+    from tests.support.factories import make_user
+    return make_user(db, username='richplayer', money=500_000, bank_balance=100_000, diamonds=50)

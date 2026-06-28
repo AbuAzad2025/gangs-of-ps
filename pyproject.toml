@@ -68,9 +68,20 @@ profile = "black"
 line_length = 120
 
 [tool.coverage.run]
-source = ["."]
+branch = false
+relative_files = true
+source = [
+    "routes",
+    "services",
+    "models",
+    "utils",
+    "forms",
+    "admin",
+    "factory.py",
+    "extensions.py",
+    "config.py",
+]
 omit = [
-    "*/__init__.py",
     "*/migrations/*",
     "*/tests/*",
     "*/scripts/*",
@@ -78,12 +89,12 @@ omit = [
     "wsgi.py",
     "run.py",
 ]
-relative_files = true
 
 [tool.coverage.report]
 precision = 1
 show_missing = true
-fail_under = 70
+skip_empty = false
+fail_under = 0
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

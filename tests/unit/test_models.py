@@ -30,7 +30,9 @@ class TestUserModel:
         assert user.health == 30000
 
     def test_user_repr(self, app, new_user):
-        assert repr(new_user) == '<User testplayer>'
+        from models.user import User
+        user = db.session.get(User, new_user.id)
+        assert repr(user) == '<User testplayer>'
 
 
 class TestGameModels:
