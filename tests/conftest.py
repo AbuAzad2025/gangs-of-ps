@@ -1,5 +1,12 @@
+"""Pytest configuration and shared fixtures.
+
+When ``RUN_WITH_REAL_DB=true``, tests run against the URL in ``DATABASE_URL``
+with session-scoped schema creation and function-scoped transaction rollback
+for isolation. Otherwise the legacy per-test SQLite/in-memory path is used.
+"""
+from __future__ import annotations
+
 import os
-import sys
 import pytest
 
 os.environ.setdefault('FLASK_ENV', 'testing')
@@ -7,45 +14,111 @@ os.environ.setdefault('SECRET_KEY', 'test-secret-key')
 os.environ.setdefault('WTF_CSRF_ENABLED', 'False')
 os.environ.setdefault('USE_TEST_DB', '1')
 
+RUN_WITH_REAL_DB = os.environ.get('RUN_WITH_REAL_DB', '').lower() in (
+    'true', '1', 'yes')
 
-@pytest.fixture(scope='function')
-def app():
+
+def _resolve_database_uri() -> str:
+    if RUN_WITH_REAL_DB:
+        url = os.environ.get('DATABASE_URL')
+        if not url:
+            raise RuntimeError(
+                'RUN_WITH_REAL_DB is set but DATABASE_URL is missing.')
+        if not url.startswith('postgresql://'):
+            raise RuntimeError(
+                'DATABASE_URL must be postgresql:// when RUN_WITH_REAL_DB is set.')
+        return url
+    return os.environ.get('TEST_DATABASE_URL', 'sqlite:///:memory:')
+
+
+def _build_test_config():
     from config import TestConfig
-    from factory import create_app
+
+    db_uri = _resolve_database_uri()
 
     class TestConfigLocal(TestConfig):
-        SQLALCHEMY_DATABASE_URI = os.environ.get(
-            'TEST_DATABASE_URL',
-            'sqlite:///:memory:'
-        )
+        SQLALCHEMY_DATABASE_URI = db_uri
+        # Let factory.py apply NullPool + search_path when TESTING + PostgreSQL.
         SQLALCHEMY_ENGINE_OPTIONS = {}
         TESTING = True
         WTF_CSRF_ENABLED = False
         RATELIMIT_ENABLED = False
 
-    application = create_app(TestConfigLocal)
+    return TestConfigLocal
+
+
+@pytest.fixture(scope='session')
+def _real_db_session_app():
+    """Create schema once per session when using live PostgreSQL."""
+    if not RUN_WITH_REAL_DB:
+        yield None
+        return
+
+    from factory import create_app
+    from extensions import db
+    from tests.support.postgres_session import (
+        collect_enum_type_names,
+        drop_enum_types,
+    )
+
+    application = create_app(_build_test_config())
+    enum_types: list[str] = []
 
     with application.app_context():
-        from extensions import db
-        from sqlalchemy import text
+        enum_types = collect_enum_type_names(db)
+        db.create_all()
 
-        enum_types = [
-            c.type.name for t in db.metadata.sorted_tables
-            for c in t.columns
-            if hasattr(c.type, 'name') and c.type.name
-        ]
+    yield application
 
+    with application.app_context():
+        db.session.remove()
+        db.drop_all()
+        drop_enum_types(db, enum_types)
+
+
+@pytest.fixture(scope='function', autouse=True)
+def _isolate_real_db_transaction(_real_db_session_app):
+    """Wrap each test in a rolled-back SQL transaction on live PostgreSQL."""
+    if not RUN_WITH_REAL_DB or _real_db_session_app is None:
+        yield
+        return
+
+    from extensions import db
+    from tests.support.postgres_session import install_per_test_transaction
+
+    app = _real_db_session_app
+    with app.app_context():
+        teardown = install_per_test_transaction(db)
+        try:
+            yield
+        finally:
+            teardown()
+
+
+@pytest.fixture(scope='function')
+def app(_real_db_session_app):
+    if RUN_WITH_REAL_DB:
+        assert _real_db_session_app is not None
+        yield _real_db_session_app
+        return
+
+    from extensions import db
+    from factory import create_app
+    from sqlalchemy import text
+    from tests.support.postgres_session import (
+        collect_enum_type_names,
+        drop_enum_types,
+    )
+
+    application = create_app(_build_test_config())
+
+    with application.app_context():
+        enum_types = collect_enum_type_names(db)
         db.create_all()
         yield application
         db.session.remove()
         db.drop_all()
-
-        for et in set(enum_types):
-            try:
-                db.session.execute(text(f'DROP TYPE IF EXISTS "{et}" CASCADE'))
-                db.session.commit()
-            except Exception:
-                db.session.rollback()
+        drop_enum_types(db, enum_types)
 
 
 @pytest.fixture(scope='function')
@@ -58,7 +131,8 @@ def db(app):
     from extensions import db as _db
     with app.app_context():
         yield _db
-        _db.session.rollback()
+        if not RUN_WITH_REAL_DB:
+            _db.session.rollback()
 
 
 @pytest.fixture
