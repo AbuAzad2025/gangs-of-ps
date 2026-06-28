@@ -109,19 +109,23 @@ def get_user_stats():
     if not current_user.is_authenticated:
         return jsonify({'error': 'Not authenticated'}), 401
 
+    user = db.session.get(User, int(session.get('_user_id') or current_user.id))
+    if not user:
+        return jsonify({'error': 'Not authenticated'}), 401
+
     return jsonify(
         {
-            'energy': current_user.energy,
-            'max_energy': current_user.max_energy,
-            'money': current_user.money,
-            'bullets': current_user.bullets,
-            'diamonds': current_user.diamonds,
-            'heat': current_user.heat_value(),
-            'level': current_user.level,
-            'exp': current_user.exp,
-            'max_exp': current_user.max_exp,
-            'rank_title': current_user.rank_title,
-            'rank_progress': current_user.rank_progress_percent,
+            'energy': user.energy,
+            'max_energy': user.max_energy,
+            'money': user.money,
+            'bullets': user.bullets,
+            'diamonds': user.diamonds,
+            'heat': user.heat_value(),
+            'level': user.level,
+            'exp': user.exp,
+            'max_exp': user.max_exp,
+            'rank_title': user.rank_title,
+            'rank_progress': user.rank_progress_percent,
         }
     )
 

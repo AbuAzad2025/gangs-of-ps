@@ -371,3 +371,76 @@ class TestEconomyRoutes:
     def test_my_properties_page(self, logged_in_client):
         resp = logged_in_client.get('/economy/my_properties', follow_redirects=True)
         assert resp.status_code == 200
+
+
+# Production Refactoring & Fixes Applied:
+# - services/market_trading.py + routes/market.py: atomic spot buy/sell, cancel_order nested txn
+class TestMarketRoutes:
+    @pytest.fixture
+    def market_asset(self, app, db):
+        from models.market import MarketAsset
+        asset = MarketAsset(
+            symbol='ROUTE1', name='Route Test', asset_type='stock', current_price=20.0)
+        db.session.add(asset)
+        db.session.commit()
+        return int(asset.id)
+
+    def test_market_index_authenticated(self, logged_in_client):
+        resp = logged_in_client.get('/market/', follow_redirects=True)
+        assert resp.status_code == 200
+
+    def test_spot_buy_via_route(self, client, db, login_as, market_asset):
+        user_id = make_user_id(db, username='mktbuy1', money=1000)
+        login_as(user_id)
+        resp = client.post(f'/market/buy/{market_asset}', data={'amount': '100'}, follow_redirects=False)
+        assert resp.status_code == 302
+        from models.market import UserInvestment
+        from models.user import User
+        user = db.session.get(User, user_id)
+        assert user.money == 900
+        inv = UserInvestment.query.filter_by(user_id=user_id, asset_id=market_asset).first()
+        assert inv is not None
+        assert inv.quantity == 5.0
+
+    def test_spot_sell_via_route(self, client, db, login_as, market_asset):
+        from models.market import UserInvestment
+        from models.user import User
+        user_id = make_user_id(db, username='mktsell1', money=0)
+        inv = UserInvestment(
+            user_id=user_id, asset_id=market_asset, quantity=3.0, average_buy_price=20.0)
+        db.session.add(inv)
+        db.session.commit()
+        login_as(user_id)
+        resp = client.post(f'/market/sell/{market_asset}', follow_redirects=False)
+        assert resp.status_code == 302
+        user = db.session.get(User, user_id)
+        assert user.money == 60
+        assert UserInvestment.query.filter_by(user_id=user_id, asset_id=market_asset).first() is None
+
+    def test_rejects_buy_below_minimum(self, client, db, login_as, market_asset):
+        user_id = make_user_id(db, username='mktbad1', money=1000)
+        login_as(user_id)
+        client.post(f'/market/buy/{market_asset}', data={'amount': '5'}, follow_redirects=False)
+        from models.user import User
+        user = db.session.get(User, user_id)
+        assert user.money == 1000
+
+
+# Production Refactoring & Fixes Applied:
+# - routes/core.py: get_user_stats reloads user from session-bound row
+class TestCoreRoutes:
+    def test_user_stats_api(self, client, db, login_as):
+        user_id = make_user_id(db, username='stats1', money=777)
+        login_as(user_id)
+        resp = client.get('/api/user/stats')
+        assert resp.status_code == 200
+        data = resp.get_json()
+        assert data['money'] == 777
+
+    def test_user_stats_requires_auth(self, client):
+        resp = client.get('/api/user/stats')
+        assert resp.status_code == 401
+
+    def test_set_language(self, client):
+        resp = client.get('/set_language/en', follow_redirects=False)
+        assert resp.status_code in (302, 200)

@@ -50,6 +50,7 @@ from tests.support.factories import (
     make_developer,
     make_moderator,
     make_user,
+    make_user_id,
     make_vip_user,
 )
 
@@ -425,6 +426,85 @@ class TestMarketTradingPay:
         assert breakdown['from_cash'] == 100
         user = db.session.get(User, user_id)
         assert user.money == 400
+
+
+# Production Refactoring & Fixes Applied:
+# - services/market_trading.py: parse_trade_usd/qty, execute_spot_buy/sell_all with begin_nested
+class TestMarketTradeParsing:
+    def test_parse_trade_usd_rejects_below_min(self):
+        from services.market_trading import parse_trade_usd
+        assert parse_trade_usd(5) is None
+        assert parse_trade_usd(50) == 50.0
+
+    def test_parse_trade_quantity_bounds(self):
+        from services.market_trading import MAX_TRADE_QUANTITY, parse_trade_quantity
+        assert parse_trade_quantity(0) is None
+        assert parse_trade_quantity(10.5) == 10.5
+        assert parse_trade_quantity(MAX_TRADE_QUANTITY + 1) is None
+
+
+class TestMarketSpotAtomic:
+    @pytest.fixture
+    def spot_asset(self, app, db):
+        from models.market import MarketAsset
+        asset = MarketAsset(
+            symbol='TSTSPOT', name='Spot Test', asset_type='stock', current_price=10.0)
+        db.session.add(asset)
+        db.session.flush()
+        asset_id = int(asset.id)
+        db.session.commit()
+        return db.session.get(MarketAsset, asset_id)
+
+    def test_execute_spot_buy_creates_investment(self, app, db, spot_asset):
+        from models.market import MarketAsset, UserInvestment
+        from services.market_trading import execute_spot_buy
+        asset_id = int(spot_asset.__dict__['id'])
+        user_id = make_user_id(db, username='spotbuy1', money=500)
+        with app.test_request_context('/'):
+            asset = db.session.get(MarketAsset, asset_id)
+            ok, err, _ = execute_spot_buy(user_id, asset, 100, 'test_spot_buy')
+        assert ok is True
+        assert err is None
+        user = db.session.get(User, user_id)
+        assert user.money == 400
+        inv = UserInvestment.query.filter_by(user_id=user_id, asset_id=asset_id).first()
+        assert inv is not None
+        assert inv.quantity == 10.0
+
+    def test_execute_spot_sell_all_credits_cash(self, app, db, spot_asset):
+        from models.market import MarketAsset, UserInvestment
+        from services.market_trading import execute_spot_buy, execute_spot_sell_all
+        asset_id = int(spot_asset.__dict__['id'])
+        user_id = make_user_id(db, username='spotsell1', money=500)
+        with app.test_request_context('/'):
+            asset = db.session.get(MarketAsset, asset_id)
+            execute_spot_buy(user_id, asset, 100, 'test_setup_buy')
+            asset = db.session.get(MarketAsset, asset_id)
+            ok, err, sell_value = execute_spot_sell_all(user_id, asset, 'test_spot_sell')
+        assert ok is True
+        assert sell_value == 100
+        user = db.session.get(User, user_id)
+        assert user.money == 500
+        assert UserInvestment.query.filter_by(user_id=user_id, asset_id=asset_id).first() is None
+
+
+# Production Refactoring & Fixes Applied:
+# - services/market_simulation.py: asset config sanitization (existing), initialize_assets
+class TestMarketSimulation:
+    def test_allowed_symbols_from_config(self, app):
+        from services.market_simulation import MarketSimulationService
+        with app.app_context():
+            symbols = MarketSimulationService.allowed_symbols()
+        assert 'G-COIN' in symbols
+        assert len(symbols) >= 5
+
+    def test_initialize_assets_creates_rows(self, app, db):
+        from models.market import MarketAsset
+        from services.market_simulation import MarketSimulationService
+        with app.app_context():
+            MarketSimulationService.initialize_assets()
+            count = MarketAsset.query.count()
+        assert count >= 5
 
 
 class TestStripeEnabled:

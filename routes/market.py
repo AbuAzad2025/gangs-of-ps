@@ -16,7 +16,12 @@ from routes.utils import track_academy_visit
 from services.market_trading import (
     MIN_FUTURES_MARGIN,
     MIN_SPOT_TRADE,
+    execute_spot_buy,
+    execute_spot_sell_all,
     get_trading_power,
+    parse_limit_price,
+    parse_trade_quantity,
+    parse_trade_usd,
     pay_from_game_balance,
     trade_success_flash,
 )
@@ -684,36 +689,46 @@ def cancel_order(order_id):
         flash(_('الطلب ليس مفتوحاً.'), 'warning')
         return redirect(url_for('market.trade', asset_id=order.asset_id))
 
-    user = db.session.query(User).filter_by(
-        id=current_user.id).with_for_update().first()
-    if not user:
-        abort(404)
+    try:
+        with db.session.begin_nested():
+            user = db.session.query(User).filter_by(
+                id=current_user.id).with_for_update().first()
+            if not user:
+                abort(404)
 
-    if order.order_type == 'buy':
-        refund = (order.quantity - (order.filled_quantity or 0)) * order.price
-        if refund > 0:
-            ResourceService.modify_resources(user.id,
-                                             {'money': refund},
-                                             'spot_limit_buy_cancel_refund',
-                                             auto_commit=False,
-                                             expected_version=None)
-    else:
-        qty = order.quantity - (order.filled_quantity or 0)
-        if qty > 0:
-            investment = UserInvestment.query.filter_by(
-                user_id=user.id, asset_id=order.asset_id).with_for_update().first()
-            if investment:
-                investment.quantity += qty
+            if order.order_type == 'buy':
+                refund = (order.quantity - (order.filled_quantity or 0)) * order.price
+                if refund > 0:
+                    if not ResourceService.modify_resources(
+                        user.id,
+                        {'money': refund},
+                        'spot_limit_buy_cancel_refund',
+                        auto_commit=False,
+                        expected_version=None,
+                    ):
+                        raise ValueError('refund failed')
             else:
-                investment = UserInvestment(
-                    user_id=user.id,
-                    asset_id=order.asset_id,
-                    quantity=qty,
-                    average_buy_price=order.price)
-                db.session.add(investment)
+                qty = order.quantity - (order.filled_quantity or 0)
+                if qty > 0:
+                    investment = UserInvestment.query.filter_by(
+                        user_id=user.id, asset_id=order.asset_id).with_for_update().first()
+                    if investment:
+                        investment.quantity += qty
+                    else:
+                        investment = UserInvestment(
+                            user_id=user.id,
+                            asset_id=order.asset_id,
+                            quantity=qty,
+                            average_buy_price=order.price)
+                        db.session.add(investment)
 
-    order.status = 'cancelled'
-    db.session.commit()
+            order.status = 'cancelled'
+        db.session.commit()
+    except Exception:
+        db.session.rollback()
+        flash(_('تعذّر إلغاء الطلب.'), 'danger')
+        return redirect(url_for('market.trade', asset_id=order.asset_id))
+
     flash(_('تم إلغاء الطلب.'), 'success')
     return redirect(url_for('market.trade', asset_id=order.asset_id))
 
@@ -959,58 +974,22 @@ def buy(asset_id):
     if not asset:
         abort(404)
 
-    # Refresh price
-    # Handled by simulation service
-    pass
-
-    try:
-        amount_to_invest = float(request.form.get('amount', 0))
-    except ValueError:
-        amount_to_invest = 0
-
-    if amount_to_invest < MIN_SPOT_TRADE:
+    amount_to_invest = parse_trade_usd(request.form.get('amount', 0))
+    if amount_to_invest is None:
         flash(
             _('الحد الأدنى للصفقة %(min)s$ من مال اللعبة.',
               min=MIN_SPOT_TRADE), 'warning')
         return redirect(url_for('market.index'))
 
-    if asset.current_price <= 0:
-        flash(_('سعر السهم غير صالح للتداول حالياً!'), 'danger')
-        return redirect(url_for('market.index'))
-
-    quantity = amount_to_invest / asset.current_price
-
-    ok, err, br = pay_from_game_balance(
-        current_user.id, amount_to_invest, 'buy_asset_spot', auto_commit=False)
+    ok, err, br = execute_spot_buy(
+        current_user.id, asset, amount_to_invest, 'buy_asset_spot')
     if not ok:
         flash(err or _('رصيد اللعبة غير كافٍ!'), 'danger')
         return redirect(url_for('market.index'))
 
-    # Update/Create Investment
-    investment = UserInvestment.query.filter_by(
-        user_id=current_user.id,
-        asset_id=asset.id).with_for_update().first()
-
-    if investment:
-        # Calculate new average price
-        total_cost_old = investment.quantity * investment.average_buy_price
-        total_cost_new = amount_to_invest
-        total_quantity = investment.quantity + quantity
-
-        investment.average_buy_price = (
-            total_cost_old + total_cost_new) / total_quantity
-        investment.quantity = total_quantity
-    else:
-        investment = UserInvestment(
-            user_id=current_user.id,
-            asset_id=asset.id,
-            quantity=quantity,
-            average_buy_price=asset.current_price
-        )
-        db.session.add(investment)
-
-    db.session.commit()
-    _track_market_trade(current_user)
+    user_ref = db.session.get(User, current_user.id)
+    if user_ref:
+        _track_market_trade(user_ref)
 
     extra = trade_success_flash(br)
     flash(
@@ -1028,47 +1007,15 @@ def sell(asset_id):
     if not asset:
         abort(404)
 
-    # Deadlock Prevention: Lock User FIRST, then Investment
-    # We must ensure consistent locking order (User -> Investment) to avoid
-    # deadlocks with 'buy' and 'check_limit_orders'
-    try:
-        # 1. Lock User
-        # We lock the user row to establish the lock order.
-        db.session.query(User).filter_by(
-            id=current_user.id).with_for_update().first()
+    ok, err, sell_value = execute_spot_sell_all(
+        current_user.id, asset, 'sell_asset_spot')
+    if not ok:
+        flash(err or _('حدث خطأ أثناء البيع!'), 'danger')
+        return redirect(url_for('market.index'))
 
-        # 2. Lock Investment
-        investment = UserInvestment.query.filter_by(
-            user_id=current_user.id, asset_id=asset.id).with_for_update().first()
+    user_ref = db.session.get(User, current_user.id)
+    if user_ref:
+        _track_market_trade(user_ref)
 
-        if not investment or investment.quantity <= 0:
-            db.session.rollback()
-            flash(_('لا تملك أسهم لبيعها!'), 'danger')
-            return redirect(url_for('market.index'))
-
-        # Calculate Value
-        sell_value = investment.quantity * asset.current_price
-
-        # 3. Add Money
-        # ResourceService.modify_resources uses the same transaction and will
-        # re-verify user lock (safe re-entrant)
-        if not ResourceService.modify_resources(
-            current_user.id, {
-                'money': sell_value}, 'sell_asset_spot', auto_commit=False, expected_version=None):
-            db.session.rollback()
-            flash(_('خطأ في العملية!'), 'danger')
-            return redirect(url_for('market.index'))
-
-        # 4. Remove Investment
-        db.session.delete(investment)
-        db.session.commit()
-        _track_market_trade(current_user)
-
-        flash(_('تم بيع الأسهم بنجاح وربح %(val)s', val=int(sell_value)), 'success')
-
-    except Exception as e:
-        current_app.logger.error(f"Sell Error: {e}")
-        db.session.rollback()
-        flash(_('حدث خطأ أثناء البيع!'), 'danger')
-
+    flash(_('تم بيع الأسهم بنجاح وربح %(val)s', val=sell_value), 'success')
     return redirect(url_for('market.index'))
