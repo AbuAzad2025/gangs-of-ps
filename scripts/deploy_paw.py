@@ -41,8 +41,8 @@ def main():
         print("Created basic .env file. Please edit it with your database credentials.")
 
     # 2. Install dependencies (Optional, PAW usually does this via console)
-    # print("Installing dependencies...")
-    # run_command("pip install -r requirements.txt", cwd=project_root)
+    print("Installing dependencies...")
+    run_command("pip install -r requirements.txt", cwd=project_root)
 
     # 3. Initialize/Upgrade Database
     print("Initializing/Upgrading Database...")
