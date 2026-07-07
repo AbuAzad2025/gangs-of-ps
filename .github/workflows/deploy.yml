@@ -28,7 +28,7 @@ jobs:
 
       - name: Install deployment tools
         run: |
-          pip install python-anywhere
+          pip install pythonanywhere
 
       - name: Deploy to PythonAnywhere
         env:
