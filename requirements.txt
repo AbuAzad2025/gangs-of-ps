@@ -46,7 +46,7 @@ Deprecated==1.2.18
 distro==1.9.0
 dj-database-url==3.0.1
 Django==4.2.7
-django-filter==25.2
+django-filter==24.2
 django-jazzmin==3.0.1
 django-leaflet==0.33.0
 djangorestframework==3.16.1
