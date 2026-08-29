@@ -106,6 +106,7 @@ filterwarnings = [
 markers = [
     "unit: Pure logic — no route/HTTP.",
     "integration: Full-stack checks on PostgreSQL.",
+    "e2e: End-to-end app flows that exercise the public user path.",
     "security: Security-related tests.",
     "slow: Marks tests as slow (deselect with '-m \"not slow\"').",
     "db: Tests that need database access.",
