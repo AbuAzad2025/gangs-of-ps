@@ -46,7 +46,25 @@ def static_statement_count(path: Path) -> int:
         return 0
 
 
+def ensure_coverage_json(json_path: Path) -> Path:
+    if json_path.is_file():
+        return json_path
+
+    coverage_db = ROOT / ".coverage"
+    if coverage_db.is_file():
+        try:
+            import coverage
+
+            cov = coverage.Coverage(data_file=str(coverage_db), config_file=str(ROOT / "pyproject.toml"))
+            cov.load()
+            cov.json_report(outfile=str(json_path))
+        except Exception:
+            pass
+    return json_path
+
+
 def load_measured(json_path: Path) -> dict[str, dict]:
+    json_path = ensure_coverage_json(json_path)
     if not json_path.is_file():
         return {}
     data = json.loads(json_path.read_text(encoding="utf-8"))
