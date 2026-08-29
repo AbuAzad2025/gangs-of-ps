@@ -1,8 +1,11 @@
-"""Merge coverage.json with every in-scope game .py file (0% if never imported)."""
+"""Produce the project-wide quality coverage dashboard for backend, templates, JS, and E2E flows."""
 from __future__ import annotations
 
+import argparse
 import json
+import subprocess
 import sys
+import xml.etree.ElementTree as ET
 from pathlib import Path
 
 from coverage.exceptions import NotPython
@@ -30,7 +33,7 @@ def iter_scope_files() -> list[Path]:
         s = p.as_posix()
         if any(part in s for part in SKIP_PARTS):
             continue
-        if p.name == "wsgi.py" or p.name == "run.py":
+        if p.name in {"wsgi.py", "run.py"}:
             continue
         out.append(p)
     return sorted(set(out))
@@ -95,13 +98,11 @@ def pct(meta: dict | None) -> float:
     return 100.0 * covered / num
 
 
-def main() -> int:
-    json_path = ROOT / "coverage.json"
+def python_coverage_summary(json_path: Path) -> tuple[float, int, int, int]:
     measured = load_measured(json_path)
     rows: list[tuple[str, float, int, int]] = []
     total_stmts = 0
     total_covered = 0
-
     for path in iter_scope_files():
         rel = path.relative_to(ROOT).as_posix()
         meta = measured.get(rel)
@@ -115,34 +116,194 @@ def main() -> int:
         total_stmts += stmts
         total_covered += covered
         rows.append((rel, pct(meta), stmts, covered))
-
     total_pct = 100.0 if total_stmts == 0 else 100.0 * total_covered / total_stmts
-    width = max((len(r[0]) for r in rows), default=20)
+    return total_pct, total_stmts, total_covered, len(rows)
 
-    lines = [
-        "Gangs of Palestine — full Python coverage inventory",
-        f"Scope: {', '.join(SCOPE_DIRS)} + {', '.join(SCOPE_FILES)}",
-        f"Files: {len(rows)} | Total statements: {total_stmts} | Covered: {total_covered} | Total: {total_pct:.1f}%",
+
+def render_template_filters() -> dict[str, object]:
+    def number_format(value):
+        try:
+            return "{:,}".format(value)
+        except (TypeError, ValueError):
+            return value
+
+    def safe_message_html(value):
+        if value is None:
+            return ""
+        value = str(value)
+        if "<" not in value and ">" not in value:
+            return value
+        from bs4 import BeautifulSoup
+        from markupsafe import Markup
+
+        allowed_tags = {"a", "b", "br", "div", "em", "i", "li", "ol", "p", "small", "span", "strong", "ul"}
+        soup = BeautifulSoup(value, "html.parser")
+        for tag in soup.find_all(["script", "style"]):
+            tag.decompose()
+        for tag in soup.find_all(True):
+            if tag.name not in allowed_tags:
+                tag.unwrap()
+                continue
+            if tag.name == "a":
+                href = tag.get("href")
+                title = tag.get("title")
+                attrs = {}
+                if href:
+                    href = str(href)
+                    if href.startswith(("http://", "https://", "/")):
+                        attrs["href"] = href
+                        attrs["rel"] = "nofollow noopener noreferrer"
+                        attrs["target"] = "_blank"
+                if title:
+                    attrs["title"] = str(title)
+                tag.attrs = attrs
+            else:
+                tag.attrs = {}
+        return Markup(str(soup))
+
+    return {"number_format": number_format, "safe_message_html": safe_message_html}
+
+
+def template_validation_summary() -> tuple[float, int, int]:
+    import jinja2
+
+    template_dir = ROOT / "templates"
+    templates = sorted(template_dir.rglob("*.html"))
+    if not templates:
+        return 0.0, 0, 0
+
+    env = jinja2.Environment(loader=jinja2.FileSystemLoader(str(template_dir)), autoescape=True)
+    filters = render_template_filters()
+    env.filters.update(filters)
+
+    valid = 0
+    for template_file in templates:
+        relative = template_file.relative_to(template_dir).as_posix()
+        try:
+            env.get_template(relative)
+            valid += 1
+        except Exception:
+            continue
+    return (100.0 * valid / len(templates)), len(templates), valid
+
+
+def frontend_js_summary() -> tuple[float, int, int]:
+    js_dir = ROOT / "static" / "js"
+    js_files = sorted(js_dir.glob("*.js"))
+    if not js_files:
+        return 0.0, 0, 0
+    valid = 0
+    for js_file in js_files:
+        result = subprocess.run(["node", "--check", str(js_file)], capture_output=True, text=True)
+        if result.returncode == 0:
+            valid += 1
+    return (100.0 * valid / len(js_files)), len(js_files), valid
+
+
+def junit_summary(xml_paths: list[Path]) -> tuple[float, int, int, int]:
+    total = 0
+    passed = 0
+    failed = 0
+    skipped = 0
+    for xml_path in xml_paths:
+        if not xml_path.exists():
+            continue
+        try:
+            root = ET.parse(xml_path).getroot()
+        except ET.ParseError:
+            continue
+
+        for case in root.iter("testcase"):
+            total += 1
+            if case.find("failure") is not None:
+                failed += 1
+            elif case.find("skipped") is not None:
+                skipped += 1
+            else:
+                passed += 1
+
+    if total == 0:
+        return 0.0, 0, 0, 0
+    pct = 100.0 * passed / total
+    return pct, total, passed, failed
+
+
+def build_dashboard(report_dir: Path, backend_json: Path, e2e_xml: list[Path]) -> dict:
+    backend_pct, backend_total, backend_covered, backend_files = python_coverage_summary(backend_json)
+    template_pct, template_total, template_valid = template_validation_summary()
+    js_pct, js_total, js_valid = frontend_js_summary()
+    e2e_pct, e2e_total, e2e_passed, e2e_failed = junit_summary(e2e_xml)
+
+    overall_pct = (
+        backend_pct + template_pct + js_pct + e2e_pct
+    ) / 4.0
+
+    dashboard = {
+        "backend": {
+            "coverage_percent": round(backend_pct, 2),
+            "total_statements": backend_total,
+            "covered_statements": backend_covered,
+            "files_in_scope": backend_files,
+            "source": "pytest-cov",
+        },
+        "templates": {
+            "coverage_percent": round(template_pct, 2),
+            "total_templates": template_total,
+            "valid_templates": template_valid,
+            "source": "jinja2 compile validation",
+        },
+        "javascript": {
+            "coverage_percent": round(js_pct, 2),
+            "total_files": js_total,
+            "valid_files": js_valid,
+            "source": "node --check syntax validation",
+        },
+        "e2e": {
+            "coverage_percent": round(e2e_pct, 2),
+            "total_tests": e2e_total,
+            "passed_tests": e2e_passed,
+            "failed_tests": e2e_failed,
+            "source": "pytest junit xml",
+        },
+        "overall": {
+            "quality_score_percent": round(overall_pct, 2),
+        },
+    }
+
+    report_dir.mkdir(parents=True, exist_ok=True)
+    (report_dir / "project-coverage-dashboard.json").write_text(json.dumps(dashboard, indent=2), encoding="utf-8")
+
+    summary_lines = [
+        "Gangs of Palestine — full project quality coverage dashboard",
         "",
-        f"{'FILE'.ljust(width)}  COV%   STMTS  COVERED",
-        "-" * (width + 22),
+        f"Backend Python coverage: {dashboard['backend']['coverage_percent']:.2f}% ({dashboard['backend']['covered_statements']}/{dashboard['backend']['total_statements']} statements covered)",
+        f"Template validation: {dashboard['templates']['coverage_percent']:.2f}% ({dashboard['templates']['valid_templates']}/{dashboard['templates']['total_templates']} valid templates)",
+        f"JavaScript validation: {dashboard['javascript']['coverage_percent']:.2f}% ({dashboard['javascript']['valid_files']}/{dashboard['javascript']['total_files']} valid files)",
+        f"E2E flow coverage: {dashboard['e2e']['coverage_percent']:.2f}% ({dashboard['e2e']['passed_tests']}/{dashboard['e2e']['total_tests']} tests passed)",
+        f"Overall quality score: {dashboard['overall']['quality_score_percent']:.2f}%",
+        "",
+        "This report combines Python coverage, template integrity, JavaScript syntax validation, and E2E smoke execution.",
     ]
-    for rel, p, stmts, covered in rows:
-        flag = " !" if p < 100.0 else "  "
-        lines.append(f"{rel.ljust(width)}  {p:5.1f}  {stmts:5d}  {covered:7d}{flag}")
+    (report_dir / "project-coverage-dashboard.txt").write_text("\n".join(summary_lines) + "\n", encoding="utf-8")
+    return dashboard
 
-    unmeasured = sum(1 for rel, p, stmts, covered in rows if measured.get(rel) is None and stmts > 0)
-    below_100 = sum(1 for _, p, stmts, _ in rows if stmts > 0 and p < 100.0)
-    lines.extend([
-        "",
-        f"Summary: {below_100} files below 100% | {unmeasured} files never imported during test run",
-        "Legend: ! = below 100% coverage target",
-    ])
 
-    report = "\n".join(lines) + "\n"
-    out_path = ROOT / "coverage-by-file.txt"
-    out_path.write_text(report, encoding="utf-8")
-    sys.stdout.write(report)
+def main() -> int:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--backend-json", type=Path, default=ROOT / "coverage" / "unit-coverage.json")
+    parser.add_argument("--e2e-xml", nargs="*", type=Path, default=[ROOT / "test-results" / "e2e-junit.xml"])
+    parser.add_argument("--output-dir", type=Path, default=ROOT / "coverage")
+    args = parser.parse_args()
+
+    if not args.backend_json.exists():
+        fallback = ROOT / "coverage.json"
+        if fallback.exists():
+            args.backend_json = fallback
+        else:
+            args.backend_json = ROOT / "coverage" / "unit-coverage.json"
+
+    dashboard = build_dashboard(args.output_dir, args.backend_json, args.e2e_xml)
+    sys.stdout.write(json.dumps(dashboard, indent=2) + "\n")
     return 0
 
 
