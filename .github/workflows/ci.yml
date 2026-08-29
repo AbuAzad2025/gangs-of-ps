@@ -296,8 +296,7 @@ jobs:
         with:
           name: full-project-coverage
           path: |
-            coverage/project-dashboard/project-coverage-dashboard.txt
-            coverage/project-dashboard/project-coverage-dashboard.json
+            coverage/project-dashboard/
           if-no-files-found: error
           retention-days: 30
 

@@ -271,7 +271,8 @@ def build_dashboard(report_dir: Path, backend_json: Path, e2e_xml: list[Path]) -
     }
 
     report_dir.mkdir(parents=True, exist_ok=True)
-    (report_dir / "project-coverage-dashboard.json").write_text(json.dumps(dashboard, indent=2), encoding="utf-8")
+    json_path = report_dir / "project-coverage-dashboard.json"
+    json_path.write_text(json.dumps(dashboard, indent=2), encoding="utf-8")
 
     summary_lines = [
         "Gangs of Palestine — full project quality coverage dashboard",
@@ -285,6 +286,82 @@ def build_dashboard(report_dir: Path, backend_json: Path, e2e_xml: list[Path]) -
         "This report combines Python coverage, template integrity, JavaScript syntax validation, and E2E smoke execution.",
     ]
     (report_dir / "project-coverage-dashboard.txt").write_text("\n".join(summary_lines) + "\n", encoding="utf-8")
+
+    md_lines = [
+        "# Gangs of Palestine — full project quality coverage dashboard",
+        "",
+        "## Executive summary",
+        "",
+        f"- Backend Python coverage: **{dashboard['backend']['coverage_percent']:.2f}%** ({dashboard['backend']['covered_statements']}/{dashboard['backend']['total_statements']} statements covered)",
+        f"- Template validation: **{dashboard['templates']['coverage_percent']:.2f}%** ({dashboard['templates']['valid_templates']}/{dashboard['templates']['total_templates']} valid templates)",
+        f"- JavaScript validation: **{dashboard['javascript']['coverage_percent']:.2f}%** ({dashboard['javascript']['valid_files']}/{dashboard['javascript']['total_files']} valid files)",
+        f"- E2E flow coverage: **{dashboard['e2e']['coverage_percent']:.2f}%** ({dashboard['e2e']['passed_tests']}/{dashboard['e2e']['total_tests']} tests passed)",
+        f"- Overall quality score: **{dashboard['overall']['quality_score_percent']:.2f}%**",
+        "",
+        "## Coverage sources",
+        "",
+        "| Layer | Source | Result |",
+        "| --- | --- | --- |",
+        f"| Backend | {dashboard['backend']['source']} | {dashboard['backend']['coverage_percent']:.2f}% |",
+        f"| Templates | {dashboard['templates']['source']} | {dashboard['templates']['coverage_percent']:.2f}% |",
+        f"| JavaScript | {dashboard['javascript']['source']} | {dashboard['javascript']['coverage_percent']:.2f}% |",
+        f"| E2E | {dashboard['e2e']['source']} | {dashboard['e2e']['coverage_percent']:.2f}% |",
+    ]
+    (report_dir / "project-coverage-dashboard.md").write_text("\n".join(md_lines) + "\n", encoding="utf-8")
+
+    html_rows = "\n".join(
+        [
+            "<tr>",
+            f"<td>Backend</td><td>{dashboard['backend']['source']}</td><td>{dashboard['backend']['coverage_percent']:.2f}%</td><td>{dashboard['backend']['covered_statements']}/{dashboard['backend']['total_statements']}</td>",
+            "</tr>",
+            "<tr>",
+            f"<td>Templates</td><td>{dashboard['templates']['source']}</td><td>{dashboard['templates']['coverage_percent']:.2f}%</td><td>{dashboard['templates']['valid_templates']}/{dashboard['templates']['total_templates']}</td>",
+            "</tr>",
+            "<tr>",
+            f"<td>JavaScript</td><td>{dashboard['javascript']['source']}</td><td>{dashboard['javascript']['coverage_percent']:.2f}%</td><td>{dashboard['javascript']['valid_files']}/{dashboard['javascript']['total_files']}</td>",
+            "</tr>",
+            "<tr>",
+            f"<td>E2E</td><td>{dashboard['e2e']['source']}</td><td>{dashboard['e2e']['coverage_percent']:.2f}%</td><td>{dashboard['e2e']['passed_tests']}/{dashboard['e2e']['total_tests']}</td>",
+            "</tr>",
+        ]
+    )
+    html_doc = f"""<!doctype html>
+<html lang=\"en\">
+<head>
+  <meta charset=\"utf-8\">
+  <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">
+  <title>Gangs of Palestine Coverage Dashboard</title>
+  <style>
+    body {{ font-family: Arial, sans-serif; margin: 2rem; color: #1f2937; background: #f8fafc; }}
+    h1, h2 {{ color: #111827; }}
+    table {{ border-collapse: collapse; width: 100%; max-width: 1000px; background: white; }}
+    th, td {{ border: 1px solid #d1d5db; padding: 0.75rem; text-align: left; }}
+    th {{ background: #e5e7eb; }}
+    .summary {{ margin: 1rem 0 2rem; padding: 1rem; background: white; border: 1px solid #e5e7eb; max-width: 1000px; }}
+  </style>
+</head>
+<body>
+  <h1>Gangs of Palestine — full project quality coverage dashboard</h1>
+  <div class=\"summary\">
+    <p><strong>Overall quality score:</strong> {dashboard['overall']['quality_score_percent']:.2f}%</p>
+    <p><strong>Backend Python coverage:</strong> {dashboard['backend']['coverage_percent']:.2f}%</p>
+    <p><strong>Template validation:</strong> {dashboard['templates']['coverage_percent']:.2f}%</p>
+    <p><strong>JavaScript validation:</strong> {dashboard['javascript']['coverage_percent']:.2f}%</p>
+    <p><strong>E2E flow coverage:</strong> {dashboard['e2e']['coverage_percent']:.2f}%</p>
+  </div>
+  <h2>Layer summary</h2>
+  <table>
+    <thead>
+      <tr><th>Layer</th><th>Source</th><th>Coverage</th><th>Counts</th></tr>
+    </thead>
+    <tbody>
+      {html_rows}
+    </tbody>
+  </table>
+</body>
+</html>
+"""
+    (report_dir / "project-coverage-dashboard.html").write_text(html_doc, encoding="utf-8")
     return dashboard
 
 
