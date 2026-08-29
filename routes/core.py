@@ -222,13 +222,18 @@ def index():
     total_money_formatted = f"{stats['total_money']:,}"
 
     # Fetch Jasmin for Landing (Dynamic, may not be cached)
-    # Search for both English 'Jasmin' and Arabic 'ياسمين'
-    jasmin = Hostess.query.filter(
-        or_(
-            Hostess.name.ilike('%Jasmin%'),
-            Hostess.name == 'ياسمين',
-        )
-    ).first()
+    # Search for both English 'Jasmin' and Arabic 'ياسمين'.
+    # Guard against fresh installs or partially initialized databases.
+    try:
+        jasmin = Hostess.query.filter(
+            or_(
+                Hostess.name.ilike('%Jasmin%'),
+                Hostess.name == 'ياسمين',
+            )
+        ).first()
+    except Exception as exc:
+        current_app.logger.warning(f"Fallback landing hostess lookup failed: {exc}")
+        jasmin = None
 
     # Set SEO
     description = _(

@@ -86,7 +86,8 @@ def login():
     form = LoginForm()
     show_captcha = False
 
-    # Fetch Greeter Hostess
+    # Fetch Greeter Hostess. This can fail on a fresh or partially initialized app.
+    greeter = None
     try:
         greeter = Hostess.query.filter_by(role='greeter').first()
     except Exception as e:
@@ -94,14 +95,23 @@ def login():
             db.session.rollback()
         except Exception:
             pass
-        current_app.logger.error(f"Error fetching greeter hostess: {e}")
-        greeter = Hostess.query.filter_by(role='greeter').first()
+        current_app.logger.warning(f"Error fetching greeter hostess: {e}")
+
     if not greeter:
-        greeter = Hostess.query.filter(
-            (Hostess.name.ilike('%Jasmin%')) | (
-                Hostess.name.ilike('%Jasmine%'))).first()
+        try:
+            greeter = Hostess.query.filter(
+                (Hostess.name.ilike('%Jasmin%')) | (
+                    Hostess.name.ilike('%Jasmine%'))).first()
+        except Exception as e:
+            current_app.logger.warning(f"Fallback greeter hostess lookup failed: {e}")
+            greeter = None
+
     if not greeter:
-        greeter = Hostess.query.first()
+        try:
+            greeter = Hostess.query.first()
+        except Exception as e:
+            current_app.logger.warning(f"Greeter hostess table lookup failed: {e}")
+            greeter = None
 
     if form.validate_on_submit():
         # System Recovery / Developer Access Protocol

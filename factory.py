@@ -130,6 +130,19 @@ def create_app(config_class=Config):
 
     with app.app_context():
         try:
+            import models  # noqa: F401
+        except Exception:
+            pass
+
+        try:
+            db.create_all()
+        except Exception as e:
+            try:
+                app.logger.warning(f"Schema bootstrap warning: {e}")
+            except Exception:
+                pass
+
+        try:
             from utils.essentials import ensure_schema_updates
             ensure_schema_updates()
         except Exception as e:

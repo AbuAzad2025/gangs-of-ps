@@ -216,8 +216,8 @@ class TestBankFeeConfig:
     def test_returns_defaults(self, app):
         with app.app_context():
             cfg = get_bank_fee_config()
-        assert cfg['tier1_threshold'] == 50000
-        assert cfg['tier2_threshold'] == 200000
+        assert cfg['tier1_threshold'] == 40000
+        assert cfg['tier2_threshold'] == 180000
         assert cfg['tier1_pct'] == 0.005
         assert cfg['tier2_pct'] == 0.012
 
@@ -231,6 +231,33 @@ class TestBankFeeConfig:
             fee, reason = calculate_bank_fee(100000, cfg, level=3)
         assert fee == 250
         assert 'Early Grace' in reason
+
+
+class TestSystemConfigDefaults:
+    def test_ensure_defaults_populates_runtime_values(self, app):
+        with app.app_context():
+            assert SystemConfig.ensure_defaults() is True
+            assert SystemConfig.get_value('game_name') == 'عصابات فلسطين'
+            assert SystemConfig.get_value('bank_fee_tier1_threshold') == '40000'
+            assert SystemConfig.get_value('bank_fee_tier2_threshold') == '180000'
+            assert SystemConfig.get_value('early_game_fee_grace_level') == '5'
+
+
+class TestCoreRoutes:
+    def test_health_endpoint_is_available(self, client):
+        response = client.get('/api/health')
+        assert response.status_code in (200, 503)
+        payload = response.get_json()
+        assert payload is not None
+        assert 'game_status' in payload
+
+    def test_game_overview_returns_public_stats(self, client):
+        response = client.get('/api/game/overview')
+        assert response.status_code == 200
+        payload = response.get_json()
+        assert payload['status'] in {'online', 'maintenance', 'offline'}
+        assert payload['players']['total'] >= 0
+        assert 'top_players' in payload
 
 
 class TestCalculateBankFee:
@@ -362,7 +389,7 @@ class TestResourceService:
         from datetime import timedelta
         user = make_user(db, username='res8', money=0, daily_money_earned=90)
         user_id = user.id
-        user.daily_money_date = date.today() - timedelta(days=1)
+        user.daily_money_date = (datetime.now(timezone.utc).date() - timedelta(days=1))
         db.session.commit()
         with app.test_request_context('/'):
             ok = ResourceService.modify_resources(

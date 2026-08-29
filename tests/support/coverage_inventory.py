@@ -228,15 +228,46 @@ def junit_summary(xml_paths: list[Path]) -> tuple[float, int, int, int]:
     return pct, total, passed, failed
 
 
-def build_dashboard(report_dir: Path, backend_json: Path, e2e_xml: list[Path]) -> dict:
+def load_browser_summary(json_path: Path | None) -> dict:
+    if not json_path or not json_path.exists():
+        return {
+            "coverage_percent": 0.0,
+            "total_bytes": 0,
+            "executed_bytes": 0,
+            "scripts": 0,
+            "source": "playwright chromium js coverage",
+        }
+
+    try:
+        payload = json.loads(json_path.read_text(encoding="utf-8"))
+    except Exception:
+        return {
+            "coverage_percent": 0.0,
+            "total_bytes": 0,
+            "executed_bytes": 0,
+            "scripts": 0,
+            "source": "playwright chromium js coverage",
+        }
+
+    return {
+        "coverage_percent": float(payload.get("percent", 0.0)),
+        "total_bytes": int(payload.get("total_bytes", 0)),
+        "executed_bytes": int(payload.get("executed_bytes", 0)),
+        "scripts": int(payload.get("scripts", 0)),
+        "source": payload.get("source", "playwright chromium js coverage"),
+    }
+
+
+def build_dashboard(report_dir: Path, backend_json: Path, e2e_xml: list[Path], browser_json: Path | None = None) -> dict:
     backend_pct, backend_total, backend_covered, backend_files = python_coverage_summary(backend_json)
     template_pct, template_total, template_valid = template_validation_summary()
     js_pct, js_total, js_valid = frontend_js_summary()
+    browser_pct = load_browser_summary(browser_json)
     e2e_pct, e2e_total, e2e_passed, e2e_failed = junit_summary(e2e_xml)
 
     overall_pct = (
-        backend_pct + template_pct + js_pct + e2e_pct
-    ) / 4.0
+        backend_pct + template_pct + js_pct + browser_pct["coverage_percent"] + e2e_pct
+    ) / 5.0
 
     dashboard = {
         "backend": {
@@ -257,6 +288,13 @@ def build_dashboard(report_dir: Path, backend_json: Path, e2e_xml: list[Path]) -
             "total_files": js_total,
             "valid_files": js_valid,
             "source": "node --check syntax validation",
+        },
+        "browser": {
+            "coverage_percent": round(browser_pct["coverage_percent"], 2),
+            "total_bytes": browser_pct["total_bytes"],
+            "executed_bytes": browser_pct["executed_bytes"],
+            "scripts": browser_pct["scripts"],
+            "source": browser_pct["source"],
         },
         "e2e": {
             "coverage_percent": round(e2e_pct, 2),
@@ -280,10 +318,11 @@ def build_dashboard(report_dir: Path, backend_json: Path, e2e_xml: list[Path]) -
         f"Backend Python coverage: {dashboard['backend']['coverage_percent']:.2f}% ({dashboard['backend']['covered_statements']}/{dashboard['backend']['total_statements']} statements covered)",
         f"Template validation: {dashboard['templates']['coverage_percent']:.2f}% ({dashboard['templates']['valid_templates']}/{dashboard['templates']['total_templates']} valid templates)",
         f"JavaScript validation: {dashboard['javascript']['coverage_percent']:.2f}% ({dashboard['javascript']['valid_files']}/{dashboard['javascript']['total_files']} valid files)",
+        f"Browser JavaScript coverage: {dashboard['browser']['coverage_percent']:.2f}% ({dashboard['browser']['executed_bytes']}/{dashboard['browser']['total_bytes']} bytes executed)",
         f"E2E flow coverage: {dashboard['e2e']['coverage_percent']:.2f}% ({dashboard['e2e']['passed_tests']}/{dashboard['e2e']['total_tests']} tests passed)",
         f"Overall quality score: {dashboard['overall']['quality_score_percent']:.2f}%",
         "",
-        "This report combines Python coverage, template integrity, JavaScript syntax validation, and E2E smoke execution.",
+        "This report combines Python coverage, template integrity, JavaScript syntax validation, real browser coverage, and E2E smoke execution.",
     ]
     (report_dir / "project-coverage-dashboard.txt").write_text("\n".join(summary_lines) + "\n", encoding="utf-8")
 
@@ -295,6 +334,7 @@ def build_dashboard(report_dir: Path, backend_json: Path, e2e_xml: list[Path]) -
         f"- Backend Python coverage: **{dashboard['backend']['coverage_percent']:.2f}%** ({dashboard['backend']['covered_statements']}/{dashboard['backend']['total_statements']} statements covered)",
         f"- Template validation: **{dashboard['templates']['coverage_percent']:.2f}%** ({dashboard['templates']['valid_templates']}/{dashboard['templates']['total_templates']} valid templates)",
         f"- JavaScript validation: **{dashboard['javascript']['coverage_percent']:.2f}%** ({dashboard['javascript']['valid_files']}/{dashboard['javascript']['total_files']} valid files)",
+        f"- Browser JavaScript coverage: **{dashboard['browser']['coverage_percent']:.2f}%** ({dashboard['browser']['executed_bytes']}/{dashboard['browser']['total_bytes']} bytes executed)",
         f"- E2E flow coverage: **{dashboard['e2e']['coverage_percent']:.2f}%** ({dashboard['e2e']['passed_tests']}/{dashboard['e2e']['total_tests']} tests passed)",
         f"- Overall quality score: **{dashboard['overall']['quality_score_percent']:.2f}%**",
         "",
@@ -305,6 +345,7 @@ def build_dashboard(report_dir: Path, backend_json: Path, e2e_xml: list[Path]) -
         f"| Backend | {dashboard['backend']['source']} | {dashboard['backend']['coverage_percent']:.2f}% |",
         f"| Templates | {dashboard['templates']['source']} | {dashboard['templates']['coverage_percent']:.2f}% |",
         f"| JavaScript | {dashboard['javascript']['source']} | {dashboard['javascript']['coverage_percent']:.2f}% |",
+        f"| Browser | {dashboard['browser']['source']} | {dashboard['browser']['coverage_percent']:.2f}% |",
         f"| E2E | {dashboard['e2e']['source']} | {dashboard['e2e']['coverage_percent']:.2f}% |",
     ]
     (report_dir / "project-coverage-dashboard.md").write_text("\n".join(md_lines) + "\n", encoding="utf-8")
@@ -319,6 +360,9 @@ def build_dashboard(report_dir: Path, backend_json: Path, e2e_xml: list[Path]) -
             "</tr>",
             "<tr>",
             f"<td>JavaScript</td><td>{dashboard['javascript']['source']}</td><td>{dashboard['javascript']['coverage_percent']:.2f}%</td><td>{dashboard['javascript']['valid_files']}/{dashboard['javascript']['total_files']}</td>",
+            "</tr>",
+            "<tr>",
+            f"<td>Browser</td><td>{dashboard['browser']['source']}</td><td>{dashboard['browser']['coverage_percent']:.2f}%</td><td>{dashboard['browser']['executed_bytes']}/{dashboard['browser']['total_bytes']}</td>",
             "</tr>",
             "<tr>",
             f"<td>E2E</td><td>{dashboard['e2e']['source']}</td><td>{dashboard['e2e']['coverage_percent']:.2f}%</td><td>{dashboard['e2e']['passed_tests']}/{dashboard['e2e']['total_tests']}</td>",
@@ -347,6 +391,7 @@ def build_dashboard(report_dir: Path, backend_json: Path, e2e_xml: list[Path]) -
     <p><strong>Backend Python coverage:</strong> {dashboard['backend']['coverage_percent']:.2f}%</p>
     <p><strong>Template validation:</strong> {dashboard['templates']['coverage_percent']:.2f}%</p>
     <p><strong>JavaScript validation:</strong> {dashboard['javascript']['coverage_percent']:.2f}%</p>
+    <p><strong>Browser JS coverage:</strong> {dashboard['browser']['coverage_percent']:.2f}%</p>
     <p><strong>E2E flow coverage:</strong> {dashboard['e2e']['coverage_percent']:.2f}%</p>
   </div>
   <h2>Layer summary</h2>
@@ -368,6 +413,7 @@ def build_dashboard(report_dir: Path, backend_json: Path, e2e_xml: list[Path]) -
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--backend-json", type=Path, default=ROOT / "coverage" / "unit-coverage.json")
+    parser.add_argument("--browser-json", type=Path, default=None)
     parser.add_argument("--e2e-xml", nargs="*", type=Path, default=[ROOT / "test-results" / "e2e-junit.xml"])
     parser.add_argument("--output-dir", type=Path, default=ROOT / "coverage")
     args = parser.parse_args()
@@ -379,7 +425,12 @@ def main() -> int:
         else:
             args.backend_json = ROOT / "coverage" / "unit-coverage.json"
 
-    dashboard = build_dashboard(args.output_dir, args.backend_json, args.e2e_xml)
+    if args.browser_json is None:
+        default_browser = ROOT / "coverage" / "browser-coverage.json"
+        if default_browser.exists():
+            args.browser_json = default_browser
+
+    dashboard = build_dashboard(args.output_dir, args.backend_json, args.e2e_xml, args.browser_json)
     sys.stdout.write(json.dumps(dashboard, indent=2) + "\n")
     return 0
 

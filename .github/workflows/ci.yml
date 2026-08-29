@@ -178,6 +178,46 @@ jobs:
           if-no-files-found: error
           retention-days: 30
 
+  browser-coverage:
+    name: Browser JS coverage
+    runs-on: ubuntu-latest
+    needs: lint-and-static
+    env:
+      FLASK_ENV: testing
+      SECRET_KEY: ci-secret-key
+      USE_TEST_DB: '1'
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+
+      - name: Install project dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e '.[dev]'
+
+      - name: Install Playwright Chromium
+        run: |
+          python -m playwright install --with-deps chromium
+
+      - name: Run browser JS coverage capture
+        run: |
+          mkdir -p coverage
+          python tests/support/browser_coverage.py --output coverage/browser-coverage.json
+
+      - name: Upload browser coverage artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: browser-coverage
+          path: coverage/browser-coverage.json
+          if-no-files-found: error
+          retention-days: 30
+
   postgres-tests:
     name: PostgreSQL integration suite
     runs-on: ubuntu-latest
@@ -252,7 +292,7 @@ jobs:
   test-report:
     name: Publish test reports
     runs-on: ubuntu-latest
-    needs: [unit-tests, e2e-smoke, postgres-tests]
+    needs: [unit-tests, e2e-smoke, browser-coverage, postgres-tests]
     if: always()
     permissions:
       checks: write
@@ -277,6 +317,12 @@ jobs:
           name: unit-coverage
           path: coverage
 
+      - name: Download browser coverage artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: browser-coverage
+          path: coverage
+
       - name: Download test result artifacts
         uses: actions/download-artifact@v4
         with:
@@ -288,6 +334,7 @@ jobs:
         run: |
           python tests/support/coverage_inventory.py \
             --backend-json coverage/unit-coverage.json \
+            --browser-json coverage/browser-coverage.json \
             --e2e-xml test-results/e2e-junit.xml \
             --output-dir coverage/project-dashboard
 

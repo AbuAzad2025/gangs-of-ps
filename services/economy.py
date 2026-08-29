@@ -1,7 +1,7 @@
 from extensions import db
 from models.user import User
 from models.log import MoneySinkLog, EconomySnapshot, UserLog
-from models.system import SystemConfig
+from models.system import DEFAULT_SYSTEM_CONFIG, SystemConfig
 from models.facility import UserFacility
 from datetime import datetime, timezone, timedelta
 from sqlalchemy import func
@@ -10,47 +10,31 @@ from services.resource_service import ResourceService
 
 
 def get_bank_fee_config():
-    """Returns fee configuration (thresholds and percentages)."""
+    """Returns fee configuration (thresholds and percentages).
+
+    The defaults live in SystemConfig so the runtime and configuration schema stay
+    aligned instead of drifting across service code and database defaults.
+    """
+    defaults = {
+        "tier1_threshold": int(DEFAULT_SYSTEM_CONFIG.get("bank_fee_tier1_threshold", 50000)),
+        "tier2_threshold": int(DEFAULT_SYSTEM_CONFIG.get("bank_fee_tier2_threshold", 200000)),
+        "tier1_pct": float(DEFAULT_SYSTEM_CONFIG.get("bank_fee_tier1_pct", 0.005)),
+        "tier2_pct": float(DEFAULT_SYSTEM_CONFIG.get("bank_fee_tier2_pct", 0.012)),
+        "early_game_level_cap": int(DEFAULT_SYSTEM_CONFIG.get("early_game_fee_grace_level", 5)),
+        "early_game_fee_discount_pct": float(DEFAULT_SYSTEM_CONFIG.get("early_game_fee_discount_pct", 0.5)),
+    }
+
     try:
-        tier1_threshold = int(
-            SystemConfig.get_value(
-                "bank_fee_tier1_threshold", 50000))
-        tier2_threshold = int(
-            SystemConfig.get_value(
-                "bank_fee_tier2_threshold",
-                200000))
-
-        tier1_pct = float(
-            SystemConfig.get_value(
-                "bank_fee_tier1_pct",
-                0.005))  # 0.5%
-        tier2_pct = float(
-            SystemConfig.get_value(
-                "bank_fee_tier2_pct",
-                0.012))  # 1.2%
-
-        early_game_level_cap = int(
-            SystemConfig.get_value("early_game_fee_grace_level", 5))
-        early_game_fee_discount_pct = float(
-            SystemConfig.get_value("early_game_fee_discount_pct", 0.5))
-
         return {
-            "tier1_threshold": tier1_threshold,
-            "tier2_threshold": tier2_threshold,
-            "tier1_pct": tier1_pct,
-            "tier2_pct": tier2_pct,
-            "early_game_level_cap": early_game_level_cap,
-            "early_game_fee_discount_pct": early_game_fee_discount_pct,
+            "tier1_threshold": int(SystemConfig.get_value("bank_fee_tier1_threshold", defaults["tier1_threshold"])),
+            "tier2_threshold": int(SystemConfig.get_value("bank_fee_tier2_threshold", defaults["tier2_threshold"])),
+            "tier1_pct": float(SystemConfig.get_value("bank_fee_tier1_pct", defaults["tier1_pct"])),
+            "tier2_pct": float(SystemConfig.get_value("bank_fee_tier2_pct", defaults["tier2_pct"])),
+            "early_game_level_cap": int(SystemConfig.get_value("early_game_fee_grace_level", defaults["early_game_level_cap"])),
+            "early_game_fee_discount_pct": float(SystemConfig.get_value("early_game_fee_discount_pct", defaults["early_game_fee_discount_pct"])),
         }
     except BaseException:
-        return {
-            "tier1_threshold": 50000,
-            "tier2_threshold": 200000,
-            "tier1_pct": 0.005,
-            "tier2_pct": 0.012,
-            "early_game_level_cap": 5,
-            "early_game_fee_discount_pct": 0.5,
-        }
+        return defaults
 
 
 def calculate_bank_fee(balance, config, level=None):

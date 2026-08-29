@@ -1,0 +1,27 @@
+{
+  "name": "gangs-of-ps",
+  "version": "1.0.0",
+  "description": "![Gangs of Palestine Logo](static/img/azad_logo_white_on_dark.png)",
+  "main": "index.js",
+  "directories": {
+    "doc": "docs",
+    "test": "tests"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/AbuAzad2025/gangs-of-ps.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/AbuAzad2025/gangs-of-ps/issues"
+  },
+  "homepage": "https://github.com/AbuAzad2025/gangs-of-ps#readme",
+  "devDependencies": {
+    "playwright": "^1.53.0"
+  }
+}
