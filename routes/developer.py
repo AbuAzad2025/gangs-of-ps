@@ -145,6 +145,14 @@ def dev_dashboard():
     current_season_name = SystemConfig.get_value('current_season_name', 'الموسم 1')
     season_ends_at = SystemConfig.get_value('season_ends_at', '')
 
+    app_runtime = {
+        'name': SystemConfig.get_value('game_name', current_app.config.get('APP_NAME', 'عصابات فلسطين')),
+        'tagline': SystemConfig.get_value('game_tagline', current_app.config.get('APP_TAGLINE', 'لعبة استراتيجية الجريمة والهيمنة')),
+        'version': SystemConfig.get_value('app_version', current_app.config.get('APP_VERSION', '1.0.0')),
+        'status': SystemConfig.get_value('game_status', current_app.config.get('GAME_STATUS', 'online')),
+        'support_email': SystemConfig.get_value('support_email', current_app.config.get('SUPPORT_EMAIL', 'support@gangsofpalestine.com')),
+    }
+
     return render_template(
         'developer/dashboard.html',
         stats=stats,
@@ -169,6 +177,7 @@ def dev_dashboard():
         world_event_ends_at=world_event_ends_at,
         current_season_name=current_season_name,
         season_ends_at=season_ends_at,
+        app_runtime=app_runtime,
         title=_('لوحة تحكم المطور'))
 
 

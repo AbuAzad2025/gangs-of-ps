@@ -97,9 +97,10 @@ def _guard_user_resources(mapper, connection, target):
                             "string",
                             None),
                     ))
-        except Exception:
+        except Exception as exc:
             raise RuntimeError(
-                "Direct resource mutation blocked: use ResourceService.modify_resources")
+                "Direct resource mutation blocked: use ResourceService.modify_resources"
+            ) from exc
         return
 
     raise RuntimeError(

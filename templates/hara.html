@@ -21,6 +21,14 @@
                         {{ _(user.rank_title) }}
                     </span>
                 </div>
+                <div class="mt-4 d-flex flex-wrap" style="gap: .75rem;">
+                    <a href="{{ url_for('main.game_stats') }}" class="btn btn-gold btn-sm">
+                        <i class="fas fa-chart-line mr-1"></i> {{ _('لوحة الإحصائيات') }}
+                    </a>
+                    <a href="{{ url_for('main.guide') }}" class="btn btn-outline-light btn-sm">
+                        <i class="fas fa-book-reader mr-1"></i> {{ _('الدليل') }}
+                    </a>
+                </div>
             </div>
             <div class="col-lg-4 text-center d-none d-lg-block">
                 <div class="avatar-circle hara-avatar-circle mx-auto" style="width: 120px; height: 120px; font-size: 3rem;">

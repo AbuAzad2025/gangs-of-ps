@@ -1,6 +1,7 @@
 import os
 import platform
 import sys
+import threading
 
 from flask_sqlalchemy import SQLAlchemy
 try:
@@ -93,7 +94,14 @@ try:
 except Exception:
     socketio = None
 
-db = SQLAlchemy()
+def _thread_session_scope():
+    return threading.get_ident()
+
+
+db = SQLAlchemy(session_options={
+    'expire_on_commit': False,
+    'scopefunc': _thread_session_scope,
+})
 migrate = Migrate()
 login = LoginManager()
 login.login_view = 'main.login'  # Corrected blueprint name

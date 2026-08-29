@@ -1,0 +1,163 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row align-items-center mb-4">
+        <div class="col-lg-8">
+            <h1 class="text-gold font-weight-bold mb-2"><i class="fas fa-chart-line mr-2"></i>{{ _('لوحة إحصائيات اللعبة') }}</h1>
+            <p class="text-muted mb-0">{{ _('مؤشرات اللعبة في لمحة: الاقتصاد، النشاط، الموسم، والحدث العالمي.') }}</p>
+        </div>
+        <div class="col-lg-4 text-lg-right text-center mt-3 mt-lg-0">
+            <span class="badge badge-success px-3 py-2">{{ stats.game_status|title }}</span>
+        </div>
+    </div>
+
+    <div class="row mb-4">
+        <div class="col-md-3 mb-3">
+            <div class="card bg-dark border-gold h-100 shadow-sm">
+                <div class="card-body">
+                    <div class="small text-muted mb-2">{{ _('اسم اللعبة') }}</div>
+                    <div class="font-weight-bold text-white">{{ stats.game_name }}</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="card bg-dark border-gold h-100 shadow-sm">
+                <div class="card-body">
+                    <div class="small text-muted mb-2">{{ _('الموسم') }}</div>
+                    <div class="font-weight-bold text-gold">{{ stats.season.name if stats.season and stats.season.name else _('الموسم 1') }}</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="card bg-dark border-gold h-100 shadow-sm">
+                <div class="card-body">
+                    <div class="small text-muted mb-2">{{ _('اللاعبون النشطون') }}</div>
+                    <div class="font-weight-bold text-info">{{ stats.active_24h }}</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="card bg-dark border-gold h-100 shadow-sm">
+                <div class="card-body">
+                    <div class="small text-muted mb-2">{{ _('الدعم') }}</div>
+                    <div class="font-weight-bold text-warning small">{{ stats.support_email }}</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mb-4">
+        <div class="col-lg-8 mb-4 mb-lg-0">
+            <div class="card bg-dark border-gold shadow-sm h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center justify-content-between mb-3">
+                        <h3 class="text-gold font-weight-bold mb-0"><i class="fas fa-balance-scale mr-2"></i>{{ _('صحة اقتصادك') }}</h3>
+                        <span class="badge badge-{{ economy_health.status }} px-3 py-2">{{ economy_health.label }}</span>
+                    </div>
+                    <div class="d-flex align-items-center mb-3">
+                        <div class="score-ring text-{{ economy_health.status }} mr-3">{{ economy_health.score }}</div>
+                        <div>
+                            <div class="text-white font-weight-bold">{{ _('الإجمالي') }}: {{ '{:,}'.format(economy_health.total) }}$</div>
+                            <div class="text-muted small">{{ _('الكاش') }}: {{ '{:,}'.format(economy_health.cash) }}$ · {{ _('البنك') }}: {{ '{:,}'.format(economy_health.bank) }}$</div>
+                        </div>
+                    </div>
+                    <div class="economy-allocation-bar mb-2">
+                        <div class="seg-cash" style="width: {{ economy_health.cash_pct }}%;"></div>
+                        <div class="seg-bank" style="width: {{ economy_health.bank_pct }}%;"></div>
+                    </div>
+                    <div class="d-flex justify-content-between small text-muted mb-3">
+                        <span><i class="fas fa-wallet text-warning mr-1"></i> {{ economy_health.cash_pct }}% {{ _('كاش') }}</span>
+                        <span><i class="fas fa-university text-success mr-1"></i> {{ economy_health.bank_pct }}% {{ _('بنك') }}</span>
+                    </div>
+                    <div class="row text-center">
+                        <div class="col-md-4 mb-3 mb-md-0">
+                            <div class="bg-secondary rounded p-3">
+                                <div class="small text-muted mb-1">{{ _('رسوم اليوم') }}</div>
+                                <div class="font-weight-bold text-danger">{{ '{:,}'.format(economy_health.bank_fee) }}$</div>
+                            </div>
+                        </div>
+                        <div class="col-md-4 mb-3 mb-md-0">
+                            <div class="bg-secondary rounded p-3">
+                                <div class="small text-muted mb-1">{{ _('الصيانة') }}</div>
+                                <div class="font-weight-bold text-warning">{{ '{:,}'.format(economy_health.maintenance) }}$</div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="bg-secondary rounded p-3">
+                                <div class="small text-muted mb-1">{{ _('الإجمالي اليوم') }}</div>
+                                <div class="font-weight-bold text-info">{{ '{:,}'.format(economy_health.daily_sink) }}$</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="card bg-dark border-warning shadow-sm h-100">
+                <div class="card-body">
+                    <h3 class="text-warning font-weight-bold mb-3"><i class="fas fa-bolt mr-2"></i>{{ _('حدث العالم') }}</h3>
+                    <p class="mb-2 text-light font-weight-bold">
+                        {{ stats.world_event.title if stats.world_event and stats.world_event.title else _('لا يوجد حدث نشط حاليًا') }}
+                    </p>
+                    <p class="text-muted small mb-3">
+                        {% if stats.world_event and stats.world_event.description %}
+                            {{ stats.world_event.description }}
+                        {% else %}
+                            {{ _('تحديثات اللعبة تتغير حسب الموسم والفرص الحالية في المدينة.') }}
+                        {% endif %}
+                    </p>
+                    <div class="small text-muted mb-1">{{ _('المعارك خلال 24 ساعة') }}</div>
+                    <div class="font-weight-bold text-gold h4 mb-0">{{ stats.battles_24h }}</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-6 mb-4">
+            <div class="card bg-dark border-gold h-100 shadow-sm">
+                <div class="card-body">
+                    <h3 class="text-gold font-weight-bold mb-3"><i class="fas fa-medal mr-2"></i>{{ _('مقارنة ثروتك') }}</h3>
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <span class="text-muted">{{ _('مستوى اللاعب') }}</span>
+                        <span class="font-weight-bold text-white">{{ peer_health.level }}</span>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <span class="text-muted">{{ _('ثروتك') }}</span>
+                        <span class="font-weight-bold text-warning">{{ '{:,}'.format(peer_health.user_wealth) }}$</span>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <span class="text-muted">{{ _('متوسط المستوى') }}</span>
+                        <span class="font-weight-bold text-info">{{ '{:,}'.format(peer_health.avg_wealth) }}$</span>
+                    </div>
+                    <div class="alert alert-dark border border-secondary mb-0">
+                        <i class="fas fa-arrow-{{ 'up' if peer_health.ahead else 'down' }} text-{{ 'success' if peer_health.ahead else 'danger' }} mr-2"></i>
+                        {% if peer_health.ahead %}
+                            {{ _('أنت أعلى من المتوسط بمقدار %(diff)s$.', diff='{:,}'.format(peer_health.diff)) }}
+                        {% else %}
+                            {{ _('أنت أقل من المتوسط بمقدار %(diff)s$.', diff='{:,}'.format(abs(peer_health.diff))) }}
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6 mb-4">
+            <div class="card bg-dark border-gold h-100 shadow-sm">
+                <div class="card-body">
+                    <h3 class="text-gold font-weight-bold mb-3"><i class="fas fa-lightbulb mr-2"></i>{{ _('نصائح الاقتصاد') }}</h3>
+                    <ul class="text-light mb-0 pl-3">
+                        {% for tip in economy_health.tips or [] %}
+                        <li class="mb-2">{{ tip }}</li>
+                        {% else %}
+                        <li>{{ _('الاقتصاد مستقر حاليًا. تابع التوازن بين الكاش والبنك.') }}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1177,7 +1177,7 @@ def leave_game(room_id):
 @login_required
 def room_events(room_id):
     def event_stream():
-        for i in range(300):
+        for _unused in range(300):
             room = GameRoom.query.get(room_id)
             if not room:
                 yield "event:close\ndata: {}\n\n"

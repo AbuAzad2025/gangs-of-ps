@@ -392,14 +392,34 @@ def register():
                 title=_('إنشاء حساب'),
                 form=form)
 
+        SystemConfig.ensure_defaults()
+
         user = User(username=form.username.data)
         user.set_password(form.password.data)
         user.birthdate = form.birthdate.data
         user.playstyle = (form.playstyle.data or 'fighter').strip().lower()
-        user.referral_code = secrets.token_hex(
-            4)  # Generate unique 8-char code
+        user.referral_code = secrets.token_hex(4)
         user.is_verified = True
         user.verified_on = datetime.now(timezone.utc)
+
+        def _cfg_int(key, default):
+            try:
+                value = SystemConfig.get_value(key, default)
+                return int(value if value is not None else default)
+            except Exception:
+                return int(default)
+
+        user.money = _cfg_int('starter_money', 2500)
+        user.energy = _cfg_int('starter_energy', 100)
+        user.max_energy = _cfg_int('starter_max_energy', 100)
+        user.bullets = _cfg_int('starter_bullets', 50)
+        user.diamonds = _cfg_int('starter_diamonds', 0)
+
+        if getattr(user, 'max_health', None) is not None:
+            user.max_health = max(int(user.max_health or 100), 100)
+        if getattr(user, 'health', None) is not None:
+            user.health = max(int(user.health or 100), 100)
+
         db.session.add(user)
         db.session.commit()
 

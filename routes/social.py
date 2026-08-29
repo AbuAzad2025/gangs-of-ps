@@ -125,7 +125,7 @@ def _get_or_create_guest_chat_user() -> User:
         if u and u.role == UserRole.GUEST:
             return u
 
-    for attempt in range(8):
+    for _attempt in range(8):
         suffix = secrets.token_urlsafe(6).replace('-', '').replace('_', '')
         username = f"Guest{suffix}"
         if not User.query.filter_by(username=username).first():

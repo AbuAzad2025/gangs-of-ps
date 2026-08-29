@@ -50,6 +50,17 @@ def _world_money_bonus(amount):
         return int(amount or 0)
 
 
+def _config_int(key, default, minimum=None):
+    try:
+        value = SystemConfig.get_value(key, default)
+        parsed = int(value if value is not None else default)
+    except Exception:
+        parsed = int(default)
+    if minimum is not None:
+        parsed = max(parsed, minimum)
+    return parsed
+
+
 @bp.route('/organized_crimes')
 @limiter.limit("30 per minute")
 def organized_crimes():
@@ -489,16 +500,17 @@ def daily_reward():
 
     user.daily_streak = max(1, min(30, int(user.daily_streak or 1)))
 
-    base_money = user.level * 50
-    base_energy = 20
-    base_exp = 10
+    base_money = max(120, _config_int('daily_reward_base_money_per_level', 120)) * max(1, user.level)
+    base_energy = _config_int('daily_reward_base_energy', 22)
+    base_exp = _config_int('daily_reward_base_exp', 14)
+    streak_step = max(0.01, float(SystemConfig.get_value('daily_reward_streak_step_pct', '0.12') or '0.12'))
 
     streak = int(user.daily_streak or 1)
-    streak_multiplier = 1.0 + (min(6, streak - 1) * 0.10)
+    streak_multiplier = 1.0 + (min(6, streak - 1) * streak_step)
 
     money_reward = int(base_money * streak_multiplier)
     money_reward = _world_money_bonus(money_reward)
-    energy_reward = int(min(40, base_energy + (min(10, streak - 1) * 2)))
+    energy_reward = int(min(45, base_energy + (min(10, streak - 1) * 2)))
     exp_reward = int(base_exp * streak_multiplier)
     diamonds_reward = 0
     if streak % 7 == 0:
@@ -588,9 +600,10 @@ def hara():
                 hours=hours,
                 minutes=minutes)
 
-    base_money = current_user.level * 50
-    base_energy = 20
-    base_exp = 10
+    base_money = max(120, _config_int('daily_reward_base_money_per_level', 120)) * max(1, current_user.level)
+    base_energy = _config_int('daily_reward_base_energy', 22)
+    base_exp = _config_int('daily_reward_base_exp', 14)
+    streak_step = max(0.01, float(SystemConfig.get_value('daily_reward_streak_step_pct', '0.12') or '0.12'))
 
     current_streak = int(getattr(current_user, "daily_streak", 0) or 0)
     next_streak = 1
@@ -609,9 +622,9 @@ def hara():
         next_streak = 1
     next_streak = max(1, min(30, int(next_streak)))
 
-    streak_multiplier = 1.0 + (min(6, next_streak - 1) * 0.10)
+    streak_multiplier = 1.0 + (min(6, next_streak - 1) * streak_step)
     next_money = int(base_money * streak_multiplier)
-    next_energy = int(min(40, base_energy + (min(10, next_streak - 1) * 2)))
+    next_energy = int(min(45, base_energy + (min(10, next_streak - 1) * 2)))
     next_exp = int(base_exp * streak_multiplier)
     next_diamonds = 1 if (next_streak % 7 == 0) else 0
 
@@ -638,6 +651,38 @@ def hara():
         daily_reward_meta=daily_reward_meta,
         economy_health=compute_economy_health(current_user),
         page_container_class='')
+
+
+@bp.route('/game-stats')
+@login_required
+def game_stats():
+    from routes.core import get_dashboard_stats
+    from services.economy_academy import compute_economy_health, get_peer_wealth_stats
+
+    overview = get_dashboard_stats()
+    economy_health = compute_economy_health(current_user)
+    peer_health = get_peer_wealth_stats(current_user)
+
+    stats = {
+        'total_players': overview.get('total_users', 0),
+        'active_24h': overview.get('active_users', 0),
+        'new_24h': overview.get('new_users', 0),
+        'battles_24h': overview.get('battles_24h', 0),
+        'world_event': overview.get('world_event'),
+        'game_name': overview.get('game_name', 'عصابات فلسطين'),
+        'game_status': overview.get('game_status', current_app.config.get('GAME_STATUS', 'online')),
+        'season': overview.get('season', {'name': 'الموسم 1', 'days_left': 0, 'active': True}),
+        'support_email': overview.get('support_email', current_app.config.get('SUPPORT_EMAIL', 'support@gangsofpalestine.com')),
+    }
+
+    return render_template(
+        'game_stats.html',
+        user=current_user,
+        stats=stats,
+        economy_health=economy_health,
+        peer_health=peer_health,
+        title=_('لوحة إحصائيات اللعبة'),
+    )
 
 
 @bp.route('/empire')
@@ -1294,15 +1339,38 @@ def do_crime(crime_id):
             level_mult_factor = float(
                 SystemConfig.get_value(
                     "crime_level_money_multiplier",
-                    "0.02") or 0.02)
+                    "0.03") or 0.03)
+            exp_mult_factor = float(
+                SystemConfig.get_value(
+                    "crime_level_exp_multiplier",
+                    "0.025") or 0.025)
+            early_boost_pct = float(
+                SystemConfig.get_value(
+                    "crime_early_level_reward_boost_pct",
+                    "0.22") or 0.22)
+            early_level_cap = int(
+                SystemConfig.get_value(
+                    "crime_early_level_cap",
+                    "5") or 5)
         except BaseException:
-            level_mult_factor = 0.02
+            level_mult_factor = 0.03
+            exp_mult_factor = 0.025
+            early_boost_pct = 0.22
+            early_level_cap = 5
+
         level_multiplier = 1 + (current_user.level * level_mult_factor)
+        if current_user.level <= early_level_cap:
+            level_multiplier += early_boost_pct
+
+        xp_multiplier = 1 + (current_user.level * exp_mult_factor)
+        if current_user.level <= early_level_cap:
+            xp_multiplier += early_boost_pct * 0.7
+
         base_money = random.randint(
             crime.money_reward_min,
             crime.money_reward_max)
         money = int(base_money * level_multiplier)
-        xp_reward = int(crime.exp_reward * level_multiplier)
+        xp_reward = int(crime.exp_reward * xp_multiplier)
 
         if current_user.is_suspicious:
             # Soft Anti-Cheat: Reduce rewards

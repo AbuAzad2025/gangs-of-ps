@@ -11,6 +11,13 @@ basedir = os.path.abspath(os.path.dirname(__file__))
 
 
 class Config:
+    # Core app identity
+    APP_NAME = os.environ.get('APP_NAME') or 'عصابات فلسطين'
+    APP_TAGLINE = os.environ.get('APP_TAGLINE') or 'لعبة استراتيجية الجريمة والهيمنة'
+    APP_VERSION = os.environ.get('APP_VERSION') or '1.0.0'
+    GAME_STATUS = os.environ.get('GAME_STATUS') or 'online'
+    SUPPORT_EMAIL = os.environ.get('SUPPORT_EMAIL') or 'support@gangsofpalestine.com'
+
     # Secure fallback if not set
     SECRET_KEY = os.environ.get('SECRET_KEY') or os.urandom(24).hex()
 

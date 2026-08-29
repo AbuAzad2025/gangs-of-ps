@@ -127,6 +127,18 @@ def estimate_user_maintenance(user_id: int) -> int:
     except Exception:
         maint_multiplier = 1.0
 
+    try:
+        user = db.session.get(User, user_id)
+        player_level = int((user.level or 1) if user else 1)
+        grace_level = int(SystemConfig.get_value("early_game_maintenance_grace_level", 3))
+        grace_discount = float(SystemConfig.get_value("early_game_maintenance_discount_pct", 0.5) or 0.5)
+        discount_active = player_level <= grace_level
+    except Exception:
+        player_level = 1
+        grace_level = 3
+        grace_discount = 0.5
+        discount_active = True
+
     base_costs = {
         "house": 500,
         "warehouse": 1000,
@@ -139,13 +151,16 @@ def estimate_user_maintenance(user_id: int) -> int:
     ).all()
     for fac in facilities:
         base = base_costs.get(fac.facility_key, 500)
-        total += int(base * (fac.level or 0) * maint_multiplier)
+        cost = int(base * (fac.level or 0) * maint_multiplier)
+        if discount_active:
+            cost = int(cost * (1.0 - max(0.0, min(0.85, grace_discount))))
+        total += cost
     return total
 
 
-def preview_bank_fee(balance: int) -> Dict[str, Any]:
+def preview_bank_fee(balance: int, level: Optional[int] = None) -> Dict[str, Any]:
     config = get_bank_fee_config()
-    fee, reason = calculate_bank_fee(max(0, int(balance or 0)), config)
+    fee, reason = calculate_bank_fee(max(0, int(balance or 0)), config, level=level)
     return {
         "balance": int(balance or 0),
         "fee": int(fee),
@@ -190,7 +205,7 @@ def compute_economy_health(user: User) -> Dict[str, Any]:
         cash_pct = int(round(cash * 100 / total))
         bank_pct = 100 - cash_pct
 
-    bank_fee_info = preview_bank_fee(bank)
+    bank_fee_info = preview_bank_fee(bank, level=int(user.level or 1))
     maintenance = estimate_user_maintenance(user.id)
     daily_sink = int(bank_fee_info["fee"]) + maintenance
 

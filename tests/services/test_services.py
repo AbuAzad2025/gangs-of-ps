@@ -8,6 +8,7 @@ import pytest
 
 from extensions import db
 from models.log import UserLog
+from models.system import SystemConfig
 from models.user import User, UserRole
 from services.economy import calculate_bank_fee, get_bank_fee_config
 from services.economy_integrity import (
@@ -219,6 +220,17 @@ class TestBankFeeConfig:
         assert cfg['tier2_threshold'] == 200000
         assert cfg['tier1_pct'] == 0.005
         assert cfg['tier2_pct'] == 0.012
+
+    def test_applies_early_game_fee_grace(self, app):
+        with app.app_context():
+            SystemConfig.set_value('bank_fee_tier1_threshold', '50000')
+            SystemConfig.set_value('bank_fee_tier1_pct', '0.005')
+            SystemConfig.set_value('early_game_fee_grace_level', '5')
+            SystemConfig.set_value('early_game_fee_discount_pct', '0.5')
+            cfg = get_bank_fee_config()
+            fee, reason = calculate_bank_fee(100000, cfg, level=3)
+        assert fee == 250
+        assert 'Early Grace' in reason
 
 
 class TestCalculateBankFee:

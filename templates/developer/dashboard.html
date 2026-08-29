@@ -19,6 +19,56 @@
 <div class="row mb-4">
     <div class="col-12">
         <div class="card luxury-card">
+            {{ dev_card_header(_('ملخص التشغيل'), icon_class='fas fa-server', header_class='card-header luxury-header', title_class='mb-0 text-gold') }}
+            <div class="card-body bg-dark">
+                <div class="row text-center">
+                    <div class="col-md-3 col-6 mb-3">
+                        <div class="bg-secondary rounded p-3 h-100">
+                            <div class="small text-muted mb-2">{{ _('الاسم') }}</div>
+                            <div class="font-weight-bold text-white">{{ app_runtime.name }}</div>
+                        </div>
+                    </div>
+                    <div class="col-md-3 col-6 mb-3">
+                        <div class="bg-secondary rounded p-3 h-100">
+                            <div class="small text-muted mb-2">{{ _('الإصدار') }}</div>
+                            <div class="font-weight-bold text-info">{{ app_runtime.version }}</div>
+                        </div>
+                    </div>
+                    <div class="col-md-3 col-6 mb-3">
+                        <div class="bg-secondary rounded p-3 h-100">
+                            <div class="small text-muted mb-2">{{ _('الحالة') }}</div>
+                            <div class="font-weight-bold text-success">{{ app_runtime.status }}</div>
+                        </div>
+                    </div>
+                    <div class="col-md-3 col-6 mb-3">
+                        <div class="bg-secondary rounded p-3 h-100">
+                            <div class="small text-muted mb-2">{{ _('الموسم') }}</div>
+                            <div class="font-weight-bold text-warning">{{ current_season_name }}</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-6 mb-3 mb-md-0">
+                        <div class="bg-secondary rounded p-3 h-100">
+                            <div class="small text-muted mb-2">{{ _('الهوية') }}</div>
+                            <div class="font-weight-bold text-gold">{{ app_runtime.tagline }}</div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="bg-secondary rounded p-3 h-100">
+                            <div class="small text-muted mb-2">{{ _('الدعم') }}</div>
+                            <div class="font-weight-bold text-white">{{ app_runtime.support_email }}</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card luxury-card">
             {{ dev_card_header(_('إعدادات الترفيه والرهانات'), icon_class='fas fa-gamepad', header_class='card-header luxury-header', title_class='mb-0 text-gold') }}
             <div class="card-body bg-dark">
                 <form action="{{ url_for('main.update_entertainment_settings') }}" method="POST">

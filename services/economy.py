@@ -29,30 +29,53 @@ def get_bank_fee_config():
                 "bank_fee_tier2_pct",
                 0.012))  # 1.2%
 
+        early_game_level_cap = int(
+            SystemConfig.get_value("early_game_fee_grace_level", 5))
+        early_game_fee_discount_pct = float(
+            SystemConfig.get_value("early_game_fee_discount_pct", 0.5))
+
         return {
             "tier1_threshold": tier1_threshold,
             "tier2_threshold": tier2_threshold,
             "tier1_pct": tier1_pct,
-            "tier2_pct": tier2_pct
+            "tier2_pct": tier2_pct,
+            "early_game_level_cap": early_game_level_cap,
+            "early_game_fee_discount_pct": early_game_fee_discount_pct,
         }
     except BaseException:
         return {
             "tier1_threshold": 50000,
             "tier2_threshold": 200000,
             "tier1_pct": 0.005,
-            "tier2_pct": 0.012
+            "tier2_pct": 0.012,
+            "early_game_level_cap": 5,
+            "early_game_fee_discount_pct": 0.5,
         }
 
 
-def calculate_bank_fee(balance, config):
+def calculate_bank_fee(balance, config, level=None):
     if balance < config["tier1_threshold"]:
         return 0, "No Fee"
-    elif balance < config["tier2_threshold"]:
+
+    fee = 0
+    reason = "No Fee"
+    if balance < config["tier2_threshold"]:
         fee = int(balance * config["tier1_pct"])
-        return fee, f"Tier 1 ({config['tier1_pct'] * 100}%)"
+        reason = f"Tier 1 ({config['tier1_pct'] * 100}%)"
     else:
         fee = int(balance * config["tier2_pct"])
-        return fee, f"Tier 2 ({config['tier2_pct'] * 100}%)"
+        reason = f"Tier 2 ({config['tier2_pct'] * 100}%)"
+
+    try:
+        cap = int(config.get("early_game_level_cap", 5) or 5)
+        discount_pct = float(config.get("early_game_fee_discount_pct", 0.5) or 0.5)
+        if level is not None and level <= cap and fee > 0:
+            fee = int(fee * (1.0 - max(0.0, min(0.85, discount_pct))))
+            reason = f"Early Grace ({reason})"
+    except Exception:
+        pass
+
+    return max(0, fee), reason
 
 
 def apply_daily_sinks():
@@ -82,7 +105,11 @@ def apply_daily_sinks():
             if not user:
                 continue
 
-            fee, reason = calculate_bank_fee(user.bank_balance, config)
+            fee, reason = calculate_bank_fee(
+                user.bank_balance,
+                config,
+                level=int(user.level or 1),
+            )
             if fee > 0:
                 try:
                     with db.session.begin_nested():

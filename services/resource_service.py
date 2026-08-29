@@ -159,14 +159,14 @@ class ResourceService:
                             f"Error in daily limit check: {e}")
 
             before_state = {}
-            for res, amount in changes.items():
+            for res, _ in changes.items():
                 if hasattr(user, res):
                     before_state[res] = getattr(user, res)
                 else:
                     raise ValueError(f"Invalid resource: {res}")
 
             if set_fields:
-                for field, value in set_fields.items():
+                for field, _ in set_fields.items():
                     if hasattr(user, field):
                         before_state[field] = getattr(user, field)
                     else:

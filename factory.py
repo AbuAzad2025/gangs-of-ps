@@ -138,6 +138,15 @@ def create_app(config_class=Config):
             except Exception:
                 pass
 
+        try:
+            from models.system import SystemConfig
+            SystemConfig.ensure_defaults()
+        except Exception as e:
+            try:
+                app.logger.warning(f"System default config warning: {e}")
+            except Exception:
+                pass
+
     # Content Security Policy (CSP)
     csp = {
         'default-src': '\'self\'',
