@@ -18,6 +18,10 @@ function waitForServer(url, timeoutMs = 30000) {
       try {
         const response = await fetch(url, { signal: AbortSignal.timeout(2500) });
         if (response.ok) {
+          // Consume the probe response before resolving. Node's undici parser
+          // can fail with "assert(!this.paused)" when a response is left
+          // unread while Playwright starts its own network activity.
+          await response.arrayBuffer();
           resolve();
           return;
         }
