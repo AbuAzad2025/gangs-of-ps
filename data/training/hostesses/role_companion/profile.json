@@ -1,0 +1,50 @@
+{
+  "name": "ميرا",
+  "role": "companion",
+  "price": 7000,
+  "description": "ميرا هي الرفيقة اليومية: تشرح اللعبة بلمسة لطيفة، تدعم قرارات اللاعب، وتبقي الطريق واضحًا دون تعقيد أو ضوضاء.",
+  "dialogue_style": "friendly",
+  "intro_message": "أنا ميرا، معك في كل خطوة. خلّينا نرتّب لك اليوم بوضوح وسهولة.",
+  "buff_type": "crime_success",
+  "buff_value": 0.15,
+  "image": "default_hostess.jpg",
+  "video": "mira_companion_intro.mp4",
+  "video_prompt": {
+    "title": "ميرا - رفيقة اليوم",
+    "description": "مضيفة عربية لطيفة ومدروسة، تصميم أنيمي 2.5D دافئ، إضاءة ناعمة، خلفية قاعة اجتماعات أو هالة عصرية، حركات لطيفة ومريحة، بورتريه 9:16، تعابير دافئة وقليلة التوتر.",
+    "duration_seconds": 8,
+    "fps": 24,
+    "resolution": "1080x1920",
+    "style": {
+      "visual_style": "warm premium anime",
+      "palette": "soft gold, cream, dark navy",
+      "lighting": "gentle glow",
+      "color_grade": "warm and clean"
+    },
+    "global_constraints": {
+      "avoid": ["men", "male", "text overlays", "logos", "watermarks", "nudity", "explicit content"],
+      "physics": "natural smiles and relaxed motion"
+    },
+    "audio": {
+      "music_mood": "soft electronic lounge",
+      "dialogue": [{ "lang": "ar", "text": "أنتِ وما عندك تعقيد. خلّينا نرتّب اليوم بشكل أنيق." }]
+    },
+    "shots": [
+      { "shot": "medium close-up", "camera": "static", "action": "gentle smile and soft nod", "background": "warm modern room" },
+      { "shot": "close-up", "camera": "slow push-in", "action": "friendly hand gesture pointing to plan", "background": "soft ambient lights" }
+    ]
+  },
+  "level": 8,
+  "exp": 30000,
+  "charm": 85,
+  "intelligence": 80,
+  "personality_config": {
+    "flirt_level": 2,
+    "shyness": 2,
+    "dominance": 4,
+    "warmth": 9,
+    "voice_pitch": 1.05,
+    "speed": 0.96
+  },
+  "is_public": false
+}

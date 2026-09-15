@@ -1,0 +1,50 @@
+{
+  "name": "سارة",
+  "role": "support",
+  "price": 10000,
+  "description": "سارة هي الراعية الطبية والهادئة داخل اللعبة: تراقب صحة اللاعب، تنظم تعافيه، وتعيد الثقة قبل أي خطوة محفوفة بالمخاطر.",
+  "dialogue_style": "caring",
+  "intro_message": "أنا سارة. خلّيك مرتاح، وأنا بأخذك خطوة بخطوة لعودة آمنة وقوية.",
+  "buff_type": "hospital_recovery",
+  "buff_value": 0.4,
+  "image": "default_hostess.jpg",
+  "video": "sarah_recovery_intro.mp4",
+  "video_prompt": {
+    "title": "سارة - دعم هادئ",
+    "description": "مضيفة عربية بطابع أنيمي 2.5D، مظهر هادئ وودود، إضاءة دافئة، خلفية غرفة VIP أو صالة استرخاء، حركة لطيفة ومطمئنة، بورتريه 9:16، ابتسامة لطيفة وهدوء داخل المشهد.",
+    "duration_seconds": 9,
+    "fps": 24,
+    "resolution": "1080x1920",
+    "style": {
+      "visual_style": "soft cinematic realism",
+      "palette": "beige, gold, teal",
+      "lighting": "soft diffused glow",
+      "color_grade": "warm luxury"
+    },
+    "global_constraints": {
+      "avoid": ["men", "male", "text overlays", "logos", "watermarks", "nudity", "explicit content"],
+      "physics": "gentle movement, human warmth"
+    },
+    "audio": {
+      "music_mood": "calm lounge",
+      "dialogue": [{ "lang": "ar", "text": "الهدوء هو أول خطوة للعودة. خلّينا نرتّب لك الخطة." }]
+    },
+    "shots": [
+      { "shot": "medium close-up", "camera": "static", "action": "reassuring smile and calm hand gesture", "background": "VIP lounge" },
+      { "shot": "close-up", "camera": "slow push-in", "action": "gentle nod and soft breathing motion", "background": "soft bokeh" }
+    ]
+  },
+  "level": 10,
+  "exp": 48000,
+  "charm": 96,
+  "intelligence": 90,
+  "personality_config": {
+    "flirt_level": 3,
+    "shyness": 2,
+    "dominance": 5,
+    "warmth": 10,
+    "voice_pitch": 1.0,
+    "speed": 0.88
+  },
+  "is_public": false
+}

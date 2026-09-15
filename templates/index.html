@@ -71,6 +71,40 @@
                         </a>
                     </div>
 
+                    <div class="hero-metrics mt-4">
+                        <div class="hero-metric-card">
+                            <span class="metric-label">{{ _('مستوى اللاعبين') }}</span>
+                            <strong>{{ total_users }}</strong>
+                        </div>
+                        <div class="hero-metric-card">
+                            <span class="metric-label">{{ _('معارك اليوم') }}</span>
+                            <strong>{{ battles_24h }}</strong>
+                        </div>
+                        <div class="hero-metric-card">
+                            <span class="metric-label">{{ _('قيمة السوق') }}</span>
+                            <strong>${{ total_money }}</strong>
+                        </div>
+                    </div>
+
+                    <div class="ai-showcase mt-4">
+                        <div class="ai-showcase-body">
+                            <div class="ai-avatar-shell">
+                                <img src="{{ url_for('static', filename='images/' + (jasmin.image_path if jasmin and jasmin.image_path else 'hostesses/default_hostess.jpg')) }}" alt="Yasmin AI" onerror="this.onerror=null; this.src='{{ url_for('static', filename='images/hostesses/default_hostess.jpg') }}';">
+                                <span class="ai-live-indicator"><i class="fas fa-sparkles"></i></span>
+                            </div>
+                            <div class="ai-copy">
+                                <span class="ai-tag">{{ _('الذكاء الصناعي') }}</span>
+                                <h3>{{ jasmin.name if jasmin and jasmin.name else 'Yasmin AI' }}</h3>
+                                <p>{{ _('مستشارة ذكية تعمل داخل اللعبة وتساعدك على التخطيط، تقليل المخاطر، وتحسين قراراتك في الأسواق والمعارك.') }}</p>
+                                <div class="ai-pills">
+                                    <span>{{ _('تحليل السوق') }}</span>
+                                    <span>{{ _('استراتيجية المعارك') }}</span>
+                                    <span>{{ _('توجيه فوري') }}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
                     <!-- Mobile Store Links -->
                     <div class="mt-4 d-flex flex-column align-items-center align-items-lg-start">
                         <span class="text-gold mb-2 small text-uppercase font-weight-bold" style="letter-spacing: 1px;">{{ _('العب الآن على الجوال') }}</span>
@@ -229,6 +263,237 @@
                                 {{ _('تحديثات اللعبة تتغير حسب الموسم والفرص الحالية في المدينة.') }}
                             {% endif %}
                         </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container mb-5">
+        <div class="row">
+            <div class="col-12">
+                <div class="game-overview-panel shadow-lg">
+                    <div class="game-overview-header">
+                        <div>
+                            <span class="game-overview-kicker">{{ _('لوحة القيادة') }}</span>
+                            <h2 class="game-overview-title mb-0">{{ _('دورة اللعب الحقيقية داخل المدينة') }}</h2>
+                        </div>
+                        <div class="overview-badges">
+                            <span>{{ _('تجارة') }}</span>
+                            <span>{{ _('قتال') }}</span>
+                            <span>{{ _('عصابة') }}</span>
+                        </div>
+                    </div>
+
+                    <div class="row g-4 mt-0">
+                        <div class="col-md-4">
+                            <div class="mini-console">
+                                <div class="mini-console-icon"><i class="fas fa-city"></i></div>
+                                <div>
+                                    <div class="mini-console-label">{{ _('السيطرة على المدن') }}</div>
+                                    <div class="mini-console-value">{{ _('اختَر المنطقة وادفع الثمن') }}</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="mini-console">
+                                <div class="mini-console-icon"><i class="fas fa-handcuffs"></i></div>
+                                <div>
+                                    <div class="mini-console-label">{{ _('المهام والسرقات') }}</div>
+                                    <div class="mini-console-value">{{ _('تقدم حركات ذكية وسرّع نموك') }}</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="mini-console">
+                                <div class="mini-console-icon"><i class="fas fa-crown"></i></div>
+                                <div>
+                                    <div class="mini-console-label">{{ _('القمة العالمية') }}</div>
+                                    <div class="mini-console-value">{{ _('اصنع اسمك واهزم المنافسين') }}</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="game-loop-grid mt-4">
+                        <div class="game-loop-node">
+                            <span class="node-step">01</span>
+                            <h4>{{ _('بناء القاعدة') }}</h4>
+                            <p>{{ _('استثمر أموالك في العقارات، المخازن، والموارد لتهيئة الطريق نحو الهيمنة.') }}</p>
+                        </div>
+                        <div class="game-loop-node">
+                            <span class="node-step">02</span>
+                            <h4>{{ _('تأمين الحركات') }}</h4>
+                            <p>{{ _('وزع أفراد عصابتك، خطط للجولات، وحرّك الكوادر في كل منطقة.') }}</p>
+                        </div>
+                        <div class="game-loop-node">
+                            <span class="node-step">03</span>
+                            <h4>{{ _('التحكم في السوق') }}</h4>
+                            <p>{{ _('تدفق الموارد والاتفاقيات يحدد من سيصمد ومن سيفقد السيطرة.') }}</p>
+                        </div>
+                        <div class="game-loop-node emphasis">
+                            <span class="node-step">04</span>
+                            <h4>{{ _('الزعامة') }}</h4>
+                            <p>{{ _('كل انتصار يعزز اسمك، كل خطأ يفتح باب الخصوم لك.') }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container mb-5">
+        <div class="hostess-command-panel shadow-lg">
+            <div class="command-panel-header">
+                <div>
+                    <span class="section-kicker">{{ _('مركز القيادة الذكي') }}</span>
+                    <h2 class="mb-0 text-gold font-weight-bold">{{ _('المضيفات ليست واجهة فقط — بل نظام كامل للذكاء') }}</h2>
+                </div>
+                <span class="command-live-badge"><i class="fas fa-circle mr-1"></i> {{ _('AI LIVE') }}</span>
+            </div>
+
+            <div class="row g-4 mt-0">
+                <div class="col-lg-4">
+                    <div class="hostess-system-card hostess-card-gold">
+                        <div class="hostess-system-art">
+                            <img src="{{ url_for('static', filename='images/hostesses/jasmin.jpg') }}" alt="Jasmin AI" onerror="this.onerror=null; this.src='{{ url_for('static', filename='images/hostesses/default_hostess.jpg') }}';">
+                        </div>
+                        <div class="hostess-system-body">
+                            <span class="hostess-role-badge">{{ _('استقبال') }}</span>
+                            <h3>{{ _('ياسمين') }}</h3>
+                            <p>{{ _('تفتح اللعبة بخبرة فاخرة، تشرح أول خطوة، وتبني إحساس اللاعب بأن العالم جاهز له من اللحظة الأولى.') }}</p>
+                            <ul>
+                                <li>{{ _('دخول سلس') }}</li>
+                                <li>{{ _('خطة أول يوم') }}</li>
+                                <li>{{ _('هوية أنيقة') }}</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-lg-4">
+                    <div class="hostess-system-card hostess-card-teal">
+                        <div class="hostess-system-art">
+                            <img src="{{ url_for('static', filename='images/hostesses/sarah.jpg') }}" alt="Sarah AI" onerror="this.onerror=null; this.src='{{ url_for('static', filename='images/hostesses/default_hostess.jpg') }}';">
+                        </div>
+                        <div class="hostess-system-body">
+                            <span class="hostess-role-badge">{{ _('دعم') }}</span>
+                            <h3>{{ _('سارة') }}</h3>
+                            <p>{{ _('تُعيد اللاعب إلى التوازن عندما ينهار الضغط، وتضع خطة تعافي آمنة بدل الهروب العشوائي.') }}</p>
+                            <ul>
+                                <li>{{ _('تعافي صحي') }}</li>
+                                <li>{{ _('إدارة طاقة') }}</li>
+                                <li>{{ _('عودة آمنة') }}</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-lg-4">
+                    <div class="hostess-system-card hostess-card-red">
+                        <div class="hostess-system-art">
+                            <img src="{{ url_for('static', filename='images/hostesses/layla.jpg') }}" alt="Layla AI" onerror="this.onerror=null; this.src='{{ url_for('static', filename='images/hostesses/default_hostess.jpg') }}';">
+                        </div>
+                        <div class="hostess-system-body">
+                            <span class="hostess-role-badge">{{ _('تجسس') }}</span>
+                            <h3>{{ _('ليلى') }}</h3>
+                            <p>{{ _('تقرأ الضغط والفرص، وتحول كل قرار إلى تكتيك ذكي بدل رمية عشوائية في الظلام.') }}</p>
+                            <ul>
+                                <li>{{ _('تحليل الخصوم') }}</li>
+                                <li>{{ _('قرارات تكتيكية') }}</li>
+                                <li>{{ _('تقليل المخاطر') }}</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-lg-6">
+                    <div class="hostess-system-card hostess-card-crimson">
+                        <div class="hostess-system-art">
+                            <img src="{{ url_for('static', filename='images/hostesses/ruby.webp') }}" alt="Ruby AI" onerror="this.onerror=null; this.src='{{ url_for('static', filename='images/hostesses/default_hostess.jpg') }}';">
+                        </div>
+                        <div class="hostess-system-body">
+                            <span class="hostess-role-badge">{{ _('حظ') }}</span>
+                            <h3>{{ _('روبي') }}</h3>
+                            <p>{{ _('توازن الرهان والحدود، وتمنع اللاعب من الانزلاق إلى الخسارة المدمرة عبر ضوابط ذكية.') }}</p>
+                            <ul>
+                                <li>{{ _('الرهان المنضبط') }}</li>
+                                <li>{{ _('تحديد الخسارة') }}</li>
+                                <li>{{ _('سيطرة نفسية') }}</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-lg-6">
+                    <div class="hostess-system-card hostess-card-ivory">
+                        <div class="hostess-system-art">
+                            <img src="{{ url_for('static', filename='images/hostesses/default_hostess.jpg') }}" alt="Companion AI" onerror="this.onerror=null; this.src='{{ url_for('static', filename='images/hostesses/default_hostess.jpg') }}';">
+                        </div>
+                        <div class="hostess-system-body">
+                            <span class="hostess-role-badge">{{ _('رفيقة') }}</span>
+                            <h3>{{ _('ميرا') }}</h3>
+                            <p>{{ _('تسهل الطريق اليومي، تجيب بسرعة، وتبقي اللاعب متوازنًا وحاسمًا دون تعقيد أو ضوضاء.') }}</p>
+                            <ul>
+                                <li>{{ _('توجيه يومي') }}</li>
+                                <li>{{ _('مساعدة عملية') }}</li>
+                                <li>{{ _('تناسق سريع') }}</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container mb-5">
+        <div class="intel-panel shadow-lg">
+            <div class="intel-panel-header">
+                <div>
+                    <span class="section-kicker">{{ _('مصفوفة الذكاء') }}</span>
+                    <h2 class="mb-0 text-gold font-weight-bold">{{ _('كل قرار يكتب طريقك في المدينة') }}</h2>
+                </div>
+                <div class="intel-mini-tags">
+                    <span>{{ _('تجارة') }}</span>
+                    <span>{{ _('معركة') }}</span>
+                    <span>{{ _('عصابة') }}</span>
+                </div>
+            </div>
+
+            <div class="row g-4 mt-0">
+                <div class="col-lg-4">
+                    <div class="intel-card intel-card-gold">
+                        <div class="intel-icon"><i class="fas fa-chart-line"></i></div>
+                        <h3>{{ _('ذكاء السوق') }}</h3>
+                        <p>{{ _('حافظ على استقرار دخلك، استثمر في الفرص، وركّز على الصفقات التي تقلل الخسارة وتزيد النمو.') }}</p>
+                        <div class="intel-meter">
+                            <span style="width: 88%;"></span>
+                        </div>
+                        <small>{{ _('مستوى فعالية: 88%%') }}</small>
+                    </div>
+                </div>
+
+                <div class="col-lg-4">
+                    <div class="intel-card intel-card-teal">
+                        <div class="intel-icon"><i class="fas fa-shield-alt"></i></div>
+                        <h3>{{ _('جاهزية القتال') }}</h3>
+                        <p>{{ _('لا تبدأ كل معركة. اقرأ الميدان، راقب النقاط الضعيفة، وادخل فقط عندما تكون الحصة لك.') }}</p>
+                        <div class="intel-meter">
+                            <span style="width: 92%;"></span>
+                        </div>
+                        <small>{{ _('مستوى فعالية: 92%%') }}</small>
+                    </div>
+                </div>
+
+                <div class="col-lg-4">
+                    <div class="intel-card intel-card-red">
+                        <div class="intel-icon"><i class="fas fa-crown"></i></div>
+                        <h3>{{ _('سيطرة المدينة') }}</h3>
+                        <p>{{ _('اختر المناطق المناسبة، وقم بتوزيع الموارد، وبدّل كل معركة إلى خطوة نحو الهيمنة.') }}</p>
+                        <div class="intel-meter">
+                            <span style="width: 95%;"></span>
+                        </div>
+                        <small>{{ _('مستوى فعالية: 95%%') }}</small>
                     </div>
                 </div>
             </div>
@@ -394,34 +659,80 @@
         </div>
     </div>
 
+    <div class="container mb-5">
+        <div class="row g-4 align-items-stretch">
+            <div class="col-lg-7">
+                <div class="mission-banner">
+                    <div class="mission-badge">{{ _('المرحلة التالية') }}</div>
+                    <h3>{{ _('ابدأ بناء إمبراطورية العصابات اليوم') }}</h3>
+                    <p>{{ _('اختر مسارك، افعل الحركات الصحيحة، واستثمر في المدينة حتى تصبح الاسم الذي يتهيب الجميع.') }}</p>
+                    <div class="mission-pill-row">
+                        <span>{{ _('مناطق') }}</span>
+                        <span>{{ _('سوق') }}</span>
+                        <span>{{ _('جريمة') }}</span>
+                        <span>{{ _('عصابة') }}</span>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-5">
+                <div class="quick-start-panel">
+                    <div class="quick-start-header">
+                        <span class="quick-start-tag">{{ _('يدك الأولى') }}</span>
+                        <h4>{{ _('خططك تبدأ من هنا') }}</h4>
+                    </div>
+                    <ul>
+                        <li>{{ _('أنشئ حسابك وابدأ بالمدينة') }}</li>
+                        <li>{{ _('كوّن شبكة من التحالفات') }}</li>
+                        <li>{{ _('تاجر واستثمر بذكاء') }}</li>
+                        <li>{{ _('تحكم في المعارك والتسلسل') }}</li>
+                    </ul>
+                    <div class="d-flex flex-wrap gap-2 mt-3">
+                        <a class="btn btn-hero btn-hero-primary" href="{{ url_for('main.register') }}" role="button">
+                            <i class="fas fa-user-plus mr-2"></i>{{ _('إنشاء حساب') }}
+                        </a>
+                        <a class="btn btn-hero btn-hero-secondary" href="{{ url_for('main.login') }}" role="button">
+                            <i class="fas fa-sign-in-alt mr-2"></i>{{ _('تسجيل الدخول') }}
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Features Section -->
     <div class="container mb-5">
-        <div class="row">
-            <div class="col-md-4 mb-4">
-                <div class="feature-card">
-                    <div class="feature-icon">
-                        <i class="fas fa-fist-raised"></i>
-                    </div>
-                    <h3 class="feature-title">{{ _('سيطر') }}</h3>
-                    <p class="feature-text">{{ _('قم بالجرائم، وسيطر على مناطق جديدة في القدس ورام الله ونابلس.') }}</p>
-                </div>
+        <div class="feature-showcase">
+            <div class="feature-showcase-header text-center mb-4">
+                <span class="section-kicker">{{ _('لماذا يلعب الناس هنا؟') }}</span>
+                <h2 class="text-gold font-weight-bold mb-0">{{ _('المدينة تحفز كل قرار') }}</h2>
             </div>
-            <div class="col-md-4 mb-4">
-                <div class="feature-card">
-                    <div class="feature-icon">
-                        <i class="fas fa-money-bill-wave"></i>
+            <div class="row g-4">
+                <div class="col-md-4 mb-4">
+                    <div class="feature-card">
+                        <div class="feature-icon">
+                            <i class="fas fa-fist-raised"></i>
+                        </div>
+                        <h3 class="feature-title">{{ _('سيطر') }}</h3>
+                        <p class="feature-text">{{ _('قم بالجرائم، وسيطر على مناطق جديدة في القدس ورام الله ونابلس.') }}</p>
                     </div>
-                    <h3 class="feature-title">{{ _('اجمع الثروة') }}</h3>
-                    <p class="feature-text">{{ _('تاجر، اشتري عقارات، واجمع الشواكل والماس لتصبح الأغنى.') }}</p>
                 </div>
-            </div>
-            <div class="col-md-4 mb-4">
-                <div class="feature-card">
-                    <div class="feature-icon">
-                        <i class="fas fa-users"></i>
+                <div class="col-md-4 mb-4">
+                    <div class="feature-card">
+                        <div class="feature-icon">
+                            <i class="fas fa-money-bill-wave"></i>
+                        </div>
+                        <h3 class="feature-title">{{ _('اجمع الثروة') }}</h3>
+                        <p class="feature-text">{{ _('تاجر، اشتري عقارات، واجمع الشواكل والماس لتصبح الأغنى.') }}</p>
                     </div>
-                    <h3 class="feature-title">{{ _('كوّن عصابتك') }}</h3>
-                    <p class="feature-text">{{ _('تحالف مع أصدقائك وادخل في حروب عصابات طاحنة.') }}</p>
+                </div>
+                <div class="col-md-4 mb-4">
+                    <div class="feature-card">
+                        <div class="feature-icon">
+                            <i class="fas fa-users"></i>
+                        </div>
+                        <h3 class="feature-title">{{ _('كوّن عصابتك') }}</h3>
+                        <p class="feature-text">{{ _('تحالف مع أصدقائك وادخل في حروب عصابات طاحنة.') }}</p>
+                    </div>
                 </div>
             </div>
         </div>
@@ -591,7 +902,7 @@
                 slide3.style.display = 'block';
                 setTimeout(() => showSlide(slide3), 50);
                 
-                const text = "{{ _('اصنع مجدك... أو مُت وأنت تحاول.') }}";
+                const text = "{{ _('ياسمين الذكاء الصناعي... كل خطوة محسوبة.') }}";
                 let i = 0;
                 typingInterval = setInterval(function() {
                     if (i < text.length) {

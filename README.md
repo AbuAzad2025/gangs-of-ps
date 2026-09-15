@@ -1,91 +1,150 @@
-# 🇵🇸 Gangs of Palestine (عصابات فلسطين)
+# Gangs of Palestine
 
-![Gangs of Palestine Logo](static/img/azad_logo_white_on_dark.png)
+A Flask-based strategy game project with a luxury landing page, game systems, user flows, AI/hostess presentation, and test coverage.
 
-## 📌 نبذة عن المشروع | About the Project
-**عصابات فلسطين** هي لعبة استراتيجية نصية (Text-based RPG) متطورة تحاكي حياة الجريمة المنظمة بأسلوب واقعي ومثير. تم بناء اللعبة باستخدام أحدث تقنيات الويب لتقديم تجربة مستخدم سلسة وتفاعلية.
+## Project status
 
-**Gangs of Palestine** is an advanced text-based RPG strategy game that simulates the life of organized crime in a realistic and exciting way. Built with modern web technologies to provide a seamless and interactive user experience.
+This repository is a working game project with:
+- Flask app structure and routes
+- SQLAlchemy models and database initialization
+- templates and custom CSS
+- AI/hostess themed presentation and role data
+- pytest-based validation
 
----
+It is not a marketing website only; it is a game app scaffold with game features and active test coverage.
 
-## 🌟 المميزات | Features
-- **نظام الجرائم (Crimes System)**: جرائم فردية ومنظمة تتطلب تخطيطاً واستراتيجية.
-- **العصابات (Gangs)**: إنشاء عصابات، حروب شوارع، والسيطرة على المناطق.
-- **الاقتصاد (Economy)**: سوق سوداء، غسيل أموال عبر البورصة، وبنك مركزي.
-- **المعارك (Combat)**: نظام قتال متطور يعتمد على الإحصائيات (القوة، السرعة، الذكاء).
-- **التواصل (Social)**: شات عام، منتديات نقاش، ورسائل خاصة.
-- **تصميم فاخر (Luxury Design)**: واجهة مستخدم احترافية تدعم الوضع الليلي (Dark Mode) واللغة العربية/النجليزية.
+## Tech stack
 
----
+- Python 3.11+
+- Flask
+- SQLAlchemy
+- Jinja2 templates
+- SQLite by default, PostgreSQL supported when configured
+- Pytest for automated testing
+- Babel for translation infrastructure
 
-## 🛠️ التقنيات المستخدمة | Tech Stack
-- **Backend**: Python 3.x, Flask, SQLAlchemy
-- **Frontend**: HTML5, CSS3, JavaScript, Bootstrap 4, AdminLTE 3
-- **Database**: SQLite / PostgreSQL
-- **Security**: CSRF Protection, Bcrypt Hashing, Secure Session Management
+## Quick start
 
----
-
-## 🚀 التشغيل | Installation
-
-1. **استنساخ المستودع (Clone)**:
+1. Clone the repository
    ```bash
-   git clone https://github.com/yourusername/GangsOfPalestine.git
-   cd GangsOfPalestine
+   git clone <repo-url>
+   cd gangs-of-ps
    ```
 
-2. **تثبيت المتطلبات (Install Requirements)**:
+2. Create and activate a virtual environment
+   ```bash
+   python -m venv .venv
+   .venv\Scripts\activate
+   ```
+
+3. Install dependencies
    ```bash
    pip install -r requirements.txt
    ```
 
-3. **تهيئة قاعدة البيانات (Setup Database)**:
-   ```bash
-   python seed_full_data.py
-   ```
-
-4. **تشغيل السيرفر (Run Server)**:
+4. Start the app
    ```bash
    python run.py
    ```
-   أو
-   ```bash
-   flask run
+
+5. Open the app in browser
+   ```text
+   http://localhost:5000
    ```
 
----
+## Environment variables
 
-## ⚖️ الاتفاقية القانونية وحقوق الاستخدام | Legal Agreement & License
+The project uses a safe fallback for local development.
 
-### ⚠️ هام جداً - تحذير قانوني | IMPORTANT LEGAL WARNING
+Common variables:
+```env
+SECRET_KEY=change-me
+DATABASE_URL=sqlite:///app.db
+TEST_DATABASE_URL=sqlite:///:memory:
+FLASK_ENV=development
+OPENAI_MODEL=gpt-4o-mini
+OPENAI_MAX_TOKENS=700
+OPENAI_TEMPERATURE=0.35
+```
 
-**جميع الحقوق محفوظة © 2024 - 2025 لمطوري مشروع Gangs of Palestine.**
-**All Rights Reserved © 2024 - 2025 to Gangs of Palestine Developers.**
+For PostgreSQL:
+```env
+DATABASE_URL=postgresql://user:password@host:5432/dbname
+TEST_DATABASE_URL=postgresql://user:password@host:5432/test_db
+```
 
-1. **الملكية الفكرية (Intellectual Property)**:
-   هذا الكود المصدري (Source Code)، التصاميم، قاعدة البيانات، والأفكار الواردة في هذا المشروع هي ملكية فكرية خاصة. يمنع نسخها، إعادة توزيعها، أو استخدامها لأغراض تجارية دون إذن كتابي صريح.
+If `DATABASE_URL` is malformed, the app falls back to SQLite instead of crashing.
 
-2. **الاستخدام التجاري (Commercial Use)**:
-   - يمنع منعاً باتاً بيع هذا السورس كود أو جزء منه لأي طرف ثالث.
-   - يمنع استخدام هذا النظام لإنشاء خدمة منافسة دون الحصول على رخصة تجارية (Commercial License).
+## Testing
 
-3. **ترخيص الشراء (Purchase License)**:
-   - في حال شرائك للنسخة الكاملة (SaaS License) بقيمة **10,000 دولار**، يحق لك استخدام النظام وتشغيله والربح منه، ولكن **لا يحق لك إعادة بيع الكود المصدري** لطرف آخر.
+Run the real test suite:
+```bash
+python -m pytest tests -q
+```
 
-4. **المسؤولية (Liability)**:
-   - المطورون غير مسؤولين عن أي استخدام غير قانوني لهذا النظام. اللعبة مخصصة للأغراض الترفيهية فقط.
+Current verification in this repo passes with a real pytest run, including route, integration, security, and service tests.
 
-**أي انتهاك لهذه الشروط سيعرض الفاعل للملاحقة القانونية وفقاً لقوانين حماية الملكية الفكرية والجرائم الإلكترونية.**
+## Project structure
 
----
+```text
+.
+??? admin/
+??? data/
+??? docs/
+??? forms/
+??? models/
+??? routes/
+??? services/
+??? static/
+??? templates/
+??? tests/
+??? config.py
+??? extensions.py
+??? factory.py
+??? run.py
+??? wsgi.py
+??? requirements.txt
+??? requirements-dev.txt
+??? README.md
+??? DEPLOY.md
+??? pyproject.toml
+```
 
-## 📞 التواصل والدعم | Contact & Support
+## Database notes
 
-للحصول على رخصة التشغيل التجارية أو شراء السورس كود الكامل، يرجى التواصل معنا مباشرة:
+- Default development setup is SQLite for convenience.
+- PostgreSQL is supported for production and larger deployments.
+- Local development should not depend on a broken DSN string; validation is intentionally forgiving.
 
-- **WhatsApp**: [+970598953362](https://wa.me/970598953362)
-- **Email**: support@gangsofpalestine.com
+## Documentation
 
----
-*Developed with ❤️ by Professional Developers.*
+Project documentation is organized under [docs/README.md](./docs/README.md). Use it for:
+- setup and environment configuration
+- deployment procedures
+- troubleshooting and support
+- project structure overview
+- FAQ and configuration decisions
+
+## Deployment notes
+
+For production deployment, use a proper environment file and a real database provider. See [DEPLOY.md](./DEPLOY.md) and [docs/deploy.md](./docs/deploy.md).
+
+## Translation notes
+
+When user-facing text is changed, keep the Babel catalogs in sync:
+```bash
+python -m babel.messages.frontend extract -F babel.cfg -o translations/messages.pot .
+python -m babel.messages.frontend update -i translations/messages.pot -d translations -l en
+python -m babel.messages.frontend compile -d translations
+```
+
+## Contributing
+
+- Keep documentation factual and current.
+- Prefer small, test-backed changes.
+- Do not add inflated claims or fictional deployment status into docs.
+- Validate with the existing test suite before merging.
+
+## License
+
+This repository currently uses the repository-level project license and conventions already present in the codebase. If a formal license file is added later, it should be documented here explicitly.

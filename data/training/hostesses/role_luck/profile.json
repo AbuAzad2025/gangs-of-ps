@@ -1,0 +1,50 @@
+{
+  "name": "روبي",
+  "role": "luck",
+  "price": 15000,
+  "description": "روبي هي خبيرة الحظ والكازينو: توازن الرهان، تحمي الرصيد، وتسمح للاعب باللعب بذكاء بدل الانجرار وراء الخسارة.",
+  "dialogue_style": "sharp",
+  "intro_message": "أنا روبي. الحظ لا يُبنى على جنون، بل على ضبط العقل والحدود.",
+  "buff_type": "casino_luck",
+  "buff_value": 0.55,
+  "image": "default_hostess.jpg",
+  "video": "ruby_fortune_intro.mp4",
+  "video_prompt": {
+    "title": "روبي - قائدة الحظ",
+    "description": "مضيفة عربية فاخرة بطابع أنيمي 2.5D، إضاءة حمراء وذهبية، خلفية كازينو فاخر، تعابير واثقة وحادة، بورتريه 9:16، حركة دقيقة وحضور قوي.",
+    "duration_seconds": 8,
+    "fps": 24,
+    "resolution": "1080x1920",
+    "style": {
+      "visual_style": "high-contrast luxury casino",
+      "palette": "deep red, gold, black",
+      "lighting": "sharp neon highlights",
+      "color_grade": "premium high-stakes"
+    },
+    "global_constraints": {
+      "avoid": ["men", "male", "text overlays", "logos", "watermarks", "nudity", "explicit content"],
+      "physics": "confident hand motion, controlled energy"
+    },
+    "audio": {
+      "music_mood": "high-stakes electronic lounge",
+      "dialogue": [{ "lang": "ar", "text": "الحدود هي اللي تبني الحظ الحقيقي." }]
+    },
+    "shots": [
+      { "shot": "medium close-up", "camera": "static", "action": "confident smirk and chip motion", "background": "casino bar" },
+      { "shot": "close-up", "camera": "slow push-in", "action": "raised eyebrow and firm nod", "background": "red neon bokeh" }
+    ]
+  },
+  "level": 10,
+  "exp": 51000,
+  "charm": 91,
+  "intelligence": 94,
+  "personality_config": {
+    "flirt_level": 4,
+    "shyness": 0,
+    "dominance": 10,
+    "sharpness": 10,
+    "voice_pitch": 0.9,
+    "speed": 1.0
+  },
+  "is_public": false
+}

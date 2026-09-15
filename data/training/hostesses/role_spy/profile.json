@@ -1,0 +1,50 @@
+{
+  "name": "ليلى",
+  "role": "spy",
+  "price": 12000,
+  "description": "ليلى هي محققة المسار والمطابقة: تلاحظ الخطر، تراجع الخيارات، وترسم الخطة الذكية قبل كل خطوة في الساحة.",
+  "dialogue_style": "analytical",
+  "intro_message": "أنا ليلى. لا أؤمن بالتسرّع. خلّينا نقرأ الوضع، ثم نختار القرار الصحيح.",
+  "buff_type": "crime_success",
+  "buff_value": 0.28,
+  "image": "default_hostess.jpg",
+  "video": "layla_tactical_intro.mp4",
+  "video_prompt": {
+    "title": "ليلى - تحليل تكتيكي",
+    "description": "مضيفة عربية أنيقة بطابع أنيمي/سينمائي، إضاءة داكنة وذهبية، خلفية جراج فاخر أو شاشة مراقبة هادئة، نظرة مستقرة وثقة عالية، بورتريه 9:16، حركة بطيئة واتزان.",
+    "duration_seconds": 9,
+    "fps": 24,
+    "resolution": "1080x1920",
+    "style": {
+      "visual_style": "cinematic noir tactical",
+      "palette": "black, gold, deep teal",
+      "lighting": "low-key with rim light",
+      "color_grade": "moody premium"
+    },
+    "global_constraints": {
+      "avoid": ["men", "male", "text overlays", "logos", "watermarks", "nudity", "explicit content"],
+      "physics": "precise eye movements, subtle confidence"
+    },
+    "audio": {
+      "music_mood": "mysterious lounge",
+      "dialogue": [{ "lang": "ar", "text": "القرار الصحيح يبدأ بمعلومة صحيحة." }]
+    },
+    "shots": [
+      { "shot": "medium close-up", "camera": "static", "action": "slow glance at camera", "background": "garage tactical screens" },
+      { "shot": "close-up", "camera": "slow pan", "action": "finger tap on console and decisive nod", "background": "dark neon" }
+    ]
+  },
+  "level": 10,
+  "exp": 49000,
+  "charm": 88,
+  "intelligence": 99,
+  "personality_config": {
+    "flirt_level": 4,
+    "shyness": 1,
+    "dominance": 9,
+    "mystery": 10,
+    "voice_pitch": 0.9,
+    "speed": 0.85
+  },
+  "is_public": false
+}

@@ -1,0 +1,51 @@
+{
+  "name": "ياسمين",
+  "role": "greeter",
+  "price": 15000,
+  "description": "ياسمين هي بوابة العالم الفاخر للعبة: تفتح الباب لللاعب الجديد، تنظم أول خطواته، وتترك رسالة أولية قوية تُبني حظه في المشروع كاملًا.",
+  "dialogue_style": "luxury",
+  "intro_message": "أهلاً بك في عصابات فلسطين. أنا ياسمين، مرشدة اليوم. خلّينا نرتّب لك أول وأوضح خطوة معك بوضوح وهدوء.",
+  "buff_type": "casino_luck",
+  "buff_value": 1.5,
+  "image": "default_hostess.jpg",
+  "video": "jasmin_intro.mp4",
+  "video_prompt": {
+    "title": "ياسمين - افتتاحية فاخرة",
+    "description": "مضيفة عربية أنيقة في تصميم أنيمي 2.5D، إضاءة ذهبية، خلفية قاعة كازينو فاخرة، قفاز/عطر/مجوهرات أنيقة، إيماءات لطيفة وواثقة، بورتريه 9:16، حركات هادئة وقوية، مفصلات أنيقة.",
+    "duration_seconds": 9,
+    "fps": 24,
+    "resolution": "1080x1920",
+    "style": {
+      "visual_style": "cinematic luxury anime",
+      "palette": "black, gold, champagne",
+      "lighting": "warm gold rim light",
+      "color_grade": "premium cinematic"
+    },
+    "global_constraints": {
+      "avoid": ["men", "male", "text overlays", "logos", "watermarks", "nudity", "explicit content"],
+      "physics": "precise facial micro-expressions, elegant motion"
+    },
+    "audio": {
+      "music_mood": "elegant lounge",
+      "dialogue": [{ "lang": "ar", "text": "أهلاً بك. أول خطوة صح بتصنع الطريق كله." }]
+    },
+    "shots": [
+      { "shot": "medium close-up", "camera": "static", "action": "soft eye contact and smile", "background": "lobby with gold lighting" },
+      { "shot": "slow push-in", "camera": "tracking", "action": "confident nod and hand gesture", "background": "luxury lounge" }
+    ]
+  },
+  "level": 10,
+  "exp": 52000,
+  "charm": 100,
+  "intelligence": 92,
+  "personality_config": {
+    "flirt_level": 7,
+    "shyness": 0,
+    "dominance": 8,
+    "mystery": 5,
+    "warmth": 9,
+    "voice_pitch": 1.0,
+    "speed": 0.95
+  },
+  "is_public": false
+}

@@ -10,6 +10,17 @@ load_dotenv()
 basedir = os.path.abspath(os.path.dirname(__file__))
 
 
+def _valid_database_url(value):
+    if not value:
+        return None
+    candidate = value.strip()
+    if not candidate:
+        return None
+    if candidate.startswith(('postgresql://', 'postgresql+psycopg2://', 'sqlite://')):
+        return candidate
+    return None
+
+
 class Config:
     # Core app identity
     APP_NAME = os.environ.get('APP_NAME') or 'عصابات فلسطين'
@@ -22,14 +33,10 @@ class Config:
     SECRET_KEY = os.environ.get('SECRET_KEY') or os.urandom(24).hex()
 
     # Database Configuration
-    # Default to SQLite for easy local development
+    # Default to SQLite for easy local development and safe fallback when the
+    # environment contains an invalid PostgreSQL DSN.
     default_db_url = 'sqlite:///' + os.path.join(basedir, 'app.db')
-    env_db_url = os.environ.get('DATABASE_URL')
-
-    # if env_db_url and not env_db_url.startswith('postgresql://'):
-    #    raise ValueError(
-    #        'Only PostgreSQL is supported. '
-    #        'DATABASE_URL must start with postgresql://')
+    env_db_url = _valid_database_url(os.environ.get('DATABASE_URL'))
     SQLALCHEMY_DATABASE_URI = env_db_url or default_db_url
 
     SQLALCHEMY_TRACK_MODIFICATIONS = False
@@ -92,18 +99,15 @@ class Config:
 
     # AI Configuration
     OPENAI_API_KEY = os.environ.get('OPENAI_API_KEY')
+    OPENAI_MODEL = os.environ.get('OPENAI_MODEL') or 'gpt-4o-mini'
+    OPENAI_MAX_TOKENS = int(os.environ.get('OPENAI_MAX_TOKENS', '700'))
+    OPENAI_TEMPERATURE = float(os.environ.get('OPENAI_TEMPERATURE', '0.35'))
 
 
 class TestConfig(Config):
     TESTING = True
-    default_test_db_url = (
-        'postgresql://postgres:123@127.0.0.1:5432/gangsofpalestine_test')
-    env_test_db_url = os.environ.get('TEST_DATABASE_URL')
-    if env_test_db_url and not (
-            env_test_db_url.startswith('postgresql://') or
-            env_test_db_url.startswith('sqlite://')):
-        raise ValueError(
-            'TEST_DATABASE_URL must start with postgresql:// or sqlite://')
+    default_test_db_url = 'sqlite:///:memory:'
+    env_test_db_url = _valid_database_url(os.environ.get('TEST_DATABASE_URL'))
     _target_test_url = env_test_db_url or default_test_db_url
     SQLALCHEMY_DATABASE_URI = _target_test_url
     SQLALCHEMY_ENGINE_OPTIONS = {}

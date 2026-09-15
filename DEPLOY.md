@@ -1,77 +1,97 @@
-# دليل نشر النظام (Deployment Guide)
+# Deployment guide
 
-هذا الدليل يشرح خطوات نشر نظام "عصابات فلسطين" على سيرفر إنتاج (Production Server) باستخدام قاعدة بيانات PostgreSQL مع الحفاظ على كافة البيانات.
+This project can run in two realistic modes:
+- local development with SQLite
+- production-like deployment with PostgreSQL
 
-## المتطلبات المسبقة (Prerequisites)
+The default repository setup is safe and functional for local development. Production deployments should use valid environment variables and a real database.
 
-1.  **سيرفر (VPS/Dedicated):** نظام تشغيل Ubuntu/Debian أو Windows Server.
-2.  **PostgreSQL:** مثبت ومشغل (Version 13+).
-3.  **Python:** مثبت (Version 3.10+).
-4.  **ملف النسخة الاحتياطية:** تأكد من وجود ملف `.sql` الذي تم إنشاؤه مؤخراً.
+## Prerequisites
 
----
+- Python 3.11+
+- pip
+- Git
+- optional: PostgreSQL 13+
+- optional: a reverse proxy or WSGI server such as Gunicorn
 
-## الخطوات (Steps)
+## Local development
 
-### 1. إعداد قاعدة البيانات على السيرفر
+1. Create a virtual environment
+   ```bash
+   python -m venv .venv
+   .venv\Scripts\activate
+   ```
 
-قم بالدخول إلى السيرفر وإنشاء قاعدة بيانات فارغة:
+2. Install dependencies
+   ```bash
+   pip install -r requirements.txt
+   ```
 
-```bash
-# الدخول إلى حساب postgres
-sudo -u postgres psql
+3. Set environment variables
+   ```env
+   SECRET_KEY=change-me
+   DATABASE_URL=sqlite:///app.db
+   FLASK_ENV=development
+   ```
 
-# داخل الـ shell الخاص بـ postgres:
-CREATE DATABASE gangsofpalestine;
-CREATE USER myuser WITH PASSWORD 'mypassword';
-GRANT ALL PRIVILEGES ON DATABASE gangsofpalestine TO myuser;
-\q
-```
+4. Start the app
+   ```bash
+   python run.py
+   ```
 
-### 2. نقل الملفات
+The default app can run with SQLite while you develop.
 
-قم بنقل ملفات المشروع وملف النسخة الاحتياطية إلى السيرفر.
-ملف النسخة الاحتياطية موجود في: `instance/backups/backup_YYYYMMDD_HHMMSS.sql`
+## PostgreSQL deployment
 
-### 3. تثبيت المتطلبات
+Use PostgreSQL when you want a production-oriented database.
 
-```bash
-pip install -r requirements.txt
-```
-
-### 4. استعادة البيانات (Restore Data)
-
-استخدم السكربت المرفق `scripts/restore_db.py` لاستعادة البيانات إلى قاعدة البيانات الجديدة.
-هذا السكربت سيقوم بنقل كل الجداول والبيانات (Seeds & User Data) كما هي.
-
-```bash
-# الصيغة: python scripts/restore_db.py [مسار_ملف_النسخة] [رابط_قاعدة_البيانات]
-python scripts/restore_db.py instance/backups/backup_20260102_164604.sql postgresql://myuser:mypassword@localhost:5432/gangsofpalestine
-```
-
-### 5. إعداد متغيرات البيئة
-
-قم بإنشاء ملف `.env` في المجلد الرئيسي للمشروع بالإعدادات التالية:
-
-```ini
-FLASK_APP=factory.py
+### Example environment
+```env
+SECRET_KEY=very-strong-random-secret
+DATABASE_URL=postgresql://user:password@host:5432/gangs_of_palestine
+TEST_DATABASE_URL=postgresql://user:password@host:5432/gangs_of_palestine_test
 FLASK_ENV=production
-SECRET_KEY=your-secure-random-secret-key
-DATABASE_URL=postgresql://myuser:mypassword@localhost:5432/gangsofpalestine
 ```
 
-### 6. تشغيل النظام
+### Create the database
+```sql
+CREATE DATABASE gangs_of_palestine;
+CREATE DATABASE gangs_of_palestine_test;
+```
 
-يمكنك الآن تشغيل النظام باستخدام `gunicorn` (لأنظمة Linux) أو `waitress`/`flask` (لأنظمة Windows/Test).
+### Run the app with Gunicorn
+```bash
+gunicorn --bind 0.0.0.0:8000 wsgi:application
+```
+
+If you use a custom app factory, verify the actual entry point in the project before deploying.
+
+## Safety notes
+
+- Keep `.env` files out of version control.
+- Use real secrets in production.
+- Keep the database connection string valid; malformed DSN values should not be committed to environment files.
+- Use TLS / HTTPS in front of the service.
+
+## Basic health check
+
+After startup, verify the homepage or health endpoints respond successfully.
 
 ```bash
-# مثال تشغيل gunicorn
-gunicorn -w 4 -b 0.0.0.0:8000 factory:app
+curl http://localhost:5000/
+curl http://localhost:5000/api/health
 ```
 
----
+## Release checklist
 
-## ملاحظات هامة
+Before a production release:
+- validate environment variables
+- confirm database connectivity
+- run pytest
+- check login and essential routes
+- ensure no secret or credential is committed
+- verify static files and templates render correctly
 
-*   **التهجير (Migrations):** بما أنك قمت باستعادة قاعدة البيانات بالكامل من النسخة الاحتياطية، **لا تقم** بتشغيل `flask db upgrade` لأول مرة، لأن الجداول موجودة بالفعل.
-*   **التحديثات المستقبلية:** لأي تحديثات مستقبلية في هيكلية البيانات، استخدم `flask db migrate` و `flask db upgrade` كالمعتاد.
+## Known operational warning
+
+The project may log a warning about an invalid PostgreSQL DSN if a malformed value is present. This is not a blocker if the app falls back to SQLite in development, but production should avoid malformed DSN values entirely.
