@@ -60,7 +60,7 @@ async function main() {
     const context = await browser.newContext({ viewport: { width: 1440, height: 1200 } });
     const page = await context.newPage();
 
-    await page.coverage.startJSCoverage({ resetOnNavigation: true, reportAnonymousScripts: true });
+    await page.coverage.startJSCoverage({ resetOnNavigation: false, reportAnonymousScripts: true });
     for (const route of ['/', '/login', '/register']) {
       await page.goto(`${baseUrl}${route}`, { waitUntil: 'domcontentloaded', timeout: 30000 });
       await page.waitForTimeout(300);
@@ -78,15 +78,35 @@ async function main() {
         continue;
       }
       scripts += 1;
-      for (const range of item.ranges || []) {
-        const start = Number(range.startOffset ?? 0);
-        const end = Number(range.endOffset ?? 0);
-        const size = Math.max(0, end - start);
-        totalBytes += size;
-        if ((range.count ?? 0) > 0) {
-          executedBytes += size;
+      const ranges = (item.ranges || [])
+        .map((range) => ({
+          start: Number(range.startOffset ?? 0),
+          end: Number(range.endOffset ?? 0),
+          executed: (range.count ?? 0) > 0,
+        }))
+        .filter((range) => range.end > range.start)
+        .sort((left, right) => left.start - right.start || left.end - right.end);
+
+      // V8 reports nested ranges. Merge intervals before calculating bytes so
+      // function and script ranges do not inflate the denominator.
+      const mergeRanges = (onlyExecuted) => {
+        const merged = [];
+        for (const range of ranges) {
+          if (onlyExecuted && !range.executed) {
+            continue;
+          }
+          const previous = merged[merged.length - 1];
+          if (previous && range.start <= previous.end) {
+            previous.end = Math.max(previous.end, range.end);
+          } else {
+            merged.push({ start: range.start, end: range.end });
+          }
         }
-      }
+        return merged;
+      };
+
+      totalBytes += mergeRanges(false).reduce((sum, range) => sum + range.end - range.start, 0);
+      executedBytes += mergeRanges(true).reduce((sum, range) => sum + range.end - range.start, 0);
     }
 
     const percent = totalBytes > 0 ? (executedBytes / totalBytes) * 100 : (scripts > 0 ? 0 : 100);
