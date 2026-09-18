@@ -52,6 +52,46 @@ class TestAuthenticatedRoutes:
         resp = logged_in_client.get(f'/profile/{auth_user_id}', follow_redirects=True)
         assert resp.status_code in (200, 302)
 
+    def test_authenticated_game_pages_render_without_server_errors(self, logged_in_client):
+        """Exercise the read-only game surfaces used by the dashboard navigation."""
+        paths = [
+            '/bank/',
+            '/black_market/',
+            '/bounties/',
+            '/casino/',
+            '/combat/',
+            '/crimes',
+            '/daily_tasks',
+            '/dealership',
+            '/economy/academy',
+            '/economy/my_properties',
+            '/economy/properties',
+            '/empire',
+            '/entertainment/',
+            '/factory/',
+            '/farm/',
+            '/forum/',
+            '/game-stats',
+            '/gang/',
+            '/gang/upgrades',
+            '/garage',
+            '/graveyard/',
+            '/gym/',
+            '/hara',
+            '/heist_history',
+            '/hospital/',
+            '/intel_center',
+            '/inventory',
+            '/inventory/',
+            '/jail/',
+            '/leaderboard',
+            '/market/',
+            '/messages',
+        ]
+        for path in paths:
+            response = logged_in_client.get(path, follow_redirects=True)
+            assert response.status_code in (200, 302), f'{path} returned {response.status_code}'
+
 
 class TestErrorPages:
     def test_404(self, client):
@@ -302,6 +342,23 @@ class TestPublicHostessChat:
         data = resp.get_json()
         assert data.get('response')
         assert data.get('hostess_name')
+
+    def test_rejects_oversized_public_message(self, client, greeter):
+        from services.chat_security import MAX_ASSISTANT_MESSAGE_LEN
+
+        resp = client.post(
+            '/api/public/chat',
+            json={'message': 'x' * (MAX_ASSISTANT_MESSAGE_LEN + 1)},
+        )
+
+        assert resp.status_code == 400
+        assert resp.get_json()['error'] == 'Message too long'
+
+    def test_authenticated_assistant_requires_csrf(self, logged_in_client, greeter):
+        resp = logged_in_client.post('/api/assistant/chat', json={'message': 'مرحبا'})
+
+        assert resp.status_code == 400
+        assert 'error' in resp.get_json()
 
 
 # Production Refactoring & Fixes Applied:

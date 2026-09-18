@@ -64,6 +64,28 @@ async function main() {
     for (const route of ['/', '/login', '/register']) {
       await page.goto(`${baseUrl}${route}`, { waitUntil: 'domcontentloaded', timeout: 30000 });
       await page.waitForTimeout(300);
+      if (route === '/login') {
+        await page.locator('input[name="username"]').fill('coverage-player');
+        await page.locator('input[name="password"]').fill('not-the-password');
+        const toggle = page.locator('#togglePassword');
+        if (await toggle.count()) {
+          await toggle.click();
+          await toggle.click();
+        }
+        await page.locator('input[name="username"]').press('Tab');
+      } else if (route === '/register') {
+        await page.locator('input[name="username"]').fill('coverage-player');
+        await page.locator('input[name="birthdate"]').fill('2000-01-01');
+        await page.locator('select[name="playstyle"]').selectOption({ index: 1 });
+        await page.locator('input[name="password"]').fill('StrongPass123!');
+        await page.locator('input[name="confirm_password"]').fill('StrongPass123!');
+        const captcha = page.locator('#captchaImage');
+        if (await captcha.count()) {
+          await captcha.click();
+        }
+        await page.locator('button[onclick*="togglePasswordVisibility"]').first().click();
+        await page.locator('button[onclick*="togglePasswordVisibility"]').first().click();
+      }
     }
 
     const rawCoverage = await page.coverage.stopJSCoverage();
@@ -78,7 +100,10 @@ async function main() {
         continue;
       }
       scripts += 1;
-      const ranges = (item.ranges || [])
+      // Playwright exposes V8 ranges below each function.  Reading
+      // item.ranges (the old CDP shape) silently produced zero-byte reports.
+      const ranges = (item.functions || [])
+        .flatMap((fn) => fn.ranges || [])
         .map((range) => ({
           start: Number(range.startOffset ?? 0),
           end: Number(range.endOffset ?? 0),
@@ -87,26 +112,31 @@ async function main() {
         .filter((range) => range.end > range.start)
         .sort((left, right) => left.start - right.start || left.end - right.end);
 
-      // V8 reports nested ranges. Merge intervals before calculating bytes so
-      // function and script ranges do not inflate the denominator.
-      const mergeRanges = (onlyExecuted) => {
-        const merged = [];
-        for (const range of ranges) {
-          if (onlyExecuted && !range.executed) {
-            continue;
-          }
-          const previous = merged[merged.length - 1];
-          if (previous && range.start <= previous.end) {
-            previous.end = Math.max(previous.end, range.end);
-          } else {
-            merged.push({ start: range.start, end: range.end });
-          }
+      // V8 offsets are UTF-16 offsets, while coverage is reported in bytes.
+      // Convert each merged interval against the source so non-ASCII scripts
+      // are measured accurately rather than treating code units as bytes.
+      const sourceBytes = (start, end) => Buffer.byteLength(source.slice(start, end), 'utf8');
+      totalBytes += source ? Buffer.byteLength(source, 'utf8') : 0;
+      // A top-level V8 range covers the complete script with count=1, while
+      // nested ranges with count=0 identify unexecuted blocks.  Resolve each
+      // source segment to its most-specific range before summing executed
+      // bytes; simply unioning all count=1 ranges would report 100% always.
+      const boundaries = [...new Set(ranges.flatMap((range) => [range.start, range.end]))].sort((a, b) => a - b);
+      const executedSegments = [];
+      for (let index = 0; index < boundaries.length - 1; index += 1) {
+        const start = boundaries[index];
+        const end = boundaries[index + 1];
+        const candidates = ranges.filter((range) => range.start <= start && range.end >= end);
+        if (!candidates.length) {
+          continue;
         }
-        return merged;
-      };
-
-      totalBytes += mergeRanges(false).reduce((sum, range) => sum + range.end - range.start, 0);
-      executedBytes += mergeRanges(true).reduce((sum, range) => sum + range.end - range.start, 0);
+        candidates.sort((left, right) => (left.end - left.start) - (right.end - right.start));
+        if (candidates[0].executed) {
+          executedSegments.push({ start, end });
+        }
+      }
+      executedBytes += executedSegments
+        .reduce((sum, range) => sum + sourceBytes(range.start, range.end), 0);
     }
 
     const percent = totalBytes > 0 ? (executedBytes / totalBytes) * 100 : (scripts > 0 ? 0 : 100);

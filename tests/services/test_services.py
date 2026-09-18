@@ -939,6 +939,17 @@ class TestGreeterService:
         assert payload is None
         assert status == 400
 
+    def test_process_oversized_message_rejected(self, app, greeter_hostess):
+        from services.chat_security import MAX_ASSISTANT_MESSAGE_LEN
+        from services.greeter_service import process_assistant_message
+
+        with app.app_context():
+            payload, err, status = process_assistant_message('x' * (MAX_ASSISTANT_MESSAGE_LEN + 1))
+
+        assert payload is None
+        assert err == 'Message too long'
+        assert status == 400
+
     def test_process_message_rule_based_fallback(self, app, greeter_hostess, client):
         from services.greeter_service import process_assistant_message
         with app.app_context():
@@ -948,3 +959,20 @@ class TestGreeterService:
         assert status == 200
         assert payload is not None
         assert 'response' in payload
+
+    def test_process_message_caps_guest_history(self, app, greeter_hostess, client):
+        from services.greeter_service import process_assistant_message
+
+        with app.app_context():
+            with client.session_transaction() as sess:
+                sess['guest_chat_history_%s' % greeter_hostess.id] = [
+                    {'role': 'user', 'content': str(index)} for index in range(20)
+                ]
+            payload, err, status = process_assistant_message('مرحبا')
+            with client.session_transaction() as sess:
+                history = sess['guest_chat_history_%s' % greeter_hostess.id]
+
+        assert status == 200
+        assert err is None
+        assert payload['hostess_id'] == greeter_hostess.id
+        assert len(history) == 20

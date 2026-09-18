@@ -1400,12 +1400,13 @@ def assistant_chat():
     from services.greeter_service import process_assistant_message
     from flask_wtf.csrf import validate_csrf
     from werkzeug.exceptions import BadRequest
+    from wtforms.validators import ValidationError
 
     if current_user.is_authenticated:
         token = request.headers.get('X-CSRFToken') or request.form.get('csrf_token')
         try:
             validate_csrf(token)
-        except BadRequest:
+        except (BadRequest, ValidationError):
             return jsonify({'error': _('طلب غير صالح. حدّث الصفحة وحاول مجدداً.')}), 400
 
     data = request.get_json(silent=True) or {}
