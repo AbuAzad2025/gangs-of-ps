@@ -319,13 +319,13 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: unit-coverage
-          path: coverage
+          path: coverage/unit
 
       - name: Download browser coverage artifact
         uses: actions/download-artifact@v4
         with:
           name: browser-coverage
-          path: coverage
+          path: coverage/browser
 
       - name: Download test result artifacts
         uses: actions/download-artifact@v4
@@ -337,8 +337,8 @@ jobs:
       - name: Generate project-wide coverage dashboard
         run: |
           python tests/support/coverage_inventory.py \
-            --backend-json coverage/unit-coverage.json \
-            --browser-json coverage/browser-coverage.json \
+            --backend-json coverage/unit/unit-coverage.json \
+            --browser-json coverage/browser/browser-coverage.json \
             --e2e-xml test-results/e2e-junit.xml \
             --output-dir coverage/project-dashboard
           cat coverage/project-dashboard/github-summary.md >> "$GITHUB_STEP_SUMMARY"

@@ -219,6 +219,51 @@ def frontend_js_summary() -> tuple[float, int, int]:
     return (100.0 * valid / len(js_files)), len(js_files), valid
 
 
+def frontend_js_rows() -> list[tuple[str, str]]:
+    js_dir = ROOT / "static" / "js"
+    rows = []
+    for js_file in sorted(js_dir.glob("*.js")):
+        result = subprocess.run(["node", "--check", str(js_file)], capture_output=True, text=True)
+        rows.append((js_file.relative_to(ROOT).as_posix(), "PASS" if result.returncode == 0 else "FAIL"))
+    return rows
+
+
+def browser_script_rows(json_path: Path | None) -> list[tuple[str, int, int, float]]:
+    if not json_path or not json_path.is_file():
+        return []
+    try:
+        payload = json.loads(json_path.read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return []
+
+    rows = []
+    for item in payload.get("raw_coverage") or []:
+        source = item.get("source") or ""
+        if not source:
+            continue
+        ranges = []
+        for function in item.get("functions") or []:
+            for raw_range in function.get("ranges") or []:
+                start = int(raw_range.get("startOffset") or 0)
+                end = int(raw_range.get("endOffset") or 0)
+                if end > start:
+                    ranges.append((start, end, int(raw_range.get("count") or 0) > 0))
+        boundaries = sorted({point for start, end, _ in ranges for point in (start, end)})
+        executed = 0
+        for start, end in zip(boundaries, boundaries[1:]):
+            candidates = [
+                (range_end - range_start, is_executed)
+                for range_start, range_end, is_executed in ranges
+                if range_start <= start and range_end >= end
+            ]
+            if candidates and min(candidates)[1]:
+                executed += len(source[start:end].encode("utf-8"))
+        total = len(source.encode("utf-8"))
+        if total:
+            rows.append((item.get("url") or "inline script", total, executed, 100.0 * executed / total))
+    return sorted(rows, key=lambda row: (row[3], row[0]))
+
+
 def junit_summary(xml_paths: list[Path]) -> tuple[float, int, int, int]:
     total = 0
     passed = 0
@@ -346,6 +391,8 @@ def build_dashboard(report_dir: Path, backend_json: Path, e2e_xml: list[Path], b
     (report_dir / "project-coverage-dashboard.txt").write_text("\n".join(summary_lines) + "\n", encoding="utf-8")
 
     file_rows = python_file_rows(backend_json)
+    js_rows = frontend_js_rows()
+    browser_rows = browser_script_rows(browser_json)
     md_lines = [
         "# Gangs of Palestine — full project quality coverage dashboard",
         "",
@@ -368,13 +415,32 @@ def build_dashboard(report_dir: Path, backend_json: Path, e2e_xml: list[Path], b
         f"| Browser | {dashboard['browser']['source']} | {dashboard['browser']['coverage_percent']:.2f}% |",
         f"| E2E | {dashboard['e2e']['source']} | {dashboard['e2e']['coverage_percent']:.2f}% |",
         "",
+        "## Frontend JavaScript files",
+        "",
+        "| File | Syntax check |",
+        "| --- | --- |",
+    ]
+    md_lines.extend(f"| `{name}` | **{status}** |" for name, status in js_rows)
+    md_lines.extend([
+        "",
+        "## Browser JavaScript coverage by script",
+        "",
+        "| Script | Bytes | Executed | Coverage |",
+        "| --- | ---: | ---: | ---: |",
+    ])
+    md_lines.extend(
+        f"| `{url}` | {total:,} | {executed:,} | **{coverage:.2f}%** |"
+        for url, total, executed, coverage in browser_rows
+    )
+    md_lines.extend([
+        "",
         "## Backend file coverage",
         "",
         "Sorted from lowest to highest coverage so the next test targets are immediately visible.",
         "",
         "| File | Statements | Covered | Missing | Coverage |",
         "| --- | ---: | ---: | ---: | ---: |",
-    ]
+    ])
     md_lines.extend(
         f"| `{name}` | {statements:,} | {covered:,} | {missing:,} | **{coverage:.2f}%** |"
         for name, statements, covered, missing, coverage in file_rows
