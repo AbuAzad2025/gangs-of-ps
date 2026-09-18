@@ -120,6 +120,25 @@ def python_coverage_summary(json_path: Path) -> tuple[float, int, int, int]:
     return total_pct, total_stmts, total_covered, len(rows)
 
 
+def python_file_rows(json_path: Path) -> list[tuple[str, int, int, int, float]]:
+    """Return per-file backend coverage rows for human-readable CI summaries."""
+    measured = load_measured(json_path)
+    rows: list[tuple[str, int, int, int, float]] = []
+    for path in iter_scope_files():
+        relative = path.relative_to(ROOT).as_posix()
+        meta = measured.get(relative)
+        if meta:
+            summary = meta.get("summary") or {}
+            statements = int(summary.get("num_statements") or 0)
+            covered = int(summary.get("covered_lines") or 0)
+        else:
+            statements = static_statement_count(path)
+            covered = 0
+        missing = max(0, statements - covered)
+        rows.append((relative, statements, covered, missing, pct(meta)))
+    return sorted(rows, key=lambda row: (row[4], -row[1], row[0]))
+
+
 def render_template_filters() -> dict[str, object]:
     def number_format(value):
         try:
@@ -326,6 +345,7 @@ def build_dashboard(report_dir: Path, backend_json: Path, e2e_xml: list[Path], b
     ]
     (report_dir / "project-coverage-dashboard.txt").write_text("\n".join(summary_lines) + "\n", encoding="utf-8")
 
+    file_rows = python_file_rows(backend_json)
     md_lines = [
         "# Gangs of Palestine — full project quality coverage dashboard",
         "",
@@ -347,8 +367,20 @@ def build_dashboard(report_dir: Path, backend_json: Path, e2e_xml: list[Path], b
         f"| JavaScript | {dashboard['javascript']['source']} | {dashboard['javascript']['coverage_percent']:.2f}% |",
         f"| Browser | {dashboard['browser']['source']} | {dashboard['browser']['coverage_percent']:.2f}% |",
         f"| E2E | {dashboard['e2e']['source']} | {dashboard['e2e']['coverage_percent']:.2f}% |",
+        "",
+        "## Backend file coverage",
+        "",
+        "Sorted from lowest to highest coverage so the next test targets are immediately visible.",
+        "",
+        "| File | Statements | Covered | Missing | Coverage |",
+        "| --- | ---: | ---: | ---: | ---: |",
     ]
+    md_lines.extend(
+        f"| `{name}` | {statements:,} | {covered:,} | {missing:,} | **{coverage:.2f}%** |"
+        for name, statements, covered, missing, coverage in file_rows
+    )
     (report_dir / "project-coverage-dashboard.md").write_text("\n".join(md_lines) + "\n", encoding="utf-8")
+    (report_dir / "github-summary.md").write_text("\n".join(md_lines) + "\n", encoding="utf-8")
 
     html_rows = "\n".join(
         [

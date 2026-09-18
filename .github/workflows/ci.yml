@@ -341,6 +341,7 @@ jobs:
             --browser-json coverage/browser-coverage.json \
             --e2e-xml test-results/e2e-junit.xml \
             --output-dir coverage/project-dashboard
+          cat coverage/project-dashboard/github-summary.md >> "$GITHUB_STEP_SUMMARY"
 
       - name: Upload project-wide quality report
         uses: actions/upload-artifact@v4
