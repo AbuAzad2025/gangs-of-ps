@@ -923,7 +923,12 @@ class TestGreeterService:
         hostess = Hostess(name='Jasmin', role='greeter', dialogue_style='friendly')
         db.session.add(hostess)
         db.session.commit()
-        return hostess
+        return int(db.session.execute(
+            Hostess.__table__.select().with_only_columns(Hostess.id).where(
+                Hostess.name == 'Jasmin',
+                Hostess.role == 'greeter',
+            )
+        ).scalar_one())
 
     def test_get_greeter_by_role(self, app, greeter_hostess):
         from services.greeter_service import get_greeter_hostess
@@ -963,7 +968,7 @@ class TestGreeterService:
     def test_process_message_caps_guest_history(self, app, greeter_hostess, client):
         from services.greeter_service import process_assistant_message
 
-        hostess_id = int(greeter_hostess.__dict__['id'])
+        hostess_id = greeter_hostess
         with app.app_context():
             with client.session_transaction() as sess:
                 sess['guest_chat_history_%s' % hostess_id] = [

@@ -283,17 +283,18 @@ class TestEntertainmentRoutes:
         )
         assert response.status_code == 302
         room = GameRoom.query.one()
-        room_id = room.id
+        room_id = int(room.__dict__["id"])
         assert room.pot_amount == 20
 
         guest = make_user(db, username='guest', money=100)
+        guest_id = int(guest.__dict__["id"])
         login_as(guest)
         joined = client.get(f'/entertainment/room/{room_id}', follow_redirects=False)
         assert joined.status_code == 200
         db.session.expire_all()
-        room = db.session.get(GameRoom, room.id)
+        room = db.session.get(GameRoom, room_id)
         assert room.players.count() == 2
-        assert db.session.get(User, guest.id).money == 80
+        assert db.session.get(User, guest_id).money == 80
         assert room.pot_amount == 40
 
         left = client.post(
@@ -302,5 +303,5 @@ class TestEntertainmentRoutes:
         )
         assert left.status_code == 200
         db.session.expire_all()
-        assert db.session.get(User, guest.id).money == 100
+        assert db.session.get(User, guest_id).money == 100
         assert db.session.get(GameRoom, room_id).pot_amount == 20
