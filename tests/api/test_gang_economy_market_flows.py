@@ -51,17 +51,26 @@ class TestGangFlows:
         leader.gang_id = gang.id
         invite = GangInvite(gang_id=gang.id, user_id=invited.id, status="pending")
         db.session.add(invite)
+        gang_id = int(gang.__dict__["id"])
+        invite_id = int(invite.__dict__["id"]) if invite.__dict__.get("id") else None
+        invited_id = int(invited.__dict__["id"])
         db.session.commit()
+        invite_id = int(db.session.execute(
+            GangInvite.__table__.select().with_only_columns(GangInvite.id).where(
+                GangInvite.gang_id == gang_id,
+                GangInvite.user_id == invited_id,
+            )
+        ).scalar_one())
 
         from tests.support.client_helpers import login_client
 
-        login_client(client, app, invited)
-        response = client.post(f"/gang/accept_invite/{invite.id}")
+        login_client(client, app, invited_id)
+        response = client.post(f"/gang/accept_invite/{invite_id}")
 
         assert response.status_code == 302
-        assert db.session.get(User, invited.id).gang_id == gang.id
-        assert db.session.get(GangInvite, invite.id).status == "accepted"
-        assert GangLog.query.filter_by(gang_id=gang.id, user_id=invited.id).count() == 1
+        assert db.session.get(User, invited_id).gang_id == gang_id
+        assert db.session.get(GangInvite, invite_id).status == "accepted"
+        assert GangLog.query.filter_by(gang_id=gang_id, user_id=invited_id).count() == 1
 
     def test_donate_and_withdraw_update_balances_and_log(self, client, app, db):
         leader = make_user(db, username="vaultleader", money=1_000)
@@ -69,19 +78,21 @@ class TestGangFlows:
         db.session.add(gang)
         db.session.flush()
         leader.gang_id = gang.id
+        leader_id = int(leader.__dict__["id"])
+        gang_id = int(gang.__dict__["id"])
         db.session.commit()
 
         from tests.support.client_helpers import login_client
 
-        login_client(client, app, leader)
+        login_client(client, app, leader_id)
         assert client.post("/gang/donate", data={"amount": "250"}).status_code == 302
-        assert db.session.get(User, leader.id).money == 750
-        assert db.session.get(Gang, gang.id).money == 350
+        assert db.session.get(User, leader_id).money == 750
+        assert db.session.get(Gang, gang_id).money == 350
 
         assert client.post("/gang/withdraw", data={"amount": "100"}).status_code == 302
-        assert db.session.get(User, leader.id).money == 850
-        assert db.session.get(Gang, gang.id).money == 250
-        assert GangLog.query.filter_by(gang_id=gang.id).count() == 2
+        assert db.session.get(User, leader_id).money == 850
+        assert db.session.get(Gang, gang_id).money == 250
+        assert GangLog.query.filter_by(gang_id=gang_id).count() == 2
 
     def test_withdraw_denied_to_non_leader(self, client, app, db):
         leader = make_user(db, username="leader", money=100)
@@ -91,16 +102,18 @@ class TestGangFlows:
         db.session.flush()
         leader.gang_id = gang.id
         member.gang_id = gang.id
+        gang_id = int(gang.__dict__["id"])
+        member_id = int(member.__dict__["id"])
         db.session.commit()
 
         from tests.support.client_helpers import login_client
 
-        login_client(client, app, member)
+        login_client(client, app, member_id)
         response = client.post("/gang/withdraw", data={"amount": "100"})
 
         assert response.status_code == 302
-        assert db.session.get(Gang, gang.id).money == 500
-        assert db.session.get(User, member.id).money == 100
+        assert db.session.get(Gang, gang_id).money == 500
+        assert db.session.get(User, member_id).money == 100
 
 
 class TestEconomyFlows:
@@ -109,14 +122,21 @@ class TestEconomyFlows:
         user.money = 5_000
         template = Asset(name="Safe House", type="house", value=1_250, income=300, is_active=True)
         db.session.add(template)
+        template_id = int(template.__dict__["id"]) if template.__dict__.get("id") else None
         db.session.commit()
+        template_id = int(db.session.execute(
+            Asset.__table__.select().with_only_columns(Asset.id).where(
+                Asset.name == "Safe House",
+                Asset.owner_id.is_(None),
+            )
+        ).scalar_one())
 
-        response = logged_in_client.post(f"/economy/buy_property/{template.id}")
+        response = logged_in_client.post(f"/economy/buy_property/{template_id}")
 
         assert response.status_code == 302
         assert db.session.get(User, auth_user_id).money == 3_750
         owned = Asset.query.filter_by(owner_id=auth_user_id).one()
-        assert owned.name == template.name
+        assert owned.name == "Safe House"
         assert owned.income == 300
 
     def test_collect_income_credits_net_income_and_sets_collection_time(
@@ -134,22 +154,36 @@ class TestEconomyFlows:
             last_collected=datetime.now(timezone.utc) - timedelta(days=2),
         )
         db.session.add(asset)
+        asset_id = int(asset.__dict__["id"]) if asset.__dict__.get("id") else None
         db.session.commit()
+        asset_id = int(db.session.execute(
+            Asset.__table__.select().with_only_columns(Asset.id).where(
+                Asset.name == "Business",
+                Asset.owner_id == auth_user_id,
+            )
+        ).scalar_one())
 
-        response = logged_in_client.post(f"/economy/collect_income/{asset.id}")
+        response = logged_in_client.post(f"/economy/collect_income/{asset_id}")
 
         assert response.status_code == 302
         assert db.session.get(User, auth_user_id).money == 525
-        assert db.session.get(Asset, asset.id).last_collected is not None
+        assert db.session.get(Asset, asset_id).last_collected is not None
 
     def test_collect_income_rejects_another_users_property(self, logged_in_client, db, auth_user_id):
         other = make_user(db, username="propertyowner")
         asset = Asset(name="Not Mine", type="house", owner_id=other.id, income=500)
         db.session.add(asset)
+        asset_id = int(asset.__dict__["id"]) if asset.__dict__.get("id") else None
         db.session.commit()
+        asset_id = int(db.session.execute(
+            Asset.__table__.select().with_only_columns(Asset.id).where(
+                Asset.name == "Not Mine",
+                Asset.owner_id == other.id,
+            )
+        ).scalar_one())
         before = db.session.get(User, auth_user_id).money
 
-        response = logged_in_client.post(f"/economy/collect_income/{asset.id}")
+        response = logged_in_client.post(f"/economy/collect_income/{asset_id}")
 
         assert response.status_code == 302
         assert db.session.get(User, auth_user_id).money == before
@@ -166,8 +200,13 @@ class TestMarketFlows:
             last_updated=datetime.now(timezone.utc),
         )
         db.session.add(asset)
+        asset_id = int(asset.__dict__["id"]) if asset.__dict__.get("id") else None
         db.session.commit()
-        return asset
+        return int(db.session.execute(
+            MarketAsset.__table__.select().with_only_columns(MarketAsset.id).where(
+                MarketAsset.symbol == "TEST",
+            )
+        ).scalar_one())
 
     def test_market_buy_and_sell_change_cash_and_position(
         self, logged_in_client, db, auth_user_id, market_asset, monkeypatch
@@ -178,20 +217,20 @@ class TestMarketFlows:
         db.session.commit()
 
         buy = logged_in_client.post(
-            f"/market/place_order/{market_asset.id}",
+            f"/market/place_order/{market_asset}",
             data={"trade_type": "market", "type": "buy", "amount": "1000"},
         )
         assert buy.status_code == 302
-        investment = UserInvestment.query.filter_by(user_id=auth_user_id, asset_id=market_asset.id).one()
+        investment = UserInvestment.query.filter_by(user_id=auth_user_id, asset_id=market_asset).one()
         assert investment.quantity == pytest.approx(10.0)
         assert db.session.get(User, auth_user_id).money == 9_000
 
         sell = logged_in_client.post(
-            f"/market/place_order/{market_asset.id}",
+            f"/market/place_order/{market_asset}",
             data={"trade_type": "market", "type": "sell", "amount": "4"},
         )
         assert sell.status_code == 302
-        investment = UserInvestment.query.filter_by(user_id=auth_user_id, asset_id=market_asset.id).one()
+        investment = UserInvestment.query.filter_by(user_id=auth_user_id, asset_id=market_asset).one()
         assert investment.quantity == pytest.approx(6.0)
         assert db.session.get(User, auth_user_id).money == pytest.approx(9_400)
 
@@ -204,7 +243,7 @@ class TestMarketFlows:
         db.session.commit()
 
         response = logged_in_client.post(
-            f"/market/place_order/{market_asset.id}",
+            f"/market/place_order/{market_asset}",
             data={"trade_type": "limit", "type": "buy", "amount": "5", "price": "100"},
         )
         assert response.status_code == 302
@@ -213,7 +252,7 @@ class TestMarketFlows:
         assert db.session.get(User, auth_user_id).money == 9_500
 
         invalid = logged_in_client.post(
-            f"/market/place_order/{market_asset.id}",
+            f"/market/place_order/{market_asset}",
             data={"trade_type": "market", "type": "hold", "amount": "100"},
         )
         assert invalid.status_code == 302

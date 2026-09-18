@@ -81,6 +81,7 @@ class TestDeveloperRoutes:
         from tests.support.factories import make_user
 
         target = make_user(db, username='managed-player', money=100)
+        target_id = int(target.__dict__['id'])
         login_as(developer_user)
         client.post(
             '/developer/verify',
@@ -89,51 +90,52 @@ class TestDeveloperRoutes:
         )
 
         disabled = client.post(
-            f'/developer/user/disable/{target.id}',
+            f'/developer/user/disable/{target_id}',
             follow_redirects=False,
         )
         assert disabled.status_code == 302
         db.session.expire_all()
-        assert db.session.get(User, target.id).banned_until is not None
+        assert db.session.get(User, target_id).banned_until is not None
 
         enabled = client.post(
-            f'/developer/user/enable/{target.id}',
+            f'/developer/user/enable/{target_id}',
             follow_redirects=False,
         )
         assert enabled.status_code == 302
         db.session.expire_all()
-        assert db.session.get(User, target.id).banned_until is None
+        assert db.session.get(User, target_id).banned_until is None
 
         killed = client.post(
-            f'/developer/user/kill/{target.id}',
+            f'/developer/user/kill/{target_id}',
             follow_redirects=False,
         )
         assert killed.status_code == 302
         db.session.expire_all()
-        dead = db.session.get(User, target.id)
+        dead = db.session.get(User, target_id)
         assert dead.health == 0
         assert dead.hospital_until is not None
 
         resurrected = client.post(
-            f'/developer/user/resurrect/{target.id}',
+            f'/developer/user/resurrect/{target_id}',
             follow_redirects=False,
         )
         assert resurrected.status_code == 302
         db.session.expire_all()
-        alive = db.session.get(User, target.id)
+        alive = db.session.get(User, target_id)
         assert alive.health == alive.max_health
         assert alive.hospital_until is None
 
     def test_developer_user_search_and_self_delete_are_safe(
             self, client, db, developer_user, login_as):
+        developer_id = int(developer_user.__dict__['id'])
         login_as(developer_user)
         listing = client.get('/developer/users?q=devtest')
         assert listing.status_code == 200
         assert b'devtest' in listing.data
 
         response = client.post(
-            f'/developer/user/delete/{developer_user.id}',
+            f'/developer/user/delete/{developer_id}',
             follow_redirects=False,
         )
         assert response.status_code == 302
-        assert db.session.get(User, developer_user.id) is not None
+        assert db.session.get(User, developer_id) is not None
