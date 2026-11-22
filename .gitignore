@@ -52,3 +52,8 @@ htmlcov/
 *.egg-info/
 dist/
 build/
+
+# Local deployment handoff — contains server credentials.
+# Never commit or push this file.
+HANDOFF.md
+.handoff/
