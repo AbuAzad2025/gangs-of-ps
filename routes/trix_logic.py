@@ -44,6 +44,7 @@ class TrixGameLogic:
         """
         Uses TrixAILogic to calculate the best move.
         """
+        TrixGameLogic._normalize_state(state)
         if state['phase'] == 'doubling':
             if player_index in state.get('doubling_confirms', []):
                 return None  # Already confirmed
@@ -153,7 +154,44 @@ class TrixGameLogic:
         return {'valid': True, 'state': state}
 
     @staticmethod
+    def _normalize_state(state):
+        """Restore integer seat keys after a JSON round-trip through the DB.
+
+        SQLAlchemyJSON serialises dict keys as strings, so ``state['scores']``
+        comes back as {'0': 0, '1': 0, ...}. Game logic indexes it with ints
+        and would otherwise raise KeyError on the first trick resolution.
+        """
+        scores = state.get('scores')
+        if isinstance(scores, dict):
+            normalized = {}
+            for key, value in scores.items():
+                try:
+                    normalized[int(key)] = value
+                except (TypeError, ValueError):
+                    continue
+            for seat in range(4):
+                normalized.setdefault(seat, 0)
+            state['scores'] = normalized
+        # Recover rooms that stalled on the very trick that raised KeyError
+        # before resolve_trick could clear it.
+        if len(state.get('trick') or []) >= 4:
+            TrixGameLogic.resolve_trick(state)
+
+        # Never leave the turn on a seat that has already finished their hand
+        # (a stale write from a parallel SSE/move request can cause this).
+        finished = state.get('finished_players') or []
+        turn = state.get('turn_seat', 0)
+        if turn in finished:
+            for _ in range(4):
+                turn = (turn + 1) % 4
+                if turn not in finished:
+                    break
+            state['turn_seat'] = turn
+        return state
+
+    @staticmethod
     def play_card(state, player_index, card):
+        TrixGameLogic._normalize_state(state)
         if state['phase'] != 'playing':
             return {'valid': False, 'message': 'Not in playing phase'}
 

@@ -35,6 +35,11 @@ class TrixAILogic:
         valid_moves = TrixAILogic.get_valid_moves(state, player_index)
 
         if not valid_moves:
+            # In the Trix contract a player with no playable card must pass.
+            # Returning None here used to stall solo games forever because
+            # the bot driver stopped advancing on the first empty move list.
+            if state.get('current_contract') == 'trix':
+                return {'action': 'pass'}
             return None  # Should not happen if hand is not empty
 
         if len(valid_moves) == 1:

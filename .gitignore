@@ -37,7 +37,8 @@ temp_*
 *.bak
 *.tmp
 
-static/adminlte/
+# AdminLTE assets are required at runtime for shared UI and admin panel.
+# They must be committed so fresh clones and deployments render correctly.
 
 # Coverage artifacts
 .coverage

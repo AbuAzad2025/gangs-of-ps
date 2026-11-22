@@ -1,5 +1,5 @@
 {% macro dev_dashboard_link(location='header') -%}
-{% if current_user.is_authenticated and current_user.is_admin %}
+{% if current_user is defined and current_user.is_authenticated and current_user.is_admin %}
     {% if location == 'header' %}
         <li class="nav-item d-none d-sm-inline-block">
             <a href="{{ url_for('main.dev_dashboard') }}" class="nav-link text-warning">{{ _('لوحة المطور') }}</a>

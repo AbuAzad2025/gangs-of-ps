@@ -3,11 +3,11 @@
 {% block content %}
 <link rel="stylesheet" href="{{ url_for('static', filename='plugins/chess/chessboard.min.css') }}">
 
-<div class="container fade-in">
+<div class="container fade-in chess-room">
     <div class="row justify-content-center">
-        <div class="col-md-8">
+        <div class="col-md-12">
             <div class="card bg-dark text-white border-primary shadow-lg">
-                <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center entertainment-room-bar">
                     <div class="d-flex align-items-center">
                         <h3 class="mb-0 mr-3"><i class="fas fa-chess mr-2"></i> {{ room.name }}</h3>
                         {% if room.stake_amount > 0 %}
@@ -447,7 +447,13 @@
             }
         }
 
-        $status.text(status)
+        // Avoid duplicating the turn pill: when it is the player's turn the
+        // green indicator already says so, so keep the status line quiet.
+        if (!game.game_over() && game.turn() === myColor) {
+            $status.text('')
+        } else {
+            $status.text(status)
+        }
         $pgn.text(game.pgn())
 
         if (connectionState !== 'online') {
@@ -467,9 +473,15 @@
         }
 
         if (game.turn() === myColor) {
-            $turnIndicator.removeClass('alert-secondary alert-warning alert-danger alert-info').addClass('alert-success').text("{{ _('دورك للعب!') }}");
+            $turnIndicator
+                .removeClass('alert-secondary alert-warning alert-danger alert-info')
+                .addClass('alert-success turning')
+                .html('<i class="fas fa-chess-pawn mr-2"></i> ' + "{{ _('دورك للعب!') }}");
         } else {
-            $turnIndicator.removeClass('alert-success alert-warning alert-danger alert-info').addClass('alert-secondary').text("{{ _('انتظار الخصم...') }}");
+            $turnIndicator
+                .removeClass('alert-success alert-warning alert-danger alert-info turning')
+                .addClass('alert-secondary')
+                .html('<i class="fas fa-hourglass-half mr-2"></i> ' + "{{ _('انتظار الخصم...') }}");
         }
     }
 

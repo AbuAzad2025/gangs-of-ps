@@ -7,8 +7,33 @@
         <p class="lead text-light">{{ _('استرح قليلاً من عناء الجريمة واستمتع ببعض الألعاب الكلاسيكية.') }}</p>
     </div>
 
+    <!-- Game selector -->
+    <div class="game-picker">
+        <a href="{{ url_for('entertainment.chess_solo') }}" class="game-picker-card">
+            <span class="game-picker-icon">♟</span>
+            <span>
+                <span class="game-picker-title">{{ _('الشطرنج') }}</span>
+                <span class="game-picker-desc">{{ _('مواجهة ذكية ضد المحرك أو لاعبين آخرين') }}</span>
+            </span>
+        </a>
+        <a href="{{ url_for('entertainment.trix') }}" class="game-picker-card">
+            <span class="game-picker-icon">🃏</span>
+            <span>
+                <span class="game-picker-title">{{ _('الترِكس') }}</span>
+                <span class="game-picker-desc">{{ _('أربع عقود وثلاثة بوتات — تحدي ورقي كامل') }}</span>
+            </span>
+        </a>
+        <a href="#" class="game-picker-card" onclick="document.querySelector('[name=game_type]').value='tarneeb';document.querySelector('[name=name]').focus();return false;">
+            <span class="game-picker-icon">♠</span>
+            <span>
+                <span class="game-picker-title">{{ _('الطرنيب') }}</span>
+                <span class="game-picker-desc">{{ _('مزايدة وتدبيل وشراكة 2 ضد 2') }}</span>
+            </span>
+        </a>
+    </div>
+
     <!-- Betting Promo Section -->
-    <div class="alert alert-info border-info shadow-lg mb-4 text-center fade-in">
+    <div class="alert alert-info border-info shadow-lg mb-4 text-center fade-in entertainment-promo">
         <h4 class="alert-heading text-warning"><i class="fas fa-trophy"></i> {{ _('راهن واربح!') }}</h4>
         <p class="mb-2">
             {{ _('استخدم مهارتك لربح المال والألماس من اللاعبين الآخرين. الفائز يحصل على كل شيء!') }}

@@ -2,7 +2,7 @@ from extensions import db
 from models.user import User
 from models.log import UserLog
 from models.system import SystemConfig
-from flask import request, flash, current_app
+from flask import request, flash, current_app, has_request_context
 from flask_babel import _
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm.exc import StaleDataError
@@ -16,6 +16,51 @@ from services.economy_integrity import (
 
 
 class ResourceService:
+    @staticmethod
+    def log_event(user_id, reason, log_extra=None, expected_version=None) -> bool:
+        """Write an audit-only UserLog entry without mutating resources.
+
+        CASINO losses previously called modify_resources(changes={}) just to
+        "force a version update". That path is a no-op (SQLAlchemy bumps
+        ``User.version`` through version_id_col on the next real UPDATE) and
+        only produced an "empty resource mutation" warning. Use this helper
+        instead when an event needs to be recorded without changing balances.
+        """
+        try:
+            user = db.session.query(User).filter_by(
+                id=user_id).populate_existing().with_for_update().first()
+            if not user:
+                return ResourceService._abort_transaction()
+            if expected_version is not None and user.version != expected_version:
+                current_app.logger.warning(
+                    "Audit event version mismatch (expected %s, got %s)",
+                    expected_version, user.version)
+                return ResourceService._abort_transaction()
+
+            details = dict(log_extra or {})
+            if has_request_context():
+                ip = request.remote_addr or '127.0.0.1'
+                ua = str(request.user_agent or 'System')
+            else:
+                ip, ua = '127.0.0.1', 'System'
+
+            db.session.add(UserLog(
+                user_id=user_id,
+                action=reason.upper(),
+                details=json.dumps(details),
+                result='success',
+                before_state=json.dumps({}),
+                after_state=json.dumps({}),
+                ip_address=ip,
+                user_agent=ua,
+            ))
+            db.session.flush()
+            return True
+        except SQLAlchemyError as exc:
+            db.session.rollback()
+            current_app.logger.error(f"Audit log failed: {exc}")
+            return False
+
     @staticmethod
     def _abort_transaction() -> bool:
         db.session.rollback()

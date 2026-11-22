@@ -300,13 +300,11 @@ def blackjack_hit():
         game.result = 'loss'
         game.winnings = 0
 
-        # Force version update to prevent replay attacks (even on loss)
-        ResourceService.modify_resources(
+        # Audit the loss without touching balances (bet was already deducted).
+        ResourceService.log_event(
             user_id=current_user.id,
-            changes={},  # No resource change
             reason='casino_blackjack_loss',
-            auto_commit=False,
-            expected_version=None
+            log_extra={'bet': game_state['bet']}
         )
 
     game.state = game_state
@@ -429,12 +427,10 @@ def blackjack_stand():
             game_state['message'] = _('المضيفة أنقذتك! استرجعت رهانك.')
         else:
             trigger_hostess_reaction(current_user, game_state['bet'], False)
-            # Force version update on loss
-            ResourceService.modify_resources(
+            ResourceService.log_event(
                 user_id=current_user.id,
-                changes={},
                 reason='casino_blackjack_loss',
-                auto_commit=False,
+                log_extra={'bet': game_state['bet']},
                 expected_version=current_user.version
             )
 
@@ -632,13 +628,10 @@ def slots_spin():
         # Hostess Second Chance? (Maybe for slots too?)
         flash(_("حظاً أوفر! ") + "".join(result), 'warning')
         trigger_hostess_reaction(current_user, bet, False)
-        # Force version update on loss
-        ResourceService.modify_resources(
+        ResourceService.log_event(
             user_id=current_user.id,
-            changes={},
             reason='casino_slots_loss',
-            auto_commit=False,
-            expected_version=None
+            log_extra={'bet': bet}
         )
 
     # Record Game
@@ -828,13 +821,10 @@ def roulette_spin():
                 num=landing,
                 col=color)
             flash(message, 'danger')
-            # Force version update on loss
-            ResourceService.modify_resources(
+            ResourceService.log_event(
                 user_id=current_user.id,
-                changes={},
                 reason='casino_roulette_loss',
-                auto_commit=False,
-                expected_version=None
+                log_extra={'bet': bet_amount}
             )
 
     # Record Game

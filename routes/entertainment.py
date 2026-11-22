@@ -819,7 +819,7 @@ def get_room_state(room_id):
                     data['game_state'] = state
     except Exception as e:
         # Fail-safe: do not break state endpoint on bot errors
-        current_app.logger.error(f"Solo bot progression error: {e}")
+        current_app.logger.exception("Solo bot progression error")
 
     return jsonify(data)
 
@@ -1128,10 +1128,12 @@ def leave_game(room_id):
         return jsonify({'status': 'ok', 'message': 'Forfeited'})
 
     else:
-        # Lobby leave (refund logic usually applies here if we implemented it,
-        # but for now just leave)
-        # If there was a stake, we should refund if game hasn't started.
-        if room.stake_amount > 0:
+        # Lobby leave: refund only when the game never started. A finished
+        # room has already had its pot distributed (house cut + winner prize),
+        # so refunding here would pay the stake a second time.
+        refunded = False
+        if (room.status == 'waiting' and room.stake_amount > 0
+                and room.pot_amount >= room.stake_amount):
             if room.currency_type == 'money':
                 ResourceService.modify_resources(
                     current_user.id, {
@@ -1141,6 +1143,7 @@ def leave_game(room_id):
                     current_user.id, {
                         'diamonds': room.stake_amount}, 'room_leave_refund', auto_commit=False, expected_version=None)
             room.pot_amount -= room.stake_amount
+            refunded = True
 
         db.session.delete(player)
 
@@ -1155,7 +1158,7 @@ def leave_game(room_id):
                 'stake_amount': room.stake_amount,
                 'currency_type': room.currency_type,
                 'status': room.status,
-                'refunded': room.stake_amount > 0,
+                'refunded': refunded,
                 'seat_index': player.seat_index if player else None
             }),
             result='success',
@@ -1750,6 +1753,16 @@ def make_move(room_id):
             current_state['rev'] = int(current_state.get('rev') or 0) + 1
         except Exception:
             current_state['rev'] = 1
+
+    # _distribute_prizes() commits its own copy of game_state with the
+    # prizes_distributed marker. Keep that marker when writing our local copy
+    # so a later call cannot pay the same pot twice.
+    try:
+        if (room.game_state or {}).get('prizes_distributed'):
+            current_state['prizes_distributed'] = True
+    except Exception:
+        pass
+
     room.game_state = current_state
     flag_modified(room, 'game_state')
     db.session.commit()

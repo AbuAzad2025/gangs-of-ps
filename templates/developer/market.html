@@ -73,8 +73,12 @@
                                                 </div>
                                             </div>
                                         </form>
-                                        <a href="{{ url_for('main.dev_market_edit', id=(asset.id or 0)) }}" class="btn btn-sm btn-info mr-1"><i class="fas fa-edit"></i></a>
+                                        {% if asset.id %}
+                                        <a href="{{ url_for('main.dev_market_edit', id=asset.id) }}" class="btn btn-sm btn-info mr-1"><i class="fas fa-edit"></i></a>
                                         {{ post_icon_button(url_for('main.dev_market_delete', id=asset.id), btn_class='btn btn-sm btn-danger', icon_class='fas fa-ban', confirm_text=_('هل أنت متأكد من التعطيل؟')) }}
+                                        {% else %}
+                                        <span class="badge badge-secondary">{{ _('من الإعدادات') }}</span>
+                                        {% endif %}
                                     </div>
                                 </td>
                             </tr>
