@@ -131,7 +131,13 @@ def create_app(config_class=Config):
     seo_manager.init_app(app)
     cache.init_app(app)
     if socketio:
-        socketio.init_app(app, cors_allowed_origins="*")
+        cors = os.environ.get('SOCKETIO_CORS_ORIGINS')
+        if not cors:
+            cors = '*' if app.config.get('TESTING') else 'https://gop.azadexa.com'
+        origins = [o.strip() for o in cors.split(',') if o.strip()]
+        socketio.init_app(
+            app,
+            cors_allowed_origins=(origins[0] if origins == ['*'] else origins))
 
     with app.app_context():
         try:

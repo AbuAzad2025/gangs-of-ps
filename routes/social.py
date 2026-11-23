@@ -1891,6 +1891,7 @@ def chat_vip_donate():
 
 
 @bp.route('/api/chat/online_users')
+@login_required
 def get_online_users():
     gender = request.args.get('gender')
     min_age = request.args.get('min_age', type=int)

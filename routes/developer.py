@@ -4103,6 +4103,7 @@ def dev_images():
 
 @bp.route('/developer/images/upload', methods=['POST'])
 @developer_required
+@double_verification_required
 def dev_upload_image():
     if 'file' not in request.files:
         flash(_('لم يتم اختيار ملف'), 'danger')
@@ -4131,6 +4132,18 @@ def dev_upload_image():
 
     if file:
         filename = secure_filename(file.filename)
+        ext = os.path.splitext(filename)[1].lower()
+        allowed = {'.png': b'\x89PNG\r\n\x1a\n', '.jpg': b'\xff\xd8\xff',
+                   '.jpeg': b'\xff\xd8\xff', '.gif': b'GIF8',
+                   '.webp': b'RIFF'}
+        if ext not in allowed:
+            flash(_('نوع الصورة غير مسموح.'), 'danger')
+            return redirect(url_for('main.dev_images'))
+        head = file.stream.read(8)
+        file.stream.seek(0)
+        if not head.startswith(allowed[ext]):
+            flash(_('الملف ليس صورة صالحة.'), 'danger')
+            return redirect(url_for('main.dev_images'))
         full_path = os.path.join(save_path, filename)
         file.save(full_path)
         flash(_('تم رفع الصورة بنجاح: %(name)s', name=filename), 'success')

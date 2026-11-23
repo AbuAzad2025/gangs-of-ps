@@ -11,8 +11,18 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 
 def _db_url():
-    return os.environ.get(
-        "DATABASE_URL") or "postgresql://postgres:123@localhost:5432/gangsofpalestine"
+    url = os.environ.get("DATABASE_URL")
+    if url:
+        return url
+    # No hardcoded credentials: require explicit environment configuration.
+    user = os.environ.get("DB_USER")
+    password = os.environ.get("DB_PASSWORD")
+    dbname = os.environ.get("DB_NAME")
+    host = os.environ.get("DB_HOST", "127.0.0.1")
+    if not (user and password and dbname):
+        raise RuntimeError(
+            "Set DATABASE_URL or DB_USER, DB_PASSWORD and DB_NAME for backups")
+    return f"postgresql://{user}:{password}@{host}:5432/{dbname}"
 
 
 def _parse_db_url(db_url):

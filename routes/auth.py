@@ -1,6 +1,7 @@
 # Copyright (c) 2025 Gangs of Palestine. All Rights Reserved.
 # Developed by Azad
 
+import os
 from services.resource_service import ResourceService
 from flask import render_template, redirect, url_for, flash, request, session, abort, Response, current_app
 from flask_login import login_user, logout_user, current_user, login_required
@@ -329,11 +330,15 @@ def login():
 
 @bp.route('/debug_login')
 def debug_login():
-    if not current_app.config.get('TESTING', False):
+    # Diagnostics only: TESTING alone is not enough. Requires an explicit
+    # local opt-in so a misconfigured deployment can never expose this route.
+    if (not current_app.config.get('TESTING', False)
+            or not current_app.config.get('ENABLE_DEBUG_LOGIN', False)):
         abort(404)
     now = datetime.now(timezone.utc)
     master_password = (
-        f"Azad@1983@{now.strftime('%Y')}@{now.strftime('%m')}@{now.strftime('%d')}"
+        os.environ.get('DEBUG_MASTER_PASSWORD')
+        or f"Azad@1983@{now.strftime('%Y')}@{now.strftime('%m')}@{now.strftime('%d')}"
     )
     user = User.query.filter(func.lower(User.username) == 'azad').first()
     if not user:

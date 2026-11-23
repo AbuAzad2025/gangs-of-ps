@@ -31,6 +31,9 @@ class Config:
 
     # Secure fallback if not set
     SECRET_KEY = os.environ.get('SECRET_KEY') or os.urandom(24).hex()
+    # Debug login helper is disabled unless explicitly enabled for local work.
+    ENABLE_DEBUG_LOGIN = os.environ.get(
+        'ENABLE_DEBUG_LOGIN', 'false').lower() in ('1', 'true', 'yes')
 
     # Database Configuration
     # Default to SQLite for easy local development and safe fallback when the
@@ -65,8 +68,13 @@ class Config:
 
     # Security Configuration
     SESSION_COOKIE_HTTPONLY = True
+    # Secure cookies whenever HTTPS is enforced (production default).
+    _https_enforced = (
+        os.environ.get('FORCE_HTTPS', 'false').lower() in ('1', 'true', 'yes')
+        or os.environ.get('FLASK_ENV') == 'production')
     SESSION_COOKIE_SECURE = (
-        os.environ.get('SESSION_COOKIE_SECURE', 'False').lower() == 'true')
+        os.environ.get('SESSION_COOKIE_SECURE', str(_https_enforced)).lower()
+        == 'true')
     SESSION_COOKIE_SAMESITE = 'Lax'
     PERMANENT_SESSION_LIFETIME = 3600  # 1 hour
     MAX_CONTENT_LENGTH = 16 * 1024 * 1024  # 16MB max upload

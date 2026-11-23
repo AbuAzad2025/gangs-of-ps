@@ -60,7 +60,12 @@ def test_health_endpoint(client):
 def test_seo_endpoints_and_verification_meta(client):
     home = client.get('/')
     assert home.status_code == 200
-    assert b'name="google-site-verification"' in home.data
+
+    from models.system import SystemConfig
+    SystemConfig.set_value('google_site_verification', 'test-token-123')
+    home_with_token = client.get('/')
+    assert b'name="google-site-verification"' in home_with_token.data
+    assert b'test-token-123' in home_with_token.data
 
     robots = client.get('/robots.txt')
     assert robots.status_code == 200
@@ -74,3 +79,22 @@ def test_seo_endpoints_and_verification_meta(client):
     verify = client.get('/google8a1714ed6e039773.html')
     assert verify.status_code == 200
     assert b'google-site-verification: google8a1714ed6e039773.html' in verify.data
+
+
+def test_breadcrumb_schema_escapes_script_breakout(app):
+    from extensions import seo_manager
+    with app.app_context():
+        seo_manager.add_breadcrumb('</script><script>alert(1)</script>', '/x')
+        out = seo_manager.render_breadcrumbs_schema()
+    assert '</script><script>alert(1)</script>' not in out
+    assert '\\u003c/script\\u003e' in out
+
+
+def test_debug_login_is_disabled_without_explicit_opt_in(app, client):
+    assert app.config.get('ENABLE_DEBUG_LOGIN') is False
+    assert client.get('/debug_login').status_code == 404
+
+
+def test_online_users_requires_login(client):
+    response = client.get('/api/chat/online_users')
+    assert response.status_code in (302, 401)

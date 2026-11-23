@@ -61,9 +61,14 @@ def economy_daily():
 
 if __name__ == '__main__':
     app.logger.info("Starting Flask Server...")
+    # Debug console must be opt-in; never expose the Werkzeug debugger by default.
+    debug_enabled = os.environ.get(
+        'FLASK_DEBUG', 'false').lower() in ('1', 'true', 'yes')
+    port = int(os.environ.get('PORT', '8000'))
     # Run with SocketIO only locally and if not CLI
     if socketio and not is_cli and not is_pythonanywhere:
-        socketio.run(app, debug=True, port=8000)
+        socketio.run(app, debug=debug_enabled, port=port)
     else:
         # Fallback for CLI or PythonAnywhere
-        app.run(debug=True, port=8000, use_reloader=True, threaded=True)
+        app.run(debug=debug_enabled, port=port,
+                use_reloader=debug_enabled, threaded=True)

@@ -1,5 +1,6 @@
 from flask import request, current_app, url_for, g
 from flask_babel import gettext as _
+from html import escape as html_escape
 import json
 from urllib.parse import urlencode
 
@@ -211,11 +212,15 @@ class SEOManager:
             "itemListElement": items
         }
 
-        return (
-            '<script type="application/ld+json">'
-            + json.dumps(schema)
-            + "</script>"
+        # Escape '<', '>' and '&' so user-controlled breadcrumb names can
+        # never break out of the <script> element (stored XSS via JSON-LD).
+        payload = (
+            json.dumps(schema)
+            .replace('<', '\\u003c')
+            .replace('>', '\\u003e')
+            .replace('&', '\\u0026')
         )
+        return '<script type="application/ld+json">' + payload + '</script>'
 
     def render_canonical(self):
         ignored_params = {
@@ -241,7 +246,8 @@ class SEOManager:
             args.pop("lang", None)
 
         qs = urlencode(args, doseq=True)
-        href = request.base_url + (f"?{qs}" if qs else "")
+        base = html_escape(request.base_url, quote=True)
+        href = base + (f"?{qs}" if qs else "")
         return f'<link rel="canonical" href="{href}">'
 
     def render_hreflang(self):
@@ -265,8 +271,8 @@ class SEOManager:
         args_no_lang = dict(base_args)
         args_no_lang.pop("lang", None)
         qs_default = urlencode(args_no_lang, doseq=True)
-        href_default = request.base_url + \
-            (f"?{qs_default}" if qs_default else "")
+        base = html_escape(request.base_url, quote=True)
+        href_default = base + (f"?{qs_default}" if qs_default else "")
 
         tags = [
             f'<link rel="alternate" hreflang="x-default" href="{href_default}">']
@@ -274,7 +280,7 @@ class SEOManager:
             args = dict(base_args)
             args["lang"] = [lang_code]
             qs = urlencode(args, doseq=True)
-            href = request.base_url + (f"?{qs}" if qs else "")
+            href = base + (f"?{qs}" if qs else "")
             tags.append(
                 f'<link rel="alternate" hreflang="{lang_code}" href="{href}">')
         return "".join(tags)
