@@ -23816,3 +23816,371 @@ msgstr "Update password"
 #: forms/auth.py
 msgid "كلمة المرور الجديدة"
 msgstr "New password"
+
+#: templates/includes/seo_landing_improvements.html
+msgid "ميزات عصابات فلسطين"
+msgstr "Features of Gangs of Palestine"
+
+#: templates/includes/seo_landing_improvements.html
+msgid "ميزات لعبة مافيا عربية استراتيجية تتضمن: دردشة ثنائية اللغة، نظام تداول وتدريب مالي، معارك عصابات، اقتصاد افتراضي، ونظام مضيفات ذكي مدعوم بالذكاء الاصطناعي."
+msgstr "Features of an Arabic strategy mafia game including: bilingual chat, trading and financial training system, gang battles, virtual economy, and an AI-powered hostess system."
+
+#: templates/includes/seo_landing_improvements.html
+msgid "دردشة ثنائية اللغة (عربي/إنجليزي)"
+msgstr "Bilingual chat (Arabic/English)"
+
+#: templates/includes/seo_landing_improvements.html
+msgid "نظام دردشة فوري يدعم العربية والإنجليزية مع غرف عامة، خاصة، VIP، وغرف للغرباء. تتضمن إيموجي، مرفقات، كاميرا، وتسجيل صوتي."
+msgstr "A real-time chat system supporting Arabic and English with public, private, VIP, and stranger rooms. Includes emojis, attachments, camera, and voice recording."
+
+#: templates/includes/seo_landing_improvements.html
+msgid "بورصة افتراضية للعملات والأصول، عقود مستقبلية، أوامر حد، تدريب مالي تفاعلي، محاكاة تداول آمنة للعملات الرقمية والفوركس."
+msgstr "A virtual exchange for currencies and assets, futures contracts, limit orders, interactive financial training, and safe trading simulation for crypto and forex."
+
+#: templates/includes/seo_landing_improvements.html
+msgid "معارك عصابات وأراضي"
+msgstr "Gang battles and territories"
+
+#: templates/includes/seo_landing_improvements.html
+msgid "نظام عصابات متكامل: تأسيس عصابة، حروب أراضي، هياكل هرمية، تبرعات، عقود، ومكافآت أسبوعية."
+msgstr "A complete gang system: gang creation, territory wars, hierarchies, donations, contracts, and weekly rewards."
+
+#: templates/includes/seo_landing_improvements.html
+msgid "نظام مضيفات ذكي (AI Hostesses)"
+msgstr "Smart hostess system (AI Hostesses)"
+
+#: templates/includes/seo_landing_improvements.html
+msgid "مضيفات ذكاء اصطناعي متخصصة: ياسمين (الاستقبال)، روبي (الحظ/إدارة المخاطر)، سارة (الدعم/التعافي)، ليلى (التجسس/التحليل). تتعلم من تفاعلات اللاعبين."
+msgstr "Specialized AI hostesses: Yasmin (reception), Ruby (luck/risk management), Sara (support/recovery), Layla (espionage/analysis). They learn from player interactions."
+
+#: templates/includes/seo_landing_improvements.html
+msgid "اقتصاد افتراضي متكامل"
+msgstr "Complete virtual economy"
+
+#: templates/includes/seo_landing_improvements.html
+msgid "بنك مركزي، بورصة، سوق سوداء، مزادات، عقارات، مصانع، مزارع، بنوك، قروض، تأمين، وضرائب داخل اللعبة."
+msgstr "Central bank, exchange, black market, auctions, real estate, factories, farms, banks, loans, insurance, and taxes in-game."
+
+#: templates/includes/seo_landing_improvements.html
+msgid "لعب مجاني، عربي، ثنائي اللغة"
+msgstr "Free, Arabic, bilingual"
+
+#: templates/includes/seo_landing_improvements.html
+msgid "مجانية 100 في المئة، تعمل على المتصفح والجوال (PWA)، تدعم العربية والإنجليزية بالكامل مع RTL/LTR، بدون تحميل."
+msgstr "100 percent free, works on browser and mobile (PWA), full Arabic and English support with RTL/LTR, no download."
+
+#: templates/includes/seo_landing_improvements.html
+msgid "كيف تبدأ رحلتك في عصابات فلسطين؟"
+msgstr "How do you start your journey in Gangs of Palestine?"
+
+#: templates/includes/seo_landing_improvements.html
+msgid "أربع خطوات بسيطة لتبدأ بناء إمبراطوريتك في عالم العصابات الفلسطيني"
+msgstr "Four simple steps to start building your empire in the Palestinian gang world"
+
+#: templates/includes/seo_landing_improvements.html
+msgid "1. سجل مجاناً"
+msgstr "1. Register for free"
+
+#: templates/includes/seo_landing_improvements.html
+msgid "أنشئ حسابك في دقيقة، اختر اسمك، حدد أسلوب لعبك (مقاتل/تاجر/مخطط)، وابدأ فوراً."
+msgstr "Create your account in a minute, choose your name, pick your playstyle (fighter/trader/planner), and start immediately."
+
+#: templates/includes/seo_landing_improvements.html
+msgid "2. انضم للدردشة"
+msgstr "2. Join the chat"
+
+#: templates/includes/seo_landing_improvements.html
+msgid "ادخل الدردشة، تعرف على اللاعبين، اسأل المضيفات الذكية، واكتشف المجتمع."
+msgstr "Enter the chat, meet players, ask the AI hostesses, and discover the community."
+
+#: templates/includes/seo_landing_improvements.html
+msgid "3. تعلم التداول"
+msgstr "3. Learn trading"
+
+#: templates/includes/seo_landing_improvements.html
+msgid "ادخل أكاديمية الحارة، تعلم التداول، افتح حسابك في البورصة، وابدأ استثماراتك."
+msgstr "Enter the Neighborhood Academy, learn trading, open your exchange account, and start your investments."
+
+#: templates/includes/seo_landing_improvements.html
+msgid "4. ابنِ عصابتك"
+msgstr "4. Build your gang"
+
+#: templates/includes/seo_landing_improvements.html
+msgid "أسس عصابتك، ادعُ الأعضاء، سيطر على المناطق، وابنِ إمبراطوريتك."
+msgstr "Found your gang, invite members, control territories, and build your empire."
+
+#: templates/includes/seo_landing_improvements.html
+msgid "لماذا عصابات فلسطين؟"
+msgstr "Why Gangs of Palestine?"
+
+#: templates/includes/seo_landing_improvements.html
+msgid "لعبة المافيا العربية الاستراتيجية الوحيدة من نوعها"
+msgstr "The one-of-a-kind Arabic strategy mafia game"
+
+#: templates/includes/seo_landing_improvements.html
+msgid "نحن لا نقدم مجرد لعبة، بل عالم افتراضي متكامل يجمع بين الاستراتيجية، الاقتصاد، والمجتمع"
+msgstr "We don't just offer a game, but a complete virtual world combining strategy, economy, and community"
+
+#: templates/includes/seo_landing_improvements.html
+msgid "دردشة ثنائية اللغة متطورة"
+msgstr "Advanced bilingual chat"
+
+#: templates/includes/seo_landing_improvements.html
+msgid "غرف عامة، خاصة، VIP، غرباء. رسائل خاصة، إيموجي، مرفقات، كاميرا، تسجيل صوتي، ومضيفات AI."
+msgstr "Public, private, VIP, stranger rooms. Private messages, emojis, attachments, camera, voice recording, and AI hostesses."
+
+#: templates/includes/seo_landing_improvements.html
+msgid "عربي/إنجليزي فوري"
+msgstr "Instant Arabic/English"
+
+#: templates/includes/seo_landing_improvements.html
+msgid "مضيفات AI متخصصات"
+msgstr "Specialized AI hostesses"
+
+#: templates/includes/seo_landing_improvements.html
+msgid "فلترة آمنة"
+msgstr "Safe filtering"
+
+#: templates/includes/seo_landing_improvements.html
+msgid "بورصة فورية، عقود مستقبلية، أوامر حد/سوق، تدريب تفاعلي، محاكاة آمنة، أصول متنوعة."
+msgstr "Spot exchange, futures contracts, limit/market orders, interactive training, safe simulation, diverse assets."
+
+#: templates/includes/seo_landing_improvements.html
+msgid "بورصة فورية ومستقبلية"
+msgstr "Spot and futures exchange"
+
+#: templates/includes/seo_landing_improvements.html
+msgid "نظام عصابات شامل"
+msgstr "Complete gang system"
+
+#: templates/includes/seo_landing_improvements.html
+msgid "تأسيس، هياكل هرمية، حروب مناطق، عقود، خزينة، تبرعات، مكافآت أسبوعية."
+msgstr "Creation, hierarchies, territory wars, contracts, treasury, donations, weekly rewards."
+
+#: templates/includes/seo_landing_improvements.html
+msgid "مضيفات ذكية (AI)"
+msgstr "Smart hostesses (AI)"
+
+#: templates/includes/seo_landing_improvements.html
+msgid "ياسمين، روبي، سارة، ليلى - متخصصات، تتعلم، آمنة، ثنائية اللغة."
+msgstr "Yasmin, Ruby, Sara, Layla - specialized, learning, secure, bilingual."
+
+#: templates/includes/seo_landing_improvements.html
+msgid "4 متخصصات"
+msgstr "4 specialists"
+
+#: templates/includes/seo_landing_improvements.html
+msgid "آمنة ومحمية"
+msgstr "Secure and protected"
+
+#: templates/includes/seo_landing_improvements.html
+msgid "بنك، بورصة، سوق سوداء، عقارات، مصانع، مزارع، قروض، تأمين، ضرائب."
+msgstr "Bank, exchange, black market, real estate, factories, farms, loans, insurance, taxes."
+
+#: templates/includes/seo_landing_improvements.html
+msgid "عقارات/مصانع"
+msgstr "Real estate/Factories"
+
+#: templates/includes/seo_landing_improvements.html
+msgid "PWA - تطبيق جوال"
+msgstr "PWA - Mobile app"
+
+#: templates/includes/seo_landing_improvements.html
+msgid "تثبيت على الجوال، يعمل أوفلاين، إشعارات فورية، تجربة تطبيق أصلي."
+msgstr "Install on mobile, works offline, instant notifications, native app experience."
+
+#: templates/includes/seo_landing_improvements.html
+msgid "تثبيت PWA"
+msgstr "PWA installation"
+
+#: templates/includes/seo_landing_improvements.html
+msgid "دعم أوفلاين"
+msgstr "Offline support"
+
+#: templates/includes/seo_landing_improvements.html
+msgid "مضيفات ذكية (AI Hostesses)"
+msgstr "Smart hostesses (AI Hostesses)"
+
+#: templates/includes/seo_landing_improvements.html
+msgid "فريق ذكي يدعمك في كل خطوة"
+msgstr "A smart team supporting you every step"
+
+#: templates/includes/seo_landing_improvements.html
+msgid "أربع مضيفات ذكاء اصطناعي متخصصات، تتعلم من تفاعلاتك، تدعم العربية والإنجليزية، آمنة 100 في المئة"
+msgstr "Four specialized AI hostesses, learn from your interactions, support Arabic and English, 100 percent secure"
+
+#: templates/includes/seo_landing_improvements.html
+msgid "الاستقبال والمساعدة العامة. تجيب على استفساراتك، ترشدك للبدء، وترشدك للميزات."
+msgstr "Reception and general help. Answers your questions, guides you to start, and shows you features."
+
+#: templates/includes/seo_landing_improvements.html
+msgid "الاستقبال والترحيب"
+msgstr "Reception and welcome"
+
+#: templates/includes/seo_landing_improvements.html
+msgid "إرشاد المبتدئين"
+msgstr "Beginner guidance"
+
+#: templates/includes/seo_landing_improvements.html
+msgid "دعم عام"
+msgstr "General support"
+
+#: templates/includes/seo_landing_improvements.html
+msgid "الحظ والمخاطر"
+msgstr "Luck and risk"
+
+#: templates/includes/seo_landing_improvements.html
+msgid "إدارة المخاطر، الحظ، الكازينو، القرارات تحت الضغط، استراتيجيات المراهنة."
+msgstr "Risk management, luck, casino, decisions under pressure, betting strategies."
+
+#: templates/includes/seo_landing_improvements.html
+msgid "استراتيجيات الكازينو"
+msgstr "Casino strategies"
+
+#: templates/includes/seo_landing_improvements.html
+msgid "الدعم والتعافي"
+msgstr "Support and recovery"
+
+#: templates/includes/seo_landing_improvements.html
+msgid "الدعم النفسي، التعافي من الخسائر، إدارة التوتر، قرارات متوازنة، دعم نفسي."
+msgstr "Psychological support, recovery from losses, stress management, balanced decisions, psychological support."
+
+#: templates/includes/seo_landing_improvements.html
+msgid "تعافي متوازن"
+msgstr "Balanced recovery"
+
+#: templates/includes/seo_landing_improvements.html
+msgid "التحليل والاستخبارات"
+msgstr "Analysis and intelligence"
+
+#: templates/includes/seo_landing_improvements.html
+msgid "تحليل المنافسين، استخبارات السوق، تجسس، قرارات تكتيكية، تقليل المخاطر."
+msgstr "Competitor analysis, market intelligence, espionage, tactical decisions, risk reduction."
+
+#: templates/includes/seo_landing_improvements.html
+msgid "أكاديمية الحارة - تعلم التداول"
+msgstr "Neighborhood Academy - Learn Trading"
+
+#: templates/includes/seo_landing_improvements.html
+msgid "تعلم التداول بأمان - من المبتدئ للمحترف"
+msgstr "Learn trading safely - from beginner to pro"
+
+#: templates/includes/seo_landing_improvements.html
+msgid "أكاديمية تفاعلية مجانية تعلمك التداول من الصفر: أساسيات، تحليل فني، إدارة مخاطر، نفسيات التداول"
+msgstr "Free interactive academy teaching you trading from scratch: basics, technical analysis, risk management, trading psychology"
+
+#: templates/includes/seo_landing_improvements.html
+msgid "دروس تفاعلية"
+msgstr "Interactive lessons"
+
+#: templates/includes/seo_landing_improvements.html
+msgid "دروس متدرجة: أساسيات، تحليل فني، أساسي، إدارة مخاطر، نفسيات."
+msgstr "Progressive lessons: basics, technical analysis, fundamental, risk management, psychology."
+
+#: templates/includes/seo_landing_improvements.html
+msgid "مستويات: مبتدئ → محترف"
+msgstr "Levels: Beginner to Pro"
+
+#: templates/includes/seo_landing_improvements.html
+msgid "تمارين عملية"
+msgstr "Practical exercises"
+
+#: templates/includes/seo_landing_improvements.html
+msgid "اختبارات وتقييم"
+msgstr "Tests and assessment"
+
+#: templates/includes/seo_landing_improvements.html
+msgid "تداول بأموال افتراضية، أصول حقيقية، بيانات حية، بدون مخاطر مالية حقيقية."
+msgstr "Trade with virtual money, real assets, live data, no real financial risk."
+
+#: templates/includes/seo_landing_improvements.html
+msgid "أصول حقيقية، أموال وهمية"
+msgstr "Real assets, virtual money"
+
+#: templates/includes/seo_landing_improvements.html
+msgid "بيانات سوق حية"
+msgstr "Live market data"
+
+#: templates/includes/seo_landing_improvements.html
+msgid "أوامر حد/سوق/إيقاف"
+msgstr "Limit/market/stop orders"
+
+#: templates/includes/seo_landing_improvements.html
+msgid "إدارة مخاطر ونفسيات"
+msgstr "Risk management and psychology"
+
+#: templates/includes/seo_landing_improvements.html
+msgid "إدارة رأس المال، أوامر وقف خسارة، نفسيات التداول، انضباط، خطة تداول."
+msgstr "Capital management, stop-loss orders, trading psychology, discipline, trading plan."
+
+#: templates/includes/seo_landing_improvements.html
+msgid "أوامر وقف/هدف"
+msgstr "Stop/target orders"
+
+#: templates/includes/seo_landing_improvements.html
+msgid "انضباط نفسي"
+msgstr "Psychological discipline"
+
+#: templates/includes/seo_landing_improvements.html
+msgid "جاهز للبدء؟"
+msgstr "Ready to start?"
+
+#: templates/includes/seo_landing_improvements.html
+msgid "انضم لآلاف اللاعبين وابنِ إمبراطوريتك اليوم"
+msgstr "Join thousands of players and build your empire today"
+
+#: templates/includes/seo_landing_improvements.html
+msgid "مجاني، فوري، ثنائي اللغة، آمن. ابدأ رحلتك الآن في عالم العصابات الفلسطيني"
+msgstr "Free, instant, bilingual, secure. Start your journey now in the Palestinian gang world"
+
+#: templates/includes/seo_landing_improvements.html
+msgid "سجل مجاناً الآن"
+msgstr "Register free now"
+
+#: templates/includes/seo_landing_improvements.html
+msgid "جرب الدردشة أولاً"
+msgstr "Try the chat first"
+
+#: templates/includes/seo_landing_improvements.html
+msgid "اقرأ الدليل الكامل"
+msgstr "Read the full guide"
+
+#: templates/includes/seo_landing_improvements.html
+msgid "آمن 100 في المئة - مجاني 100 في المئة - لا تحميل - يعمل على الجوال والكمبيوتر"
+msgstr "100 percent secure - 100 percent free - no download - works on mobile and PC"
+
+#: templates/includes/seo_landing_improvements.html
+msgid "لاعب مسجل"
+msgstr "Registered player"
+
+#: templates/includes/seo_landing_improvements.html
+msgid "معركة اليوم"
+msgstr "Battle of the day"
+
+#: templates/includes/seo_landing_improvements.html
+msgid "تسجيل مجاني فوري"
+msgstr "Instant free registration"
+
+#: templates/includes/seo_landing_improvements.html
+msgid "اختيار أسلوب اللعب"
+msgstr "Choose your playstyle"
+
+#: templates/includes/seo_landing_improvements.html
+msgid "مكافآت بداية سخية"
+msgstr "Generous starter rewards"
+
+#: templates/includes/seo_landing_improvements.html
+msgid "غرف عامة وخاصة"
+msgstr "Public and private rooms"
+
+#: templates/includes/seo_landing_improvements.html
+msgid "مضيفات AI للمساعدة"
+msgstr "AI hostesses for help"
+
+#: templates/includes/seo_landing_improvements.html
+msgid "دردشة آمنة ومفلترة"
+msgstr "Safe and filtered chat"
+
+#: templates/includes/seo_landing_improvements.html
+msgid "تأسيس فوري"
+msgstr "Instant creation"
