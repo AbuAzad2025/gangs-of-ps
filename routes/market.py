@@ -134,7 +134,7 @@ def check_limit_orders(asset):
         SpotOrder.status == 'open',
         SpotOrder.order_type == 'buy',
         SpotOrder.price >= asset.current_price
-    ).all()
+    ).limit(50).all()
 
     for order in buy_orders:
         # Deadlock Prevention: Lock User FIRST, then Investment
@@ -243,8 +243,10 @@ def check_limit_orders(asset):
             if rows == 0:
                 continue  # Already processed
 
-            # Assets already locked/deducted at placement, give money
-            total_value = order.quantity * order.price
+            # Assets were deducted at placement. Credit the CURRENT market
+            # price, not the client-supplied limit price, so a fill never
+            # pays more than the asset is worth at execution time.
+            total_value = int(order.quantity * asset.current_price)
 
             # Atomic update with logging
             if not ResourceService.modify_resources(
@@ -516,12 +518,16 @@ def place_order(asset_id):
         flash(_('نوع عملية غير صحيح.'), 'danger')
         return redirect(url_for('market.trade', asset_id=asset.id))
 
-    try:
-        amount = float(request.form.get('amount', 0) or 0)
-    except Exception:
-        amount = 0.0
+    raw_amount = request.form.get('amount')
+    if trade_type == 'market' and order_type == 'buy':
+        # USD amount: parse to a whole integer ONCE and reuse the same value
+        # for both the debit and the share calculation (no fractional free value).
+        amount = parse_trade_usd(raw_amount)
+    else:
+        # Sell / limit quantities are share counts, bounded by MAX_TRADE_QUANTITY.
+        amount = parse_trade_quantity(raw_amount)
 
-    if amount <= 0:
+    if amount is None or amount <= 0:
         flash(_('كمية/مبلغ غير صحيح.'), 'danger')
         return redirect(url_for('market.trade', asset_id=asset.id))
 
@@ -605,13 +611,9 @@ def place_order(asset_id):
             return redirect(url_for('market.trade', asset_id=asset.id))
 
     if trade_type == 'limit':
-        try:
-            price = float(request.form.get('price', 0) or 0)
-        except Exception:
-            price = 0.0
-
+        price = parse_limit_price(request.form.get('price'))
         quantity = amount
-        if price <= 0 or quantity <= 0:
+        if price is None or price <= 0 or quantity <= 0:
             flash(_('السعر/الكمية غير صحيحين.'), 'danger')
             return redirect(url_for('market.trade', asset_id=asset.id))
 
@@ -752,12 +754,11 @@ def open_futures(asset_id):
     if leverage not in {10, 20, 50, 100}:
         leverage = 10
 
-    try:
-        margin = float(request.form.get('amount', 0) or 0)
-    except Exception:
-        margin = 0.0
+    # Whole-integer margin, reused for both the debit and position size.
+    margin = parse_trade_usd(
+        request.form.get('amount'), min_value=MIN_FUTURES_MARGIN)
 
-    if margin <= 0:
+    if margin is None or margin <= 0:
         flash(_('الهامش غير صحيح.'), 'danger')
         return redirect(url_for('market.trade', asset_id=asset.id))
 
@@ -835,17 +836,25 @@ def close_futures(position_id):
     if payout < 0:
         payout = 0.0
 
-    pos.is_open = False
-    pos.closed_at = datetime.now(timezone.utc)
+    # Close and payout must succeed together. Never mark a position closed
+    # when the payout credit failed.
+    try:
+        with db.session.begin_nested():
+            pos.is_open = False
+            pos.closed_at = datetime.now(timezone.utc)
+            if payout > 0:
+                ok = ResourceService.modify_resources(
+                    user.id, {'money': int(payout)}, 'futures_close_payout',
+                    auto_commit=False, expected_version=None)
+                if not ok:
+                    raise ValueError('futures payout was rejected')
+        db.session.commit()
+    except Exception as exc:
+        db.session.rollback()
+        current_app.logger.error(f'Futures close failed for {pos.id}: {exc}')
+        flash(_('تعذر إغلاق الصفقة. حاول مجدداً.'), 'danger')
+        return redirect(url_for('market.trade', asset_id=pos.asset_id))
 
-    if payout > 0:
-        ResourceService.modify_resources(user.id,
-                                         {'money': payout},
-                                         'futures_close_payout',
-                                         auto_commit=False,
-                                         expected_version=None)
-
-    db.session.commit()
     flash(_('تم إغلاق الصفقة.'), 'success')
     return redirect(url_for('market.trade', asset_id=pos.asset_id))
 

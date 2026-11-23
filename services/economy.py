@@ -16,8 +16,8 @@ def get_bank_fee_config():
     aligned instead of drifting across service code and database defaults.
     """
     defaults = {
-        "tier1_threshold": int(DEFAULT_SYSTEM_CONFIG.get("bank_fee_tier1_threshold", 50000)),
-        "tier2_threshold": int(DEFAULT_SYSTEM_CONFIG.get("bank_fee_tier2_threshold", 200000)),
+        "tier1_threshold": int(DEFAULT_SYSTEM_CONFIG.get("bank_fee_tier1_threshold", 40000)),
+        "tier2_threshold": int(DEFAULT_SYSTEM_CONFIG.get("bank_fee_tier2_threshold", 180000)),
         "tier1_pct": float(DEFAULT_SYSTEM_CONFIG.get("bank_fee_tier1_pct", 0.005)),
         "tier2_pct": float(DEFAULT_SYSTEM_CONFIG.get("bank_fee_tier2_pct", 0.012)),
         "early_game_level_cap": int(DEFAULT_SYSTEM_CONFIG.get("early_game_fee_grace_level", 5)),
@@ -94,6 +94,17 @@ def apply_daily_sinks():
                 config,
                 level=int(user.level or 1),
             )
+            # Idempotency: one bank-fee charge per UTC day, even if the
+            # scheduler is accidentally run twice.
+            today_start = datetime.now(timezone.utc).replace(
+                hour=0, minute=0, second=0, microsecond=0)
+            already_charged = MoneySinkLog.query.filter(
+                MoneySinkLog.user_id == user.id,
+                MoneySinkLog.sink_type == 'bank_fee',
+                MoneySinkLog.timestamp >= today_start).first()
+            if already_charged:
+                continue
+
             if fee > 0:
                 try:
                     with db.session.begin_nested():

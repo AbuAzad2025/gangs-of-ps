@@ -104,7 +104,8 @@ def parse_trade_usd(raw, *, min_value: float = MIN_SPOT_TRADE) -> float | None:
         return None
     if value < min_value or value > ABSOLUTE_MAX_MONEY_DELTA:
         return None
-    return value
+    # Currency is whole-dollar: debit and share sizing must use the same value.
+    return float(int(value))
 
 
 def parse_trade_quantity(raw, *, min_value: float = 0.0) -> float | None:

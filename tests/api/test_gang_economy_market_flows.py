@@ -8,7 +8,7 @@ from models import (
     GangInvite,
     GangLog,
     MarketAsset,
-    SpotOrder,
+    SpotOrder, FuturesPosition,
     UserInvestment,
     User,
 )
@@ -257,3 +257,61 @@ class TestMarketFlows:
         )
         assert invalid.status_code == 302
         assert SpotOrder.query.filter_by(user_id=auth_user_id).count() == 1
+
+
+    def test_fractional_market_buy_has_no_free_value(
+        self, logged_in_client, db, auth_user_id, market_asset, monkeypatch
+    ):
+        monkeypatch.setattr("routes.market.update_market_prices", lambda: None)
+        user = db.session.get(User, auth_user_id)
+        user.money = 10_000
+        db.session.commit()
+
+        logged_in_client.post(
+            f"/market/place_order/{market_asset}",
+            data={"trade_type": "market", "type": "buy", "amount": "100.9"},
+        )
+        # Debit and share count use the same whole-dollar amount.
+        assert db.session.get(User, auth_user_id).money == 9_900
+        investment = UserInvestment.query.filter_by(
+            user_id=auth_user_id, asset_id=market_asset).one()
+        assert investment.quantity == pytest.approx(1.0)
+
+    def test_absurd_limit_price_is_rejected(
+        self, logged_in_client, db, auth_user_id, market_asset, monkeypatch
+    ):
+        monkeypatch.setattr("routes.market.update_market_prices", lambda: None)
+        user = db.session.get(User, auth_user_id)
+        user.money = 10_000
+        db.session.commit()
+
+        logged_in_client.post(
+            f"/market/place_order/{market_asset}",
+            data={"trade_type": "limit", "type": "buy",
+                  "amount": "1", "price": "999999999999"},
+        )
+        assert SpotOrder.query.filter_by(user_id=auth_user_id).count() == 0
+        assert db.session.get(User, auth_user_id).money == 10_000
+
+    def test_futures_stays_open_when_payout_fails(
+        self, logged_in_client, db, auth_user_id, market_asset, monkeypatch
+    ):
+        monkeypatch.setattr("routes.market.update_market_prices", lambda: None)
+        user = db.session.get(User, auth_user_id)
+        user.money = 10_000
+        db.session.commit()
+
+        logged_in_client.post(
+            f"/market/open_futures/{market_asset}",
+            data={"type": "long", "leverage": "10", "amount": "100"},
+        )
+        pos = FuturesPosition.query.filter_by(user_id=auth_user_id).one()
+        pos_id = pos.id
+        assert pos.is_open is True
+
+        monkeypatch.setattr(
+            "routes.market.ResourceService.modify_resources",
+            lambda *args, **kwargs: False,
+        )
+        logged_in_client.post(f"/market/close_futures/{pos_id}")
+        assert db.session.get(FuturesPosition, pos_id).is_open is True

@@ -120,6 +120,9 @@ class ResourceService:
                                               Useful for optimistic locking when the changes depend on previous state.
             set_fields (dict, optional): Dictionary of fields to set directly (e.g., {'hospital_until': datetime...}).
         """
+        # Work on a copy: the daily cap may adjust 'money' and callers reuse
+        # their dict for logging/accounting after this call.
+        changes = dict(changes)
         token = allow_resource_mutation()
         try:
             try:

@@ -3849,6 +3849,11 @@ def dev_market_update_price():
 
     asset = db.session.get(MarketAsset, asset_id)
     if asset and new_price is not None:
+        # Prices feed payouts (spot sells, futures PnL, limit fills). Reject
+        # zero, negative, non-finite and absurd values instead of trusting the form.
+        if new_price <= 0 or new_price > 2_000_000_000 or new_price != new_price:
+            flash(_('سعر غير صالح.'), 'danger')
+            return redirect(url_for('main.dev_market'))
         old_price = asset.current_price
         asset.current_price = new_price
 
