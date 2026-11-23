@@ -41,7 +41,7 @@
                 <div class="d-flex align-items-end">
                     {% include 'includes/_assistant_avatar_snippet.html' with context %}
                     <div class="bg-dark border border-secondary p-3 text-white shadow-sm hostess-msg-bubble-received">
-                        {{ _(hostess.intro_message).replace('\n', '<br>')|safe if hostess.intro_message else _('أهلاً! أنا ياسمين. اسأليني عن القواعد، الاقتصاد، أو ماذا تفعل اليوم؟ 🌹') }}
+                        {% if hostess.intro_message %}{% for line in _(hostess.intro_message).split('\n') %}{{ line }}{% if not loop.last %}<br>{% endif %}{% endfor %}{% else %}{{ _('أهلاً! أنا ياسمين. اسأليني عن القواعد، الاقتصاد، أو ماذا تفعل اليوم؟ 🌹') }}{% endif %}
                     </div>
                 </div>
             </div>

@@ -105,7 +105,8 @@ def chat():
             'health': 100,
             'energy': 100,
             'rank': 'Visitor',
-            'is_voice': request.form.get('is_voice') == 'true'
+            'is_voice': request.form.get('is_voice') == 'true',
+            'is_guest': True
         }
 
     # 3. Chat History

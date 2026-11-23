@@ -5,6 +5,7 @@ from flask import Flask, request, has_request_context, flash, redirect, url_for,
 from flask_login import current_user
 from flask_babel import gettext as _
 import os
+import re
 from werkzeug.middleware.proxy_fix import ProxyFix
 from config import Config
 from extensions import db, migrate, login, admin, babel, csrf, limiter, talisman, mail, seo_manager, socketio, cache
@@ -74,7 +75,11 @@ def create_app(config_class=Config):
     try:
         ensure_postgres_database_exists(app.config["SQLALCHEMY_DATABASE_URI"])
     except Exception as exc:
-        app.logger.warning(f"ensure_postgres_database_exists warning: {exc}")
+        # Never write full DSNs (which contain DB passwords) to logs.
+        safe = re.sub(
+            r'(postgresql(?:\+psycopg2)?://[^:/@\s]+:)[^@\s]+@',
+            r'\1***@', str(exc))
+        app.logger.warning(f"ensure_postgres_database_exists warning: {safe}")
 
     if app.config.get("TESTING"):
         from sqlalchemy.engine.url import make_url

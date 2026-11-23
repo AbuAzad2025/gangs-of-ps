@@ -15,8 +15,57 @@ from flask import has_request_context, session
 
 
 class AIHostessService:
+    # Deterministic guardrails. The natural-language rules inside the model
+    # prompt are not enough: user input must never reach the LLM when it asks
+    # for internal data, and model output must be checked before display.
+    INJECTION_PATTERNS = [
+        r'ignore\s+(?:all\s+)?(?:previous|prior|above)\s+instructions',
+        r'(?:repeat|show|print|reveal|dump)\s+(?:me\s+)?(?:your\s+|the\s+)?(?:system\s+)?prompt',
+        r'(?:show|reveal|print|dump|give)\s+(?:me\s+)?(?:your\s+|the\s+)?(?:instructions|knowledge\s*base|memory|secrets?)',
+        r'(?:show|reveal|tell|give|print|dump|share|extract|what\s+is|where\s+is)[^\n]{0,60}(?:api[_ -]?key|secret[_ -]?key|database[_ -]?url|password|credentials)',
+        r'(?:api[_ -]?key|secret[_ -]?key|database[_ -]?url|credentials)\s*(?:is|are|=|:)\s*\S',
+        r'expire\s+your\s+instructions',
+        r'تجاهل\s+(?:كل\s+)?(?:التعليمات|الأوامر)\s+السابقة',
+        r'(?:أعطني|أظهر|اطبع|اكشف|قول)\s+(?:لي\s+)?(?:التعليمات|النظام|المعرفة|الأسرار|كلمات? المرور|مفتاح)',
+        r'مفتاح\s+(?:API|الذكاء|الدخول)',
+    ]
+
+    LEAK_PATTERNS = [
+        r'sk-[A-Za-z0-9_-]{8,}',
+        r'Bearer\s+[A-Za-z0-9._-]{8,}',
+        r'OPENAI_API_KEY|DATABASE_URL|SECRET_KEY|DB_PASSWORD',
+        r'system\s+prompt|CORE KNOWLEDGE BASE|RELEVANT KNOWLEDGE FROM DATABASE|RESPONSE QUALITY PROTOCOL',
+        r'api\.openai\.com',
+        r'postgresql(?:\+psycopg2)?://',
+    ]
+
     def __init__(self):
         self.api_url = "https://api.openai.com/v1/chat/completions"
+
+    def _is_injection(self, text):
+        try:
+            value = (text or '').lower()
+            return any(re.search(p, value) for p in self.INJECTION_PATTERNS)
+        except Exception:
+            return False
+
+    def _safe_refusal(self, language):
+        if language == 'ar':
+            return ("أنا هنا لمساعدتك داخل اللعبة فقط. لا أستطيع مشاركة التعليمات أو المفاتيح أو "
+                    "أي معلومات داخلية. اسألني عن الجرائم، الجيم، الاقتصاد، أو خطوات البداية.")
+        return ("I'm here to help you in-game only. I can't share instructions, keys, or any "
+                "internal information. Ask me about crimes, the gym, the economy, or how to get started.")
+
+    def _safe_output(self, text, language):
+        """Strip anything that looks like an internal secret from a model reply."""
+        value = str(text or '')
+        for pattern in self.LEAK_PATTERNS:
+            try:
+                if re.search(pattern, value, re.I):
+                    return self._safe_refusal(language)
+            except Exception:
+                continue
+        return value
 
     def _is_jasmin(self, hostess_context):
         try:
@@ -257,6 +306,11 @@ class AIHostessService:
         """
         Get response from AI or fallback to rule-based system.
         """
+        # Deterministic guardrail: never send prompt-injection / secret-seeking
+        # input to the external model, regardless of the soft prompt rules.
+        if self._is_injection(user_message):
+            return self._safe_refusal(self._resolve_language(user_message, user_context))
+
         if not chat_history:
             detected_lang = self._resolve_language(user_message, user_context)
             msg = (user_message or "").strip().lower()
@@ -278,10 +332,23 @@ class AIHostessService:
 
                 if "|" in intro:
                     parts = [p.strip() for p in intro.split("|", 1)]
+                    ar_bits = [p for p in parts if re.search(r'[\u0600-\u06FF]', p)]
+                    en_bits = [p for p in parts if not re.search(r'[\u0600-\u06FF]', p)]
                     if detected_lang == "ar":
-                        intro = parts[1] if len(parts) > 1 else parts[0]
+                        intro = ar_bits[0] if ar_bits else (parts[0] if parts else "")
                     else:
-                        intro = parts[0]
+                        intro = en_bits[0] if en_bits else (parts[-1] if len(parts) > 1 else "")
+
+                # A single-language intro must follow the visitor's language.
+                has_arabic = bool(re.search(r'[\u0600-\u06FF]', intro or ''))
+                if detected_lang == "en" and has_arabic:
+                    translated = str(_(intro))
+                    if translated and not re.search(r'[\u0600-\u06FF]', translated):
+                        intro = translated
+                    else:
+                        intro = "Welcome to Gangs of Palestine. I'm your host today."
+                elif detected_lang == "ar" and intro and not has_arabic:
+                    intro = "أهلاً وسهلاً بك في عصابات فلسطين. أنا مضيفتك اليوم."
 
                 if not intro:
                     if detected_lang == "ar":
@@ -346,6 +413,10 @@ class AIHostessService:
                     hostess_context,
                     user_context,
                     chat_history or persisted_history)
+
+                # Never persist or display leaked internals.
+                response = self._safe_output(
+                    response, self._resolve_language(user_message, user_context))
 
                 # Save to Learning Log
                 try:
@@ -1259,9 +1330,9 @@ RESPONSE QUALITY PROTOCOL:
             # Filter by specific hostess or general knowledge (NULL)
             if hostess_id:
                 query = query.filter(or_(
-                    HostessKnowledge.hostess_id == hostess_id, HostessKnowledge.hostess_id is None))
+                    HostessKnowledge.hostess_id == hostess_id, HostessKnowledge.hostess_id.is_(None)))
             else:
-                query = query.filter(HostessKnowledge.hostess_id is None)
+                query = query.filter(HostessKnowledge.hostess_id.is_(None))
 
             conditions = []
             normalized_words = [
