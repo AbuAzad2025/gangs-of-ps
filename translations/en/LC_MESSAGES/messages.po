@@ -21593,6 +21593,9 @@ msgstr "Purchase Cost"
 msgid "أهلاً بك في عصابات فلسطين. أنا ياسمين، مرشدة اليوم. خلّينا نرتّب لك أول وأوضح خطوة معك بوضوح وهدوء."
 msgstr "Welcome to Gangs of Palestine. I am Jasmine, your guide today. Let us arrange your first clear step calmly and simply."
 
+msgid "شاهد من خسر المعركة وشارك في سجلات العصابات."
+msgstr "See who lost the battle and join the gang records."
+
 #~ msgid "تم إضافة %(amount)s ماسة للمستخدم بنجاح."
 #~ msgstr "%(amount)s diamonds added to user successfully."
 
