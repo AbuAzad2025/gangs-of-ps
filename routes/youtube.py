@@ -11,6 +11,63 @@ except Exception:
 from flask_babel import gettext as _
 import logging
 
+# Patch the fragile youtubesearchpython component parser: some videos have no
+# channel id, which crashes the whole search with "can only concatenate str
+# (not NoneType)". Make channel link tolerant of a missing id.
+try:
+    from youtubesearchpython.handlers import componenthandler as _ch
+
+    _orig_get_video_component = _ch.ComponentHandler._getVideoComponent
+
+    def _safe_get_video_component(self, element, shelfTitle=None):
+        try:
+            return _orig_get_video_component(self, element, shelfTitle)
+        except TypeError:
+            # Fall back to a minimal component built defensively.
+            video = element
+            if isinstance(element, dict):
+                video = (element.get('videoRenderer')
+                         or element.get('video')
+                         or element)
+            if not isinstance(video, dict):
+                video = {}
+            def _g(paths):
+                try:
+                    return self._getValue(video, paths)
+                except Exception:
+                    return None
+            comp = {
+                'type': 'video',
+                'id': _g(['videoId']),
+                'title': _g(['title', 'runs', 0, 'text']),
+                'publishedTime': _g(['publishedTimeText', 'simpleText']),
+                'duration': _g(['lengthText', 'simpleText']),
+                'viewCount': {
+                    'text': _g(['viewCountText', 'simpleText']),
+                    'short': _g(['shortViewCountText', 'simpleText']),
+                },
+                'thumbnails': _g(['thumbnail', 'thumbnails']),
+                'richThumbnail': _g(['richThumbnail', 'movingThumbnailRenderer', 'movingThumbnailDetails', 'thumbnails', 0]),
+                'descriptionSnippet': _g(['detailedMetadataSnippets', 0, 'snippetText', 'runs']),
+                'channel': {
+                    'name': _g(['ownerText', 'runs', 0, 'text']),
+                    'id': _g(['ownerText', 'runs', 0, 'navigationEndpoint', 'browseEndpoint', 'browseId']),
+                    'thumbnails': _g(['channelThumbnailSupportedRenderers', 'channelThumbnailWithLinkRenderer', 'thumbnail', 'thumbnails']),
+                },
+                'accessibility': {
+                    'title': _g(['title', 'accessibility', 'accessibilityData', 'label']),
+                    'duration': _g(['lengthText', 'accessibility', 'accessibilityData', 'label']),
+                },
+            }
+            comp['link'] = 'https://www.youtube.com/watch?v=' + (comp['id'] or '')
+            comp['channel']['link'] = 'https://www.youtube.com/channel/' + (comp['channel']['id'] or '')
+            comp['shelfTitle'] = shelfTitle
+            return comp
+
+    _ch.ComponentHandler._getVideoComponent = _safe_get_video_component
+except Exception:
+    pass
+
 bp = Blueprint('youtube', __name__, url_prefix='/api/youtube')
 
 
@@ -42,16 +99,16 @@ def search():
             for item in results['result']:
                 # Extract relevant info
                 try:
-                    video_id = item['id']
-                    title = item['title']
+                    video_id = item.get('id') or ''
+                    title = item.get('title') or ''
                     thumbnails = item.get('thumbnails') or []
-                    thumbnail = thumbnails[0].get('url') if thumbnails else ''
+                    thumbnail = ''
+                    if thumbnails and isinstance(thumbnails[0], dict):
+                        thumbnail = thumbnails[0].get('url') or ''
                     duration = item.get('duration')
-                    channel = (
-                        item['channel']['name']
-                        if item.get('channel')
-                        else ''
-                    )
+                    channel = ''
+                    if isinstance(item.get('channel'), dict):
+                        channel = item['channel'].get('name') or ''
 
                     videos.append({
                         'id': video_id,
