@@ -55,7 +55,7 @@ dnspython==2.7.0
 docstring_parser==0.17.0
 email-validator==2.1.0.post1
 et_xmlfile==2.0.0
-eventlet==0.40.2
+# eventlet removed - using stdlib threading backend (no deprecated dependency)
 ezdxf==1.4.3
 Faker==20.1.0
 fastapi==0.122.1

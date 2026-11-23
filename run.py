@@ -6,15 +6,8 @@ import sys
 is_cli = 'flask' in sys.argv[0] or 'db' in sys.argv
 is_pythonanywhere = 'PYTHONANYWHERE_DOMAIN' in os.environ
 
-# Only apply eventlet monkey patch if:
-# 1. We are NOT running a CLI command (like flask db migrate)
-# 2. We are NOT on PythonAnywhere (which uses WSGI and conflicts with eventlet)
-if not is_cli and not is_pythonanywhere:
-    try:
-        import eventlet
-        eventlet.monkey_patch()
-    except ImportError:
-        pass
+# Eventlet is no longer used (threading backend). Do not monkey-patch.
+print("Using threading async backend (no eventlet).")
 
 from flask.cli import with_appcontext
 from config import Config, TestConfig

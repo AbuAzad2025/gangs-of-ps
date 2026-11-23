@@ -99,10 +99,10 @@ _patch_platform_for_restricted_windows()
 try:
     from flask_socketio import SocketIO
     import importlib.util
+    # Prefer the stdlib threading backend. Eventlet/gevent are optional and
+    # we no longer depend on them (eventlet is unmaintained).
     _async_mode = 'threading'
-    if importlib.util.find_spec('eventlet'):
-        _async_mode = 'eventlet'
-    elif importlib.util.find_spec('gevent'):
+    if importlib.util.find_spec('gevent'):
         _async_mode = 'gevent'
     try:
         socketio = SocketIO(cors_allowed_origins="*", async_mode=_async_mode)
