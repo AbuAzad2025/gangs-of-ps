@@ -272,7 +272,8 @@ def sitemap():
 
     xml_lines = [
         '<?xml version="1.0" encoding="UTF-8"?>',
-        f'<?xml-stylesheet type="text/xsl" href="{url_for("seo.sitemap_xsl")}"?>',
+        # No XSLT stylesheet reference: browsers are removing XSLT support and
+        # Google does not need it. Keep the sitemap plain, valid XML.
         '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">',
     ]
 

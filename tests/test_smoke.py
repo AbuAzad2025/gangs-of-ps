@@ -69,3 +69,4 @@ def test_seo_endpoints_and_verification_meta(client):
     sitemap = client.get('/sitemap.xml')
     assert sitemap.status_code == 200
     assert b'<urlset' in sitemap.data
+    assert b'xml-stylesheet' not in sitemap.data
