@@ -1,0 +1,462 @@
+{# 
+  مكونات SEO محسّنة لصفحة الهبوط 
+  تضاف إلى index.html أو base.html لتعزيز الظهور في محركات البحث
+#}
+
+{# Schema.org إضافي للميزات الرئيسية للعبة #}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "FeatureList",
+      "name": {{ _('ميزات عصابات فلسطين')|tojson }},
+      "description": {{ _('ميزات لعبة مافيا عربية استراتيجية تتضمن: دردشة ثنائية اللغة، نظام تداول وتدريب مالي، معارك عصابات، اقتصاد افتراضي، ونظام مضيفات ذكي مدعوم بالذكاء الاصطناعي.')|tojson }},
+      "featureList": [
+        {
+          "@type": "GameFeature",
+          "name": {{ _('دردشة ثنائية اللغة (عربي/إنجليزي)')|tojson }},
+          "description": {{ _('نظام دردشة فوري يدعم العربية والإنجليزية مع غرف عامة، خاصة، VIP، وغرف للغرباء. تتضمن إيموجي، مرفقات، كاميرا، وتسجيل صوتي.')|tojson }}
+        },
+        {
+          "@type": "GameFeature",
+          "name": {{ _('نظام تداول وتدريب مالي')|tojson }},
+          "description": {{ _('بورصة افتراضية للعملات والأصول، عقود مستقبلية، أوامر حد، تدريب مالي تفاعلي، محاكاة تداول آمنة للعملات الرقمية والفوركس.')|tojson }}
+        },
+        {
+          "@type": "GameFeature",
+          "name": {{ _('معارك عصابات وأراضي')|tojson }},
+          "description": {{ _('نظام عصابات متكامل: تأسيس عصابة، حروب أراضي، هياكل هرمية، تبرعات، عقود، ومكافآت أسبوعية.')|tojson }}
+        },
+        {
+          "@type": "GameFeature",
+          "name": {{ _('نظام مضيفات ذكي (AI Hostesses)')|tojson }},
+          "description": {{ _('مضيفات ذكاء اصطناعي متخصصة: ياسمين (الاستقبال)، روبي (الحظ/إدارة المخاطر)، سارة (الدعم/التعافي)، ليلى (التجسس/التحليل). تتعلم من تفاعلات اللاعبين.')|tojson }}
+        },
+        {
+          "@type": "GameFeature",
+          "name": {{ _('اقتصاد افتراضي متكامل')|tojson }},
+          "description": {{ _('بنك مركزي، بورصة، سوق سوداء، مزادات، عقارات، مصانع، مزارع، بنوك، قروض، تأمين، وضرائب داخل اللعبة.')|tojson }}
+        },
+        {
+          "@type": "GameFeature",
+          "name": {{ _('لعب مجاني، عربي، ثنائي اللغة')|tojson }},
+          "description": {{ _('مجانية 100 في المئة، تعمل على المتصفح والجوال (PWA)، تدعم العربية والإنجليزية بالكامل مع RTL/LTR، بدون تحميل.')|tojson }}
+        }
+      ]
+    },
+    {
+      "@type": "FAQPage",
+      "mainEntity": [
+        {
+          "@type": "Question",
+          "name": "ما هي لعبة عصابات فلسطين؟",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "عصابات فلسطين هي لعبة مافيا عربية استراتيجية على المتصفح (Browser-based RPG). تبدأ من الصفر وتبني إمبراطوريتك عبر الجرائم، الاقتصاد، العصابات، والتداول. تدعم العربية والإنجليزية، تعمل على المتصفح والجوال بدون تحميل."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "هل اللعبة مجانية وهل تحتاج تحميل؟",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "نعم، اللعبة مجانية 100% وتعمل مباشرة من المتصفح بدون أي تحميل. يمكنك تثبيتها كتطبيق PWA على الجوال للعب وكأنها تطبيق أصلي."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "ما هي ميزات الدردشة في اللعبة؟",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "دردشة فورية ثنائية اللغة (عربي/إنجليزي) مع: غرف عامة، خاصة، VIP، غرف للغرباء، رسائل خاصة، إيموجي، مرفقات (صور/فيديو/ملفات)، كاميرا للصور، تسجيل صوتي، إيموجي، ومضيفات AI للمساعدة."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "كيف يعمل نظام التداول والتدريب في اللعبة؟",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "نظام تداول شامل: بورصة فورية (Spot) وعقود مستقبلية (Futures) مع رافعة مالية، أوامر حد/سوق، تدريب مالي تفاعلي (أكاديمية الحارة)، محاكاة تداول آمنة، أصول متنوعة (عملات، أسهم، سلع، عملات رقمية)، إدارة مخاطر، وأوامر وقف خسارة/جني أرباح."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "ما هي ميزات نظام العصابات؟",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "نظام عصابات متكامل: تأسيس عصابة، دعوة أعضاء، هياكل هرمية (زعيم، نواب، قادة، أعضاء)، حروب أراضي، عقود تحالف/هدنة، خزينة عصابة، تبرعات، عقود صيانة، مكافآت أسبوعية، متصدرين."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "ما هي ميزات المضيفات الذكية (AI Hostesses)؟",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "4 مضيفات ذكاء اصطناعي متخصصات: ياسمين (استقبال ومساعدة عامة)، روبي (الحظ/إدارة المخاطر/الكازينو)، سارة (دعم نفسي/تعافي/إدارة التوتر)، ليلى (تحليل/تجسس/استخبارات). تتعلم من تفاعلات اللاعبين، تدعم العربية والإنجليزية، آمنة مع حواجز ضد الحقن."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "هل اللعبة تدعم اللغة الإنجليزية؟",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "نعم، اللعبة تدعم العربية والإنجليزية بالكامل مع دعم RTL/LTR، جميع الواجهات والقوائم والنصوص مترجمة، والتبديل فوري عبر القائمة العلوية."
+          }
+        }
+      ]
+    }
+  ]
+}
+</script>
+
+{# مكونات محتوى محسّنة للصفحة الرئيسية - تضاف إلى index.html #}
+{# قسم "كيف تلعب" المحسّن #}
+<div class="container mb-5" id="how-to-play">
+    <div class="row justify-content-center mb-4">
+        <div class="col-md-10 text-center">
+            <h2 class="gold-text-gradient mb-3 font-reem-kufi fw-bold" style="font-size: 2.5rem;">
+                {{ _('كيف تبدأ رحلتك في عصابات فلسطين؟') }}
+            </h2>
+            <p class="lead text-light mb-5">
+                {{ _('أربع خطوات بسيطة لتبدأ بناء إمبراطوريتك في عالم العصابات الفلسطيني') }}
+            </p>
+        </div>
+    </div>
+    <div class="row g-4">
+        <div class="col-md-3">
+            <div class="feature-step-card h-100">
+                <div class="step-number">01</div>
+                <div class="feature-icon"><i class="fas fa-user-plus"></i></div>
+                <h4 class="fw-bold">{{ _('1. سجل مجاناً') }}</h4>
+                <p class="text-light">{{ _('أنشئ حسابك في دقيقة، اختر اسمك، حدد أسلوب لعبك (مقاتل/تاجر/مخطط)، وابدأ فوراً.') }}</p>
+                <ul class="list-unstyled small text-muted">
+                    <li><i class="fas fa-check text-success"></i> تسجيل مجاني فوري</li>
+                    <li><i class="fas fa-check text-success"></i> اختيار أسلوب اللعب</li>
+                    <li><i class="fas fa-check text-success"></i> مكافآت بداية سخية</li>
+                </ul>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="feature-step-card h-100">
+                <div class="step-number">02</div>
+                <div class="feature-icon"><i class="fas fa-comments"></i></div>
+                <h4 class="fw-bold">{{ _('2. انضم للدردشة') }}</h4>
+                <p class="text-light">{{ _('ادخل الدردشة، تعرف على اللاعبين، اسأل المضيفات الذكية، واكتشف المجتمع.') }}</p>
+                <ul class="list-unstyled small text-muted">
+                    <li><i class="fas fa-check text-success"></i> غرف عامة وخاصة</li>
+                    <li><i class="fas fa-check text-success"></i> مضيفات AI للمساعدة</li>
+                    <li><i class="fas fa-check text-success"></i> دردشة آمنة ومفلترة</li>
+                </ul>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="feature-step-card h-100">
+                <div class="step-number">03</div>
+                <div class="feature-icon"><i class="fas fa-chart-line"></i></div>
+                <h4 class="fw-bold">{{ _('3. تعلم التداول') }}</h4>
+                <p class="text-light">{{ _('ادخل أكاديمية الحارة، تعلم التداول، افتح حسابك في البورصة، وابدأ استثماراتك.') }}</p>
+                <ul class="list-unstyled small text-muted">
+                    <li><i class="fas fa-check text-success"></i> أكاديمية تفاعلية</li>
+                    <li><i class="fas fa-check text-success"></i> محاكاة آمنة</li>
+                    <li><i class="fas fa-check text-success"></i> أصول متنوعة</li>
+                </ul>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="feature-step-card h-100">
+                <div class="step-number">04</div>
+                <div class="feature-icon"><i class="fas fa-users-cog"></i></div>
+                <h4 class="fw-bold">{{ _('4. ابنِ عصابتك') }}</h4>
+                <p class="text-light">{{ _('أسس عصابتك، ادعُ الأعضاء، سيطر على المناطق، وابنِ إمبراطوريتك.') }}</p>
+                <ul class="list-unstyled small text-muted">
+                    <li><i class="fas fa-check text-success"></i> تأسيس فوري</li>
+                    <li><i class="fas fa-check text-success"></i> حروب مناطق</li>
+                    <li><i class="fas fa-check text-success"></i> مكافآت أسبوعية</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+{# قسم الميزات الرئيسية المحسن #}
+<div class="container mb-5" id="features">
+    <div class="row justify-content-center mb-5">
+        <div class="col-lg-8 text-center">
+            <span class="badge badge-gold mb-3">{{ _('لماذا عصابات فلسطين؟') }}</span>
+            <h2 class="gold-text-gradient fw-bold mb-3" style="font-size: 2.5rem;">
+                {{ _('لعبة المافيا العربية الاستراتيجية الوحيدة من نوعها') }}
+            </h2>
+            <p class="lead text-light mb-4">
+                {{ _('نحن لا نقدم مجرد لعبة، بل عالم افتراضي متكامل يجمع بين الاستراتيجية، الاقتصاد، والمجتمع') }}
+            </p>
+        </div>
+    </div>
+    <div class="row g-4">
+        <div class="col-lg-4 col-md-6">
+            <div class="feature-card h-100">
+                <div class="feature-icon"><i class="fas fa-comments"></i></div>
+                <h4 class="fw-bold">{{ _('دردشة ثنائية اللغة متطورة') }}</h4>
+                <p class="text-light">{{ _('غرف عامة، خاصة، VIP، غرباء. رسائل خاصة، إيموجي، مرفقات، كاميرا، تسجيل صوتي، ومضيفات AI.') }}</p>
+                <ul class="list-unstyled small text-success">
+                    <li><i class="fas fa-check"></i> {{ _('عربي/إنجليزي فوري') }}</li>
+                    <li><i class="fas fa-check"></i> {{ _('مضيفات AI متخصصات') }}</li>
+                    <li><i class="fas fa-check"></i> {{ _('فلترة آمنة') }}</li>
+                </ul>
+            </div>
+        </div>
+        <div class="col-lg-4 col-md-6">
+            <div class="feature-card h-100">
+                <div class="feature-icon"><i class="fas fa-chart-line"></i></div>
+                <h4 class="fw-bold">{{ _('نظام تداول وتدريب مالي') }}</h4>
+                <p class="text-light">{{ _('بورصة فورية، عقود مستقبلية، أوامر حد/سوق، تدريب تفاعلي، محاكاة آمنة، أصول متنوعة.') }}</p>
+                <ul class="list-unstyled small text-success">
+                    <li><i class="fas fa-check"></i> {{ _('بورصة فورية ومستقبلية') }}</li>
+                    <li><i class="fas fa-check"></i> {{ _('تدريب تفاعلي') }}</li>
+                    <li><i class="fas fa-check"></i> {{ _('إدارة مخاطر') }}</li>
+                </ul>
+            </div>
+        </div>
+        <div class="col-lg-4 col-md-6">
+            <div class="feature-card h-100">
+                <div class="feature-icon"><i class="fas fa-users-cog"></i></div>
+                <h4 class="fw-bold">{{ _('نظام عصابات شامل') }}</h4>
+                <p class="text-light">{{ _('تأسيس، هياكل هرمية، حروب مناطق، عقود، خزينة، تبرعات، مكافآت أسبوعية.') }}</p>
+                <ul class="list-unstyled small text-success">
+                    <li><i class="fas fa-check"></i> {{ _('هياكل هرمية') }}</li>
+                    <li><i class="fas fa-check"></i> {{ _('حروب مناطق') }}</li>
+                    <li><i class="fas fa-check"></i> {{ _('مكافآت أسبوعية') }}</li>
+                </ul>
+            </div>
+        </div>
+        <div class="col-lg-4 col-md-6">
+            <div class="feature-card h-100">
+                <div class="feature-icon"><i class="fas fa-robot"></i></div>
+                <h4 class="fw-bold">{{ _('مضيفات ذكية (AI)') }}</h4>
+                <p class="text-light">{{ _('ياسمين، روبي، سارة، ليلى - متخصصات، تتعلم، آمنة، ثنائية اللغة.') }}</p>
+                <ul class="list-unstyled small text-success">
+                    <li><i class="fas fa-check"></i> {{ _('4 متخصصات') }}</li>
+                    <li><i class="fas fa-check"></i> {{ _('آمنة ومحمية') }}</li>
+                    <li><i class="fas fa-check"></i> {{ _('ثنائية اللغة') }}</li>
+                </ul>
+            </div>
+        </div>
+        <div class="col-lg-4 col-md-6">
+            <div class="feature-card h-100">
+                <div class="feature-icon"><i class="fas fa-chart-line"></i></div>
+                <h4 class="fw-bold">{{ _('اقتصاد افتراضي متكامل') }}</h4>
+                <p class="text-light">{{ _('بنك، بورصة، سوق سوداء، عقارات، مصانع، مزارع، قروض، تأمين، ضرائب.') }}</p>
+                <ul class="list-unstyled small text-success">
+                    <li><i class="fas fa-check"></i> {{ _('بنك مركزي') }}</li>
+                    <li><i class="fas fa-check"></i> {{ _('سوق سوداء') }}</li>
+                    <li><i class="fas fa-check"></i> {{ _('عقارات/مصانع') }}</li>
+                </ul>
+            </div>
+        </div>
+        <div class="col-lg-4 col-md-6">
+            <div class="feature-card h-100">
+                <div class="feature-icon"><i class="fas fa-mobile-alt"></i></div>
+                <h4 class="fw-bold">{{ _('PWA - تطبيق جوال') }}</h4>
+                <p class="text-light">{{ _('تثبيت على الجوال، يعمل أوفلاين، إشعارات فورية، تجربة تطبيق أصلي.') }}</p>
+                <ul class="list-unstyled small text-success">
+                    <li><i class="fas fa-check"></i> {{ _('تثبيت PWA') }}</li>
+                    <li><i class="fas fa-check"></i> {{ _('إشعارات فورية') }}</li>
+                    <li><i class="fas fa-check"></i> {{ _('دعم أوفلاين') }}</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+{# قسم المضيفات الذكية المحسن #}
+<div class="container mb-5" id="ai-hostesses">
+    <div class="row justify-content-center mb-5">
+        <div class="col-lg-8 text-center">
+            <span class="badge badge-gold mb-3">{{ _('مضيفات ذكية (AI Hostesses)') }}</span>
+            <h2 class="gold-text-gradient fw-bold mb-3" style="font-size: 2.5rem;">
+                {{ _('فريق ذكي يدعمك في كل خطوة') }}
+            </h2>
+            <p class="lead text-light mb-4">
+                {{ _('أربع مضيفات ذكاء اصطناعي متخصصات، تتعلم من تفاعلاتك، تدعم العربية والإنجليزية، آمنة 100 في المئة') }}
+            </p>
+        </div>
+    </div>
+    <div class="row g-4">
+        <div class="col-md-3">
+            <div class="hostess-card h-100">
+                <div class="hostess-avatar"><img src="{{ url_for('static', filename='images/hostesses/jasmin.jpg') }}" alt="{{ _('ياسمين') }}"></div>
+                <div class="hostess-info">
+                    <span class="badge badge-gold">{{ _('الاستقبال') }}</span>
+                    <h4>{{ _('ياسمين') }}</h4>
+                    <p class="text-light small">{{ _('الاستقبال والمساعدة العامة. تجيب على استفساراتك، ترشدك للبدء، وترشدك للميزات.') }}</p>
+                    <ul class="list-unstyled small text-success">
+                        <li><i class="fas fa-check"></i> {{ _('الاستقبال والترحيب') }}</li>
+                        <li><i class="fas fa-check"></i> {{ _('إرشاد المبتدئين') }}</li>
+                        <li><i class="fas fa-check"></i> {{ _('دعم عام') }}</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="hostess-card h-100">
+                <div class="hostess-avatar"><img src="{{ url_for('static', filename='images/hostesses/ruby.jpg') }}" alt="{{ _('روبي') }}"></div>
+                <div class="hostess-info">
+                    <span class="badge badge-warning">{{ _('الحظ والمخاطر') }}</span>
+                    <h4>{{ _('روبي') }}</h4>
+                    <p class="text-light small">{{ _('إدارة المخاطر، الحظ، الكازينو، القرارات تحت الضغط، استراتيجيات المراهنة.') }}</p>
+                    <ul class="list-unstyled small text-success">
+                        <li><i class="fas fa-check"></i> {{ _('إدارة المخاطر') }}</li>
+                        <li><i class="fas fa-check"></i> {{ _('استراتيجيات الكازينو') }}</li>
+                        <li><i class="fas fa-check"></i> {{ _('قرارات تحت الضغط') }}</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="hostess-card h-100">
+                <div class="hostess-avatar"><img src="{{ url_for('static', filename='images/hostesses/sarah.jpg') }}" alt="{{ _('سارة') }}"></div>
+                <div class="hostess-info">
+                    <span class="badge badge-info">{{ _('الدعم والتعافي') }}</span>
+                    <h4>{{ _('سارة') }}</h4>
+                    <p class="text-light small">{{ _('الدعم النفسي، التعافي من الخسائر، إدارة التوتر، قرارات متوازنة، دعم نفسي.') }}</p>
+                    <ul class="list-unstyled small text-success">
+                        <li><i class="fas fa-check"></i> {{ _('دعم نفسي') }}</li>
+                        <li><i class="fas fa-check"></i> {{ _('إدارة التوتر') }}</li>
+                        <li><i class="fas fa-check"></i> {{ _('تعافي متوازن') }}</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="hostess-card h-100">
+                <div class="hostess-avatar"><img src="{{ url_for('static', filename='images/hostesses/layla.jpg') }}" alt="{{ _('ليلى') }}"></div>
+                <div class="hostess-info">
+                    <span class="badge badge-danger">{{ _('التحليل والاستخبارات') }}</span>
+                    <h4>{{ _('ليلى') }}</h4>
+                    <p class="text-light small">{{ _('تحليل المنافسين، استخبارات السوق، تجسس، قرارات تكتيكية، تقليل المخاطر.') }}</p>
+                    <ul class="list-unstyled small text-success">
+                        <li><i class="fas fa-check"></i> {{ _('تحليل المنافسين') }}</li>
+                        <li><i class="fas fa-check"></i> {{ _('استخبارات السوق') }}</li>
+                        <li><i class="fas fa-check"></i> {{ _('قرارات تكتيكية') }}</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{# قسم التداول والأكاديمية المحسن #}
+<div class="container mb-5" id="trading-academy">
+    <div class="row justify-content-center mb-5">
+        <div class="col-lg-8 text-center">
+            <span class="badge badge-gold mb-3">{{ _('أكاديمية الحارة - تعلم التداول') }}</span>
+            <h2 class="gold-text-gradient fw-bold mb-3" style="font-size: 2.5rem;">
+                {{ _('تعلم التداول بأمان - من المبتدئ للمحترف') }}
+            </h2>
+            <p class="lead text-light mb-4">
+                {{ _('أكاديمية تفاعلية مجانية تعلمك التداول من الصفر: أساسيات، تحليل فني، إدارة مخاطر، نفسيات التداول') }}
+            </p>
+        </div>
+    </div>
+    <div class="row g-4">
+        <div class="col-md-4">
+            <div class="academy-card h-100">
+                <div class="academy-icon"><i class="fas fa-graduation-cap"></i></div>
+                <h4 class="fw-bold">{{ _('دروس تفاعلية') }}</h4>
+                <p class="text-light">{{ _('دروس متدرجة: أساسيات، تحليل فني، أساسي، إدارة مخاطر، نفسيات.') }}</p>
+                <ul class="list-unstyled small text-success">
+                    <li><i class="fas fa-check"></i> {{ _('مستويات: مبتدئ → محترف') }}</li>
+                    <li><i class="fas fa-check"></i> {{ _('تمارين عملية') }}</li>
+                    <li><i class="fas fa-check"></i> {{ _('اختبارات وتقييم') }}</li>
+                </ul>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="academy-card h-100">
+                <div class="academy-icon"><i class="fas fa-chart-line"></i></div>
+                <h4 class="fw-bold">{{ _('محاكاة تداول آمنة') }}</h4>
+                <p class="text-light">{{ _('تداول بأموال افتراضية، أصول حقيقية، بيانات حية، بدون مخاطر مالية حقيقية.') }}</p>
+                <ul class="list-unstyled small text-success">
+                    <li><i class="fas fa-check"></i> {{ _('أصول حقيقية، أموال وهمية') }}</li>
+                    <li><i class="fas fa-check"></i> {{ _('بيانات سوق حية') }}</li>
+                    <li><i class="fas fa-check"></i> {{ _('أوامر حد/سوق/إيقاف') }}</li>
+                </ul>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="academy-card h-100">
+                <div class="academy-icon"><i class="fas fa-brain"></i></div>
+                <h4 class="fw-bold">{{ _('إدارة مخاطر ونفسيات') }}</h4>
+                <p class="text-light">{{ _('إدارة رأس المال، أوامر وقف خسارة، نفسيات التداول، انضباط، خطة تداول.') }}</p>
+                <ul class="list-unstyled small text-success">
+                    <li><i class="fas fa-check"></i> {{ _('إدارة رأس المال') }}</li>
+                    <li><i class="fas fa-check"></i> {{ _('أوامر وقف/هدف') }}</li>
+                    <li><i class="fas fa-check"></i> {{ _('انضباط نفسي') }}</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+{# قسم CTA المحسن #}
+<div class="container mb-5" id="cta-section">
+    <div class="cta-banner">
+        <div class="cta-content text-center">
+            <span class="badge badge-gold mb-3">{{ _('جاهز للبدء؟') }}</span>
+            <h2 class="fw-bold mb-3" style="font-size: 2.5rem;">
+                {{ _('انضم لآلاف اللاعبين وابنِ إمبراطوريتك اليوم') }}
+            </h2>
+            <p class="lead text-light mb-4">
+                {{ _('مجاني، فوري، ثنائي اللغة، آمن. ابدأ رحلتك الآن في عالم العصابات الفلسطيني') }}
+            </p>
+            <div class="d-flex justify-content-center gap-3 flex-wrap">
+                <a href="{{ url_for('main.register') }}" class="btn btn-luxury-gold btn-lg px-5 py-3 fw-bold">
+                    <i class="fas fa-user-plus me-2"></i> {{ _('سجل مجاناً الآن') }}
+                </a>
+                <a href="{{ url_for('main.chat_lobby') }}" class="btn btn-outline-gold btn-lg px-5 py-3 fw-bold">
+                    <i class="fas fa-comments me-2"></i> {{ _('جرب الدردشة أولاً') }}
+                </a>
+                <a href="{{ url_for('main.guide') }}" class="btn btn-outline-light btn-lg px-5 py-3 fw-bold">
+                    <i class="fas fa-book-open me-2"></i> {{ _('اقرأ الدليل الكامل') }}
+                </a>
+            </div>
+            <div class="mt-4 text-muted small">
+                <i class="fas fa-shield-alt text-success me-1"></i> {{ _('آمن 100 في المئة - مجاني 100 في المئة - لا تحميل - يعمل على الجوال والكمبيوتر') }}
+            </div>
+        </div>
+    </div>
+</div>
+
+{# إحصائيات حية للتحفيز #}
+<div class="container mb-5" id="live-stats">
+    <div class="row g-4">
+        <div class="col-md-3">
+            <div class="stat-card text-center">
+                <i class="fas fa-users fa-3x text-gold mb-3"></i>
+                <h3 class="gold-text-gradient fw-bold" id="stat-users">{{ total_users|default(0) }}</h3>
+                <p class="text-light mb-0">{{ _('لاعب مسجل') }}</p>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stat-card text-center">
+                <i class="fas fa-fist-raised fa-3x text-danger mb-3"></i>
+                <h3 class="gold-text-gradient fw-bold" id="stat-battles">{{ battles_24h|default(0) }}</h3>
+                <p class="text-light mb-0">{{ _('معركة اليوم') }}</p>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stat-card text-center">
+                <i class="fas fa-coins fa-3x text-gold mb-3"></i>
+                <h3 class="gold-text-gradient fw-bold" id="stat-money">{{ total_money|default(0) }}</h3>
+                <p class="text-light mb-0">{{ _('قيمة السوق') }}</p>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stat-card text-center">
+                <i class="fas fa-robot fa-3x text-info mb-3"></i>
+                <h3 class="gold-text-gradient fw-bold">4</h3>
+                <p class="text-light mb-0">{{ _('مضيفات AI') }}</p>
+            </div>
+        </div>
+    </div>
+</div>
