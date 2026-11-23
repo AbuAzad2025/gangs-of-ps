@@ -18447,3 +18447,7 @@ msgid ""
 "Game, Azad Company, العاب يوتيوب, العاب مشهورة"
 msgstr ""
 
+
+#: templates/register.html
+msgid "يُفضل إدخال بريد إلكتروني حقيقي — لاستعادة كلمة المرور عند النسيان."
+msgstr ""

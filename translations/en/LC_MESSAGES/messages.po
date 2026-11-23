@@ -23768,3 +23768,7 @@ msgstr "Meet new players."
 #~ msgid "تواصل مع أعضاء عصابتك وأصدقائك بخصوصية تامة"
 #~ msgstr "Chat privately with your gang members and friends"
 
+
+#: templates/register.html
+msgid "يُفضل إدخال بريد إلكتروني حقيقي — لاستعادة كلمة المرور عند النسيان."
+msgstr "It is recommended to enter a real email address - to recover your password if forgotten."
