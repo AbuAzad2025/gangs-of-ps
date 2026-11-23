@@ -264,3 +264,14 @@ def test_specialized_reply_keeps_language_and_anti_leak_guard(app):
     assert not re.search(r"[A-Za-z]{4,}", ar)
     assert not re.search(r"[\u0600-\u06FF]", en)
     assert "can't share" in leak.lower()
+
+
+def test_specialized_reply_uses_player_context(app):
+    service = AIHostessService()
+    ctx = {'id': 1, 'role': 'luck', 'name': 'Ruby'}
+    with app.app_context():
+        out = service._rule_based_response(
+            'how should I bet?', ctx,
+            {'id': 1, 'locale': 'en', 'money': 10000, 'energy': 40})
+    assert '10,000' in out
+    assert 'disciplined' in out.lower() or 'discipline' in out.lower()

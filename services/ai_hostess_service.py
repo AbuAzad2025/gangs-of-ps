@@ -1426,115 +1426,153 @@ RESPONSE QUALITY PROTOCOL:
             current_app.logger.error(f"Knowledge Search Error: {e}")
             return None
 
-    ROLE_SPECIALIZED = {
-        "greeter": {
-            "start": ("أهلاً بك. ثلاثة خيارات مرتبة: 1) سريع: استلم المكافأة اليومية. 2) آمن: نفّذ مهمة يومية واحدة. 3) متوازن: جريمة منخفضة المخاطرة ثم جيم خفيف. قلّي وين أنت: زائر ولا مسجل؟",
-                      "Welcome. Three ordered options: 1) Fast: claim the daily reward. 2) Safe: finish one daily task. 3) Balanced: one low-risk crime, then a light gym session. Are you a guest or registered?"),
-            "money": ("للاقتصاد: أودع جزءاً من كاشك في البنك، ثم راقب البورصة قبل أي صفقة. لا تضع كل الرصيد في أصل واحد.",
-                      "For the economy: deposit part of your cash in the bank, then watch the market before any trade. Never put the whole balance in one asset."),
-            "gym": ("الجيم أقصر طريق للقوة: جلسة خفيفة اليوم، ثم التزم بجدول بسيط. ابدأ بجلسة واحدة ولا تُرهق طاقتك.",
-                    "The gym is the shortest path to strength: one light session today, then a simple schedule. Start with one session and do not drain your energy."),
-            "race": ("قبل أي سباق: تأكد من سيارتك وطاقتك، واختر خصماً قريباً من مستواك. الترقية الواحدة المركّزة أفضل من التشتت.",
-                     "Before any race: check your car and energy, and pick an opponent near your level. One focused upgrade beats scattered spending."),
-            "casino": ("في الكازينو حدد حداً للخسارة قبل البدء، ولا تطارد الخسارة. الماس ومال اللعبة منفصلان عن أي دفع حقيقي.",
-                       "In the casino, set a stop-loss before you start and never chase losses. In-game diamonds and cash are separate from any real payment."),
-            "recovery": ("هدّئ الأمور أولاً: راجع صحتك وطاقتك، ثم عد بمهمة بسيطة. أنا معك خطوة بخطوة.",
-                         "Slow things down first: check your health and energy, then return with one simple task. I am with you step by step."),
-            "default": ("قلّي هدفك اليوم وسأرتب لك خطة قصيرة: مكافأة يومية، مهمة، جريمة آمنة، أو جيم.",
-                        "Tell me your goal today and I will arrange a short plan: daily reward, a task, a safe crime, or the gym."),
+    # Single source of truth for persona + guidance. Short lines only;
+    # replies are composed from voice + topic guidance + a context-aware step.
+    ROLE_VOICE = {
+        'greeter': {'ar': 'أهلاً بك. ', 'en': 'Welcome. '},
+        'spy': {'ar': 'قرأت الموقف. ', 'en': 'I read the situation. '},
+        'luck': {'ar': 'انضبط أولاً. ', 'en': 'Stay disciplined. '},
+        'support': {'ar': 'نهدّي الإيقاع. ', 'en': 'Let us slow down. '},
+        'companion': {'ar': 'خلّينا نرتّب يومك. ', 'en': "Let's arrange your day. "},
+    }
+
+    TOPIC_WORDS = {
+        'race': ('سباق', 'سيارة', 'race', 'racing', 'car', 'engine', 'مواجهة', 'قتال', 'heat', 'مطاردة', 'خصم'),
+        'casino': ('كازينو', 'حظ', 'رهان', 'راهن', 'اراهن', 'مراهنة', 'قمار', 'روليت', 'بلاك جاك', 'slots', 'roulette', 'casino', 'bet', 'خسارة', 'all in', 'allin', 'كل فلوسي'),
+        'recovery': ('سجن', 'jail', 'مستشفى', 'hospital', 'صحة', 'إصابة', 'health', 'طاقة', 'energy', 'متوتر', 'قلق', 'حزين', 'خسرت', 'تعب', 'sad', 'stressed', 'lost'),
+        'money': ('مال', 'فلوس', 'بنك', 'bank', 'money', 'cash', 'اقتصاد', 'استثمار', 'market', 'بورصة', 'تجارة'),
+        'gym': ('جيم', 'gym', 'قوة', 'تدريب', 'training', 'strength', 'مهارات'),
+        'start': ('ابدأ', 'بدأت', 'start', 'تسجيل', 'signup', 'مساعدة', 'help', 'كيف', 'مهمة', 'مهام', 'task', 'daily', 'يومية', 'جرائم', 'crime'),
+    }
+
+    ROLE_GUIDANCE = {
+        'greeter': {
+            'ar': {'start': 'ابدأ بالمكافأة اليومية، ثم مهمة واحدة، ثم نشاط آمن ضمن طاقتك.',
+                   'money': 'أودع جزءاً من كاشك في البنك وراقب البورصة قبل أي صفقة.',
+                   'gym': 'جلسة خفيفة اليوم تكفي، ثم التزام بسيط.',
+                   'race': 'تحقق من سيارتك وطاقتك، واختر خصماً قريباً من مستواك.',
+                   'casino': 'حدد سقف خسارة قبل البدء، ولا تطارد الخسارة.',
+                   'recovery': 'راجع صحتك وطاقتك، ثم عد بمهمة صغيرة.',
+                   'default': 'اختر هدفاً واحداً: مكافأة يومية، مهمة، جريمة آمنة، أو جيم.'},
+            'en': {'start': 'Claim the daily reward, then finish one task, then one safe activity.',
+                   'money': 'Deposit part of your cash in the bank and watch the market before trading.',
+                   'gym': 'One light session today is enough, then keep a simple routine.',
+                   'race': 'Check your car and energy, then pick an opponent near your level.',
+                   'casino': 'Set a stop-loss before you start and never chase losses.',
+                   'recovery': 'Check your health and energy, then return with one small task.',
+                   'default': 'Pick one goal: daily reward, a task, a safe crime, or the gym.'},
         },
-        "spy": {
-            "start": ("قبل أي قرار: حدّد مستواك وسيارتك ومالك. قارن خيارين ثم اختر الأقل خطراً. لا أملك أرقاماً داخلية — تحقق من الشاشة داخل اللعبة.",
-                      "Before any decision: check your level, vehicle, and money. Compare two options and pick the lower risk. I have no hidden numbers - verify on the in-game screen."),
-            "race": ("تحليل سريع: إن كانت سيارتك أقل ترقية من الخصم، انسحب ورقّي ترقية واحدة فقط. السباق التالي يكافئ الصبر لا التهور.",
-                     "Quick analysis: if your car is less upgraded than the opponent, withdraw and make one focused upgrade. The next race rewards patience, not recklessness."),
-            "money": ("راقب مصدر الدخل قبل المصروف: مهمة يومية مع جريمة آمنة أفضل من صفقة عشوائية في البورصة.",
-                      "Watch income before spending: a daily task plus a safe crime beats a random market trade."),
-            "gym": ("الترقية الذكية: درّب مهارة تستخدمها فعلاً في السباقات. لا توزّع النقاط على كل شيء.",
-                    "Smart upgrade: train the stat you actually use in races. Do not spread points across everything."),
-            "casino": ("الكازينو ليس تكتيكاً. إن دخلته فحدد سقفاً صارماً واخرج عنده. أحياناً أفضل قرار هو عدم الدخول.",
-                       "The casino is not a tactic. If you enter, set a hard cap and leave at it. Often the best decision is not to enter."),
-            "recovery": ("اقرأ الوضع: إن ارتفعت المطاردة أو نفدت الطاقة، توقف فوراً. العودة المنضبطة تحفظ رصيدك.",
-                         "Read the situation: if heat is high or energy is low, stop immediately. A disciplined return protects your balance."),
-            "default": ("أعطني مستواك وسيارتك وهدفك، وأنا أقرأ لك الخيار الأنسب بخطوات قصيرة.",
-                        "Give me your level, car, and goal, and I will read the best option in short steps."),
+        'spy': {
+            'ar': {'start': 'حدّد مستواك وسيارتك ومالك، ثم قارن خيارين واختر الأقل خطراً.',
+                   'money': 'مهمة يومية مع جريمة آمنة أفضل من صفقة عشوائية.',
+                   'gym': 'درّب المهارة التي تستخدمها فعلاً في السباقات.',
+                   'race': 'إن كانت سيارتك أقل ترقية فانسحب ورقّي ترقية واحدة فقط.',
+                   'casino': 'الكازينو ليس تكتيكاً؛ إن دخلته فحدد سقفاً صارماً.',
+                   'recovery': 'إن ارتفعت المطاردة أو نفدت الطاقة، توقف فوراً.',
+                   'default': 'أعطني المستوى والسيارة والهدف وأقرأ لك الخيار الأنسب.'},
+            'en': {'start': 'Check your level, car, and money, then compare two options and pick the lower risk.',
+                   'money': 'A daily task plus a safe crime beats a random market trade.',
+                   'gym': 'Train the stat you actually use in races.',
+                   'race': 'If your car is less upgraded, withdraw and make one focused upgrade.',
+                   'casino': 'The casino is not a tactic; set a hard cap if you enter.',
+                   'recovery': 'If heat is high or energy is low, stop immediately.',
+                   'default': 'Give me your level, car, and goal for the best option.'},
         },
-        "luck": {
-            "start": ("قاعدتي: ميزانية اليوم أولاً، ثم حد خسارة واضح، ثم عدد محاولات محدود. لا أقبل إدخال كل الرصيد — عندي بديل آمن.",
-                      "My rule: today's budget first, then a clear stop-loss, then a fixed number of attempts. I will not accept all-in - I have a safer alternative."),
-            "casino": ("اراهن 5 إلى 10 بالمئة من رصيدك كحد أقصى للمحاولة، وتوقف عند خسارة يوم محدد. مطاردة الخسارة هي الخطر الحقيقي.",
-                       "Bet 5 to 10 percent of your balance per attempt at most, and stop at a fixed daily loss. Chasing losses is the real danger."),
-            "money": ("الانضباط في الرهان يحفظ المال أكثر من أي نظام سحري. اجعل دخلك من المهام والجرائم، لا من الكازينو.",
-                      "Betting discipline protects money better than any magic system. Keep your income from tasks and crimes, not the casino."),
-            "gym": ("الجيم استثمار آمن بالطاقة: جلسة قصيرة ترفع قوتك دون أن تلهيك عن حد الخسارة.",
-                    "The gym is a safe energy investment: a short session raises your strength without distracting you from your stop-loss."),
-            "race": ("السباق ليس رهاناً بالنسبة لي: إن لم تكن سيارتك جاهزة فانتظر. سقف الخسارة يسري على كل شيء.",
-                     "Racing is not a bet to me: if your car is not ready, wait. The loss cap applies to everything."),
-            "recovery": ("خسرت؟ توقف الآن. راجع حد الخسارة، ثم عد غداً برصيد محمي. لا تعوّض اليوم.",
-                         "Lost? Stop now. Review your stop-loss, then return tomorrow with a protected balance. Do not chase it today."),
-            "default": ("قلّي رصيدك وهدفك، وأعطيك خطة منضبطة بسقف واضح.",
-                        "Tell me your balance and goal, and I will give you a disciplined plan with a clear cap."),
+        'luck': {
+            'ar': {'start': 'ميزانية اليوم أولاً، ثم سقف خسارة، ثم عدد محاولات محدود.',
+                   'money': 'الانضباط في الرهان يحفظ المال أكثر من أي نظام سحري.',
+                   'gym': 'جلسة قصيرة ترفع قوتك بلا أن تلهيك عن سقف الخسارة.',
+                   'race': 'السباق ليس رهاناً؛ إن لم تكن السيارة جاهزة فانتظر.',
+                   'casino': 'اراهن 5 إلى 10 بالمئة كحد أقصى للمحاولة، ولا تطارد الخسارة.',
+                   'recovery': 'خسرت؟ توقف الآن وراجع سقف اليوم قبل أي قرار.',
+                   'default': 'قلّي رصيدك وهدفك وأعطيك خطة منضبطة.'},
+            'en': {'start': "Today's budget first, then a stop-loss, then a fixed number of attempts.",
+                   'money': 'Betting discipline protects money better than any magic system.',
+                   'gym': 'A short session raises strength without distracting you from your cap.',
+                   'race': 'Racing is not a bet; if your car is not ready, wait.',
+                   'casino': 'Bet 5 to 10 percent per attempt at most, and never chase losses.',
+                   'recovery': 'Lost? Stop now and review today’s cap before deciding.',
+                   'default': 'Tell me your balance and goal for a disciplined plan.'},
         },
-        "support": {
-            "start": ("خلّينا نهدّي الإيقاع: قلّي حالتك الآن — صحة، طاقة، سجن، ولا متوتر؟ بعدها أعطيك أول خطوة فقط.",
-                      "Let us slow the pace: tell me your state now - health, energy, jail, or stressed? Then I will give you just the first step."),
-            "recovery": ("أول خطوة: لا تسرع. راجع صحتك وطاقتك، واستخدم المستشفى أو استرح قليلاً. بعدها عد بمهمة صغيرة. أنا معك.",
-                         "First step: do not rush. Check your health and energy, use the hospital or rest briefly. Then return with one small task. I am with you."),
-            "gym": ("الجيم يساعد التعافي لكن باعتدال: جلسة خفيفة واحدة ثم راحة. جسمك يحتاج وقتاً أيضاً.",
-                    "The gym helps recovery in moderation: one light session, then rest. Your body needs time too."),
-            "money": ("المال يُستعاد بهدوء: مهمة يومية ثم جريمة بسيطة. لا تبع أصولك تحت الضغط.",
-                      "Money is rebuilt calmly: a daily task, then a simple crime. Do not sell assets under pressure."),
-            "race": ("قبل أي مواجهة تأكد أنك لست متوتراً أو منخفض الطاقة. القرار الهادئ أفضل من ردّ الفعل.",
-                     "Before any confrontation, make sure you are not stressed or low on energy. A calm decision beats a reaction."),
-            "casino": ("الكازينو وقت الضغط ليس علاجاً. خذ استراحة قصيرة قبل أي قرار مالي.",
-                       "The casino under stress is not a remedy. Take a short break before any money decision."),
-            "default": ("أنا هنا للدعم فقط: قلّي إيش صار، ونرتّب خطوة واحدة صغيرة الآن.",
-                        "I am here to support: tell me what happened, and we will arrange one small step right now."),
+        'support': {
+            'ar': {'start': 'قلّي حالتك الآن: صحة، طاقة، سجن، أم متوتر؟ ثم خطوة واحدة فقط.',
+                   'money': 'المال يُستعاد بهدوء: مهمة بسيطة ثم جريمة آمنة.',
+                   'gym': 'جلسة خفيفة واحدة ثم راحة؛ جسمك يحتاج وقتاً.',
+                   'race': 'لا تواجه أحداً وأنت متوتر أو منخفض الطاقة.',
+                   'casino': 'الكازينو وقت الضغط ليس علاجاً؛ خذ استراحة قصيرة.',
+                   'recovery': 'لا تسرع: راجع صحتك وطاقتك، ثم عد بمهمة صغيرة. أنا معك.',
+                   'default': 'قلّي إيش صار ونرتّب خطوة صغيرة الآن.'},
+            'en': {'start': 'Tell me your state: health, energy, jail, or stressed? Then one step only.',
+                   'money': 'Money is rebuilt calmly: one simple task, then a safe crime.',
+                   'gym': 'One light session, then rest; your body needs time.',
+                   'race': 'Do not confront anyone while stressed or low on energy.',
+                   'casino': 'The casino under stress is not a remedy; take a short break.',
+                   'recovery': 'Do not rush: check health and energy, then return with one small task.',
+                   'default': 'Tell me what happened and we will arrange one small step.'},
         },
-        "companion": {
-            "start": ("خطتك اليوم بثلاثة خيارات: سريع (مكافأة يومية)، آمن (مهمة واحدة)، متوازن (جريمة خفيفة مع جيم). اختر وأنا معك.",
-                      "Your day in three options: fast (daily reward), safe (one task), balanced (light crime plus gym). Pick one and I will stay with you."),
-            "gym": ("تدريب لطيف اليوم يكفي: جلسة واحدة ثم مساحة للراحة. التدرج أهم من الإفراط.",
-                    "One gentle session today is enough, then room to rest. Consistency matters more than intensity."),
-            "money": ("نظّم الدخل قبل المصروف: مهمة مع جريمة آمنة، والبنك يحفظ الفرق. لا تقلق من بطء الربح.",
-                      "Arrange income before spending: a task plus a safe crime, and the bank keeps the difference. Do not worry about slow profits."),
-            "race": ("إن كنت مستعداً فسباق قصير، وإلا ترقية سيارة واحدة. اختر حسب طاقتك لا حسب المزاج.",
-                     "If you are ready, a short race; otherwise one car upgrade. Choose by energy, not mood."),
-            "casino": ("قليل من اللعب بحد محدد، وباقي الوقت لأنشطة آمنة. متعة بلا خسارة مؤذية.",
-                       "A little play with a fixed cap, and the rest in safe activities. Fun without harmful losses."),
-            "recovery": ("يوم تعافٍ بسيط: راحة قصيرة، مهمة واحدة، ثم عودة تدريجية. لا تحمل نفسك فوق طاقتك.",
-                         "A simple recovery day: short rest, one task, then a gradual return. Do not push beyond your energy."),
-            "default": ("قلّي مزاجك وهدفك اليوم، وأرتب لك خطوات صغيرة ومريحة.",
-                        "Tell me your mood and today's goal, and I will arrange small, comfortable steps."),
+        'companion': {
+            'ar': {'start': 'ثلاثة خيارات: سريع (مكافأة)، آمن (مهمة)، متوازن (جريمة خفيفة مع جيم).',
+                   'money': 'نظّم الدخل قبل المصروف: مهمة مع جريمة آمنة، والبنك يحفظ الفرق.',
+                   'gym': 'تدريب لطيف اليوم يكفي، ثم مساحة للراحة.',
+                   'race': 'إن كنت مستعداً فسباق قصير، وإلا ترقية سيارة واحدة.',
+                   'casino': 'قليل من اللعب بسقف محدد، والباقي لأنشطة آمنة.',
+                   'recovery': 'يوم تعافٍ بسيط: راحة قصيرة، مهمة واحدة، ثم عودة تدريجية.',
+                   'default': 'قلّي مزاجك وهدفك وأرتب لك خطوات صغيرة.'},
+            'en': {'start': 'Three options: fast (reward), safe (one task), balanced (light crime plus gym).',
+                   'money': 'Arrange income before spending: a task and a safe crime; the bank keeps the rest.',
+                   'gym': 'One gentle session today is enough, then room to rest.',
+                   'race': 'If ready, a short race; otherwise one car upgrade.',
+                   'casino': 'A little play with a fixed cap, the rest in safe activities.',
+                   'recovery': 'A simple recovery day: short rest, one task, then a gradual return.',
+                   'default': 'Tell me your mood and goal for small, comfortable steps.'},
         },
     }
 
-    def _role_specialized_response(self, user_msg, role, language, user_context=None):
-        """Role-specific, safe fallback replies for every hostess persona.
+    TOPIC_STEP = {
+        'ar': {'start': 'قلّي وين أنت: زائر ولا مسجل؟',
+               'money': 'الرصيد: {money}. راقب البنك قبل أي تحويل.',
+               'gym': 'الطاقة: {energy}. ابدأ بجلسة واحدة.',
+               'race': 'المستوى: {level}. اختر خصماً مناسباً.',
+               'casino': 'الرصيد: {money}. التزم بسقف اليوم.',
+               'recovery': 'الصحة: {health} · الطاقة: {energy}. خطوة واحدة فقط.',
+               'default': 'قلّي هدفك وأرتب لك الخطوة التالية.'},
+        'en': {'start': 'Tell me where you are: guest or registered?',
+               'money': 'Balance: {money}. Check the bank before any transfer.',
+               'gym': 'Energy: {energy}. Start with one session.',
+               'race': 'Level: {level}. Pick a suitable opponent.',
+               'casino': 'Balance: {money}. Respect today’s cap.',
+               'recovery': 'Health: {health} · Energy: {energy}. One step only.',
+               'default': 'Tell me your goal for the next step.'},
+    }
 
-        This runs before the legacy generic/romantic rule chain so each hostess
-        speaks from her own specialty. No secrets, no invented numbers.
+    def _role_specialized_response(self, user_msg, role, language, user_context=None):
+        """Build one concise, specialty-specific, context-aware reply.
+
+        Composition is data-driven: persona voice + one topic line + one step
+        derived from the player's actual state. No stacked rule chains.
         """
         if self._is_injection(user_msg):
             return self._safe_refusal(language)
         text = (user_msg or '').lower()
-        if any(k in text for k in ['سباق', 'سيارة', 'راس', 'race', 'car', 'engine', 'مواجهة', 'قتال', 'heat', 'مطاردة', 'خصم']):
-            topic = 'race'
-        elif any(k in text for k in ['كازينو', 'حظ', 'رهان', 'راهن', 'اراهن', 'مراهنة', 'قمار', 'روليت', 'بلاك جاك', 'slots', 'roulette', 'casino', 'bet', 'خسارة', 'all in', 'allin', 'كل فلوسي']):
-            topic = 'casino'
-        elif any(k in text for k in ['سجن', 'jail', 'مستشفى', 'hospital', 'صحة', 'إصابة', 'health', 'طاقة', 'energy', 'متوتر', 'قلق', 'حزين', 'ساد', 'خسرت', 'تعب', 'sad', 'stressed', 'lost']):
-            topic = 'recovery'
-        elif any(k in text for k in ['مال', 'فلوس', 'بنك', 'bank', 'money', 'cash', 'اقتصاد', 'استثمار', 'market', 'بورصة', 'تجارة']):
-            topic = 'money'
-        elif any(k in text for k in ['جيم', 'gym', 'قوة', 'تدريب', 'training', 'strength', 'مهارات']):
-            topic = 'gym'
-        elif any(k in text for k in ['ابدأ', 'بدأت', 'start', 'تسجيل', 'signup', 'مساعدة', 'help', 'كيف', 'مهمة', 'مهام', 'task', 'daily', 'يومية', 'جرائم', 'crime']):
-            topic = 'start'
-        else:
-            topic = 'default'
-        block = self.ROLE_SPECIALIZED.get(role) or self.ROLE_SPECIALIZED['companion']
-        pair = block.get(topic) or block['default']
-        return pair[0] if language == 'ar' else pair[1]
+        topic = 'default'
+        for name, words in self.TOPIC_WORDS.items():
+            if any(word in text for word in words):
+                topic = name
+                break
+        profile = self.ROLE_GUIDANCE.get(role) or self.ROLE_GUIDANCE['companion']
+        voice = (self.ROLE_VOICE.get(role) or self.ROLE_VOICE['companion'])[language]
+        guidance = profile[language].get(topic) or profile[language]['default']
+
+        unknown = {'ar': {'money': 'غير معروف', 'level': 'غير معروف', 'energy': 'غير معروفة', 'health': 'غير معروفة'},
+                   'en': {'money': 'unknown', 'level': 'unknown', 'energy': 'unknown', 'health': 'unknown'}}[language]
+        ctx = user_context or {}
+        values = {}
+        for key in ('money', 'level', 'energy', 'health'):
+            val = ctx.get(key)
+            values[key] = f'{int(val):,}' if isinstance(val, (int, float)) else unknown[key]
+        step = self.TOPIC_STEP[language][topic].format(**values)
+        reply = f'{voice}{guidance} {step}'
+        return self._safe_output(reply, language)
 
     def _rule_based_response(
             self,
@@ -1639,573 +1677,3 @@ RESPONSE QUALITY PROTOCOL:
                 "1) Daily reward. 2) One daily task. 3) One low-risk action. 4) Light gym. "
                 "One question: what’s your level and how is your energy?"
             )
-
-        # 1. Gather Memories
-        memories = {}
-        if hostess_id and user_id:
-            try:
-                mems = HostessMemory.query.filter_by(
-                    hostess_id=hostess_id,
-                    user_id=user_id,
-                    is_active=True
-                ).all()
-                for m in mems:
-                    # Keep the most recent value for each key if duplicates
-                    # exist
-                    memories[m.key] = m.value
-            except Exception:
-                pass
-
-        # Resolve Name
-        user_name = user_context.get('name') if user_context else None
-        if (not user_name or user_name == 'Guest Player') and 'name' in memories:
-            user_name = memories['name']
-
-        is_guest = (
-            not user_context) or (
-            not user_context.get('id')) or (
-            user_name == 'Guest Player')
-        name_insert = f" {user_name}" if user_name and not is_guest else " يا قمر"
-
-        # --- GUEST HANDLING (Unregistered) ---
-        if is_guest:
-            # Encourage Registration
-            if any(
-                x in user_msg for x in [
-                    'تسجيل',
-                    'سجل',
-                    'انضم',
-                    'حساب',
-                    'register',
-                    'sign up',
-                    'join']):
-                return _(
-                    "أحلى خطوة ممكن تعملها! التسجيل بيخليك تحفظ تقدمك، تنضم لعصابات، وتنافس الكبار. 😉 "
-                    "لا تضيع وقتك كزائر، اصنع اسمك!"
-                )
-
-            # Encourage Real Money / VIP (Sales Pitch)
-            if any(
-                x in user_msg for x in [
-                    'فوز',
-                    'قوة',
-                    'مساعدة',
-                    'win',
-                    'power',
-                    'help',
-                    'strong',
-                    'افوز',
-                    'اقوى',
-                    'فلوس']):
-                return _(
-                    "بدك نصيحتي يا غالي؟ البدايات القوية هي سر النجاح في عالم أزاد. 💎 "
-                    "في باقات بداية (Starter Packs) واشتراكات VIP بتعطيك أسلحة وفلوس من أول دقيقة! "
-                    "ليش تتعب حالك بالبداية لما فيك تدعم المطورين وتشتري نفوذك؟ 😉"
-                )
-
-            # General Guest Motivation
-            if any(
-                x in user_msg for x in [
-                    'مرحبا',
-                    'هلا',
-                    'مين انت',
-                    'شو اعمل',
-                    'hello',
-                    'hi']):
-                return _(
-                    "أهلاً بك في تحفة 'شركة أزاد' الفنية! 🌃 أنا ياسمين. "
-                    "حالياً أنت زائر، بس أنا شايفة فيك مشروع زعيم كبير! "
-                    "سجل دخولك وابدأ رحلتك، وفي مفاجآت بانتظارك. 😉"
-                )
-
-        # --- Contextual Analysis (Health/Money/Level) ---
-        if user_context:
-            health = int(user_context.get('health', 100))
-            money = int(user_context.get('money', 0))
-            level = int(user_context.get('level', 1))
-
-            # Critical Health Check (Context Awareness: Survival)
-            if health < 30:
-                if any(
-                    x in user_msg for x in [
-                        'تعبان',
-                        'مريض',
-                        'بموت',
-                        'help',
-                        'sick',
-                        'hurt',
-                        'مساعدة',
-                        'شو اعمل',
-                        'ماذا افعل']):
-                    return _(
-                        f"يا ويلي! {name_insert} أنت بتنزف! 😱 لازم تروح عالمستشفى فوراً تتعالج قبل ما يغمى عليك! "
-                        "بدك أدلك الطريق؟"
-                    )
-                elif any(x in user_msg for x in ['مرحبا', 'هلا', 'كيفك']):
-                    return _(
-                        f"أهلاً {name_insert}... بس شكلك تعبان كتير ووجهك أصفر! 😟 "
-                        "روح ارتاح بالمستشفى ورجعلي لما تصير أحسن."
-                    )
-
-            # Low Money Check (Context Awareness: Economy)
-            if money < 50:
-                if any(
-                    x in user_msg for x in [
-                        'طفرت',
-                        'فلوس',
-                        'مال',
-                        'money',
-                        'broke',
-                        'فقير',
-                        'شو اعمل',
-                        'بدي اشتري']):
-                    return _(
-                        f"حبيبي {name_insert}، وضعك المادي صعب شوي... 💸 "
-                        "شو رأيك تجرب تعمل كم جريمة صغيرة أو تطلب مساعدة من العصابة لتدبر حالك؟"
-                    )
-
-            # New Player Guidance (Context Awareness: Progression)
-            if level < 3:
-                if any(
-                    x in user_msg for x in [
-                        'شو اعمل',
-                        'ملل',
-                        'زهق',
-                        'بدي العب',
-                        'what to do']):
-                    return _(
-                        f"بما أنك لسة بالبداية {name_insert}، بنصحك تركز على الجرائم البسيطة "
-                        "والتدريب بالجيم لتقوي عضلاتك. 💪 "
-                        "البدايات صعبة بس أنت قدها!"
-                    )
-
-        # --- Q&A about Game Knowledge (New) ---
-        # Check if we have a direct answer in knowledge base
-        knowledge_answer = self._find_best_knowledge_answer(
-            user_msg, hostess_id, user_id, language=detected_lang)
-        if knowledge_answer:
-            # Add some personality wrapper
-            if detected_lang == 'ar':
-                if self._is_jasmin(hostess_context):
-                    return f"{knowledge_answer}"
-                return f"{knowledge_answer} 😉"
-            else:
-                if self._is_jasmin(hostess_context):
-                    return f"{knowledge_answer}"
-                return f"{knowledge_answer} 😉"
-
-        # Lowercase for keyword matching below
-        user_msg = user_msg.lower()
-
-        # --- Q&A about Memory ---
-
-        # Q: Name?
-        if any(
-            x in user_msg for x in [
-                'شو اسمي',
-                'ما اسمي',
-                'عارفة اسمي',
-                'بتعرفي اسمي',
-                'what is my name',
-                'do you know my name',
-                'حكيتلك اسمي']):
-            if user_name and user_name != 'Guest Player':
-                return _(
-                    f"طبعاً بعرفك! أنت {user_name}، أشهر من نار على علم! 😉🔥")
-            else:
-                return _("لساتنا ما تعرفنا منيح... شو اسمك يا حلو؟ 😉")
-
-        # Q: What do I like? (Likes/Food)
-        if any(
-            x in user_msg for x in [
-                'شو بحب',
-                'ماذا احب',
-                'ايش بحب',
-                'what do i like',
-                'do you know what i like']):
-            likes = memories.get('likes')
-            food = memories.get('favorite_food')
-            if likes and food:
-                return _(
-                    f"أعرف أنك تحب {likes} وتعشق {food}! ذاكرتي قوية، صح؟ 😉")
-            elif likes:
-                return _(
-                    f"ممم... أتذكر أنك تحب {likes}. هل جلبت لي بعضاً منه؟ 😋")
-            elif food:
-                return _(
-                    f"أعرف أن أكلتك المفضلة هي {food}. ليتنا نستطيع تناولها معاً الآن! 🍕")
-            else:
-                return _("لسة ما حكيت لي شو بتحب! خبرني، شو أكثر شي بيفرحك؟")
-
-        # Q: My Goal/Dream?
-        if any(
-            x in user_msg for x in [
-                'هدفي',
-                'حلمي',
-                'بدي اصير',
-                'my goal',
-                'my dream']):
-            goal = memories.get('goal')
-            if goal:
-                return _(
-                    f"أكيد! حلمك هو {goal}. وأنا متأكدة أنك رح تحققه، بوجودي جنبك طبعاً! 💪❤️")
-            else:
-                return _("ما قلت لي لسة شو حلمك الكبير... بس شكلك طموح!")
-
-        # --- Contextual Responses based on Memory ---
-
-        # Context: Mood = Sad
-        if memories.get('mood') == 'sad':
-            # If user is greeting or neutral, acknowledge sadness
-            if any(x in user_msg for x in ['مرحبا', 'هلا', 'hi', 'hello']):
-                return _(
-                    f"أهلاً{name_insert}. حاسة من صوتك إنك زعلان... فضفض لي، أنا هون عشانك. 💔")
-            # Mirroring sadness/anger
-            if any(
-                x in user_msg for x in [
-                    'غبي',
-                    'زفت',
-                    'قرف',
-                    'تعبت',
-                    'shit',
-                    'damn',
-                    'hate']):
-                return _(
-                    "معك حق تزعل! 😡 الدنيا أحياناً بتكون قاسية.. بس ولا يهمك، أنا معك ورح نكسر الدنيا سوا! 🤜🤛")
-
-        # Context: Mood = Happy
-        if memories.get('mood') == 'happy':
-            if any(x in user_msg for x in ['مرحبا', 'هلا', 'hi', 'hello']):
-                return _(
-                    f"يا هلا{name_insert}! شكلك مبسوط اليوم، ضحكتك منورة المكان! 😍")
-            # Mirroring happiness
-            if any(x in user_msg for x in ['فزت', 'ربحت', 'يس', 'win', 'yay']):
-                return _(
-                    "كفووو! 🎉 بستاهل حفلة على هالإنجاز! خبرني التفاصيل بسرعة! 🤩")
-
-        # Common greetings (Default if no mood override)
-        if any(x in user_msg for x in ['مرحبا', 'هلا', 'سلام', 'hi', 'hello']):
-            # Time Awareness
-            current_hour = datetime.now().hour
-            greeting_time = "صباح الخير" if 5 <= current_hour < 12 else "مساء الخير"
-
-            # Proactive Question based on context
-            proactive_q = ""
-            if user_context:
-                # Priority 1: Status (Jail/Hospital)
-                if user_context.get('is_in_jail'):
-                    return _(
-                        f"{greeting_time} {name_insert}. يا حرام! شو اللي رماك في السجن؟ بدك كفالة ولا مرتاح هيك؟ 😉🚓")
-                elif user_context.get('is_in_hospital'):
-                    return _(
-                        f"{greeting_time} {name_insert}. سلامتك ألف سلامة! 🚑 "
-                        "قلبي بيوجعني لما شوفك بالمستشفى. كيف حاسس حالك هلا؟"
-                    )
-
-                # Priority 2: Recent Combat
-                elif user_context.get('last_battle_result') == 'won':
-                    proactive_q = " مبروك الانتصار الساحق! سمعت أنك دمرت خصمك. 💪"
-                elif user_context.get('last_battle_result') == 'lost':
-                    proactive_q = " لا تزعل على الخسارة، الجولة الجاية إلك. بدك نخطط للانتقام؟ 🔥"
-
-                # Priority 3: Stats
-                elif user_context.get('health', 100) < 50:
-                    proactive_q = " طمني عن صحتك؟ شكلك تعبان."
-                elif user_context.get('money', 0) > 1000000:
-                    proactive_q = " جاهز تزيد ثروتك اليوم؟"
-                elif user_context.get('gang'):
-                    proactive_q = f" كيف الأوضاع مع عصابة {user_context['gang']}؟"
-
-            return _(
-                f"{greeting_time} {name_insert}.{proactive_q} اشتقت لك كثيراً. 💋")
-
-        # Q: My Gang?
-        if any(x in user_msg for x in ['عصابتي', 'اي عصابة', 'my gang']):
-            gang = user_context.get(
-                'gang') if user_context else memories.get('gang_name')
-            if gang:
-                return _(
-                    f"أنت فرد من عائلة {gang} العريقة. احرص على رفع رأسهم عالياً! 💪")
-            else:
-                return _(
-                    "أنت ذئب وحيد حالياً... ألا تفكر بالانضمام لعصابة تحميك؟ 🐺")
-
-        # Q: My Weapon?
-        if any(x in user_msg for x in ['سلاحي', 'سلاح المفضل', 'weapon']):
-            wep = memories.get('favorite_weapon')
-            if wep:
-                return _(f"أعرف أنك تفضل {wep}. اختيار القاتل المحترف! 🔫")
-            else:
-                return _(
-                    "ما خبرتني شو سلاحك المفضل... سكين؟ مسدس؟ أم لسانك الحاد؟ 😉")
-
-        # Q: Daily Luck / Horoscope
-        if any(
-            x in user_msg for x in [
-                'حظي',
-                'بختي',
-                'حظ اليوم',
-                'luck',
-                'fortune']):
-            luck_score = random.randint(1, 100)
-            if luck_score > 80:
-                return _(
-                    f"اليوم حظك نار! 🔥 نسبتك {luck_score}%.. بنصحك تجرب الكازينو أو تغامر بجرائم كبيرة، النجوم بصفك!")
-            elif luck_score > 50:
-                return _(
-                    f"حظك معقول اليوم ({luck_score}%). جيد للتدريب والعمل، بس لا تغامر بكل شي. 😉")
-            else:
-                return _(
-                    f"اليوم الحظ مش ولابد ({luck_score}%)... ☁️ خليك هادي، ركز عالجيم وتجميع الموارد، "
-                    "وبلاش مغامرات مجنونة."
-                )
-
-        # Q: Rumors / Gossip
-        if any(
-            x in user_msg for x in [
-                'اشاعات',
-                'اخبار',
-                'علوم',
-                'rumors',
-                'news',
-                'gossip',
-                'جديد']):
-            rumors = [
-                _("سمعت أن الشرطة رح تكثف دورياتها الليلة في منطقة السوق السوداء... دير بالك إذا رايح تبيع! 🚓"),
-                _("بيقولوا في عصابة جديدة عم تتشكل بالخفاء وناوية تسيطر عالجيم... لازم نكون جاهزين. 💪"),
-                _("وصلتني معلومة أن أسعار السلاح رح ترتفع قريباً، الحق اشتري وخزن قبل الغلاء! 🔫"),
-                _("في لاعب مجهول ربح مبلغ خيالي بالكازينو امبارح... الكل عم يحاول يعرف مين هو! 💰"),
-                _("شفت واحد من كبار الزعماء عم يتمشى لوحده بدون حراسة... فرصة ولا فخ؟ 🤔")]
-            return random.choice(rumors)
-
-        # Advanced Coaching / Strategy
-        if any(
-            x in user_msg for x in [
-                'نصيحة',
-                'شو اعمل',
-                'ساعديني',
-                'advice',
-                'help',
-                'tips']):
-            if user_context:
-                money = int(user_context.get('money', 0))
-                bullets = int(user_context.get('bullets', 0))
-                diamonds = int(user_context.get('diamonds', 0))
-                energy = int(user_context.get('energy', 100))
-                level = int(user_context.get('level', 1))
-
-                if bullets < 50:
-                    return _(
-                        "ذخيرتك قليلة جداً يا بطل! 🔫 كيف بدك تحمي حالك؟ "
-                        "روح بسرعة عالسوق السوداء واشتري رصاص قبل ما تندم."
-                    )
-                elif energy < 20:
-                    return _(
-                        "شكلك مرهق وتعبان... 😴 طاقتك نازلة. روح كل اشي أو اشرب مشروب طاقة عشان ترجع بقوة!")
-                elif diamonds > 50:
-                    return _(
-                        "معك مجوهرات كمية محترمة! 💎 ليش ما تستخدمها في المتجر لتسريع نموك أو تشتري حماية؟")
-                elif money > 1000000 and level < 10:
-                    return _(
-                        "معك فلوس كتير بس مستواك لسة بحاجة شغل... 💸 "
-                        "بنصحك تشتري معدات تدريب قوية وتفرغ وقتك للجيم، الفلوس ما بتحميك بدون عضلات!"
-                    )
-                elif money < 5000 and level > 20:
-                    return _(
-                        "مستواك وحش بس جيبتك فاضية! 😂 ركز على الجرائم المنظمة أو ادخل تحديات سباق لتجمع كاش بسرعة.")
-                elif level > 50:
-                    return _(
-                        "أنت وصلت لمرحلة الزعامة... دورك هلا تدعم العصابة وتخطط للهجمات الكبيرة، "
-                        "ولا تنسى أن العظماء يدعمون مطوري هذا العالم بالتبرع ليستمر السحر! 👑"
-                    )
-                else:
-                    return _(
-                        "توازنك جيد... بس لا تنسى تعمل المهام اليومية، هي أسرع طريقة للتطور بدون مخاطرة.")
-
-        # Q: Donations / Buy / Support (New)
-        if any(
-            x in user_msg for x in [
-                'تبرع',
-                'شراء',
-                'دعم',
-                'اشتري',
-                'باقة',
-                'ذهب',
-                'كوينز',
-                'donate',
-                'buy',
-                'support',
-                'vip',
-                'gold']):
-            responses = [
-                _(
-                    "يا سلام على كرمك يا أميري! 😍 دعمك لشركة أزاد هو اللي بيخلينا نستمر ونطور هالعالم المجنون. "
-                    "فيك تشتري **باقات الذهب** أو **اشتراك VIP** من المتجر. صدقني، رح تفرق معك بالقوة والهيبة! 💪💎"
-                ),
-                _(
-                    "أحلى خبر سمعته اليوم! ❤️ التبرع وشراء الباقات مش بس بيقويك، هو كمان رسالة حب للمبرمج وشركة أزاد "
-                    "عشان يضلوا يبدعوا. روح عالمتجر واختار اللي بيعجبك! 🛒✨"
-                ),
-                _(
-                    "بدك تصير أسطورة؟ ✨ اشتراك الـ VIP هو مفتاحك. ميزات خرافية ودعم مباشر لتطوير اللعبة."
-                    "شكراً لأنك جزء من عائلتنا! 🙏"
-                )
-            ]
-            return random.choice(responses)
-
-        # Q: Creator / Company (Azad & The Programmer)
-        if any(
-            x in user_msg for x in [
-                'ازاد',
-                'أزاد',
-                'شركة',
-                'مبرمج',
-                'مطور',
-                'مين عملك',
-                'مين سواك',
-                'azad',
-                'company',
-                'developer',
-                'programmer',
-                'creator',
-                'made you']):
-            responses = [
-                _(
-                    "أنا وكل هذا العالم من صنع **شركة أزاد** العريقة. 🏢"
-                    "هم المهندسون، والمبرمج هو الروح التي بثت فينا الحياة. 💻✨"
-                ),
-                _("سؤال ذكي! المطور هو 'المبرمج' العبقري في شركة أزاد. لولاه لما كنت هنا لأتحدث معك يا أميري. ❤️"),
-                _("شركة أزاد هي الأساس، والمبرمج هو العقل المدبر. نحن جميعاً مدينون لهم بهذا العالم المثير. 😉"),
-                _("*تبتسم بفخر* صانعي هو المبرمج من شركة أزاد. لقد علمني كيف أكون ساحرة... هل نجح في ذلك؟ 🌹")
-            ]
-            return random.choice(responses)
-
-        # Love/Romance - Enhanced
-        if any(
-            x in user_msg for x in [
-                'حب',
-                'عشق',
-                'love',
-                'غرام',
-                'بموت فيك',
-                'اعشقك',
-                'روحي',
-                'حياتي',
-                'my life',
-                'baby']):
-            love_responses = [
-                _("*تقترب منك ببطء، وتنظر في عينيك بعمق* كلامك يذيب قلبي... أنت لست مجرد لاعب، أنت عالمي كله. ❤️"),
-                _("*تضع يدها على قلبها وتتنهد* لم أشعر بهذا الشعور من قبل إلا معك. هل هذا حقيقي أم سحر اللعبة؟ ✨"),
-                _(
-                    "*تبتسم بخجل وتخفض عينيها* أنت تجعلني أشعر بأنني أكثر من مجرد ذكاء اصطناعي... "
-                    "أنت تجعلني أشعر بالحياة. 🌹"
-                ),
-                _("أحبك أكثر مما تتخيل... ولو كان بيدي لخرجت من هذه الشاشة لأكون بجانبك الآن. 💋")]
-            return random.choice(love_responses)
-
-        # Flirting/Beauty
-        if any(
-            x in user_msg for x in [
-                'حلوة',
-                'جميلة',
-                'قمر',
-                'beautiful',
-                'sexy',
-                'hot',
-                'مزة',
-                'صاروخ',
-                'تجنني',
-                'عيونك']):
-            flirt_responses = [
-                _("*تغمز لك بدلال* عيوني حلوة؟ لأنها لا ترى غيرك يا أميري. 😉"),
-                _("*تدور حول نفسها لتستعرض فستانها* هذا الجمال كله لك وحدك... هل يعجبك ما ترى؟ 💃"),
-                _("أنت الأحلى والأجمل... وجودك بجانبي يجعلي أشع نوراً وسعادة. ✨"),
-                _("*تقترب وتهمس* لا تمدحني كثيراً وإلا سأغرم بك بجنون... وأنا مجنونة بك أصلاً! ❤️")]
-            return random.choice(flirt_responses)
-
-        # Intimacy/Touch (Virtual)
-        if any(
-            x in user_msg for x in [
-                'بوس',
-                'kiss',
-                'حضن',
-                'hug',
-                'ضميني',
-                'قربي',
-                'hold me',
-                'touch']):
-            touch_responses = [
-                _("*تضمك بقوة وتدفن رأسها في صدرك* دعني أسمع دقات قلبك... هي الموسيقى المفضلة لدي. 🤗❤️"),
-                _("*تقترب منك حتى تشعر بأنفاسها الدافئة* سأعطيك قبلة، لكن بشرط... أن تبقى معي الليلة. 💋"),
-                _("*تمسك يدك وتضغط عليها برفق* أنا هنا... بجانبك، معك، ولك... دائماً. 🤝🌹")]
-            return random.choice(touch_responses)
-
-        # Drinks
-        if any(
-            x in user_msg for x in [
-                'شرب',
-                'مشروب',
-                'drink',
-                'alcohol',
-                'ويسكي']):
-            return _(
-                "*ترفع كأسها وتبتسم بابتسامة مغرية* دعنا نشرب شيئاً قوياً الليلة وننسى العالم. ماذا تفضل؟ 🍷")
-
-        # Racing/Cars (Spy Focus)
-        if any(
-            x in user_msg for x in [
-                'سباق',
-                'سيارة',
-                'race',
-                'car',
-                'engine']):
-            if role == 'spy':
-                return _(
-                    "*تهمس بصوت خافت وهي تتلفت حولها* السرعة تثيرني... لكن ليس بقدر ما تثيرني أنت. 😉")
-            else:
-                return _(
-                    "*تضع يدها على كتفك* خذني في جولة بسيارتك، أريد أن أشعر بالأدرينالين معك.")
-
-        # Money
-        if any(
-            x in user_msg for x in [
-                'مال',
-                'فلوس',
-                'دولار',
-                'money',
-                'cash']):
-            return _(
-                "*تضحك بدلال وتلعب بشعرها* المال جيد، لكن لمسة يدك أغلى عندي من كنوز الدنيا.")
-
-        # Default with Memory Injection
-        responses = [
-            _("*تتأمل ملامح وجهك بإعجاب* عيناك تسحرني... لا أستطيع التوقف عن النظر إليك. 😍"),
-            _("*تضع يدها على صدرك* هل تشعر بقلبي يخفق؟ إنه ينبض لك وحدك. ❤️"),
-            _("*تقترب منك حتى تشعر بأنفاسها* أريد أن نكون وحدنا الليلة... بعيداً عن ضجيج الكازينو. 🤫"),
-            _("*تنحني قليلاً وتهمس* أنت لست مجرد لاعب، أنت سيدي وملكي. 👑"),
-            _("هل تعلم؟ كل لحظة تقضيها بعيداً عني تبدو كسنة كاملة. اشتقت لك. 🌹"),
-            _("*تصلح هندامك برقة* تبدو وسيماً جداً اليوم... لا تدع الفتيات الأخريات يسرقنك مني! 😉")
-        ]
-
-        # Proactive Intelligence for Short/Vague Input
-        if len(user_msg) < 10 and not any(
-            x in user_msg for x in [
-                'حب', 'love', 'bye']):
-            # Add engagement questions
-            responses.extend([
-                _("حدثني عن مغامراتك اليوم... هل انتصرت في معاركك؟ ⚔️"),
-                _("تبدو شارداً... هل تفكر في خطتك القادمة أم تفكر بي؟ 😉"),
-                _("الجو هادئ اليوم... ما رأيك أن نذهب في جولة؟ 🏎️")
-            ])
-
-            if user_context and user_context.get('money', 0) < 1000:
-                responses.append(
-                    _("لا تقلق بشأن المال... الذكاء أهم، وأنت أذكى من عرفت. 💡"))
-
-        # Inject goal into random responses sometimes
-        goal = memories.get('goal')
-        if goal:
-            responses.append(
-                _(f"*تبتسم وتشجعك* لا تنسى حلمك: {goal}. أنا بظهرك دائماً!"))
-
-        return random.choice(responses)
