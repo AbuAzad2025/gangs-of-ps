@@ -37,7 +37,7 @@ click-plugins==1.1.1.2
 click-repl==0.3.0
 colorama==0.4.6
 coverage==7.11.0
-cryptography==44.0.0
+cryptography==46.0.0
 cssselect2==0.8.0
 curl_cffi==0.14.0
 CurrencyConverter==0.17.10
@@ -60,7 +60,7 @@ ezdxf==1.4.3
 Faker==20.1.0
 fastapi==0.122.1
 flake8==7.3.0
-Flask==3.0.0
+Flask==3.0.3
 Flask-Admin==2.0.2
 flask-babel==4.0.0
 Flask-Caching==2.1.0
@@ -116,7 +116,7 @@ packaging==23.2
 pandas==2.3.3
 passlib==1.7.4
 peewee==3.18.3
-pillow==10.4.0
+pillow==11.3.0
 platformdirs==4.5.1
 playwright==1.57.0
 pluggy==1.6.0
@@ -157,7 +157,7 @@ pytz==2025.2
 qrcode==7.4.2
 redis==5.0.1
 reportlab==4.0.7
-requests==2.31.0
+requests==2.32.5
 rich==13.9.4
 Rx==1.6.3
 scikit-learn==1.8.0
@@ -182,7 +182,7 @@ typing-inspection==0.4.2
 typing_extensions==4.15.0
 tzdata==2025.2
 tzlocal==5.3.1
-urllib3==2.2.1
+urllib3==2.6.0
 uvicorn==0.38.0
 validators==0.28.3
 vine==5.1.0
@@ -191,7 +191,7 @@ wcwidth==0.2.14
 weasyprint==70.0
 webencodings==0.5.1
 websockets==15.0.1
-Werkzeug==3.0.1
+Werkzeug==3.0.3
 wheel==0.45.1
 whitenoise==6.11.0
 wrapt==1.17.3
