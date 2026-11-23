@@ -186,7 +186,7 @@ document.addEventListener('DOMContentLoaded', function() {
             .then(response => response.json())
             .then(data => {
                 if (data.error) {
-                    resultsView.innerHTML = `<div class="text-center p-3 text-danger">${data.error}</div>`;
+                    resultsView.innerHTML = `<div class="text-center p-3 text-danger">${escapeHtml(data.error)}</div>`;
                     return;
                 }
 
@@ -203,16 +203,26 @@ document.addEventListener('DOMContentLoaded', function() {
             });
     }
 
+    function escapeHtml(value) {
+        const div = document.createElement('div');
+        div.textContent = value == null ? '' : String(value);
+        return div.innerHTML;
+    }
+
     function renderResults(videos) {
         resultsView.innerHTML = '';
         videos.forEach(video => {
             const el = document.createElement('div');
             el.className = 'youtube-result-item';
+            const title = escapeHtml(video.title);
+            const channel = escapeHtml(video.channel);
+            const thumb = escapeHtml(video.thumbnail);
+            const duration = escapeHtml(video.duration);
             el.innerHTML = `
-                <img src="${video.thumbnail}" class="youtube-result-thumb" alt="${video.title}">
+                <img src="${thumb}" class="youtube-result-thumb" alt="${title}">
                 <div class="youtube-result-info">
-                    <div class="youtube-result-title" title="${video.title}">${video.title}</div>
-                    <div class="youtube-result-channel">${video.channel} • ${video.duration || ''}</div>
+                    <div class="youtube-result-title" title="${title}">${title}</div>
+                    <div class="youtube-result-channel">${channel} • ${duration}</div>
                 </div>
             `;
             el.addEventListener('click', () => playVideo(video.id));
@@ -221,7 +231,8 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function playVideo(videoId) {
-        const src = `https://www.youtube.com/embed/${videoId}?autoplay=1&origin=${window.location.origin}&enablejsapi=1&rel=0`;
+        if (!/^[A-Za-z0-9_-]{6,20}$/.test(videoId)) return;
+        const src = `https://www.youtube.com/embed/${encodeURIComponent(videoId)}?autoplay=1&origin=${encodeURIComponent(window.location.origin)}&enablejsapi=1&rel=0`;
         iframe.src = src;
         showPlayer();
         saveState();
