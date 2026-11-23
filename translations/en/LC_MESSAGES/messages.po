@@ -23772,3 +23772,47 @@ msgstr "Meet new players."
 #: templates/register.html
 msgid "يُفضل إدخال بريد إلكتروني حقيقي — لاستعادة كلمة المرور عند النسيان."
 msgstr "It is recommended to enter a real email address - to recover your password if forgotten."
+
+#: \forgot_password.html
+msgid "أدخل بريدك الإلكتروني وسنرسل لك رابط الاستعادة"
+msgstr "Enter your email and we will send you a recovery link"
+
+#: \forgot_password.html
+msgid "إرسال رابط الاستعادة"
+msgstr "Send recovery link"
+
+#: \reset_password.html
+msgid "إعادة تعيين كلمة المرور"
+msgstr "Reset password"
+
+#: \reset_password.html
+msgid "أدخل كلمة المرور الجديدة"
+msgstr "Enter the new password"
+
+#: \login.html
+msgid "نسيت كلمة المرور؟"
+msgstr "Forgot password?"
+
+#: templates/login.html
+msgid "هذه لعبة للتسلية فقط. المحتوى خيالي ولا يجوز تطبيقه في الحياة الواقعية حتى لا تقع تحت طائلة القانون أو المساءلة. العب بمسؤولية."
+msgstr "This game is for entertainment only. The content is fictional and must not be applied in real life, lest you fall under the law or liability. Play responsibly."
+
+#: forms/auth.py
+msgid "البريد الإلكتروني (اختياري - لاستعادة كلمة المرور)"
+msgstr "Email (optional - for password recovery)"
+
+#: forms/auth.py
+msgid "بريد إلكتروني غير صالح"
+msgstr "Invalid email"
+
+#: forms/auth.py
+msgid "هذا البريد مستخدم بالفعل."
+msgstr "This email is already in use."
+
+#: templates/reset_password.html
+msgid "تحديث كلمة المرور"
+msgstr "Update password"
+
+#: forms/auth.py
+msgid "كلمة المرور الجديدة"
+msgstr "New password"
