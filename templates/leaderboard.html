@@ -79,7 +79,7 @@
                     <td class="rank-cell">
                         {% if loop.index == 1 %}<i class="fas fa-crown text-warning"></i>{% else %}{{ loop.index }}{% endif %}
                     </td>
-                    <td class="font-weight-bold text-white">{{ row.location_name }}</td>
+                    <td class="font-weight-bold text-white">{{ _(row.location_name) }}</td>
                     <td>
                         <a href="{{ url_for('gang.view', gang_id=row.gang_id) }}" class="user-name-link">{{ row.gang_name }}</a>
                     </td>

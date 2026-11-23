@@ -46,7 +46,7 @@
             <img src="{{ url_for('static', filename='images/' + hostess_img) }}" alt="{{ hostess.name }}" class="assistant-avatar rounded-circle border border-warning mr-3"
                  onerror="this.onerror=null; this.src='{{ url_for('static', filename='images/hostesses/default_hostess.jpg') }}';">
             <div>
-                <div class="text-gold font-weight-bold">{{ hostess.name }} <span class="badge badge-warning text-dark small">{{ _('مساعدتك') }}</span></div>
+                <div class="text-gold font-weight-bold">{{ _(hostess.name) }} <span class="badge badge-warning text-dark small">{{ _('مساعدتك') }}</span></div>
                 <div class="text-muted small">{{ _('اسأليني عن القواعد، الاقتصاد، أو ماذا تفعل اليوم.') }}</div>
             </div>
         </div>
