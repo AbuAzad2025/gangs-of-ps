@@ -985,7 +985,7 @@ h1, h2, h3, h4, h5, h6, .brand-text-custom, .luxury-title {
 }
 .hostess-system-body li {
     position: relative;
-    padding-right: 1.25rem;
+    padding-inline-start: 1.25rem;
     color: rgba(255,255,255,0.82);
     font-size: 0.82rem;
 }
@@ -994,7 +994,7 @@ h1, h2, h3, h4, h5, h6, .brand-text-custom, .luxury-title {
     font-family: "Font Awesome 5 Free";
     font-weight: 900;
     position: absolute;
-    right: 0;
+    inset-inline-start: 0;
     top: 0.1rem;
     color: var(--gold-primary);
 }
@@ -5525,7 +5525,7 @@ h1, h2, h3, h4, h5, h6, .brand-text-custom, .luxury-title {
 }
 .quick-start-panel ul {
     margin: 0;
-    padding-left: 1.2rem;
+    padding-inline-start: 1.2rem;
     color: rgba(255,255,255,0.8);
     line-height: 2;
 }
