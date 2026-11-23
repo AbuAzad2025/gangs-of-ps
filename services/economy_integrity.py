@@ -8,7 +8,10 @@ ABSOLUTE_MAX_MONEY_DELTA = 2_000_000_000
 ABSOLUTE_MAX_DIAMOND_DELTA = 100_000
 ABSOLUTE_MAX_STAKE = 500_000_000
 
-MANUAL_DIAMOND_CATALOG = {5: 100, 10: 250, 50: 1500, 100: 4000}
+MANUAL_DIAMOND_CATALOG = {10: 300, 20: 650, 50: 1700}
+CUSTOM_MIN_USD = 10
+CUSTOM_MAX_USD = 1000
+CUSTOM_DIAMONDS_PER_USD = 30  # 30 diamonds per 1 USD for custom amounts
 
 
 class SecurityBoundaryViolation(Exception):
@@ -41,6 +44,17 @@ def resolve_manual_diamond_purchase(amount_usd: int) -> int:
     if not diamonds:
         raise SecurityBoundaryViolation('invalid manual purchase amount')
     return diamonds
+
+
+def resolve_custom_diamond_purchase(amount_usd: int) -> int:
+    """Resolve diamonds for a custom USD amount within safe bounds."""
+    try:
+        amount = int(amount_usd)
+    except (TypeError, ValueError) as exc:
+        raise SecurityBoundaryViolation('invalid custom purchase amount') from exc
+    if amount < CUSTOM_MIN_USD or amount > CUSTOM_MAX_USD:
+        raise SecurityBoundaryViolation('custom amount out of range')
+    return amount * CUSTOM_DIAMONDS_PER_USD
 
 
 def parse_bank_amount(raw, *, min_value: int = 1) -> int | None:

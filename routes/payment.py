@@ -18,6 +18,7 @@ from sqlalchemy.exc import IntegrityError
 from services.economy_integrity import (
     SecurityBoundaryViolation,
     resolve_manual_diamond_purchase,
+    resolve_custom_diamond_purchase,
     validate_stripe_webhook_credit,
 )
 from services.economy_policy import (
@@ -46,8 +47,12 @@ def buy_diamonds():
     form = ManualPaymentForm()
     if form.validate_on_submit():
         try:
-            amount = int(form.amount_usd.data)
-            diamonds = resolve_manual_diamond_purchase(amount)
+            if form.amount_usd.data == 'other':
+                amount = int(form.custom_amount.data or 0)
+                diamonds = resolve_custom_diamond_purchase(amount)
+            else:
+                amount = int(form.amount_usd.data)
+                diamonds = resolve_manual_diamond_purchase(amount)
         except (ValueError, TypeError, SecurityBoundaryViolation):
             flash(_('قيمة الشحن غير صالحة.'), 'danger')
             return redirect(url_for('main.buy_diamonds'))
@@ -80,9 +85,22 @@ def buy_diamonds():
     elif request.args.get('stripe') == 'cancel':
         stripe_msg = _('تم إلغاء الدفع.')
 
+    # Build a safe initial amount for the WhatsApp deep link.
+    # "other" has no fixed amount — the JS updates the link once the user types a number.
+    try:
+        initial_amount = (
+            int(form.custom_amount.data)
+            if form.amount_usd.data == 'other' and form.custom_amount.data
+            else int(form.amount_usd.data)
+            if form.amount_usd.data and form.amount_usd.data != 'other'
+            else None
+        )
+    except (ValueError, TypeError):
+        initial_amount = None
+
     wa_url = get_whatsapp_diamond_purchase_url(
         current_user.username,
-        int(form.amount_usd.data) if form.amount_usd.data else None,
+        initial_amount,
     ) if current_user.is_authenticated else get_whatsapp_diamond_purchase_url('')
 
     return render_template(

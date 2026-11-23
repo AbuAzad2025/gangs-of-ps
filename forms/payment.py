@@ -1,16 +1,20 @@
 from flask_wtf import FlaskForm
-from wtforms import SelectField, TextAreaField, SubmitField
-from wtforms.validators import DataRequired, Length
+from wtforms import SelectField, TextAreaField, SubmitField, IntegerField
+from wtforms.validators import DataRequired, Length, Optional, NumberRange
 from flask_babel import lazy_gettext as _l
 
 
 class ManualPaymentForm(FlaskForm):
     amount_usd = SelectField(_l('قيمة الشحن (دولار)'), choices=[
-        ('5', _l('5$ - 100 ماسة')),
-        ('10', _l('10$ - 250 ماسة')),
-        ('50', _l('50$ - 1500 ماسة')),
-        ('100', _l('100$ - 4000 ماسة'))
+        ('10', _l('10$ - 300 ماسة')),
+        ('20', _l('20$ - 650 ماسة')),
+        ('50', _l('50$ - 1700 ماسة')),
+        ('other', _l('أخرى (حدد المبلغ أدناه)'))
     ], validators=[DataRequired()])
+    custom_amount = IntegerField(
+        _l('المبلغ بالدولار (لخيار أخرى)'),
+        validators=[Optional(), NumberRange(min=10, max=1000)],
+    )
 
     payment_method = SelectField(_l('طريقة الدفع'), choices=[
         ('bank', _l('تحويل بنكي (البنك الوطني/فلسطين)')),

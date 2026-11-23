@@ -5,10 +5,9 @@ import os
 from typing import Any, Dict, Optional, Tuple
 
 DIAMOND_PACKAGES = {
-    "5": {"usd": 5, "diamonds": 100},
-    "10": {"usd": 10, "diamonds": 250},
-    "50": {"usd": 50, "diamonds": 1500},
-    "100": {"usd": 100, "diamonds": 4000},
+    "10": {"usd": 10, "diamonds": 300},
+    "20": {"usd": 20, "diamonds": 650},
+    "50": {"usd": 50, "diamonds": 1700},
 }
 
 

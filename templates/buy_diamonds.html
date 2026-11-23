@@ -76,6 +76,20 @@
                                 </div>
                             </div>
 
+                            <div class="form-group col-md-6 mb-4" id="custom_amount_group" style="display: none;">
+                                {{ form.custom_amount.label(class="form-label text-gold font-weight-bold") }}
+                                <div class="input-group">
+                                    <div class="input-group-prepend">
+                                        <span class="input-group-text bg-dark border-gold text-gold"><i class="fas fa-dollar-sign"></i></span>
+                                    </div>
+                                    {{ form.custom_amount(class="form-control bg-dark text-white border-gold", id="custom_amount_field", min="10", max="1000") }}
+                                </div>
+                                <small class="text-muted">{{ _('المبلغ من 10 إلى 1000 دولار — 30 ماسة لكل دولار.') }}</small>
+                                {% for error in form.custom_amount.errors %}
+                                    <span class="text-danger mt-2 d-block">{{ error }}</span>
+                                {% endfor %}
+                            </div>
+
                             <div class="form-group col-md-6 mb-4">
                                 {{ form.payment_method.label(class="form-label text-gold font-weight-bold") }}
                                 <div class="input-group">
@@ -135,26 +149,42 @@
     var waNumber = {{ developer_whatsapp|tojson }};
     var cta = document.getElementById('whatsapp-diamond-cta');
     var amountField = document.getElementById('amount_usd_field');
+    var customGroup = document.getElementById('custom_amount_group');
+    var customField = document.getElementById('custom_amount_field');
     if (!cta || !amountField) return;
 
+    function effectiveAmount() {
+        if (amountField.value === 'other' && customField) {
+            return parseInt(customField.value, 10);
+        }
+        return parseInt(amountField.value, 10);
+    }
+
     function buildWaUrl() {
-        var amt = parseInt(amountField.value, 10);
+        var amt = effectiveAmount();
         var lines = [
             'مرحباً، أريد شراء ماس في لعبة عصابات فلسطين.',
             'اسم المستخدم: ' + username
         ];
         if (!isNaN(amt) && amt > 0) {
             lines.push('المبلغ المطلوب: ' + amt + '$');
+            if (amountField.value === 'other') {
+                lines.push('الماس المتوقع: ' + (amt * 30) + ' ماسة');
+            }
         }
         lines.push('سأرسل إثبات التحويل بعد الدفع.');
         return 'https://wa.me/' + waNumber + '?text=' + encodeURIComponent(lines.join('\n'));
     }
 
-    function syncWa() {
+    function syncUi() {
+        if (customGroup) {
+            customGroup.style.display = (amountField.value === 'other') ? '' : 'none';
+        }
         cta.href = buildWaUrl();
     }
-    amountField.addEventListener('change', syncWa);
-    syncWa();
+    amountField.addEventListener('change', syncUi);
+    if (customField) customField.addEventListener('input', syncUi);
+    syncUi();
 })();
 </script>
 {% endblock %}

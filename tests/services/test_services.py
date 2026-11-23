@@ -107,11 +107,23 @@ class TestRequirementsService:
 
 class TestSecurityBoundary:
     def test_manual_catalog_resolves(self):
-        assert resolve_manual_diamond_purchase(10) == 250
+        assert resolve_manual_diamond_purchase(10) == 300
+        assert resolve_manual_diamond_purchase(20) == 650
+        assert resolve_manual_diamond_purchase(50) == 1700
 
     def test_manual_catalog_rejects_unknown(self):
         with pytest.raises(SecurityBoundaryViolation):
             resolve_manual_diamond_purchase(99)
+
+    def test_custom_resolver_bounds(self):
+        from services.economy_integrity import resolve_custom_diamond_purchase
+        assert resolve_custom_diamond_purchase(10) == 300
+        assert resolve_custom_diamond_purchase(25) == 750
+        assert resolve_custom_diamond_purchase(1000) == 30000
+        with pytest.raises(SecurityBoundaryViolation):
+            resolve_custom_diamond_purchase(9)
+        with pytest.raises(SecurityBoundaryViolation):
+            resolve_custom_diamond_purchase(1001)
 
     def test_webhook_rejects_unknown_user(self, app, db):
         with app.app_context():
