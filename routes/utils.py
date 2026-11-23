@@ -41,21 +41,41 @@ def generate_confirmation_token(email):
     return serializer.dumps(email, salt='email-confirm-salt')
 
 
-def generate_password_reset_token(email):
+def generate_password_reset_token(email, password_hash=None):
     serializer = URLSafeTimedSerializer(current_app.config['SECRET_KEY'])
-    return serializer.dumps(email, salt='password-reset-salt')
+    # Embed a digest of the current password hash so the token becomes
+    # invalid (single-use) once the password is changed.
+    payload = {'email': email, 'ph': password_hash or ''}
+    return serializer.dumps(payload, salt='password-reset-salt')
 
 
 def verify_password_reset_token(token, expiration=3600):
     serializer = URLSafeTimedSerializer(current_app.config['SECRET_KEY'])
     try:
-        email = serializer.loads(
+        data = serializer.loads(
             token,
             salt='password-reset-salt',
             max_age=expiration)
-        return email
     except Exception:
         return None
+    if not isinstance(data, dict):
+        return None
+    email = data.get('email')
+    embedded_hash = data.get('ph', '')
+    if not email:
+        return None
+    # Single-use check: the password hash must still match the one embedded
+    # in the token. After a successful reset the hash changes and the token
+    # can no longer be reused.
+    from models import User
+    from sqlalchemy import func
+    user = User.query.filter(
+        func.lower(User.email) == (email or '').lower()).first()
+    if not user:
+        return None
+    if (user.password_hash or '') != embedded_hash:
+        return None
+    return email
 
 
 def confirm_token(token, expiration=3600):

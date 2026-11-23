@@ -471,6 +471,7 @@ def register():
 
 
 @bp.route('/forgot_password', methods=['GET', 'POST'])
+@limiter.limit("5 per hour")
 def forgot_password():
     if current_user.is_authenticated:
         return redirect(url_for('main.hara'))
@@ -486,7 +487,7 @@ def forgot_password():
             func.lower(User.email) == email).first()
         # Always flash success to avoid email enumeration
         if user and user.email:
-            token = generate_password_reset_token(user.email)
+            token = generate_password_reset_token(user.email, user.password_hash)
             reset_url = url_for(
                 'main.reset_password',
                 token=token,
