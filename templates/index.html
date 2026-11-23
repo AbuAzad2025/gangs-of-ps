@@ -60,117 +60,81 @@
                         <a class="btn btn-hero btn-hero-secondary m-1" href="{{ url_for('main.register') }}" role="button">
                             <i class="fas fa-user-plus mr-2"></i> {{ _('إنشاء حساب جديد') }}
                         </a>
-                        <a class="btn btn-hero btn-hero-secondary m-1" href="{{ url_for('main.chat_lobby') }}" role="button">
-                            <i class="fas fa-comments mr-2"></i> {{ _('الدردشة') }}
-                        </a>
-                        <button onclick="playIntro()" class="btn btn-hero btn-hero-secondary m-1 btn-play-intro">
-                            <i class="fas fa-play mr-2"></i> {{ _('شاهد العرض') }}
-                        </button>
-                        <a class="btn btn-hero btn-hero-discord m-1" href="{{ discord_link }}" target="_blank" role="button" style="background-color: #5865F2; color: white; border: none;">
-                            <i class="fab fa-discord mr-2"></i> {{ _('مجتمع اللعبة') }}
-                        </a>
-                    </div>
-
-                    <div class="hero-metrics mt-4">
-                        <div class="hero-metric-card">
-                            <span class="metric-label">{{ _('مستوى اللاعبين') }}</span>
-                            <strong>{{ total_users }}</strong>
-                        </div>
-                        <div class="hero-metric-card">
-                            <span class="metric-label">{{ _('معارك اليوم') }}</span>
-                            <strong>{{ battles_24h }}</strong>
-                        </div>
-                        <div class="hero-metric-card">
-                            <span class="metric-label">{{ _('قيمة السوق') }}</span>
-                            <strong>${{ total_money }}</strong>
-                        </div>
-                    </div>
-
-                    <div class="ai-showcase mt-4">
-                        <div class="ai-showcase-body">
-                            <div class="ai-avatar-shell">
-                                <img src="{{ url_for('static', filename='images/' + (jasmin.image_path if jasmin and jasmin.image_path else 'hostesses/default_hostess.jpg')) }}" alt="Yasmin AI" onerror="this.onerror=null; this.src='{{ url_for('static', filename='images/hostesses/default_hostess.jpg') }}';">
-                                <span class="ai-live-indicator"><i class="fas fa-sparkles"></i></span>
-                            </div>
-                            <div class="ai-copy">
-                                <span class="ai-tag">{{ _('الذكاء الصناعي') }}</span>
-                                <h3>{{ _(jasmin.name) if jasmin and jasmin.name else 'Yasmin AI' }}</h3>
-                                <p>{{ _('مستشارة ذكية تعمل داخل اللعبة وتساعدك على التخطيط، تقليل المخاطر، وتحسين قراراتك في الأسواق والمعارك.') }}</p>
-                                <div class="ai-pills">
-                                    <span>{{ _('تحليل السوق') }}</span>
-                                    <span>{{ _('استراتيجية المعارك') }}</span>
-                                    <span>{{ _('توجيه فوري') }}</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Mobile Store Links -->
-                    <div class="mt-4 d-flex flex-column align-items-center align-items-lg-start">
-                        <span class="text-gold mb-2 small text-uppercase font-weight-bold" style="letter-spacing: 1px;">{{ _('العب الآن على الجوال') }}</span>
-                        <div class="d-flex flex-wrap justify-content-center justify-content-lg-start">
-                            <!-- PWA Install Button (Hidden by default, shown via JS) -->
-                            <button id="homepage-install-btn" onclick="installPWA()" class="btn btn-gold btn-lg mr-2 mb-2 d-none align-items-center shadow-lg">
-                                <i class="fas fa-download ml-2"></i>
-                                <div class="d-flex flex-column text-right">
-                                    <span class="small" style="font-size: 0.7rem;">{{ _('تثبيت التطبيق') }}</span>
-                                    <span class="font-weight-bold" style="line-height: 1;">{{ _('تثبيت') }}</span>
-                                </div>
-                            </button>
-
-                            <a href="#" class="btn btn-outline-light mb-2 mr-2 d-flex align-items-center store-btn disabled" style="opacity: 0.6; cursor: not-allowed;" title="{{ _('قريباً') }}">
-                                <i class="fab fa-google-play fa-2x ml-2"></i>
-                                <div class="d-flex flex-column text-right">
-                                    <span class="small" style="font-size: 0.6rem;">{{ _('قريباً على') }}</span>
-                                    <span class="font-weight-bold" style="line-height: 1;">Google Play</span>
-                                </div>
-                            </a>
-                            <a href="#" class="btn btn-outline-light mb-2 d-flex align-items-center store-btn disabled" style="opacity: 0.6; cursor: not-allowed;" title="{{ _('قريباً') }}">
-                                <i class="fab fa-apple fa-2x ml-2"></i>
-                                <div class="d-flex flex-column text-right">
-                                    <span class="small" style="font-size: 0.6rem;">{{ _('قريباً على') }}</span>
-                                    <span class="font-weight-bold" style="line-height: 1;">App Store</span>
-                                </div>
-                            </a>
-                        </div>
                     </div>
                     
 
                 </div>
                 
-                <!-- Hostess quick preview (single mention) -->
-                <div class="col-lg-5 d-none d-lg-block position-relative">
-                    <div class="yasmin-welcome-container text-center">
-                        <img src="{{ url_for('static', filename='images/hostesses/sarah.jpg') }}"
-                             alt="Sarah AI"
-                             class="img-fluid rounded-lg shadow-lg border-gold glow-effect"
-                             style="max-height: 260px; object-fit: cover; border: 2px solid #d4af37;">
-                        <div class="bg-dark border border-gold p-3 rounded mt-3 position-relative mx-4 shadow-lg">
-                            <h4 class="text-gold mb-1">{{ _('سارة') }}</h4>
-                            <p class="text-white small mb-0">{{ _('تُعيد اللاعب إلى التوازن عندما ينهار الضغط، وتضع خطة تعافي آمنة بدل الهروب العشوائي.') }}</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
+                <!-- Quick Actions Strip -->
+    <div class="container mb-4">
+        <div class="d-flex flex-wrap justify-content-center gap-2 py-2">
+            <a class="btn btn-hero btn-hero-secondary m-1" href="{{ url_for('main.chat_lobby') }}" role="button">
+                <i class="fas fa-comments mr-2"></i> {{ _('الدردشة') }}
+            </a>
+            <button onclick="playIntro()" class="btn btn-hero btn-hero-secondary m-1 btn-play-intro">
+                <i class="fas fa-play mr-2"></i> {{ _('شاهد العرض') }}
+            </button>
+            <a class="btn btn-hero btn-hero-discord m-1" href="{{ discord_link }}" target="_blank" role="button" style="background-color: #5865F2; color: white; border: none;">
+                <i class="fab fa-discord mr-2"></i> {{ _('مجتمع اللعبة') }}
+            </a>
+            <a href="#" class="btn btn-outline-light m-1 d-flex align-items-center store-btn disabled" style="opacity: 0.6; cursor: not-allowed;" title="{{ _('قريباً') }}">
+                <i class="fab fa-google-play mr-2"></i> Google Play
+            </a>
+            <a href="#" class="btn btn-outline-light m-1 d-flex align-items-center store-btn disabled" style="opacity: 0.6; cursor: not-allowed;" title="{{ _('قريباً') }}">
+                <i class="fab fa-apple mr-2"></i> App Store
+            </a>
+        </div>
+    </div>
 
-            <div class="mt-5">
-                <div class="alert alert-dark border border-warning py-2 px-3 alert-disclaimer">
-                    <span class="text-gold font-weight-bold mr-1">{{ _('تنويه') }}:</span>
-                    {{ _('اللعبة مُصممة للترفيه فقط ولا تشجع على أي سلوك غير قانوني. يُحظر تطبيق محتواها في الواقع.') }}
+    <!-- Live Metrics Strip -->
+    <div class="container mb-4">
+        <div class="hero-metrics">
+            <div class="hero-metric-card">
+                <span class="metric-label">{{ _('مستوى اللاعبين') }}</span>
+                <strong>{{ total_users }}</strong>
+            </div>
+            <div class="hero-metric-card">
+                <span class="metric-label">{{ _('معارك اليوم') }}</span>
+                <strong>{{ battles_24h }}</strong>
+            </div>
+            <div class="hero-metric-card">
+                <span class="metric-label">{{ _('قيمة السوق') }}</span>
+                <strong>${{ total_money }}</strong>
+            </div>
+        </div>
+    </div>
+
+    <!-- AI Showcase (standalone section) -->
+    <div class="container mb-4">
+        <div class="ai-showcase">
+            <div class="ai-showcase-body">
+                <div class="ai-avatar-shell">
+                    <img src="{{ url_for('static', filename='images/' + (jasmin.image_path if jasmin and jasmin.image_path else 'hostesses/default_hostess.jpg')) }}" alt="Yasmin AI" onerror="this.onerror=null; this.src='{{ url_for('static', filename='images/hostesses/default_hostess.jpg') }}';">
+                    <span class="ai-live-indicator"><i class="fas fa-sparkles"></i></span>
+                </div>
+                <div class="ai-copy">
+                    <span class="ai-tag">{{ _('الذكاء الصناعي') }}</span>
+                    <h3>{{ _(jasmin.name) if jasmin and jasmin.name else 'Yasmin AI' }}</h3>
+                    <p>{{ _('مستشارة ذكية تعمل داخل اللعبة وتساعدك على التخطيط، تقليل المخاطر، وتحسين قراراتك في الأسواق والمعارك.') }}</p>
+                    <div class="ai-pills">
+                        <span>{{ _('تحليل السوق') }}</span>
+                        <span>{{ _('استراتيجية المعارك') }}</span>
+                        <span>{{ _('توجيه فوري') }}</span>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 
-
-
-
-
-
+    <!-- Cash Prize Box (standalone) -->
     <div class="container mb-4">
-        <div class="row">
-            <div class="col-12">
-                <div class="game-overview-panel shadow-lg">
+        <div class="cash-prize-box p-3 border-gold rounded bg-dark-transparent">
+            <h4 class="gold-text-gradient mb-2"><i class="fas fa-trophy mr-2"></i> {{ _('تحدي الأسبوع — جوائز داخل اللعبة') }}</h4>
+            <p class="text-light mb-0">{{ _('تنافس على ترتيب الأسبوع واربح كاش وماس داخل اللعبة فقط. لا توجد جوائز نقدية حقيقية — كل الاقتصاد افتراضي للمتعة.') }}</p>
+        </div>
+    </div>
+
+<div class="game-overview-panel shadow-lg">
                     <div class="game-overview-header">
                         <div>
                             <span class="game-overview-kicker">{{ _('لوحة القيادة') }}</span>
