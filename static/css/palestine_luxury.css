@@ -6656,3 +6656,113 @@ html body:has(.gop-login-page) .main-sidebar.main-sidebar {
 /* Balance the two-column login grid on wide screens */
 .gop-login-page .row > .col-lg-7 { padding-left: 2%; }
 .gop-login-page .row > .col-lg-5 { padding-right: 2%; }
+
+/* ------------------- LANDING: GRID & CONTRAST ------------------- */
+/* Clearer text colours on dark background */
+.gop-landing-page .hero-subtitle,
+.gop-landing-page .hero-subtitle.lead {
+    color: #e8e8e8 !important;
+    line-height: 1.7;
+}
+.gop-landing-page .text-white-50,
+.gop-landing-page .text-muted,
+.gop-landing-page small.text-muted {
+    color: rgba(255, 255, 255, 0.72) !important;
+}
+.gop-landing-page .metric-label {
+    color: #c9c9c9 !important;
+    font-weight: 600;
+}
+.gop-landing-page .hero-title,
+.gop-landing-page .hero-title .gold-text-gradient {
+    color: #f5d76e !important;
+    text-shadow: 0 2px 12px rgba(0, 0, 0, 0.6);
+}
+.gop-landing-page .cash-prize-box {
+    background: rgba(20, 20, 20, 0.75) !important;
+    border: 1px solid rgba(212, 175, 55, 0.5) !important;
+    border-radius: 12px !important;
+}
+.gop-landing-page .cash-prize-box p {
+    color: #f0f0f0 !important;
+}
+
+/* Even grid distribution */
+.gop-landing-page .hero-metrics {
+    display: grid !important;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)) !important;
+    gap: 12px !important;
+    margin-top: 1.25rem !important;
+}
+.gop-landing-page .hero-metric-card {
+    background: rgba(255, 255, 255, 0.06) !important;
+    border: 1px solid rgba(212, 175, 55, 0.25) !important;
+    border-radius: 10px !important;
+    padding: 12px 8px !important;
+    text-align: center !important;
+    transition: transform 0.2s ease, border-color 0.2s ease;
+}
+.gop-landing-page .hero-metric-card:hover {
+    transform: translateY(-2px);
+    border-color: rgba(212, 175, 55, 0.6) !important;
+}
+.gop-landing-page .hero-metric-card strong {
+    color: #ffffff !important;
+    font-size: 1.25rem !important;
+}
+
+/* Section spacing and card flattening */
+.gop-landing-page section,
+.gop-landing-page .container > .row,
+.gop-landing-page .landing-hero {
+    margin-bottom: 2rem !important;
+}
+.gop-landing-page .card {
+    background: rgba(18, 18, 18, 0.85) !important;
+    border: 1px solid rgba(255, 255, 255, 0.08) !important;
+    border-radius: 12px !important;
+    box-shadow: none !important;
+}
+.gop-landing-page .card-body {
+    padding: 1.25rem !important;
+}
+.gop-landing-page .card h3,
+.gop-landing-page .card h4,
+.gop-landing-page .card h5 {
+    color: #f5d76e !important;
+}
+.gop-landing-page .card p,
+.gop-landing-page .card li {
+    color: #e4e4e4 !important;
+    line-height: 1.6 !important;
+}
+
+/* Button clarity */
+.gop-landing-page .btn-hero {
+    border-radius: 10px !important;
+    font-weight: 700 !important;
+    letter-spacing: 0.3px;
+}
+.gop-landing-page .btn-hero-primary {
+    background: linear-gradient(135deg, #d4af37, #f5d76e) !important;
+    color: #1a1a1a !important;
+    border: none !important;
+}
+.gop-landing-page .btn-hero-secondary {
+    background: rgba(255, 255, 255, 0.08) !important;
+    color: #ffffff !important;
+    border: 1px solid rgba(255, 255, 255, 0.25) !important;
+}
+
+/* Hide obviously duplicate clutter already targeted earlier (reinforce) */
+.gop-landing-page .gop-hide-section { display: none !important; }
+.gop-landing-page .gop-hide-card { display: none !important; }
+
+/* Responsive: single column on small screens */
+@media (max-width: 767.98px) {
+    .gop-landing-page .hero-metrics {
+        grid-template-columns: repeat(2, 1fr) !important;
+    }
+    .gop-landing-page .hero-title { font-size: 1.6rem !important; }
+    .gop-landing-page .cash-prize-box { padding: 12px !important; }
+}
