@@ -183,91 +183,7 @@
 
 
 
-    <!-- Live Stats Bar -->
-    <div class="container mb-5 stats-bar-container gop-hide-section">
-        <div class="row justify-content-center">
-            <div class="col-md-10">
-                <div class="card bg-dark border-gold shadow-lg">
-                    <div class="card-body p-2">
-                        <div class="row text-center text-gold">
-                            <div class="col-6 col-md-2 border-right border-secondary">
-                                <div class="text-xs text-muted">{{ _('إجمالي اللاعبين') }}</div>
-                                <div class="font-weight-bold h5 mb-0">{{ total_users }}</div>
-                            </div>
-                            <div class="col-6 col-md-2 border-right border-secondary">
-                                <div class="text-xs text-muted">{{ _('نشط (24س)') }}</div>
-                                <div class="font-weight-bold h5 mb-0">{{ active_users }}</div>
-                            </div>
-                            <div class="col-6 col-md-2 border-right border-secondary">
-                                <div class="text-xs text-muted">{{ _('جديد (24س)') }}</div>
-                                <div class="font-weight-bold h5 mb-0">{{ new_users }}</div>
-                            </div>
-                            <div class="col-6 col-md-2 border-right border-secondary">
-                                <div class="text-xs text-muted">{{ _('معارك (24س)') }}</div>
-                                <div class="font-weight-bold h5 mb-0">{{ battles_24h }}</div>
-                            </div>
-                            <div class="col-12 col-md-4">
-                                <div class="text-xs text-muted">{{ _('الأموال المتداولة') }}</div>
-                                <div class="font-weight-bold h5 mb-0 text-success">${{ total_money }}</div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
 
-    <div class="container mb-5 gop-hide-section">
-        <div class="row">
-            <div class="col-lg-8 mb-4 mb-lg-0">
-                <div class="card bg-dark border-gold shadow-lg h-100">
-                    <div class="card-body">
-                        <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
-                            <h3 class="text-gold font-weight-bold mb-0"><i class="fas fa-shield-alt mr-2"></i>{{ _('حالة العالم') }}</h3>
-                            <span class="badge badge-success px-3 py-2">{{ game_status or _('متصل') }}</span>
-                        </div>
-                        <div class="row text-center">
-                            <div class="col-md-4 mb-3 mb-md-0">
-                                <div class="bg-secondary rounded p-3 h-100">
-                                    <div class="small text-muted mb-2">{{ _('اسم اللعبة') }}</div>
-                                    <div class="font-weight-bold text-white">{{ _(game_name) }}</div>
-                                </div>
-                            </div>
-                            <div class="col-md-4 mb-3 mb-md-0">
-                                <div class="bg-secondary rounded p-3 h-100">
-                                    <div class="small text-muted mb-2">{{ _('الموسم الحالي') }}</div>
-                                    <div class="font-weight-bold text-gold">{{ _(season.name) if season and season.name else _('الموسم 1') }}</div>
-                                </div>
-                            </div>
-                            <div class="col-md-4">
-                                <div class="bg-secondary rounded p-3 h-100">
-                                    <div class="small text-muted mb-2">{{ _('الدعم') }}</div>
-                                    <div class="font-weight-bold text-warning">{{ support_email or 'support@gangsofpalestine.com' }}</div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-lg-4">
-                <div class="card bg-dark border-warning shadow-lg h-100">
-                    <div class="card-body">
-                        <h3 class="text-warning font-weight-bold mb-3"><i class="fas fa-bolt mr-2"></i>{{ _('حدث العالم') }}</h3>
-                        <p class="mb-2 text-light font-weight-bold">
-                            {{ world_event.title if world_event and world_event.title else _('لا يوجد حدث نشط حاليًا') }}
-                        </p>
-                        <p class="text-muted small mb-0">
-                            {% if world_event and world_event.description %}
-                                {{ world_event.description }}
-                            {% else %}
-                                {{ _('تحديثات اللعبة تتغير حسب الموسم والفرص الحالية في المدينة.') }}
-                            {% endif %}
-                        </p>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
 
     <div class="container mb-5">
         <div class="row">
@@ -496,15 +412,9 @@
                 <div class="text-light lead lead-story">
                     <p>
                         {{ _('في أزقة المخيمات وشوارع المدن القديمة، حيث القانون هو قانون القوة...') }}
-                        <br>
                         {{ _('بدأت رحلتك كشاب طموح يبحث عن لقمة العيش، لكن الظروف قادتك إلى عالم الجريمة المظلم.') }}
-                    </p>
-                    <p>
                         {{ _('من رام الله إلى نابلس، ومن الخليل إلى جنين، تتصارع العائلات والعصابات للسيطرة على الموارد والنفوذ.') }}
                         <span class="text-gold font-weight-bold">{{ _('المال، السلاح، والاحترام') }}</span> {{ _('هي العملة الوحيدة هنا.') }}
-                    </p>
-                    <p class="mb-0">
-                        {{ _('هل ستكون مجرد بيدق في يد الكبار، أم ستصنع اسمك بالدم والذكاء لتصبح "الزعيم" الذي يهابه الجميع؟') }}
                         <br>
                         <i class="fas fa-skull text-danger mt-2"></i> {{ _('الخيار لك.. والموت يتربص بك عند كل زاوية.') }}
                     </p>
@@ -599,54 +509,6 @@
         </div>
     </div>
 
-    <!-- Public Access / Explore Section -->
-    <div class="container mb-5">
-        <div class="row justify-content-center text-center mb-4">
-            <div class="col-lg-8">
-                <h2 class="text-gold font-weight-bold">{{ _('استكشف العالم السفلي') }}</h2>
-                <p class="text-muted">{{ _('تصفح سجلات العصابات، قوائم الضحايا، وأحدث الأخبار دون الحاجة لتسجيل الدخول.') }}</p>
-            </div>
-        </div>
-        <div class="row">
-            <div class="col-6 col-md-3 mb-4">
-                <a href="{{ url_for('gang.index') }}" class="card bg-dark border-gold h-100 text-decoration-none hover-scale">
-                    <div class="card-body text-center">
-                        <i class="fas fa-users fa-3x text-gold mb-3"></i>
-                        <h5 class="text-white">{{ _('سجل العصابات') }}</h5>
-                        <p class="text-muted small mb-0">{{ _('تعرف على أقوى التحالفات') }}</p>
-                    </div>
-                </a>
-            </div>
-            <div class="col-6 col-md-3 mb-4">
-                <a href="{{ url_for('graveyard.index') }}" class="card bg-dark border-gold h-100 text-decoration-none hover-scale">
-                    <div class="card-body text-center">
-                        <i class="fas fa-skull-crossbones fa-3x text-danger mb-3"></i>
-                        <h5 class="text-white">{{ _('مقبرة الضحايا') }}</h5>
-                        <p class="text-muted small mb-0">{{ _('شاهد من خسر المعركة') }}</p>
-                    </div>
-                </a>
-            </div>
-            <div class="col-6 col-md-3 mb-4">
-                <a href="{{ url_for('main.organized_crimes') }}" class="card bg-dark border-gold h-100 text-decoration-none hover-scale">
-                    <div class="card-body text-center">
-                        <i class="fas fa-book-dead fa-3x text-info mb-3"></i>
-                        <h5 class="text-white">{{ _('دليل الجرائم') }}</h5>
-                        <p class="text-muted small mb-0">{{ _('سيناريوهات السطو والنهب') }}</p>
-                    </div>
-                </a>
-            </div>
-            <div class="col-6 col-md-3 mb-4">
-                <a href="{{ url_for('news.index') }}" class="card bg-dark border-gold h-100 text-decoration-none hover-scale">
-                    <div class="card-body text-center">
-                        <i class="fas fa-newspaper fa-3x text-success mb-3"></i>
-                        <h5 class="text-white">{{ _('الصحيفة اليومية') }}</h5>
-                        <p class="text-muted small mb-0">{{ _('آخر أخبار الشارع') }}</p>
-                    </div>
-                </a>
-            </div>
-        </div>
-    </div>
-
     <div class="container mb-5">
         <div class="row g-4 align-items-stretch">
             <div class="col-lg-7">
@@ -695,31 +557,53 @@
                 <h2 class="text-gold font-weight-bold mb-0">{{ _('المدينة تحفز كل قرار') }}</h2>
             </div>
             <div class="row g-4">
-                <div class="col-md-4 mb-4">
+                <div class="col-md-3 mb-4">
                     <div class="feature-card">
-                        <div class="feature-icon">
-                            <i class="fas fa-fist-raised"></i>
-                        </div>
+                        <div class="feature-icon"><i class="fas fa-fist-raised"></i></div>
                         <h3 class="feature-title">{{ _('سيطر') }}</h3>
                         <p class="feature-text">{{ _('قم بالجرائم، وسيطر على مناطق جديدة في القدس ورام الله ونابلس.') }}</p>
                     </div>
                 </div>
-                <div class="col-md-4 mb-4">
+                <div class="col-md-3 mb-4">
                     <div class="feature-card">
-                        <div class="feature-icon">
-                            <i class="fas fa-money-bill-wave"></i>
-                        </div>
+                        <div class="feature-icon"><i class="fas fa-money-bill-wave"></i></div>
                         <h3 class="feature-title">{{ _('اجمع الثروة') }}</h3>
                         <p class="feature-text">{{ _('تاجر، اشتري عقارات، واجمع الشواكل والماس لتصبح الأغنى.') }}</p>
                     </div>
                 </div>
-                <div class="col-md-4 mb-4">
+                <div class="col-md-3 mb-4">
                     <div class="feature-card">
-                        <div class="feature-icon">
-                            <i class="fas fa-users"></i>
-                        </div>
+                        <div class="feature-icon"><i class="fas fa-users"></i></div>
                         <h3 class="feature-title">{{ _('كوّن عصابتك') }}</h3>
                         <p class="feature-text">{{ _('تحالف مع أصدقائك وادخل في حروب عصابات طاحنة.') }}</p>
+                    </div>
+                </div>
+                <div class="col-md-3 mb-4">
+                    <div class="feature-card">
+                        <div class="feature-icon"><i class="fas fa-skull-crossbones"></i></div>
+                        <h3 class="feature-title">{{ _('مقبرة الضحايا') }}</h3>
+                        <p class="feature-text">{{ _('شاهد من خسر المعركة وشارك في سجلات العصابات.') }}</p>
+                    </div>
+                </div>
+                <div class="col-md-3 mb-4">
+                    <div class="feature-card">
+                        <div class="feature-icon"><i class="fas fa-book-dead"></i></div>
+                        <h3 class="feature-title">{{ _('دليل الجرائم') }}</h3>
+                        <p class="feature-text">{{ _('سيناريوهات السطو والنهب.') }}</p>
+                    </div>
+                </div>
+                <div class="col-md-3 mb-4">
+                    <div class="feature-card">
+                        <div class="feature-icon"><i class="fas fa-newspaper"></i></div>
+                        <h3 class="feature-title">{{ _('الصحيفة اليومية') }}</h3>
+                        <p class="feature-text">{{ _('آخر أخبار الشارع.') }}</p>
+                    </div>
+                </div>
+                <div class="col-md-3 mb-4">
+                    <div class="feature-card">
+                        <div class="feature-icon"><i class="fas fa-comments"></i></div>
+                        <h3 class="feature-title">{{ _('غرف الدردشة') }}</h3>
+                        <p class="feature-text">{{ _('تعرف على لاعبين جدد.') }}</p>
                     </div>
                 </div>
             </div>
