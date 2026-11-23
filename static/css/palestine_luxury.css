@@ -6694,6 +6694,35 @@ html body:has(.gop-login-page) .main-sidebar.main-sidebar {
     gap: 12px !important;
     margin-top: 1.25rem !important;
 }
+
+/* Smaller images to save vertical space */
+.gop-landing-page .yasmin-welcome-container img,
+.gop-landing-page .hostess-system-art img,
+.gop-landing-page .ai-avatar-shell img {
+    max-height: 260px !important;
+    width: auto !important;
+}
+.gop-landing-page .hostess-system-art {
+    max-height: 180px !important;
+    overflow: hidden !important;
+}
+.gop-landing-page .hostess-system-card .hostess-system-body {
+    padding: 10px !important;
+}
+.gop-landing-page .feature-card {
+    padding: 14px !important;
+}
+.gop-landing-page .mini-console {
+    padding: 8px !important;
+}
+.gop-landing-page .mini-console-icon {
+    font-size: 1.1rem !important;
+}
+
+/* Tighter section spacing */
+.gop-landing-page .container { margin-bottom: 1.25rem !important; }
+.gop-landing-page .landing-hero { padding-top: 1.5rem !important; padding-bottom: 1.5rem !important; }
+.gop-landing-page .hero-content { padding-top: 0.5rem !important; }
 .gop-landing-page .hero-metric-card {
     background: rgba(255, 255, 255, 0.06) !important;
     border: 1px solid rgba(212, 175, 55, 0.25) !important;
