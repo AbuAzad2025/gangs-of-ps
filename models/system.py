@@ -48,6 +48,7 @@ DEFAULT_SYSTEM_CONFIG = {
     "early_game_maintenance_grace_level": "3",
     "early_game_maintenance_discount_pct": "0.5",
     "global_data_cache_seconds": "5",
+    "google_site_verification": "",
 }
 
 

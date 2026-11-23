@@ -36,6 +36,19 @@ class SEOManager:
         g.seo_description = value
 
     @property
+    def verification(self):
+        """Google Search Console verification token, if configured.
+
+        Set via developer settings -> SystemConfig key 'google_site_verification'.
+        No code change or redeploy needed when the token changes.
+        """
+        try:
+            from models.system import SystemConfig
+            return SystemConfig.get_value('google_site_verification', '') or ''
+        except Exception:
+            return ''
+
+    @property
     def keywords(self):
         # Enhanced keywords for better visibility on Google and YouTube
         default_keywords = _(

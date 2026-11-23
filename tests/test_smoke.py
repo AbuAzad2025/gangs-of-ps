@@ -55,3 +55,17 @@ def test_health_endpoint(client):
     assert payload['database'] in {'ok', 'unavailable'}
     assert 'app_name' in payload
     assert 'app_version' in payload
+
+
+def test_seo_endpoints_and_verification_meta(client):
+    home = client.get('/')
+    assert home.status_code == 200
+    assert b'name="google-site-verification"' in home.data
+
+    robots = client.get('/robots.txt')
+    assert robots.status_code == 200
+    assert b'Sitemap:' in robots.data
+
+    sitemap = client.get('/sitemap.xml')
+    assert sitemap.status_code == 200
+    assert b'<urlset' in sitemap.data
