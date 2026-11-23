@@ -3,10 +3,14 @@ from __future__ import annotations
 
 from urllib.parse import quote
 
-# Developer WhatsApp for diamond purchases (real money — outside the game)
-SUPPORT_WHATSAPP_NUMBER = '970598953362'
-SUPPORT_WHATSAPP_DISPLAY = '+970598953362'
+# Developer contact (real money — outside the game)
+# Developer WhatsApp (Israel number, +972)
+SUPPORT_WHATSAPP_NUMBER = '972562150193'
+SUPPORT_WHATSAPP_DISPLAY = '+972562150193'
 SUPPORT_WHATSAPP_URL = f'https://wa.me/{SUPPORT_WHATSAPP_NUMBER}'
+
+# Developer bank IBAN for donations / transfers
+DEVELOPER_IBAN = 'PS54 TNBC 0204 0037 4080 0320 0000 0'
 
 
 def whatsapp_diamond_message(username: str, amount_usd: int | None = None) -> str:

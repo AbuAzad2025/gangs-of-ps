@@ -654,6 +654,11 @@ def create_app(config_class=Config):
     @app.context_processor
     def inject_social_links():
         from models.system import SystemConfig
+        from services.economy_policy import (
+            SUPPORT_WHATSAPP_NUMBER,
+            SUPPORT_WHATSAPP_DISPLAY,
+            DEVELOPER_IBAN,
+        )
         try:
             return dict(
                 discord_link=SystemConfig.get_value(
@@ -667,13 +672,24 @@ def create_app(config_class=Config):
                     app.config.get("TWITTER_LINK")),
                 instagram_link=SystemConfig.get_value(
                     "instagram_link",
-                    app.config.get("INSTAGRAM_LINK")))
+                    app.config.get("INSTAGRAM_LINK")),
+                developer_whatsapp=SystemConfig.get_value(
+                    "support_whatsapp_number", SUPPORT_WHATSAPP_NUMBER),
+                developer_whatsapp_display=(
+                    '+' + str(SystemConfig.get_value(
+                        "support_whatsapp_number", SUPPORT_WHATSAPP_NUMBER)
+                    ).lstrip('+')),
+                developer_iban=SystemConfig.get_value(
+                    "developer_iban", DEVELOPER_IBAN))
         except Exception:
             return dict(
                 discord_link=app.config.get("DISCORD_INVITE_LINK"),
                 facebook_link=app.config.get("FACEBOOK_LINK"),
                 twitter_link=app.config.get("TWITTER_LINK"),
-                instagram_link=app.config.get("INSTAGRAM_LINK")
+                instagram_link=app.config.get("INSTAGRAM_LINK"),
+                developer_whatsapp=SUPPORT_WHATSAPP_NUMBER,
+                developer_whatsapp_display=SUPPORT_WHATSAPP_DISPLAY,
+                developer_iban=DEVELOPER_IBAN
             )
 
     # Context Processor for Global Data (Announcements & Ticker)

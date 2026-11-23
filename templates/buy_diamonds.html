@@ -39,7 +39,7 @@
                                 </div>
                                 <div class="card-body text-light">
                                     <p class="mb-2"><strong>{{ _('رقم الحساب:') }}</strong> <span class="text-gold font-weight-bold">37408</span></p>
-                                    <p class="text-break mb-2" style="font-family: monospace; font-size: 0.9rem;"><strong>IBAN:</strong> <span class="text-white-50">PS54 TNBC 0204 0037 4080 0320 0000 0</span></p>
+                                    <p class="text-break mb-2" style="font-family: monospace; font-size: 0.9rem;"><strong>IBAN:</strong> <span class="text-white-50">{{ developer_iban }}</span></p>
                                     <p class="mb-0"><strong>{{ _('الاسم:') }}</strong> <span class="text-gold">Ahmad Gh</span></p>
                                 </div>
                             </div>
@@ -50,7 +50,7 @@
                                     <h4 class="text-success mb-0"><i class="fas fa-mobile-alt mr-2"></i> {{ _('المحافظ الإلكترونية') }}</h4>
                                 </div>
                                 <div class="card-body text-light">
-                                    <p class="mb-2"><strong>{{ _('جوال باي:') }}</strong> <span class="text-success font-weight-bold">00970598953362</span></p>
+                                    <p class="mb-2"><strong>{{ _('جوال باي:') }}</strong> <span class="text-success font-weight-bold">{{ developer_whatsapp_display }}</span></p>
                                     <p class="mb-0"><strong>{{ _('رقم التواصل:') }}</strong> <span class="text-white-50">{{ whatsapp_display }}</span></p>
                                 </div>
                             </div>
@@ -132,6 +132,7 @@
 <script>
 (function () {
     var username = {{ current_user.username|tojson }};
+    var waNumber = {{ developer_whatsapp|tojson }};
     var cta = document.getElementById('whatsapp-diamond-cta');
     var amountField = document.getElementById('amount_usd_field');
     if (!cta || !amountField) return;
@@ -146,7 +147,7 @@
             lines.push('المبلغ المطلوب: ' + amt + '$');
         }
         lines.push('سأرسل إثبات التحويل بعد الدفع.');
-        return 'https://wa.me/970598953362?text=' + encodeURIComponent(lines.join('\n'));
+        return 'https://wa.me/' + waNumber + '?text=' + encodeURIComponent(lines.join('\n'));
     }
 
     function syncWa() {

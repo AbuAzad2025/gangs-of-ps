@@ -577,7 +577,7 @@ def unconfirmed():
     )
 
     whatsapp_number = SystemConfig.get_value(
-        'support_whatsapp_number', '970598953362')
+        'support_whatsapp_number', '972562150193')
     return render_template('unconfirmed.html', whatsapp_number=whatsapp_number)
 
 
