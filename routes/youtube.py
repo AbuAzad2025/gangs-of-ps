@@ -65,6 +65,22 @@ try:
             return comp
 
     _ch.ComponentHandler._getVideoComponent = _safe_get_video_component
+
+    # Same null-safety for shelf components, which can also be None.
+    _orig_shelf = _ch.ComponentHandler._getShelfComponent
+    def _safe_get_shelf_component(self, element):
+        try:
+            result = _orig_shelf(self, element)
+        except Exception:
+            result = None
+        if not isinstance(result, dict):
+            result = {}
+        if not result.get('elements'):
+            result['elements'] = []
+        if 'title' not in result:
+            result['title'] = None
+        return result
+    _ch.ComponentHandler._getShelfComponent = _safe_get_shelf_component
 except Exception:
     pass
 
@@ -84,44 +100,50 @@ def search():
         logging.error("httpx version incompatible: %s", httpx.__version__)
         return jsonify({'error': _('خدمة البحث غير متاحة حالياً')}), 503
 
-    try:
-        # Search for videos (limit 10)
-        videos_search = VideosSearch(
-            query,
-            limit=10,
-            language='ar',
-            region='SA',
-        )
-        results = videos_search.result()
+    # Try the localized search first, then fall back to a neutral one if the
+    # upstream parser still rejects the payload (some queries/regions fail).
+    results = None
+    for kwargs in (
+        {'limit': 10, 'language': 'ar', 'region': 'SA'},
+        {'limit': 10, 'language': 'en', 'region': 'US'},
+        {'limit': 10},
+    ):
+        try:
+            videos_search = VideosSearch(query, **kwargs)
+            results = videos_search.result()
+            break
+        except Exception as exc:
+            logging.warning("YouTube search attempt failed (%s): %s", kwargs, exc)
+            results = None
 
-        videos = []
-        if 'result' in results:
-            for item in results['result']:
-                # Extract relevant info
-                try:
-                    video_id = item.get('id') or ''
-                    title = item.get('title') or ''
-                    thumbnails = item.get('thumbnails') or []
-                    thumbnail = ''
-                    if thumbnails and isinstance(thumbnails[0], dict):
-                        thumbnail = thumbnails[0].get('url') or ''
-                    duration = item.get('duration')
-                    channel = ''
-                    if isinstance(item.get('channel'), dict):
-                        channel = item['channel'].get('name') or ''
+    videos = []
+    if results and 'result' in results:
+        for item in results['result']:
+            # Extract relevant info
+            try:
+                video_id = item.get('id') or ''
+                title = item.get('title') or ''
+                thumbnails = item.get('thumbnails') or []
+                thumbnail = ''
+                if thumbnails and isinstance(thumbnails[0], dict):
+                    thumbnail = thumbnails[0].get('url') or ''
+                duration = item.get('duration')
+                channel = ''
+                if isinstance(item.get('channel'), dict):
+                    channel = item['channel'].get('name') or ''
 
-                    videos.append({
-                        'id': video_id,
-                        'title': title,
-                        'thumbnail': thumbnail,
-                        'duration': duration,
-                        'channel': channel
-                    })
-                except Exception:
-                    continue
+                videos.append({
+                    'id': video_id,
+                    'title': title,
+                    'thumbnail': thumbnail,
+                    'duration': duration,
+                    'channel': channel
+                })
+            except Exception:
+                continue
 
-        return jsonify({'results': videos})
+    return jsonify({'results': videos})
 
-    except Exception as exc:
-        logging.error("YouTube search error: %s", exc)
-        return jsonify({'error': _('حدث خطأ أثناء البحث')}), 500
+    # If every search attempt failed, degrade gracefully instead of 500.
+    logging.error("YouTube search failed for query %r", query)
+    return jsonify({'results': []})
