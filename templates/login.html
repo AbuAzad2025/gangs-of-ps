@@ -205,6 +205,9 @@
                             </div>
                             
                             <div class="text-center mt-3">
+                                <p class="mb-2">
+                                    <a href="{{ url_for('main.forgot_password') }}" class="auth-link small">{{ _('نسيت كلمة المرور؟') }}</a>
+                                </p>
                                 <p class="mb-0 text-light">
                                     {{ _('ليس لديك حساب؟') }} 
                                     <a href="{{ url_for('main.register', next=request.args.get('next')) }}" class="auth-link font-weight-bold">{{ _('سجل الآن') }}</a>

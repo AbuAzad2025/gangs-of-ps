@@ -55,6 +55,17 @@
                                     <span class="text-danger small mt-1 d-block">{{ error }}</span>
                                 {% endfor %}
                             </div>
+
+                            <div class="mb-4">
+                                {{ form.email.label(class="form-label text-gold") }}
+                                <div class="input-group">
+                                    <span class="input-group-text bg-dark border-secondary text-gold"><i class="fas fa-envelope"></i></span>
+                                    {{ form.email(class="form-control form-control-luxury", placeholder=_("azaadghannam@gmail.com")) }}
+                                </div>
+                                {% for error in form.email.errors %}
+                                    <span class="text-danger small mt-1 d-block">{{ error }}</span>
+                                {% endfor %}
+                            </div>
                             <div class="mb-4">
                                 {{ form.birthdate.label(class="form-label text-gold") }}
                                 <div class="input-group">

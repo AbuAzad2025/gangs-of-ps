@@ -3,16 +3,17 @@
 
 import os
 from services.resource_service import ResourceService
-from flask import render_template, redirect, url_for, flash, request, session, abort, Response, current_app
+from flask import render_template, render_template_string, redirect, url_for, flash, request, session, abort, Response, current_app
 from flask_login import login_user, logout_user, current_user, login_required
 from flask_babel import _
 from extensions import db, login, limiter, csrf, seo_manager
 from models import User, Referral, Gang, CombatLog, SystemConfig, UserRole, Hostess, UserLog
-from forms.auth import LoginForm, RegistrationForm
+from forms.auth import LoginForm, RegistrationForm, ForgotPasswordForm, ResetPasswordForm
 from . import bp
 from datetime import datetime, timezone, timedelta
 from sqlalchemy import func
-from .utils import generate_confirmation_token, confirm_token, send_email
+from .utils import (generate_confirmation_token, confirm_token, send_email,
+                    generate_password_reset_token, verify_password_reset_token)
 from captcha.image import ImageCaptcha
 import random
 import string
@@ -413,6 +414,8 @@ def register():
         user.set_password(form.password.data)
         user.birthdate = form.birthdate.data
         user.playstyle = (form.playstyle.data or 'fighter').strip().lower()
+        if form.email.data:
+            user.email = form.email.data.strip().lower()
         user.referral_code = secrets.token_hex(4)
         user.is_verified = True
         user.verified_on = datetime.now(timezone.utc)
@@ -465,6 +468,76 @@ def register():
         return redirect(url_for('main.login'))
 
     return render_template('register.html', title=_('إنشاء حساب'), form=form)
+
+
+@bp.route('/forgot_password', methods=['GET', 'POST'])
+def forgot_password():
+    if current_user.is_authenticated:
+        return redirect(url_for('main.hara'))
+    seo_manager.set(
+        title=_('استعادة كلمة المرور'),
+        description=_('استعادة كلمة المرور.'),
+        robots="noindex,nofollow",
+    )
+    form = ForgotPasswordForm()
+    if form.validate_on_submit():
+        email = (form.email.data or '').strip().lower()
+        user = User.query.filter(
+            func.lower(User.email) == email).first()
+        # Always flash success to avoid email enumeration
+        if user and user.email:
+            token = generate_password_reset_token(user.email)
+            reset_url = url_for(
+                'main.reset_password',
+                token=token,
+                _external=True)
+            html = render_template_string(
+                '''<div style="font-family:Arial,sans-serif;padding:20px;background:#111;color:#eee;">
+<h2 style="color:#d4af37;">Gangs of Palestine</h2>
+<p>مرحباً {{ username }},</p>
+<p>لقد طلبت إعادة تعيين كلمة المرور. اضغط على الرابط أدناه (صالح لمدة ساعة):</p>
+<p><a href="{{ reset_url }}" style="color:#d4af37;font-weight:bold;">{{ reset_url }}</a></p>
+<p>إذا لم تطلب هذا، تجاهل هذه الرسالة.</p>
+</div>''',
+                reset_url=reset_url,
+                username=user.username)
+            try:
+                send_email(user.email, _('إعادة تعيين كلمة المرور'), html)
+            except Exception as e:
+                current_app.logger.error(f"Reset email error: {e}")
+        flash(
+            _('إذا كان البريد مسجلاً، ستصلك رسالة с инструкциями.'),
+            'info')
+        return redirect(url_for('main.login'))
+    return render_template(
+        'forgot_password.html',
+        title=_('استعادة كلمة المرور'),
+        form=form)
+
+
+@bp.route('/reset_password/<token>', methods=['GET', 'POST'])
+def reset_password(token):
+    if current_user.is_authenticated:
+        return redirect(url_for('main.hara'))
+    email = verify_password_reset_token(token)
+    if not email:
+        flash(_('رابط الاستعادة غير صالح أو منتهي الصلاحية.'), 'danger')
+        return redirect(url_for('main.forgot_password'))
+    user = User.query.filter(
+        func.lower(User.email) == (email or '').lower()).first()
+    if not user:
+        flash(_('رابط الاستعادة غير صالح.'), 'danger')
+        return redirect(url_for('main.forgot_password'))
+    form = ResetPasswordForm()
+    if form.validate_on_submit():
+        user.set_password(form.password.data)
+        db.session.commit()
+        flash(_('تم تحديث كلمة المرور بنجاح. يمكنك تسجيل الدخول الآن.'), 'success')
+        return redirect(url_for('main.login'))
+    return render_template(
+        'reset_password.html',
+        title=_('إعادة تعيين كلمة المرور'),
+        form=form)
 
 
 @bp.route('/confirm/<token>')
