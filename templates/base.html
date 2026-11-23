@@ -11,7 +11,7 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
     
     <!-- SEO & Metadata (Dynamic) -->
-    <meta name="google-site-verification" content="{{ seo.verification or 'gq2rjpRvnsbDUDfJ_OUZ6FidXgvxgJN42vfK0UCzTd0' }}" />
+    {% if seo.verification %}<meta name="google-site-verification" content="{{ seo.verification }}" />{% endif %}
     <meta name="description" content="{{ seo.description }}">
     <meta name="robots" content="{{ seo.robots }}">
     <meta name="keywords" content="{{ seo.keywords }}">
