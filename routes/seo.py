@@ -65,6 +65,18 @@ def robots():
     return response
 
 
+@bp.route('/google8a1714ed6e039773.html')
+def google_verification_file():
+    """Serve Google Search Console's HTML verification token at the domain root.
+
+    Implemented as a route so no extra file is added to the repository.
+    """
+    response = make_response(
+        'google-site-verification: google8a1714ed6e039773.html\n')
+    response.headers['Content-Type'] = 'text/html; charset=utf-8'
+    return response
+
+
 @bp.route('/sitemap.xsl')
 @cache.cached(timeout=86400)
 def sitemap_xsl():

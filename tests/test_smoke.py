@@ -70,3 +70,7 @@ def test_seo_endpoints_and_verification_meta(client):
     assert sitemap.status_code == 200
     assert b'<urlset' in sitemap.data
     assert b'xml-stylesheet' not in sitemap.data
+
+    verify = client.get('/google8a1714ed6e039773.html')
+    assert verify.status_code == 200
+    assert b'google-site-verification: google8a1714ed6e039773.html' in verify.data
