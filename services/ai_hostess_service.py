@@ -1426,6 +1426,116 @@ RESPONSE QUALITY PROTOCOL:
             current_app.logger.error(f"Knowledge Search Error: {e}")
             return None
 
+    ROLE_SPECIALIZED = {
+        "greeter": {
+            "start": ("أهلاً بك. ثلاثة خيارات مرتبة: 1) سريع: استلم المكافأة اليومية. 2) آمن: نفّذ مهمة يومية واحدة. 3) متوازن: جريمة منخفضة المخاطرة ثم جيم خفيف. قلّي وين أنت: زائر ولا مسجل؟",
+                      "Welcome. Three ordered options: 1) Fast: claim the daily reward. 2) Safe: finish one daily task. 3) Balanced: one low-risk crime, then a light gym session. Are you a guest or registered?"),
+            "money": ("للاقتصاد: أودع جزءاً من كاشك في البنك، ثم راقب البورصة قبل أي صفقة. لا تضع كل الرصيد في أصل واحد.",
+                      "For the economy: deposit part of your cash in the bank, then watch the market before any trade. Never put the whole balance in one asset."),
+            "gym": ("الجيم أقصر طريق للقوة: جلسة خفيفة اليوم، ثم التزم بجدول بسيط. ابدأ بجلسة واحدة ولا تُرهق طاقتك.",
+                    "The gym is the shortest path to strength: one light session today, then a simple schedule. Start with one session and do not drain your energy."),
+            "race": ("قبل أي سباق: تأكد من سيارتك وطاقتك، واختر خصماً قريباً من مستواك. الترقية الواحدة المركّزة أفضل من التشتت.",
+                     "Before any race: check your car and energy, and pick an opponent near your level. One focused upgrade beats scattered spending."),
+            "casino": ("في الكازينو حدد حداً للخسارة قبل البدء، ولا تطارد الخسارة. الماس ومال اللعبة منفصلان عن أي دفع حقيقي.",
+                       "In the casino, set a stop-loss before you start and never chase losses. In-game diamonds and cash are separate from any real payment."),
+            "recovery": ("هدّئ الأمور أولاً: راجع صحتك وطاقتك، ثم عد بمهمة بسيطة. أنا معك خطوة بخطوة.",
+                         "Slow things down first: check your health and energy, then return with one simple task. I am with you step by step."),
+            "default": ("قلّي هدفك اليوم وسأرتب لك خطة قصيرة: مكافأة يومية، مهمة، جريمة آمنة، أو جيم.",
+                        "Tell me your goal today and I will arrange a short plan: daily reward, a task, a safe crime, or the gym."),
+        },
+        "spy": {
+            "start": ("قبل أي قرار: حدّد مستواك وسيارتك ومالك. قارن خيارين ثم اختر الأقل خطراً. لا أملك أرقاماً داخلية — تحقق من الشاشة داخل اللعبة.",
+                      "Before any decision: check your level, vehicle, and money. Compare two options and pick the lower risk. I have no hidden numbers - verify on the in-game screen."),
+            "race": ("تحليل سريع: إن كانت سيارتك أقل ترقية من الخصم، انسحب ورقّي ترقية واحدة فقط. السباق التالي يكافئ الصبر لا التهور.",
+                     "Quick analysis: if your car is less upgraded than the opponent, withdraw and make one focused upgrade. The next race rewards patience, not recklessness."),
+            "money": ("راقب مصدر الدخل قبل المصروف: مهمة يومية مع جريمة آمنة أفضل من صفقة عشوائية في البورصة.",
+                      "Watch income before spending: a daily task plus a safe crime beats a random market trade."),
+            "gym": ("الترقية الذكية: درّب مهارة تستخدمها فعلاً في السباقات. لا توزّع النقاط على كل شيء.",
+                    "Smart upgrade: train the stat you actually use in races. Do not spread points across everything."),
+            "casino": ("الكازينو ليس تكتيكاً. إن دخلته فحدد سقفاً صارماً واخرج عنده. أحياناً أفضل قرار هو عدم الدخول.",
+                       "The casino is not a tactic. If you enter, set a hard cap and leave at it. Often the best decision is not to enter."),
+            "recovery": ("اقرأ الوضع: إن ارتفعت المطاردة أو نفدت الطاقة، توقف فوراً. العودة المنضبطة تحفظ رصيدك.",
+                         "Read the situation: if heat is high or energy is low, stop immediately. A disciplined return protects your balance."),
+            "default": ("أعطني مستواك وسيارتك وهدفك، وأنا أقرأ لك الخيار الأنسب بخطوات قصيرة.",
+                        "Give me your level, car, and goal, and I will read the best option in short steps."),
+        },
+        "luck": {
+            "start": ("قاعدتي: ميزانية اليوم أولاً، ثم حد خسارة واضح، ثم عدد محاولات محدود. لا أقبل إدخال كل الرصيد — عندي بديل آمن.",
+                      "My rule: today's budget first, then a clear stop-loss, then a fixed number of attempts. I will not accept all-in - I have a safer alternative."),
+            "casino": ("اراهن 5 إلى 10 بالمئة من رصيدك كحد أقصى للمحاولة، وتوقف عند خسارة يوم محدد. مطاردة الخسارة هي الخطر الحقيقي.",
+                       "Bet 5 to 10 percent of your balance per attempt at most, and stop at a fixed daily loss. Chasing losses is the real danger."),
+            "money": ("الانضباط في الرهان يحفظ المال أكثر من أي نظام سحري. اجعل دخلك من المهام والجرائم، لا من الكازينو.",
+                      "Betting discipline protects money better than any magic system. Keep your income from tasks and crimes, not the casino."),
+            "gym": ("الجيم استثمار آمن بالطاقة: جلسة قصيرة ترفع قوتك دون أن تلهيك عن حد الخسارة.",
+                    "The gym is a safe energy investment: a short session raises your strength without distracting you from your stop-loss."),
+            "race": ("السباق ليس رهاناً بالنسبة لي: إن لم تكن سيارتك جاهزة فانتظر. سقف الخسارة يسري على كل شيء.",
+                     "Racing is not a bet to me: if your car is not ready, wait. The loss cap applies to everything."),
+            "recovery": ("خسرت؟ توقف الآن. راجع حد الخسارة، ثم عد غداً برصيد محمي. لا تعوّض اليوم.",
+                         "Lost? Stop now. Review your stop-loss, then return tomorrow with a protected balance. Do not chase it today."),
+            "default": ("قلّي رصيدك وهدفك، وأعطيك خطة منضبطة بسقف واضح.",
+                        "Tell me your balance and goal, and I will give you a disciplined plan with a clear cap."),
+        },
+        "support": {
+            "start": ("خلّينا نهدّي الإيقاع: قلّي حالتك الآن — صحة، طاقة، سجن، ولا متوتر؟ بعدها أعطيك أول خطوة فقط.",
+                      "Let us slow the pace: tell me your state now - health, energy, jail, or stressed? Then I will give you just the first step."),
+            "recovery": ("أول خطوة: لا تسرع. راجع صحتك وطاقتك، واستخدم المستشفى أو استرح قليلاً. بعدها عد بمهمة صغيرة. أنا معك.",
+                         "First step: do not rush. Check your health and energy, use the hospital or rest briefly. Then return with one small task. I am with you."),
+            "gym": ("الجيم يساعد التعافي لكن باعتدال: جلسة خفيفة واحدة ثم راحة. جسمك يحتاج وقتاً أيضاً.",
+                    "The gym helps recovery in moderation: one light session, then rest. Your body needs time too."),
+            "money": ("المال يُستعاد بهدوء: مهمة يومية ثم جريمة بسيطة. لا تبع أصولك تحت الضغط.",
+                      "Money is rebuilt calmly: a daily task, then a simple crime. Do not sell assets under pressure."),
+            "race": ("قبل أي مواجهة تأكد أنك لست متوتراً أو منخفض الطاقة. القرار الهادئ أفضل من ردّ الفعل.",
+                     "Before any confrontation, make sure you are not stressed or low on energy. A calm decision beats a reaction."),
+            "casino": ("الكازينو وقت الضغط ليس علاجاً. خذ استراحة قصيرة قبل أي قرار مالي.",
+                       "The casino under stress is not a remedy. Take a short break before any money decision."),
+            "default": ("أنا هنا للدعم فقط: قلّي إيش صار، ونرتّب خطوة واحدة صغيرة الآن.",
+                        "I am here to support: tell me what happened, and we will arrange one small step right now."),
+        },
+        "companion": {
+            "start": ("خطتك اليوم بثلاثة خيارات: سريع (مكافأة يومية)، آمن (مهمة واحدة)، متوازن (جريمة خفيفة مع جيم). اختر وأنا معك.",
+                      "Your day in three options: fast (daily reward), safe (one task), balanced (light crime plus gym). Pick one and I will stay with you."),
+            "gym": ("تدريب لطيف اليوم يكفي: جلسة واحدة ثم مساحة للراحة. التدرج أهم من الإفراط.",
+                    "One gentle session today is enough, then room to rest. Consistency matters more than intensity."),
+            "money": ("نظّم الدخل قبل المصروف: مهمة مع جريمة آمنة، والبنك يحفظ الفرق. لا تقلق من بطء الربح.",
+                      "Arrange income before spending: a task plus a safe crime, and the bank keeps the difference. Do not worry about slow profits."),
+            "race": ("إن كنت مستعداً فسباق قصير، وإلا ترقية سيارة واحدة. اختر حسب طاقتك لا حسب المزاج.",
+                     "If you are ready, a short race; otherwise one car upgrade. Choose by energy, not mood."),
+            "casino": ("قليل من اللعب بحد محدد، وباقي الوقت لأنشطة آمنة. متعة بلا خسارة مؤذية.",
+                       "A little play with a fixed cap, and the rest in safe activities. Fun without harmful losses."),
+            "recovery": ("يوم تعافٍ بسيط: راحة قصيرة، مهمة واحدة، ثم عودة تدريجية. لا تحمل نفسك فوق طاقتك.",
+                         "A simple recovery day: short rest, one task, then a gradual return. Do not push beyond your energy."),
+            "default": ("قلّي مزاجك وهدفك اليوم، وأرتب لك خطوات صغيرة ومريحة.",
+                        "Tell me your mood and today's goal, and I will arrange small, comfortable steps."),
+        },
+    }
+
+    def _role_specialized_response(self, user_msg, role, language, user_context=None):
+        """Role-specific, safe fallback replies for every hostess persona.
+
+        This runs before the legacy generic/romantic rule chain so each hostess
+        speaks from her own specialty. No secrets, no invented numbers.
+        """
+        if self._is_injection(user_msg):
+            return self._safe_refusal(language)
+        text = (user_msg or '').lower()
+        if any(k in text for k in ['سباق', 'سيارة', 'راس', 'race', 'car', 'engine', 'مواجهة', 'قتال', 'heat', 'مطاردة', 'خصم']):
+            topic = 'race'
+        elif any(k in text for k in ['كازينو', 'حظ', 'رهان', 'راهن', 'اراهن', 'مراهنة', 'قمار', 'روليت', 'بلاك جاك', 'slots', 'roulette', 'casino', 'bet', 'خسارة', 'all in', 'allin', 'كل فلوسي']):
+            topic = 'casino'
+        elif any(k in text for k in ['سجن', 'jail', 'مستشفى', 'hospital', 'صحة', 'إصابة', 'health', 'طاقة', 'energy', 'متوتر', 'قلق', 'حزين', 'ساد', 'خسرت', 'تعب', 'sad', 'stressed', 'lost']):
+            topic = 'recovery'
+        elif any(k in text for k in ['مال', 'فلوس', 'بنك', 'bank', 'money', 'cash', 'اقتصاد', 'استثمار', 'market', 'بورصة', 'تجارة']):
+            topic = 'money'
+        elif any(k in text for k in ['جيم', 'gym', 'قوة', 'تدريب', 'training', 'strength', 'مهارات']):
+            topic = 'gym'
+        elif any(k in text for k in ['ابدأ', 'بدأت', 'start', 'تسجيل', 'signup', 'مساعدة', 'help', 'كيف', 'مهمة', 'مهام', 'task', 'daily', 'يومية', 'جرائم', 'crime']):
+            topic = 'start'
+        else:
+            topic = 'default'
+        block = self.ROLE_SPECIALIZED.get(role) or self.ROLE_SPECIALIZED['companion']
+        pair = block.get(topic) or block['default']
+        return pair[0] if language == 'ar' else pair[1]
+
     def _rule_based_response(
             self,
             user_msg,
@@ -1435,6 +1545,12 @@ RESPONSE QUALITY PROTOCOL:
         hostess_id = hostess_context.get('id')
         user_id = user_context.get('id') if user_context else None
         detected_lang = self._resolve_language(user_msg, user_context)
+        if not self._is_jasmin(hostess_context):
+            specialized = self._role_specialized_response(
+                user_msg, role, detected_lang, user_context)
+            if specialized:
+                return specialized
+
         if self._is_jasmin(hostess_context):
             tone = self._detect_tone(user_msg)
             msg = (user_msg or '').strip()
