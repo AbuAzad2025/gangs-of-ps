@@ -216,7 +216,7 @@ def _claim_rewards(user):
 
             flash(
                 _(
-                    'مبروك! وصلت للمستوى %(level)s! '
+                    'مبروك! وصلت للمستوى %(level)s!'
                     '<a href="%(url)s" target="_blank" class="btn btn-sm btn-success ml-2">'
                     '<i class="fab fa-whatsapp"></i> شارك</a>',
                     level=user.level,
@@ -370,7 +370,7 @@ def cancel_training():
                 return redirect(url_for('gym.index'))
             flash(
                 _(
-                    'تم إنهاء التمرين مبكراً. حصلت على %(exp)s خبرة و %(stat)s %(stat_name)s '
+                    'تم إنهاء التمرين مبكراً. حصلت على %(exp)s خبرة و %(stat)s %(stat_name)s'
                     'بناءً على المدة التي قضيتها.',
                     exp=partial_exp,
                     stat=earned_stat,

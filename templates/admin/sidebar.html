@@ -4,7 +4,7 @@
     <!-- Brand Logo -->
     <a href="/admin/" class="brand-link">
         <img src="{{ url_for('static', filename='images/azad_logo_white_on_dark.png') }}" alt="Logo" class="brand-image img-circle elevation-3" style="opacity: .8">
-        <span class="brand-text font-weight-light">Gangs Of Palestine</span>
+        <span class="brand-text font-weight-light">{{ _('عصابات فلسطين') if get_locale() == 'ar' else 'Gangs of Palestine' }}</span>
     </a>
 
     <!-- Sidebar -->
@@ -36,7 +36,7 @@
                             <a href="#" class="nav-link">
                                 <i class="nav-icon fas fa-folder"></i>
                                 <p>
-                                    {{ item.name }}
+                                    {{ _(item.name) }}
                                     <i class="right fas fa-angle-left"></i>
                                 </p>
                             </a>
@@ -46,7 +46,7 @@
                                         <li class="nav-item">
                                             <a href="{{ child.get_url() }}" class="nav-link">
                                                 <i class="far fa-circle nav-icon text-gold"></i>
-                                                <p>{{ child.name }}</p>
+                                                <p>{{ _(child.name) }}</p>
                                             </a>
                                         </li>
                                     {% endif %}
@@ -58,7 +58,7 @@
                             <li class="nav-item">
                                 <a href="{{ item.get_url() }}" class="nav-link">
                                     <i class="nav-icon fas fa-circle-notch"></i>
-                                    <p>{{ item.name }}</p>
+                                    <p>{{ _(item.name) }}</p>
                                 </a>
                             </li>
                         {% endif %}

@@ -55,7 +55,7 @@
                     <h5 class="text-white">{{ _('جاري البحث عن شريك...') }}</h5>
                 </div>
                 <div id="match-result" class="d-none">
-                    <img id="match-avatar" src="" class="rounded-circle border border-gold mb-3" width="100" height="100">
+                    <img id="match-avatar" src="{{ url_for('static', filename='images/avatars/default.png') }}" class="rounded-circle border border-gold mb-3" width="100" height="100">
                     <h4 id="match-username" class="text-gold mb-1"></h4>
                     <p id="match-details" class="text-muted mb-4"></p>
                     

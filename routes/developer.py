@@ -289,7 +289,7 @@ def delete_backup(filename):
 def run_migrations():
     try:
         upgrade()
-        flash(_('تم تحديث قاعدة البيانات بنجاح (Migrations Applied).'), 'success')
+        flash(_('تم تحديث قاعدة البيانات بنجاح.'), 'success')
     except Exception as e:
         flash(_('فشل تحديث قاعدة البيانات: %(error)s', error=str(e)), 'danger')
     return redirect(url_for('main.dev_dashboard'))
@@ -429,7 +429,7 @@ def dev_user_delete(id):
     if user.gang and user.gang.leader_id == user.id:
         flash(
             _(
-                'لا يمكن حذف المستخدم %(username)s لأنه قائد عصابة %(gang_name)s. '
+                'لا يمكن حذف المستخدم %(username)s لأنه قائد عصابة %(gang_name)s.'
                 'يرجى نقل القيادة أو حذف العصابة أولاً.',
                 username=user.username,
                 gang_name=user.gang.name,
@@ -604,21 +604,21 @@ def dev_user_resurrect(id):
 @double_verification_required
 def dev_distribute_resources():
     resource_options = [
-        ("money", _("كاش (Money)")),
-        ("bank_balance", _("رصيد بنكي (Bank Balance)")),
-        ("diamonds", _("الماس (Diamonds)")),
-        ("bullets", _("رصاص (Bullets)")),
-        ("energy", _("طاقة (Energy)")),
-        ("max_energy", _("الحد الأقصى للطاقة (Max Energy)")),
-        ("health", _("صحة (Health)")),
-        ("max_health", _("الحد الأقصى للصحة (Max Health)")),
-        ("brave", _("شجاعة (Brave)")),
-        ("max_brave", _("الحد الأقصى للشجاعة (Max Brave)")),
-        ("strength", _("قوة (Strength)")),
-        ("defense", _("دفاع (Defense)")),
-        ("agility", _("رشاقة (Agility)")),
-        ("intelligence", _("ذكاء (Intelligence)")),
-        ("driving_skill", _("مهارة القيادة (Driving Skill)")),
+        ("money", _("كاش")),
+        ("bank_balance", _("رصيد بنكي")),
+        ("diamonds", _("الماس")),
+        ("bullets", _("رصاص")),
+        ("energy", _("طاقة")),
+        ("max_energy", _("الحد الأقصى للطاقة")),
+        ("health", _("صحة")),
+        ("max_health", _("الحد الأقصى للصحة")),
+        ("brave", _("شجاعة")),
+        ("max_brave", _("الحد الأقصى للشجاعة")),
+        ("strength", _("قوة")),
+        ("defense", _("دفاع")),
+        ("agility", _("رشاقة")),
+        ("intelligence", _("ذكاء")),
+        ("driving_skill", _("مهارة القيادة")),
     ]
     allowed_resource_types = {k for k, _label in resource_options}
 
@@ -678,7 +678,7 @@ def dev_distribute_resources():
         if reason_key == "real_money_purchase":
             if target_type != "user_id":
                 flash(
-                    _('عمليات المال الحقيقي يجب أن تكون للاعب محدد (User ID).'),
+                    _('عمليات المال الحقيقي يجب أن تكون للاعب محدد.'),
                     'danger')
                 return redirect(url_for('main.dev_distribute_resources'))
             try:
@@ -2749,7 +2749,7 @@ def dev_organized_crimes():
         'developer/organized_crimes.html',
         crimes=crimes,
         reqs_map=reqs_map,
-        title="Organized Crimes")
+        title=_('الجرائم المنظمة'))
 
 
 @bp.route('/developer/organized_crime/update/<int:id>', methods=['POST'])
@@ -3215,7 +3215,7 @@ def dev_bounties():
     return render_template(
         'developer/bounties.html',
         bounties=bounties,
-        title=_('إدارة المكافآت (Bounties)'))
+        title=_('إدارة المكافآت'))
 
 
 @bp.route('/developer/bounty/delete/<int:id>', methods=['POST'])
@@ -4266,11 +4266,9 @@ def dev_alerts():
         pct = (active_users / total_users) * 100
         alerts.append({
             'type': 'danger',
-            'title': 'انخفاض النشاط',
-            'message': (
-                f'نسبة المستخدمين النشطين منخفضة: '
-                f'{active_users}/{total_users} ({pct:.1f}%)'
-            ),
+            'title': _('انخفاض النشاط'),
+            'message': _('نسبة المستخدمين النشطين منخفضة: %(a)s/%(t)s (%(p)s%%)',
+                         a=active_users, t=total_users, p=f'{pct:.1f}'),
             'timestamp': datetime.now(timezone.utc)
         })
 

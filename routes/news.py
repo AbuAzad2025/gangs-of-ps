@@ -1,14 +1,14 @@
 from flask import Blueprint, render_template, abort, url_for
 from flask_babel import gettext as _
 from models import Announcement
-from extensions import db, seo_manager, limiter, cache
+from extensions import db, seo_manager, limiter, cache, locale_cache_key
 
 bp = Blueprint('news', __name__, url_prefix='/news')
 
 
 @bp.route('/')
 @limiter.limit("20 per minute")
-@cache.cached(timeout=300)
+@cache.cached(timeout=300, make_cache_key=locale_cache_key('news_index'))
 def index():
     # SEO
     seo_manager.set(
@@ -26,7 +26,7 @@ def index():
 
 @bp.route('/<int:id>')
 @limiter.limit("20 per minute")
-@cache.cached(timeout=300)
+@cache.cached(timeout=300, make_cache_key=locale_cache_key('news_detail'))
 def detail(id):
     announcement = db.session.get(Announcement, id)
     if not announcement:

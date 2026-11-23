@@ -36,7 +36,7 @@ def get_market_concepts() -> List[Dict[str, str]]:
         },
         {
             "icon": "fa-chart-pie",
-            "title": _msg("التنويع (Diversification)"),
+            "title": _msg("التنويع"),
             "body": _msg(
                 "لا تضع كل المال في أصل واحد. وزّع بين أسهم مستقرة وعملات متقلبة "
                 "ليقل خسارتك إذا هبط أصل واحد."
@@ -76,7 +76,7 @@ def get_market_concepts() -> List[Dict[str, str]]:
         },
         {
             "icon": "fa-exclamation-triangle",
-            "title": _msg("الرافعة المالية (Futures)"),
+            "title": _msg("الرافعة المالية"),
             "body": _msg(
                 "الرافعة تضخّم الربح والخسارة. في الواقع واللعبة: خطأ صغير قد يصفّر الهامش. "
                 "تعلّمها بعد إتقان الشراء والبيع العادي."
@@ -152,7 +152,7 @@ def analyze_portfolio(
     if largest_pct > 70:
         tips.append(
             _msg(
-                "أكثر من %(pct)s%% في أصل واحد (%(sym)s) — في السوق الحقيقي هذا خطر تركيز.",
+                "أكثر من %(pct)s%% في أصل واحد — في السوق الحقيقي هذا خطر تركيز.",
                 pct=largest_pct,
                 sym=rows[0]["symbol"],
             )

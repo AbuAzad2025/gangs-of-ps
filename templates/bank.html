@@ -79,7 +79,7 @@
                 </div>
                 <div class="d-flex justify-content-between align-items-center flex-wrap">
                     <span class="fee-simulator-result" data-fee-output>{{ "{:,}".format(bank_fee_preview.fee) }}$</span>
-                    <span class="text-muted small" data-fee-reason>{{ bank_fee_preview.reason }}</span>
+                    <span class="text-muted small" data-fee-reason>{{ (_('لا رسوم') if get_locale() == 'ar' else 'No Fee') if bank_fee_preview.reason == 'No Fee' else bank_fee_preview.reason }}</span>
                 </div>
                 <a href="{{ url_for('economy.academy') }}" class="btn btn-sm btn-outline-warning mt-3 btn-game">
                     <i class="fas fa-graduation-cap mr-1"></i> {{ _('مدرسة الحارة') }}

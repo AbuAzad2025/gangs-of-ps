@@ -17,8 +17,8 @@
                         <div class="form-group mr-2 mb-2">
                             <label class="sr-only">{{ _('النوع') }}</label>
                             <select name="item_type" class="form-control bg-dark text-white border-secondary" required>
-                                <option value="item">{{ _('عنصر (Item)') }}</option>
-                                <option value="vehicle">{{ _('مركبة (Vehicle)') }}</option>
+                                <option value="item">{{ _('عنصر') }}</option>
+                                <option value="vehicle">{{ _('مركبة') }}</option>
                             </select>
                         </div>
 
@@ -39,7 +39,7 @@
 
                         {{ submit_button(_('إنشاء'), btn_class='btn btn-warning mb-2', icon_class='fas fa-plus') }}
                     </form>
-                    <small class="text-muted">{{ _('تأكد من إدخال معرف (ID) صحيح من جدول Items أو Vehicles.') }}</small>
+                    <small class="text-muted">{{ _('تأكد من إدخال معرف صحيح من جدول Items أو Vehicles.') }}</small>
                 </div>
 
                 <div class="table-responsive">

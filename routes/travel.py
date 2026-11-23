@@ -24,7 +24,7 @@ bp = Blueprint('travel', __name__, url_prefix='/travel')
 @bp.route('/')
 @login_required
 def index():
-    if Location.query.filter(Location.name != 'Default City').count() == 0:
+    if Location.query.filter(Location.name != 'المدينة الافتراضية').count() == 0:
         from utils.essentials import initialize_locations
         initialize_locations()
         db.session.commit()
@@ -289,11 +289,11 @@ def fly(location_id):
                         user.id, {
                             'money': -bribe}, 'travel_bribe', auto_commit=False, expected_version=None):
                         msg_extra = random.choice([
-                            _(' 🛑 حاجز طيار! الجندي طلب هويتك وتصريح، دفعت %(bribe)s رشوة لتمشي.',
+                            _('🛑 حاجز طيار! الجندي طلب هويتك وتصريح، دفعت %(bribe)s رشوة لتمشي.',
                               bribe=bribe),
-                            _(' 🛑 حاجز طيار… شدّوا عليك شوي. دفعت %(bribe)s وكمّلت طريقك.',
+                            _('🛑 حاجز طيار… شدّوا عليك شوي. دفعت %(bribe)s وكمّلت طريقك.',
                               bribe=bribe),
-                            _(' 🛑 طلبوا تصريح/هوية… حلّيتها برشوة %(bribe)s ومشيت.',
+                            _('🛑 طلبوا تصريح/هوية… حلّيتها برشوة %(bribe)s ومشيت.',
                               bribe=bribe),
                         ])
                     else:
@@ -378,7 +378,7 @@ def fly(location_id):
                                              auto_commit=False,
                                              expected_version=None)
             msg_extra = _(
-                " 🧱 طلعولك مستوطنين ورموا حجار عالسيارة! انصبت وخسرت %(dmg)s من صحتك.",
+                "🧱 طلعولك مستوطنين ورموا حجار عالسيارة! انصبت وخسرت %(dmg)s من صحتك.",
                 dmg=real_damage)
 
     # 3. Occupation Raid (Iqtiham) - 5% chance (21-25)
@@ -419,7 +419,7 @@ def fly(location_id):
                                                  auto_commit=False,
                                                  expected_version=None)
                 msg_extra = _(
-                    " 💥 المدينة تتعرض لاقتحام! شاركت في المواجهات، تصاوبت (%(dmg)s-) بس كسبت خبرة مقاومة (%(xp)s+).",
+                    "💥 المدينة تتعرض لاقتحام! شاركت في المواجهات، تصاوبت بس كسبت خبرة مقاومة.",
                     dmg=real_damage,
                     xp=xp_gain)
 
@@ -480,7 +480,7 @@ def fly(location_id):
 
                 flash(
                     _(
-                        '🚜 حملة على السيارات المشطوبة! الجيش صادر سيارتك (%(car)s) ودمرها لأنها "غير قانونية". '
+                        '🚜 حملة على السيارات المشطوبة! الجيش صادر سيارتك ودمرها لأنها "غير قانونية".'
                         'راحت عليك!',
                         car=vehicle_name),
                     'danger')

@@ -3,7 +3,7 @@
 
 {% block content %}
 <div class="luxury-card fade-in-up">
-    {% call dev_card_header(_('إدارة مستوى المطاردة (Heat)'), icon_class='fas fa-fire', back_href=url_for('main.dev_dashboard'), back_text=_('عودة للوحة التحكم'), back_btn_class='btn btn-secondary btn-sm ml-2', back_icon_class=None, header_class='card-header border-gold', title_class='card-title text-gold') %}
+    {% call dev_card_header(_('إدارة مستوى المطاردة'), icon_class='fas fa-fire', back_href=url_for('main.dev_dashboard'), back_text=_('عودة للوحة التحكم'), back_btn_class='btn btn-secondary btn-sm ml-2', back_icon_class=None, header_class='card-header border-gold', title_class='card-title text-gold') %}
         {{ post_button(url_for('main.dev_heat_clear_all'), _('تصفير للكل'), btn_class='btn btn-danger btn-sm shadow', icon_class='fas fa-fire-extinguisher', confirm_text=_('هل أنت متأكد من تصفير الحرارة لجميع اللاعبين؟')) }}
     {% endcall %}
     <div class="card-body bg-dark text-light p-0">

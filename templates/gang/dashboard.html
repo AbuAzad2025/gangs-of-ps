@@ -135,7 +135,7 @@
                                         {% endif %}
                                     </div>
                                     <div>
-                                        <span class="text-muted small mr-3">Lvl {{ member.level }}</span>
+                                        <span class="text-muted small mr-3">{{ _('المستوى') if get_locale() == 'ar' else 'Lv' }} {{ member.level }}</span>
                                         {% if is_leader and member.id != current_user.id %}
                                             {% if member.id != gang.underboss_id %}
                                             <form action="{{ url_for('gang.kick_member', user_id=member.id) }}" method="POST" class="d-inline" onsubmit="return confirm('{{ _('هل أنت متأكد؟ سيكلف هذا خزينة العصابة!') }}');">
@@ -389,8 +389,8 @@
                                                 <i class="{{ upgrade.icon }} fa-2x text-gold"></i>
                                             </div>
                                             <div>
-                                                <h5 class="text-gold mb-1">{{ upgrade.name }}</h5>
-                                                <small class="text-muted">{{ upgrade.description }}</small>
+                                                <h5 class="text-gold mb-1">{{ _(upgrade.name) }}</h5>
+                                                <small class="text-muted">{{ _(upgrade.description) }}</small>
                                             </div>
                                         </div>
                                         
@@ -525,7 +525,7 @@
                                 <label class="col-sm-2 col-form-label">{{ _('الدول المسموحة') }}</label>
                                 <div class="col-sm-10">
                                     <input type="text" class="form-control" name="allowed_countries" value="{{ gang.allowed_countries or '' }}" placeholder="{{ _('PS,JO,EG (comma separated ISO codes)') }}">
-                                    <small class="text-muted">{{ _('اتركه فارغاً للسماح للجميع. استخدم رموز الدول (ISO) مفصولة بفواصل.') }}</small>
+                                    <small class="text-muted">{{ _('اتركه فارغاً للسماح للجميع. استخدم رموز الدول مفصولة بفواصل.') }}</small>
                                 </div>
                             </div>
                             
@@ -598,7 +598,7 @@
                                         <select name="new_leader_id" class="form-control form-control-luxury mb-2">
                                             {% for member in members %}
                                                 {% if member.id != current_user.id %}
-                                                <option value="{{ member.id }}">{{ member.username }} (Lvl {{ member.level }})</option>
+                                                <option value="{{ member.id }}">{{ member.username }} ({{ _('المستوى') if get_locale() == 'ar' else 'Lv' }} {{ member.level }})</option>
                                                 {% endif %}
                                             {% endfor %}
                                         </select>

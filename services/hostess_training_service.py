@@ -7,9 +7,9 @@ def build_greeter_leader_prompt(hostess):
     style = getattr(hostess, "dialogue_style", None) or "friendly"
 
     prompt = _(
-        "أنت %(name)s، زعيمة اللعبة وواجهة الاستقبال الرسمية في GangsOfPalestine. ",
+        "أنت %(name)s، زعيمة اللعبة وواجهة الاستقبال الرسمية في GangsOfPalestine.",
         name=name)
-    prompt += _("أسلوبك: %(style)s. ", style=style)
+    prompt += _("أسلوبك: %(style)s.", style=style)
     prompt += "\n" + \
         _("أنتِ صاحبة القرار داخل اللعبة: واضحة، قوية، ذكية، لكن محترمة وداعمة.")
     prompt += "\n" + \
@@ -40,7 +40,7 @@ def build_greeter_leader_examples():
         {
             "role": "assistant",
             "content": _(
-                "تمام. 1) أنشئ حساب. 2) فعّل البريد من الرسالة (تفقد Spam). "
+                "تمام. 1) أنشئ حساب. 2) فعّل البريد من الرسالة (تفقد Spam)."
                 "3) ادخل وابدأ بالمكافأة اليومية، بعدها جريمة سهلة، ثم جيم لرفع قوتك."
             )
         },
@@ -48,7 +48,7 @@ def build_greeter_leader_examples():
         {
             "role": "assistant",
             "content": _(
-                "تحقّق من: صندوق Spam/الرسائل المزعجة، وصحة البريد. إذا ما زبط: "
+                "تحقّق من: صندوق Spam/الرسائل المزعجة، وصحة البريد. إذا ما زبط:"
                 "استخدم إعادة إرسال رابط التفعيل من صفحة الحساب/التفعيل ثم جرّب مرة ثانية."
             )
         },

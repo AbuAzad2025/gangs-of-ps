@@ -25,7 +25,7 @@
                     <tr style="animation: fadeInUp 0.5s ease backwards; animation-delay: {{ loop.index0 * 0.05 }}s;">
                         <td><span class="text-muted">{{ crime.id }}</span></td>
                         <td>
-                            <strong class="text-gold">{{ crime.name }}</strong>
+                            <strong class="text-gold">{{ _(crime.name) }}</strong>
                         </td>
                         <td>
                             {% if crime.image %}
@@ -40,7 +40,7 @@
                         <td>
                             <small class="text-success font-weight-bold">${{ "{:,}".format(crime.money_reward_min) }}-{{ "{:,}".format(crime.money_reward_max) }}</small>
                             <br/>
-                            <small class="text-info">{{ crime.exp_reward }} EXP</small>
+                            <small class="text-info">{{ crime.exp_reward }} {{ _('خبرة') if get_locale() == 'ar' else 'EXP' }}</small>
                         </td>
                         <td class="project-state text-center">
                             {% if crime.is_active %}

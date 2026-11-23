@@ -91,11 +91,11 @@
                         <div class="d-flex gap-3 justify-content-center">
                             <form action="{{ url_for('casino.blackjack_hit') }}" method="post">
                                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                                <button type="submit" class="btn btn-success btn-lg px-4">{{ _('اسحب (Hit)') }}</button>
+                                <button type="submit" class="btn btn-success btn-lg px-4">{{ _('اسحب') }}</button>
                             </form>
                             <form action="{{ url_for('casino.blackjack_stand') }}" method="post">
                                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                                <button type="submit" class="btn btn-danger btn-lg px-4">{{ _('توقف (Stand)') }}</button>
+                                <button type="submit" class="btn btn-danger btn-lg px-4">{{ _('توقف') }}</button>
                             </form>
                         </div>
                     {% endif %}

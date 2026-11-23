@@ -267,7 +267,7 @@ def login():
             if not user.is_verified and user.role not in privileged_roles:
                 session['unverified_user_id'] = user.id
                 flash(
-                    _('يجب عليك تفعيل بريدك الإلكتروني أولاً. تفقد صندوق الوارد أو الرسائل المزعجة (Spam).'),
+                    _('يجب عليك تفعيل بريدك الإلكتروني أولاً. تفقد صندوق الوارد أو الرسائل المزعجة.'),
                     'warning')
                 return redirect(url_for('main.unconfirmed'))
 

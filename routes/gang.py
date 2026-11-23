@@ -472,7 +472,7 @@ def kick_member(user_id):
         penalty_cost = 0
 
     if gang.money < penalty_cost:
-        flash(_('خزينة العصابة لا تكفي لدفع مستحقات الطرد! (%(cost)s$)',
+        flash(_('خزينة العصابة لا تكفي لدفع مستحقات الطرد!',
               cost=penalty_cost), 'warning')
         return redirect(url_for('gang.dashboard'))
 
@@ -1205,7 +1205,7 @@ def do_organized_crime(crime_id):
         if elapsed < timedelta(hours=crime.cooldown_hours):
             wait_hours = crime.cooldown_hours - \
                 (elapsed.total_seconds() / 3600)
-            flash(_('العصابة في فترة راحة. يجب الانتظار %(hours).1f ساعة.',
+            flash(_('العصابة في فترة راحة. يجب الانتظار %.1f ساعة.',
                   hours=wait_hours), 'warning')
             return redirect(url_for('gang.organized_crimes'))
 
@@ -1514,7 +1514,7 @@ def request_alliance(target_gang_id):
         GangAlliance.status == 'active').count()
 
     if my_active_count >= MAX_ALLIANCES:
-        flash(_('لقد وصلت عصابتك للحد الأقصى من التحالفات (%(max)s).',
+        flash(_('لقد وصلت عصابتك للحد الأقصى من التحالفات.',
               max=MAX_ALLIANCES), 'warning')
         return redirect(url_for('gang.index'))
 

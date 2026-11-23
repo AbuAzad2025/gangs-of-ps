@@ -55,8 +55,8 @@
 
         <!-- Footer -->
         <footer class="main-footer text-center">
-            <strong>Copyright &copy; {{ now.year if now else '2025' }} <a href="/">Gangs of Palestine</a>.</strong>
-            All rights reserved.
+            <strong>{{ _('جميع الحقوق محفوظة') if get_locale() == 'ar' else 'Copyright' }} &copy; {{ now.year if now else '2025' }} <a href="/">{{ _('عصابات فلسطين') if get_locale() == 'ar' else 'Gangs of Palestine' }}</a>.</strong>
+            {{ _('كل الحقوق محفوظة') if get_locale() == 'ar' else 'All rights reserved.' }}
         </footer>
     </div>
 {% endblock %}
@@ -69,8 +69,9 @@
 
     <!-- Admin Custom Scripts -->
     <script>
-        document.documentElement.setAttribute('dir', 'rtl');
-        document.body.setAttribute('dir', 'rtl');
+        var gopDir = '{{ 'rtl' if get_locale() == 'ar' else 'ltr' }}';
+        document.documentElement.setAttribute('dir', gopDir);
+        document.body.setAttribute('dir', gopDir);
 
         document.body.classList.add('sidebar-mini', 'layout-fixed');
 

@@ -36,7 +36,7 @@
                             {{ _('المكافأة المتوقعة:') }}
                             <span class="text-warning">+{{ active_data.stat_gain or 0 }}</span>
                             <span class="text-muted"> / </span>
-                            <span class="text-info">+{{ active_data.exp_gain or 0 }} XP</span>
+                            <span class="text-info">+{{ active_data.exp_gain or 0 }} {{ _('خبرة') if get_locale() == 'ar' else 'EXP' }}</span>
                         </div>
                         <div class="d-flex flex-wrap justify-content-center mt-2" style="gap:.5rem;">
                             <span class="gym-pill gym-pill-time">
@@ -156,10 +156,10 @@
                                 <span>
                                     <span class="d-flex align-items-center flex-wrap" style="gap:.4rem;">
                                         <span class="font-weight-bold text-white">{{ opt.label }}</span>
-                                        <span class="gym-pill gym-pill-plan bg-{{ plan_tone }}">{{ opt.key|upper }}</span>
+                                        <span class="gym-pill gym-pill-plan bg-{{ plan_tone }}">{{ opt.label }}</span>
                                         <span class="gym-pill gym-pill-time"><i class="far fa-clock mr-2"></i>{{ (opt.duration // 60) }} {{ _('د') }}</span>
                                     </span>
-                                    <span class="text-muted d-block mt-1">+{{ opt.gain }} {{ s.title }} • +{{ opt.exp }} XP</span>
+                                    <span class="text-muted d-block mt-1">+{{ opt.gain }} {{ s.title }} • +{{ opt.exp }} {{ _('خبرة') if get_locale() == 'ar' else 'EXP' }}</span>
                                 </span>
                                 <span class="text-nowrap">
                                     <span class="badge bg-dark border border-light text-light">{{ opt.energy_cost }}E</span>

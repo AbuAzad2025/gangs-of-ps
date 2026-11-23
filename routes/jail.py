@@ -1224,7 +1224,7 @@ def bribe():
         discount_percent = min(50, current_user.gang.level * 2)
         if discount_percent > 0:
             discount_msg = _(
-                ' (خصم %(percent)s%% من العصابة)',
+                '(خصم %(percent)s%% من العصابة)',
                 percent=discount_percent)
 
     if current_user.active_hostess_id and current_user.casino_luck_until:
@@ -1239,7 +1239,7 @@ def bribe():
                     (hostess.buff_value if hostess.buff_value else 0.1) * 100)
                 discount_percent = min(70, discount_percent + hostess_discount)
                 discount_msg = (
-                    discount_msg or "") + _(' (خصم %(percent)s%% من المضيفة)', percent=hostess_discount)
+                    discount_msg or "") + _('(خصم %(percent)s%% من المضيفة)', percent=hostess_discount)
 
     bribe_cost = max(1, int(base_bribe_cost * (1 - discount_percent / 100)))
 
@@ -1311,7 +1311,7 @@ def pay_bail(prisoner_id):
         discount_percent = min(50, current_user.gang.level * 2)
         if discount_percent > 0:
             discount_msg = _(
-                ' (خصم %(percent)s%% من العصابة)',
+                '(خصم %(percent)s%% من العصابة)',
                 percent=discount_percent)
 
     if current_user.active_hostess_id and current_user.casino_luck_until:
@@ -1326,7 +1326,7 @@ def pay_bail(prisoner_id):
                     (hostess.buff_value if hostess.buff_value else 0.1) * 100)
                 discount_percent = min(70, discount_percent + hostess_discount)
                 discount_msg = (
-                    discount_msg or "") + _(' (خصم %(percent)s%% من المضيفة)', percent=hostess_discount)
+                    discount_msg or "") + _('(خصم %(percent)s%% من المضيفة)', percent=hostess_discount)
 
     bail_cost_diamonds = max(
         1, int(base_bail_cost * (1 - discount_percent / 100)))

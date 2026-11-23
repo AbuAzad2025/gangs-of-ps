@@ -403,7 +403,7 @@ def process_expired_auctions():
                             recipient_id=seller.id,
                             subject=_("تم بيع الغرض في المزاد"),
                             body=_(
-                                "تم بيع غرضك بسعر %(price)s. تم خصم ضريبة سوق %(tax)s (%(rate)s%%). "
+                                "تم بيع غرضك بسعر %(price)s. تم خصم ضريبة سوق %(tax)s."
                                 "صافي الربح: %(net)s",
                                 price=highest_bid.amount,
                                 tax=tax_amount,
@@ -1429,7 +1429,7 @@ def buy_bullets():
             remaining = max(0, limit - effective_daily_purchased)
             flash(
                 _(
-                    'لقد تجاوزت الحد اليومي لشراء الرصاص بالكاش! (%(limit)s). المتبقي لك اليوم: %(rem)s',
+                    'لقد تجاوزت الحد اليومي لشراء الرصاص بالكاش!. المتبقي لك اليوم: %(rem)s',
                     limit=limit,
                     rem=remaining),
                 'danger')

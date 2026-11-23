@@ -83,7 +83,7 @@
           {% if story.stats.exp is not none %}
             <span class="badge badge-info">
               <i class="fas fa-star mr-1"></i>
-              <span class="story-stat-counter" data-count-to="{{ story.stats.exp }}" data-count-prefix="+">0</span> EXP
+              <span class="story-stat-counter" data-count-to="{{ story.stats.exp }}" data-count-prefix="+">0</span> {{ _('خبرة') if get_locale() == 'ar' else 'EXP' }}
             </span>
           {% endif %}
           {% if story.stats.money_lost is not none %}

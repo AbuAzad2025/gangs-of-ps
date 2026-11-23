@@ -66,4 +66,4 @@ class LocationControl(db.Model):
 
 @event.listens_for(Location.__table__, 'after_create')
 def _seed_default_location(target, connection, **kw):
-    connection.execute(target.insert().values(name='Default City'))
+    connection.execute(target.insert().values(name='المدينة الافتراضية'))

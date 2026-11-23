@@ -185,7 +185,7 @@
                     {% endif %}
                     <div class="crime-stat-row">
                         <span class="crime-stat-label"><i class="fas fa-star text-info mr-1"></i> {{ _('الخبرة') }}</span>
-                        <span class="crime-stat-value text-info">{{ crime.exp_reward }} EXP</span>
+                        <span class="crime-stat-value text-info">{{ crime.exp_reward }} {{ _('خبرة') if get_locale() == 'ar' else 'EXP' }}</span>
                     </div>
                     
                     <!-- Requirements Section -->

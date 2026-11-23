@@ -255,7 +255,7 @@ def index():
         "Gangs of Palestine, Palestine Mafia Game, Arab Mafia Game, Arabic Mafia Game, "
         "Arab Strategy Game, Arabic Strategy Game, Browser Game, Online RPG, Mafia Game"
     )
-    title = _("عصابات فلسطين | لعبة مافيا عربية ولعبة عصابات في فلسطين (Gangs of Palestine)")
+    title = _("عصابات فلسطين | لعبة مافيا عربية ولعبة عصابات في فلسطين")
     lang = request.args.get("lang")
     languages = current_app.config.get("LANGUAGES", ["ar", "en"])
     language_value = (

@@ -236,7 +236,7 @@ class HostessForm(FlaskForm):
         ('lingerie', _l('لانجري / مثير (Lingerie/Sexy)')),
         ('street', _l('ستريت وير / شورت جينز (Street/Shorts)')),
         ('traditional', _l('تقليدي / مطرز (Traditional)')),
-        ('cyberpunk', _l('سايبر بانك (Cyberpunk)')),
+        ('cyberpunk', _l('سايبر بانك')),
         ('bikini', _l('ملابس سباحة (Bikini)'))
     ], default='casual')
 
@@ -273,8 +273,8 @@ class HostessForm(FlaskForm):
 
 class SystemConfigForm(FlaskForm):
     key = StringField(_l('مفتاح الإعداد (Key)'), validators=[DataRequired()])
-    value = TextAreaField(_l('القيمة (Value)'), validators=[DataRequired()])
-    description = StringField(_l('الوصف (Description)'))
+    value = TextAreaField(_l('القيمة'), validators=[DataRequired()])
+    description = StringField(_l('الوصف'))
     submit = SubmitField(_l('حفظ الإعداد'))
 
 

@@ -24,8 +24,8 @@
             <table class="table luxury-table luxury-table-striped projects">
                 <thead>
                     <tr>
-                        <th style="width: 25%">{{ _('المفتاح (Key)') }}</th>
-                        <th style="width: 35%">{{ _('القيمة (Value)') }}</th>
+                        <th style="width: 25%">{{ _('المفتاح') }}</th>
+                        <th style="width: 35%">{{ _('القيمة') }}</th>
                         <th style="width: 25%">{{ _('الوصف') }}</th>
                         <th style="width: 15%"></th>
                     </tr>
@@ -35,8 +35,8 @@
                     <tr style="animation: fadeInUp 0.5s ease backwards; animation-delay: {{ loop.index0 * 0.03 }}s;">
                         <td><span class="text-gold font-weight-bold">{{ setting.key }}</span></td>
                         <td>
-                            <div style="max-width: 300px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="{{ setting.value }}">
-                                {{ setting.value }}
+                            <div style="max-width: 300px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="{{ _(setting.value) }}">
+                                {{ _(setting.value) }}
                             </div>
                         </td>
                         <td><span class="text-muted">{{ setting.description or '-' }}</span></td>

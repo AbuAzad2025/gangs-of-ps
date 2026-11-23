@@ -75,7 +75,7 @@ def staff_hub_links(user) -> List[Dict[str, Any]]:
         links.append({
             'url': '/admin/',
             'icon': 'fas fa-user-shield',
-            'label': _('لوحة التحكم (Admin)'),
+            'label': _('لوحة التحكم'),
             'css': 'text-danger',
         })
 

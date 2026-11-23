@@ -50,7 +50,7 @@ def check_requirements(user, req):
 
     min_tier = req.get("min_tier")
     if min_tier and tier_rank(tier) < tier_rank(min_tier):
-        reasons.append(_('تحتاج رتبة أعلى (%(tier)s).', tier=min_tier))
+        reasons.append(_('تحتاج رتبة أعلى.', tier=min_tier))
         missing.append("tier")
 
     min_level = _as_int(req.get("min_level"))

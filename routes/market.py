@@ -1,7 +1,7 @@
 from flask import Blueprint, render_template, redirect, url_for, flash, request, jsonify, current_app, abort
 from flask_login import login_required, current_user
 from flask_babel import _
-from extensions import db, limiter, cache
+from extensions import db, limiter, cache, locale_cache_key
 from models.market import MarketAsset, UserInvestment, FuturesPosition, SpotOrder
 from models.user import User
 from models.social import Message
@@ -99,7 +99,7 @@ def liquidate_position(position, current_price):
             receiver_id=pos_locked.user_id,
             subject=_('تصفية قسرية: عقد %(sym)s', sym=pos_locked.asset.symbol),
             body=_(
-                'للأسف، تم تصفية صفقتك (Liquidation) على سعر %(price)s. خسرت الهامش بالكامل.',
+                'للأسف، تم تصفية صفقتك على سعر %(price)s. خسرت الهامش بالكامل.',
                 price=current_price),
             delivery_time=datetime.now(timezone.utc)
         )
@@ -441,7 +441,7 @@ def trade(asset_id):
 
 @bp.route('/history/<symbol>')
 @login_required
-@cache.cached(timeout=300)
+@cache.cached(timeout=300, make_cache_key=locale_cache_key('market_history'))
 def history(symbol):
     update_market_prices()
     allowed = MarketSimulationService.allowed_symbols()

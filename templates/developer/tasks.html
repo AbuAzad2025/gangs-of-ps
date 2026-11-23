@@ -25,12 +25,12 @@
                 <tr style="animation: fadeInUp 0.5s ease backwards; animation-delay: {{ loop.index0 * 0.05 }}s;">
                     <td><span class="text-muted">{{ task.id }}</span></td>
                     <td>
-                        <strong class="text-gold">{{ task.description }}</strong>
+                        <strong class="text-gold">{{ _(task.description) }}</strong>
                     </td>
                     <td><span class="badge bg-dark border border-secondary">{{ task.target_type }}</span></td>
                     <td><span class="text-info font-weight-bold">{{ task.target_count }}</span></td>
                     <td class="text-success">${{ "{:,}".format(task.reward_money) }}</td>
-                    <td class="text-warning">{{ task.reward_exp }} EXP</td>
+                    <td class="text-warning">{{ task.reward_exp }} {{ _('خبرة') if get_locale() == 'ar' else 'EXP' }}</td>
                     <td class="project-state">
                         {% if task.is_active %}
                         <span class="badge badge-success">{{ _('نشط') }}</span>

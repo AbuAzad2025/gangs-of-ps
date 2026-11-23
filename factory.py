@@ -770,19 +770,22 @@ def create_app(config_class=Config):
         if not ticker_items:
             ticker_items.append({'type': 'tip', 'text': _(
                 "💡 نصيحة: قم بزيارة الجيم لزيادة قوتك!")})
+            ar = get_locale() == 'ar'
             ticker_items.append(
                 {
                     'type': 'announcement',
                     'text': (
-                        "📢 اللاعبين الكرام: لا تترددوا في طلب مزايا وتحديثات للعبة، نحن بخدمتكم. "
-                        "| Dear players: Do not hesitate to request game features and updates, we are at your service."
+                        "📢 اللاعبين الكرام: لا تترددوا في طلب مزايا وتحديثات للعبة، نحن بخدمتكم."
+                        if ar else
+                        "📢 Dear players: do not hesitate to request game features and updates — we are at your service."
                     )})
             ticker_items.append(
                 {
                     'type': 'announcement',
                     'text': (
-                        "👨‍💻 للتواصل والاقتراحات: يرجى التواصل مع المطور أزاد. "
-                        "| For suggestions and contact: Please reach out to Developer Azad."
+                        "👨‍💻 للتواصل والاقتراحات: يرجى التواصل مع المطور أزاد."
+                        if ar else
+                        "👨‍💻 For suggestions and contact: please reach out to Developer Azad."
                     )})
 
         return dict(

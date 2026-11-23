@@ -27,7 +27,7 @@
 
 <div class="container fade-in">
     <div class="text-center mb-5">
-        <h2 class="text-gold display-5 fw-bold"><i class="fas fa-glass-martini-alt mr-2"></i> {{ _('نادي كبار الزوار (VIP Club)') }}</h2>
+        <h2 class="text-gold display-5 fw-bold"><i class="fas fa-glass-martini-alt mr-2"></i> {{ _('نادي كبار الزوار') }}</h2>
         <p class="text-muted">{{ _('اختر رفيقتك في عالم الجريمة. كل واحدة تملك مهارات خاصة تساعدك.') }}</p>
     </div>
 
@@ -65,7 +65,7 @@
                                 <i class="fas fa-comments"></i> {{ _('تحدث معها الآن') }}
                             </button>
                             <button class="btn btn-danger btn-lg rounded-pill shadow-lg" onclick="startCall('{{ active_h.name }}', '{{ active_h.image_path }}', '{{ active_h.video if active_h.is_avatar_active else '' }}')">
-                                <i class="fas fa-phone-alt"></i> {{ _('مكالمة صوتية (Voice Call)') }}
+                                <i class="fas fa-phone-alt"></i> {{ _('مكالمة صوتية') }}
                             </button>
                         </div>
                     </div>
@@ -184,7 +184,7 @@
     var isMicOn = false;
     var synth = window.speechSynthesis;
     const CALL_GREETING = {{ _('أهلاً يا روحي، اشتقت لك كثير. شو أخبارك اليوم؟')|tojson }};
-    const CALL_STATUS_CONNECTED = {{ _('متصل (Connected)')|tojson }};
+    const CALL_STATUS_CONNECTED = {{ _('متصل')|tojson }};
     const CALL_STATUS_CONNECTING = {{ _('جاري الاتصال...')|tojson }};
 
     function startCall(name, image, video) {

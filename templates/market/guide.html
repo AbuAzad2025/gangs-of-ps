@@ -19,8 +19,8 @@
                     {% for c in concepts %}
                     <div class="col-md-6 mb-3">
                         <div class="p-3 rounded h-100 bg-dark border border-secondary">
-                            <h6 class="text-gold"><i class="fas {{ c.icon }} mr-2"></i>{{ c.title }}</h6>
-                            <p class="text-muted small mb-0">{{ c.body }}</p>
+                            <h6 class="text-gold"><i class="fas {{ c.icon }} mr-2"></i>{{ _(c.title) }}</h6>
+                            <p class="text-muted small mb-0">{{ _(c.body) }}</p>
                         </div>
                     </div>
                     {% endfor %}
@@ -39,7 +39,7 @@
 
                 <div class="alert alert-secondary border-0">
                     <strong class="text-warning">{{ _('تنبيه:') }}</strong>
-                    {{ _('البيع (Short) الحقيقي يعني اقتراض الأصل وبيعه ثم إعادة شرائه لاحقاً. في اللعبة، البيع العادي يعني تصفية ما تملكه فقط — والفيوتشر للمتقدمين بعد فهم الرافعة.') }}
+                    {{ _('البيع الحقيقي يعني اقتراض الأصل وبيعه ثم إعادة شرائه لاحقاً. في اللعبة، البيع العادي يعني تصفية ما تملكه فقط — والفيوتشر للمتقدمين بعد فهم الرافعة.') }}
                 </div>
 
                 <div class="text-center mt-4">

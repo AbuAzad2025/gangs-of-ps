@@ -100,7 +100,7 @@
                         </div>
                         <div class="col-md-9">
                             {% if services_access.spy and services_access.spy.unlocked %}
-                                <h4 class="text-gold">{{ _('مخبر خاص (Private Detective)') }}</h4>
+                                <h4 class="text-gold">{{ _('مخبر خاص') }}</h4>
                                 <p class="text-muted">{{ _('استأجر مخبراً للتجسس على لاعب آخر. ستحصل على تقرير يتضمن موقعه، صحته، والذخيرة اللازمة للقضاء عليه.') }}</p>
                                 <p class="small text-info mb-3">
                                     <i class="fas fa-info-circle"></i> {{ _('التكلفة والوقت يعتمدان على مستواك ومستوى الهدف. التكلفة المبدئية: 5,000$.') }}
@@ -150,7 +150,7 @@
                         <i class="fas fa-home fa-4x text-warning"></i>
                     </div>
                     {% if services_access.safe_house and services_access.safe_house.unlocked %}
-                        <h4 class="text-gold">{{ _('منزل آمن (Safe House)') }}</h4>
+                        <h4 class="text-gold">{{ _('منزل آمن') }}</h4>
                         <p class="text-muted">{{ _('مكان سري للاختباء. يمنع أي هجوم عليك لمدة 24 ساعة.') }}</p>
                         <h3 class="text-success mb-3">$50,000</h3>
                     {% else %}
@@ -192,7 +192,7 @@
                         <i class="fas fa-user-secret fa-4x text-light"></i>
                     </div>
                     {% if services_access.disguise and services_access.disguise.unlocked %}
-                        <h4 class="text-gold">{{ _('قناع التخفي (Disguise)') }}</h4>
+                        <h4 class="text-gold">{{ _('قناع التخفي') if get_locale() == 'ar' else 'Disguise Kit' }}</h4>
                         <p class="text-muted">{{ _('هاجم أعداءك دون كشف هويتك لمدة ساعة واحدة.') }}</p>
                         <h3 class="text-success mb-3">$10,000</h3>
                     {% else %}

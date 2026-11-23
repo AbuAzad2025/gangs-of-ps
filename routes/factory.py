@@ -170,7 +170,7 @@ def _check_requirements(user, req, tier):
     reasons = []
     min_tier = req.get("min_tier")
     if min_tier and _tier_rank(tier) < _tier_rank(min_tier):
-        reasons.append(_('تحتاج رتبة أعلى (%(tier)s).', tier=min_tier))
+        reasons.append(_('تحتاج رتبة أعلى.', tier=min_tier))
 
     min_intel = req.get("min_intelligence")
     if min_intel is not None:

@@ -153,7 +153,7 @@
                                     <div class="product-info">
                                         <a href="{{ url_for('main.profile', user_id=player.id) }}" class="product-title">
                                             {{ player.username }}
-                                            <span class="badge badge-info float-right">Lv.{{ player.level }}</span>
+                                            <span class="badge badge-info float-right">{{ _('المستوى') if get_locale() == 'ar' else 'Lv' }}.{{ player.level }}</span>
                                         </a>
                                         <span class="product-description">
                                             {{ _('اللقب:') }} {{ _(player.rank_title) }}

@@ -27,6 +27,23 @@ from flask_caching import Cache
 from utils.seo import SEOManager
 
 
+def locale_cache_key(prefix):
+    """Build a cache-key function that varies by the active UI language.
+
+    Cached page responses must not be shared between Arabic and English,
+    otherwise a visitor can receive the other language's markup and direction.
+    """
+    def _make_key():
+        try:
+            from flask_babel import get_locale
+            locale = str(get_locale())
+        except Exception:
+            locale = 'ar'
+        path = request.full_path if request else ''
+        return f"{prefix}:{locale}:{path}"
+    return _make_key
+
+
 def _patch_platform_for_restricted_windows():
     if sys.platform != "win32":
         return

@@ -1,6 +1,6 @@
 from flask import render_template, redirect, url_for, flash, abort, request, current_app, jsonify, session
 from flask_login import login_required, current_user
-from extensions import db, limiter, cache
+from extensions import db, limiter, cache, locale_cache_key
 from sqlalchemy import or_, func
 from sqlalchemy.exc import ProgrammingError, OperationalError
 from models import Gang, Message, User, Notification, CombatLog, Location, LocationControl
@@ -871,7 +871,7 @@ def edit_profile():
 
 @bp.route('/leaderboard')
 @limiter.limit("20 per minute")
-@cache.cached(timeout=300, query_string=True)
+@cache.cached(timeout=300, make_cache_key=locale_cache_key('leaderboard'))
 def leaderboard():
     try:
         from extensions import seo_manager

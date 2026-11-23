@@ -726,7 +726,7 @@ def ai_race():
             if used_today >= daily_limit:
                 flash(
                     _(
-                        'وصلت للحد اليومي لسباقات الكمبيوتر (%(limit)s) لهذه الصعوبة. ارجع بكرة!',
+                        'وصلت للحد اليومي لسباقات الكمبيوتر لهذه الصعوبة. ارجع بكرة!',
                         limit=daily_limit),
                     'warning')
                 return redirect(url_for('racing.index'))

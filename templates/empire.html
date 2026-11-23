@@ -11,7 +11,7 @@
         </div>
         {% if current_season %}
         <a href="{{ url_for('main.season') }}" class="season-pill text-decoration-none">
-            <i class="fas fa-trophy mr-1"></i>{{ current_season.name }} — {{ current_season.days_left }} {{ _('يوم') }}
+            <i class="fas fa-trophy mr-1"></i>{{ _(current_season.name) }} — {{ current_season.days_left }} {{ _('يوم') }}
         </a>
         {% endif %}
     </div>
@@ -41,7 +41,7 @@
                     {% endif %}
 
                     {% if current_location %}
-                    <div class="small text-muted mb-2"><i class="fas fa-map-marker-alt mr-1"></i>{{ current_location.name }}</div>
+                    <div class="small text-muted mb-2"><i class="fas fa-map-marker-alt mr-1"></i>{{ _(current_location.name) }}</div>
                     {% endif %}
 
                     <div class="mt-2">

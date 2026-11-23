@@ -1781,7 +1781,7 @@ def chess_solo():
     # Create solo chess room
     room = GameRoom(
         game_type='chess',
-        name=f"{current_user.username}'s Solo Game",
+        name=_('%(user)s لعبة فردية', user=current_user.username),
         status='playing')
     room.game_state = {
         'fen': chess.STARTING_FEN,
@@ -1809,7 +1809,7 @@ def trix():
     # Create solo trix room
     room = GameRoom(
         game_type='trix',
-        name=f"{current_user.username}'s Solo Game",
+        name=_('%(user)s لعبة فردية', user=current_user.username),
         status='playing')
     room.game_state = {'is_solo': True, 'bot_seats': [1, 2, 3]}
     TrixGameLogic.init_game(room.game_state)

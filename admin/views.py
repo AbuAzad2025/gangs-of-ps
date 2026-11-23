@@ -4,6 +4,7 @@ from flask import redirect, url_for, flash
 from flask_babel import lazy_gettext as _
 from wtforms import TextAreaField
 from flask_admin.form import fields as admin_form_fields
+from jinja2 import pass_context
 from models import (
     User, UserRank, UserItem, UserVehicle, UserInvestment, GameLog
 )
@@ -19,12 +20,65 @@ class SecureModelView(ModelView):
         flash(_('يجب عليك تسجيل الدخول بصلاحيات المسؤول للوصول إلى هذه الصفحة.'), 'error')
         return redirect(url_for('main.login'))
 
+    # Default Arabic labels for common model columns (Flask-Admin otherwise
+    # renders the raw English field names in the Arabic admin panel).
+    column_labels = {
+        'asset': _('الأصل'),
+        'user': _('المستخدم'),
+        'position_type': _('نوع الصفقة'),
+        'entry_price': _('سعر الدخول'),
+        'margin_amount': _('مبلغ الهامش'),
+        'leverage': _('الرافعة'),
+        'quantity': _('الكمية'),
+        'order_type': _('نوع الأمر'),
+        'price': _('السعر'),
+        'filled_quantity': _('الكمية المنفذة'),
+        'status': _('الحالة'),
+        'created_at': _('تاريخ الإنشاء'),
+        'is_active': _('نشط'),
+        'liquidation_price': _('سعر التصفية'),
+        'is_open': _('مفتوحة'),
+        'opened_at': _('تاريخ الفتح'),
+        'closed_at': _('تاريخ الإغلاق'),
+    }
+
     page_size = 20
     can_export = True
     can_view_details = True
     create_modal = False
     edit_modal = False
     details_modal = False
+
+    @pass_context
+    def get_list_value(self, context, model, name):
+        """Translate string cell values in admin list views.
+
+        Model data is stored in Arabic; without this, English admins see a
+        mix of English UI labels and Arabic data values. Handles relationship
+        reprs such as ``<Location المدينة الافتراضية>`` as well.
+        """
+        value = super().get_list_value(context, model, name)
+        if not isinstance(value, str):
+            return value
+        try:
+            import re
+            from flask_babel import gettext
+            translated = gettext(value)
+            if translated != value:
+                return translated
+            arabic = re.compile(r'[\u0600-\u06FF]+(?:[\s\u0600-\u06FF]*[\u0600-\u06FF]+)*')
+            def repl(match):
+                seg = match.group(0)
+                out = gettext(seg)
+                if out != seg:
+                    return out
+                # relationship reprs join several words: translate each word
+                return ' '.join(
+                    (lambda w: gettext(w) if gettext(w) != w else w)(w)
+                    for w in seg.split())
+            return arabic.sub(repl, value)
+        except Exception:
+            return value
 
     def scaffold_form(self):
         form_class = super().scaffold_form()
@@ -53,7 +107,7 @@ class HostessView(SecureModelView):
         'intro_message': _('رسالة الترحيب'),
         'buff_type': _('نوع الميزة'),
         'buff_value': _('قيمة الميزة'),
-        'system_prompt': _('موجه النظام (Prompt)'),
+        'system_prompt': _('موجه النظام'),
         'training_examples': _('أمثلة التدريب'),
         'video': _('الفيديو'),
         'video_prompt': _('موجه الفيديو'),
@@ -155,7 +209,31 @@ class UserView(SecureModelView):
         except BaseException:
             return _('خطأ')
 
-    column_formatters = {'inventory': _inventory_formatter}
+    def _location_formatter(view, context, model, name):
+        try:
+            loc = getattr(model, 'location', None)
+            if not loc:
+                return ''
+            from flask_babel import gettext
+            return gettext(loc.name)
+        except Exception:
+            return ''
+
+    def _gang_formatter(view, context, model, name):
+        try:
+            gang = getattr(model, 'gang', None)
+            if not gang:
+                return ''
+            from flask_babel import gettext
+            return gettext(gang.name)
+        except Exception:
+            return ''
+
+    column_formatters = {
+        'inventory': _inventory_formatter,
+        'location': _location_formatter,
+        'gang': _gang_formatter,
+    }
 
     def on_model_change(self, form, model, is_created):
         try:
@@ -321,6 +399,18 @@ class UserItemView(SecureModelView):
         'user': _('المستخدم'), 'item': _('الغرض'), 'quantity': _('الكمية'), 'is_equipped': _('مجهز')
     }
 
+    def _item_formatter(view, context, model, name):
+        try:
+            from flask_babel import gettext
+            item = getattr(model, 'item', None)
+            if not item:
+                return ''
+            return gettext(item.name)
+        except Exception:
+            return ''
+
+    column_formatters = {'item': _item_formatter}
+
 
 class VehicleView(SecureModelView):
     column_list = ('id', 'name', 'type', 'price', 'speed', 'defense', 'risk')
@@ -367,7 +457,7 @@ class OrganizedCrimeView(SecureModelView):
         'name': _('اسم الجريمة المنظمة'), 'min_members': _('عدد الأعضاء المطلوب'), 'energy_cost': _('تكلفة الطاقة'),
         'money_reward_min': _('أقل مكافأة'), 'money_reward_max': _('أعلى مكافأة'), 'exp_reward': _('مكافأة الخبرة'),
         'cooldown_hours': _('الهدنة (ساعات)'), 'is_active': _('نشط'),
-        'roles_config': _('إعدادات الأدوار (JSON)'), 'requirements': _('المتطلبات (JSON)')
+        'roles_config': _('إعدادات الأدوار'), 'requirements': _('المتطلبات')
     }
 
     def _json_formatter(view, context, model, name):

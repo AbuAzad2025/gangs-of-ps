@@ -167,7 +167,7 @@
     </script>
 
     <!-- Custom Luxury CSS -->
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/palestine_luxury.css') }}?v=3.6">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/palestine_luxury.css') }}?v=4.4">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/typography-visual.css') }}?v=1.1">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/game-animations.css') }}?v=1.1">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/economy-academy.css') }}?v=1.0">
@@ -176,7 +176,7 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/game-ui.css') }}?v=1.3">
     {% block extra_css %}{% endblock %}
 </head>
-<body class="hold-transition sidebar-mini layout-fixed theme-palestine {{ body_extra_class|default('') }}" data-gop-img-fallback="{{ url_for('static', filename='images/placeholders/scene.svg') }}" data-gop-scene-fallback="{{ url_for('static', filename='images/crimes/wallet.jpg') }}"{% if current_user.is_authenticated %} data-user-id="{{ current_user.id }}" data-max-energy="{{ current_user.max_energy }}" data-energy-title="{{ _('الطاقة ممتلئة!')|e }}" data-energy-body="{{ _('ارجع للجرائم واستغل طاقتك.')|e }}"{% endif %}>
+<body class="hold-transition sidebar-mini layout-fixed theme-palestine {% if not current_user.is_authenticated %}gop-public{% endif %} {{ body_extra_class|default('') }}" data-gop-img-fallback="{{ url_for('static', filename='images/placeholders/scene.svg') }}" data-gop-scene-fallback="{{ url_for('static', filename='images/crimes/wallet.jpg') }}"{% if current_user.is_authenticated %} data-user-id="{{ current_user.id }}" data-max-energy="{{ current_user.max_energy }}" data-energy-title="{{ _('الطاقة ممتلئة!')|e }}" data-energy-body="{{ _('ارجع للجرائم واستغل طاقتك.')|e }}"{% endif %}>
 {% set gop_flashes = get_flashed_messages(with_categories=true) %}
 <div class="bg-keffiyeh-overlay"></div>
 <div class="wrapper">
@@ -759,7 +759,7 @@
         <div class="container">
             <div class="row align-items-center">
                 <div class="col-12 mb-2 mb-md-0">
-                    <strong>Copyright &copy; 2026 <a href="#" class="text-gold">{{ _('شركة أزاد للأنظمة الذكية') }}</a>.</strong>
+                    <strong>{{ _('جميع الحقوق محفوظة') if get_locale() == 'ar' else 'Copyright' }} &copy; 2026 <a href="#" class="text-gold">{{ _('شركة أزاد للأنظمة الذكية') if get_locale() == 'ar' else 'Azad Smart Systems Co.' }}</a>.</strong>
                     {{ _('جميع الحقوق محفوظة.') }}
                     <div class="mt-1 small text-muted">{{ _('إدارة: م. أحمد غنام') }}</div>
                     {% if current_user.is_authenticated %}

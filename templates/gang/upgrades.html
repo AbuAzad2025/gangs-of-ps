@@ -36,14 +36,14 @@
                 <div class="card h-100 border-{{ 'success' if current_level > 0 else 'secondary' }}">
                     <div class="card-header d-flex justify-content-between align-items-center">
                         <h5 class="mb-0">
-                            <i class="{{ upgrade.icon }} ml-2"></i> {{ upgrade.name }}
+                            <i class="{{ upgrade.icon }} ml-2"></i> {{ _(upgrade.name) }}
                         </h5>
                         <span class="badge badge-{{ 'success' if current_level > 0 else 'secondary' }}">
                             {{ _('مستوى') }} {{ current_level }}
                         </span>
                     </div>
                     <div class="card-body">
-                        <p class="text-muted">{{ upgrade.description }}</p>
+                        <p class="text-muted">{{ _(upgrade.description) }}</p>
                         
                         <hr>
                         
@@ -52,7 +52,7 @@
                             {% for lvl in upgrade.levels %}
                                 <li class="{{ 'text-success font-weight-bold' if current_level >= lvl.level else 'text-muted' }}">
                                     <i class="fas {{ 'fa-check-circle' if current_level >= lvl.level else 'fa-circle' }} ml-1"></i>
-                                    {{ _('مستوى') }} {{ lvl.level }}: {{ lvl.description }}
+                                    {{ _('مستوى') }} {{ lvl.level }}: {{ _(lvl.description) }}
                                 </li>
                             {% endfor %}
                         </ul>

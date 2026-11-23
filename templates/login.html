@@ -2,7 +2,7 @@
 
 {% block content %}
 
-<div class="container-fluid position-relative min-h-65vh d-flex align-items-center py-4">
+<div class="container-fluid position-relative min-h-65vh d-flex align-items-center py-4 gop-login-page">
     <div class="auth-bg-pattern"></div>
     
     <div class="container">
@@ -330,7 +330,7 @@ function copyToClipboard(elementId) {
                 <p class="text-muted mb-4">{{ _('مساهمتك تساعدنا في تطوير اللعبة وإضافة ميزات جديدة.') }}</p>
 
                 <div class="form-group">
-                    <label class="text-gold">{{ _('رقم المحفظة / IBAN (USDT - TRC20)') }}</label>
+                    <label class="text-gold">{{ _('رقم المحفظة / IBAN') }}</label>
                     <div class="input-group">
                         <input type="text" class="form-control bg-dark text-white border-warning" id="donationIBAN" value="{{ _('سيتم توفيره قريباً - تواصل معنا') }}" readonly>
                         <div class="input-group-append">
@@ -339,7 +339,7 @@ function copyToClipboard(elementId) {
                             </button>
                         </div>
                     </div>
-                    <small class="text-muted mt-2 d-block">{{ _('يرجى التأكد من الشبكة (TRC20) قبل التحويل.') }}</small>
+                    <small class="text-muted mt-2 d-block">{{ _('يرجى التأكد من الشبكة قبل التحويل.') }}</small>
                 </div>
 
                 <div class="mt-4">

@@ -127,7 +127,7 @@
                 <span class="heist-pill"><i class="fas fa-coins mr-1 text-success"></i> {{ "{:,}".format(crime.money_reward_min) }}–{{ "{:,}".format(crime.money_reward_max) }}</span>
                 <span class="heist-pill"><i class="fas fa-star mr-1 text-info"></i> {{ crime.exp_reward }}</span>
               {% endif %}
-              <span class="heist-pill"><i class="fas fa-layer-group mr-1 text-secondary"></i> {{ _('Lv') }} {{ crime.min_level }}</span>
+              <span class="heist-pill"><i class="fas fa-layer-group mr-1 text-secondary"></i> {{ _('المستوى') if get_locale() == 'ar' else 'Lv' }} {{ crime.min_level }}</span>
             </div>
 
             {% set meta = (crime_meta.get(crime.id) if crime_meta else {}) %}

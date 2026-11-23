@@ -438,7 +438,7 @@ def collect_task_reward(task_id):
         wa_link = f"https://wa.me/?text={share_text}"
         flash(
             _(
-                'مبروك! وصلت للمستوى %(level)s! '
+                'مبروك! وصلت للمستوى %(level)s!'
                 '<a href="%(url)s" target="_blank" class="btn btn-sm btn-success ml-2">'
                 '<i class="fab fa-whatsapp"></i> شارك</a>',
                 level=current_user.level,
@@ -2649,7 +2649,7 @@ def research_center():
         saved_msg = _upsert_recent_self_message(
             current_user.id,
             _(
-                'استخبارات: مركز البحث (%(s)s)',
+                'استخبارات: مركز البحث',
                 s=_('نجاح') if is_success else _('فشل'),
             ),
             "\n".join(summary_lines),
@@ -3334,7 +3334,7 @@ def start_heist(lobby_id):
                 if user_val < req_val:
                     flash(
                         _(
-                            'لا يمكن بدء العملية! العضو %(user)s لا يملك المهارات الكافية لدور %(role)s '
+                            'لا يمكن بدء العملية! العضو %(user)s لا يملك المهارات الكافية لدور %(role)s'
                             '(مطلوب %(stat)s: %(req)s).',
                             user=p.user.username,
                             role=_(
@@ -3492,12 +3492,12 @@ def start_heist(lobby_id):
             diff = user.intelligence - req
             if diff >= 0:
                 role_performance += 5 + (diff // 10)
-                story_log.append(_("✅ {role} ({user}): أدى دوره بذكاء خارق! (+{bonus}%)").format(
+                story_log.append(_("✅ {role}: أدى دوره بذكاء خارق!").format(
                     role=_(p.role_name), user=user.username, bonus=5 + (diff // 10)))
             else:
                 role_performance -= 10
                 story_log.append(
-                    _("⚠️ {role} ({user}): واجه صعوبات تقنية. (-10%)").format(
+                    _("⚠️ {role}: واجه صعوبات تقنية. (-10%)").format(
                         role=_(
                             p.role_name),
                         user=user.username))
@@ -3508,12 +3508,12 @@ def start_heist(lobby_id):
             diff = user.strength - req
             if diff >= 0:
                 role_performance += 5 + (diff // 10)
-                story_log.append(_("💪 {role} ({user}): سيطر على الوضع بقوة! (+{bonus}%)").format(
+                story_log.append(_("💪 {role}: سيطر على الوضع بقوة!").format(
                     role=_(p.role_name), user=user.username, bonus=5 + (diff // 10)))
             else:
                 role_performance -= 10
                 story_log.append(
-                    _("⚠️ {role} ({user}): لم يستطع كسر الدفاعات بسرعة. (-10%)").format(
+                    _("⚠️ {role}: لم يستطع كسر الدفاعات بسرعة. (-10%)").format(
                         role=_(
                             p.role_name),
                         user=user.username))
@@ -3524,12 +3524,12 @@ def start_heist(lobby_id):
             diff = user.agility - req
             if diff >= 0:
                 role_performance += 5 + (diff // 10)
-                story_log.append(_("🚗 {role} ({user}): قاد الفريق ببراعة وسرعة! (+{bonus}%)").format(
+                story_log.append(_("🚗 {role}: قاد الفريق ببراعة وسرعة!").format(
                     role=_(p.role_name), user=user.username, bonus=5 + (diff // 10)))
             else:
                 role_performance -= 10
                 story_log.append(
-                    _("⚠️ {role} ({user}): تأخر في الوصول لنقطة الهروب. (-10%)").format(
+                    _("⚠️ {role}: تأخر في الوصول لنقطة الهروب. (-10%)").format(
                         role=_(
                             p.role_name),
                         user=user.username))
@@ -3539,12 +3539,12 @@ def start_heist(lobby_id):
             diff = user.defense - req
             if diff >= 0:
                 role_performance += 4 + (diff // 10)
-                story_log.append(_("🛡️ {role} ({user}): صدّ الضغط وحمى الفريق! (+{bonus}%)").format(
+                story_log.append(_("🛡️ {role}: صدّ الضغط وحمى الفريق!").format(
                     role=_(p.role_name), user=user.username, bonus=4 + (diff // 10)))
             else:
                 role_performance -= 8
                 story_log.append(
-                    _("⚠️ {role} ({user}): انهك من الضغط وتباطأ. (-8%)").format(
+                    _("⚠️ {role}: انهك من الضغط وتباطأ. (-8%)").format(
                         role=_(
                             p.role_name),
                         user=user.username))
@@ -3571,7 +3571,7 @@ def start_heist(lobby_id):
 
             success_probability += vehicle_bonus
             story_log.append(
-                _("🏎️ السائق {user} يستخدم سيارة {car} المعدلة! (+{bonus}%)").format(
+                _("🏎️ السائق {user} يستخدم سيارة {car} المعدلة!").format(
                     user=driver_participant.user.username,
                     car=active_vehicle.vehicle.name,
                     bonus=vehicle_bonus))
@@ -3599,7 +3599,7 @@ def start_heist(lobby_id):
         if best_vehicle_bonus > 0:
             success_probability += best_vehicle_bonus
             story_log.append(
-                _("🚗 الفريق يستخدم سيارة {user} ({car}) للهروب! (+{bonus}%)").format(
+                _("🚗 الفريق يستخدم سيارة {user} للهروب!").format(
                     user=owner_name,
                     car=vehicle_name,
                     bonus=best_vehicle_bonus))

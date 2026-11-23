@@ -25,7 +25,7 @@
                     <div class="col-md-3 col-6 mb-3">
                         <div class="bg-secondary rounded p-3 h-100">
                             <div class="small text-muted mb-2">{{ _('الاسم') }}</div>
-                            <div class="font-weight-bold text-white">{{ app_runtime.name }}</div>
+                            <div class="font-weight-bold text-white">{{ _(app_runtime.name) }}</div>
                         </div>
                     </div>
                     <div class="col-md-3 col-6 mb-3">
@@ -43,7 +43,7 @@
                     <div class="col-md-3 col-6 mb-3">
                         <div class="bg-secondary rounded p-3 h-100">
                             <div class="small text-muted mb-2">{{ _('الموسم') }}</div>
-                            <div class="font-weight-bold text-warning">{{ current_season_name }}</div>
+                            <div class="font-weight-bold text-warning">{{ _(current_season_name) }}</div>
                         </div>
                     </div>
                 </div>
@@ -51,7 +51,7 @@
                     <div class="col-md-6 mb-3 mb-md-0">
                         <div class="bg-secondary rounded p-3 h-100">
                             <div class="small text-muted mb-2">{{ _('الهوية') }}</div>
-                            <div class="font-weight-bold text-gold">{{ app_runtime.tagline }}</div>
+                            <div class="font-weight-bold text-gold">{{ _(app_runtime.tagline) }}</div>
                         </div>
                     </div>
                     <div class="col-md-6">
@@ -285,7 +285,7 @@
                             <input type="number" min="0" max="200" step="1" name="world_event_money_bonus_pct" class="form-control form-control-luxury" value="{{ world_event_money_bonus_pct }}">
                         </div>
                         <div class="form-group col-md-3">
-                            <label class="text-white">{{ _('انتهاء الحدث (ISO)') }}</label>
+                            <label class="text-white">{{ _('انتهاء الحدث') }}</label>
                             <input type="text" name="world_event_ends_at" class="form-control form-control-luxury" value="{{ world_event_ends_at }}" placeholder="2026-07-01T00:00:00+00:00">
                         </div>
                     </div>
@@ -299,7 +299,7 @@
                             <input type="text" name="current_season_name" class="form-control form-control-luxury" value="{{ current_season_name }}">
                         </div>
                         <div class="form-group col-md-6">
-                            <label class="text-white">{{ _('انتهاء الموسم (ISO)') }}</label>
+                            <label class="text-white">{{ _('انتهاء الموسم') }}</label>
                             <input type="text" name="season_ends_at" class="form-control form-control-luxury" value="{{ season_ends_at }}">
                         </div>
                     </div>
@@ -536,11 +536,11 @@
                 <form action="{{ url_for('main.update_occupation_settings') }}" method="POST">
                     {{ csrf_input() }}
                     <div class="form-group">
-                        <label class="text-white">{{ _('حالة الحواجز (Checkpoints Level)') }}</label>
+                        <label class="text-white">{{ _('حالة الحواجز') }}</label>
                         <select name="occupation_alert_level" class="form-control bg-dark text-light border-gold">
-                            <option value="1" {% if occupation_alert_level == 1 %}selected{% endif %}>🟢 {{ _('عادي (Normal) - 15%% حواجز') }}</option>
-                            <option value="2" {% if occupation_alert_level == 2 %}selected{% endif %}>🟡 {{ _('توتر (Tense) - 40%% حواجز') }}</option>
-                            <option value="3" {% if occupation_alert_level == 3 %}selected{% endif %}>🔴 {{ _('إغلاق شامل (Closure) - 80%% حواجز') }}</option>
+                            <option value="1" {% if occupation_alert_level == 1 %}selected{% endif %}>🟢 {{ _('عادي - 15%% حواجز') }}</option>
+                            <option value="2" {% if occupation_alert_level == 2 %}selected{% endif %}>🟡 {{ _('توتر - 40%% حواجز') }}</option>
+                            <option value="3" {% if occupation_alert_level == 3 %}selected{% endif %}>🔴 {{ _('إغلاق شامل - 80%% حواجز') }}</option>
                         </select>
                     </div>
                     <button type="submit" class="btn btn-warning btn-block mb-3">{{ _('تحديث الحالة الأمنية') }}</button>
@@ -548,7 +548,7 @@
 
                 <hr class="border-secondary">
                 
-                <h6 class="text-danger mb-3">{{ _('حملات الشرطة (Police Campaigns)') }}</h6>
+                <h6 class="text-danger mb-3">{{ _('حملات الشرطة') }}</h6>
                 <form action="{{ url_for('main.toggle_mashtoub_campaign') }}" method="POST">
                     {{ csrf_input() }}
                     <div class="d-flex justify-content-between align-items-center bg-secondary p-3 rounded">

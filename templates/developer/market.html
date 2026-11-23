@@ -39,8 +39,8 @@
                                 <th>{{ _('النوع') }}</th>
                                 <th>{{ _('الحالة') }}</th>
                                 <th>{{ _('السعر') }}</th>
-                                <th>{{ _('Base') }}</th>
-                                <th>Vol%</th>
+                                <th>{{ _('الأساس') if get_locale() == 'ar' else 'Base' }}</th>
+                                <th>{{ _('التقلب') if get_locale() == 'ar' else 'Vol' }}%</th>
                                 <th>{{ _('تحديث السعر') }}</th>
                             </tr>
                         </thead>

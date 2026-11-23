@@ -225,10 +225,10 @@ def trade_success_flash(breakdown: Dict[str, int]) -> Optional[str]:
     from_cash = int(breakdown.get('from_cash') or 0)
     if from_bank > 0 and from_cash > 0:
         return _msg(
-            'تم الدفع من كاش اللعبة (%(cash)s$) والبنك (%(bank)s$).',
+            'تم الدفع من كاش اللعبة والبنك.',
             cash=f"{from_cash:,}",
             bank=f"{from_bank:,}",
         )
     if from_bank > 0:
-        return _msg('تم الدفع من رصيد البنك (%(bank)s$).', bank=f"{from_bank:,}")
+        return _msg('تم الدفع من رصيد البنك.', bank=f"{from_bank:,}")
     return None

@@ -50,16 +50,16 @@
                 </div>
 
                 {% if not is_ready and not is_done %}
-                <span class="badge badge-secondary ms-2">قيد التنفيذ</span>
+                <span class="badge badge-secondary ms-2">{{ _('قيد التنفيذ') }}</span>
                 {% endif %}
 
                 {% if is_ready %}
-                <span class="badge badge-warning ms-2">جاهزة للاستلام</span>
+                <span class="badge badge-warning ms-2">{{ _('جاهزة للاستلام') }}</span>
                 {% endif %}
 
                 {% if is_done %}
                 <span class="badge badge-success ms-2">
-                    <i class="fas fa-check mr-1"></i> تم الاستلام
+                    <i class="fas fa-check mr-1"></i> {{ _('تم الاستلام') }}
                 </span>
                 {% endif %}
 

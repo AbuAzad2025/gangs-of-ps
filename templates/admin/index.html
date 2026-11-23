@@ -192,7 +192,7 @@
                 <div class="card-body">
                     <div class="d-flex justify-content-between align-items-center border-bottom border-secondary pb-2 mb-2">
                         <span>{{ _('إصدار اللعبة') }}</span>
-                        <span class="badge badge-success">v1.0.2 Beta</span>
+                        <span class="badge badge-success">{{ _('الإصدار 1.0.2 تجريبي') if get_locale() == 'ar' else 'v1.0.2 Beta' }}</span>
                     </div>
                     <div class="d-flex justify-content-between align-items-center border-bottom border-secondary pb-2 mb-2">
                         <span>{{ _('عدد الجرائم') }}</span>

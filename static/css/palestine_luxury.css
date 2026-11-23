@@ -6350,3 +6350,309 @@ h1, h2, h3, h4, h5, h6, .brand-text-custom, .luxury-title {
 .gym-train-btn:disabled {
     opacity: 0.55;
 }
+
+/* =====================================================================
+   Landing page & login screen — professional polish
+   Scoped with .gop-landing-page / .gop-login-page wrappers.
+   ===================================================================== */
+
+/* -------------------------- LANDING -------------------------- */
+.gop-landing-page .landing-hero {
+    padding: 56px 0 44px;
+}
+.gop-landing-page .hero-title {
+    font-size: clamp(2rem, 4vw, 3.2rem) !important;
+    line-height: 1.25 !important;
+    text-shadow: 0 8px 30px rgba(0, 0, 0, .65);
+}
+.gop-landing-page .hero-subtitle {
+    color: #cbd3cb;
+    max-width: 760px;
+    line-height: 1.8;
+}
+.gop-landing-page .cash-prize-box {
+    border: 1px solid rgba(212, 175, 55, .38) !important;
+    border-radius: 14px !important;
+    background: linear-gradient(135deg, rgba(212, 175, 55, .10), rgba(0, 0, 0, .35)) !important;
+    box-shadow: 0 12px 30px rgba(0, 0, 0, .35);
+}
+.gop-landing-page .btn-hero {
+    min-width: 152px;
+    border-radius: 10px !important;
+    font-weight: 700;
+    padding: 11px 18px;
+    transition: transform .15s ease, box-shadow .15s ease;
+}
+.gop-landing-page .btn-hero:hover { transform: translateY(-2px); }
+.gop-landing-page .btn-hero-primary {
+    background: linear-gradient(135deg, #d4af37, #f3d97c) !important;
+    color: #17150e !important;
+    border: 0 !important;
+    box-shadow: 0 8px 22px rgba(212, 175, 55, .24);
+}
+.gop-landing-page .btn-hero-secondary {
+    border: 1px solid rgba(212, 175, 55, .45) !important;
+    color: #f5d76e !important;
+    background: rgba(0, 0, 0, .28) !important;
+}
+.gop-landing-page .hero-metrics {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 12px;
+}
+.gop-landing-page .hero-metric-card {
+    border: 1px solid rgba(212, 175, 55, .30);
+    border-radius: 12px;
+    padding: 14px 12px;
+    background: rgba(10, 12, 11, .62);
+    text-align: center;
+}
+.gop-landing-page .hero-metric-card strong {
+    display: block;
+    font-size: 1.45rem;
+    color: #f5d76e;
+    margin-top: 4px;
+}
+.gop-landing-page .metric-label {
+    font-size: .72rem;
+    color: #9aa49a;
+    text-transform: uppercase;
+    letter-spacing: .5px;
+}
+.gop-landing-page .ai-showcase {
+    border: 1px solid rgba(212, 175, 55, .32);
+    border-radius: 14px;
+    background: linear-gradient(120deg, rgba(212, 175, 55, .09), rgba(0, 0, 0, .42));
+    backdrop-filter: blur(6px);
+    overflow: hidden;
+}
+.gop-landing-page .ai-tag {
+    border-radius: 999px;
+    padding: 3px 10px;
+    border: 1px solid rgba(212, 175, 55, .4);
+    font-size: .72rem;
+}
+.gop-landing-page .btn-skip-intro {
+    border: 1px solid rgba(212, 175, 55, .45) !important;
+    background: rgba(0, 0, 0, .6) !important;
+    color: #f5d76e !important;
+    border-radius: 999px !important;
+    padding: 8px 20px !important;
+}
+.gop-landing-page h2.gold-text-gradient,
+.gop-landing-page h3.gold-text-gradient {
+    position: relative;
+    padding-bottom: 10px;
+}
+.gop-landing-page h2.gold-text-gradient::after,
+.gop-landing-page h3.gold-text-gradient::after {
+    content: "";
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 70px;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, #d4af37, transparent);
+}
+@media (max-width: 768px) {
+    .gop-landing-page .hero-metrics { grid-template-columns: 1fr; }
+    .gop-landing-page .btn-hero { min-width: 130px; width: 100%; }
+}
+
+/* -------------------------- LOGIN -------------------------- */
+.gop-login-page { padding-bottom: 70px; }
+.gop-login-page .auth-card {
+    border: 1px solid rgba(212, 175, 55, .42) !important;
+    border-radius: 18px !important;
+    box-shadow: 0 18px 50px rgba(0, 0, 0, .55);
+    background: linear-gradient(160deg, rgba(20, 22, 20, .96), rgba(10, 11, 10, .97)) !important;
+    overflow: hidden;
+}
+.gop-login-page .auth-card .card-header { padding-top: 28px; }
+.gop-login-page .auth-title {
+    font-size: 2rem;
+    color: #f5d76e;
+    letter-spacing: .5px;
+}
+.gop-login-page .form-label {
+    font-size: .82rem;
+    font-weight: 700;
+    color: #ded5b5;
+    margin-bottom: 6px;
+}
+.gop-login-page .form-control-luxury {
+    height: 46px;
+    border: 1px solid rgba(212, 175, 55, .30) !important;
+    border-radius: 9px !important;
+    background: #11151b !important;
+    color: #eee;
+}
+.gop-login-page .form-control-luxury:focus {
+    border-color: #d4af37 !important;
+    box-shadow: 0 0 0 3px rgba(212, 175, 55, .14) !important;
+}
+.gop-login-page .input-group-text { border-radius: 9px 0 0 9px !important; }
+.gop-login-page .btn-luxury-gold,
+.gop-login-page .btn-outline-gold {
+    border-radius: 10px !important;
+    min-height: 48px;
+    font-size: 1rem;
+}
+.gop-login-page .btn-luxury-gold {
+    background: linear-gradient(135deg, #d4af37, #f3d97c) !important;
+    color: #17150e !important;
+    border: 0 !important;
+    font-weight: 800 !important;
+}
+.gop-login-page .alert {
+    border-radius: 10px !important;
+    white-space: normal !important;
+    line-height: 1.7;
+    font-size: .78rem;
+    word-wrap: break-word;
+}
+.gop-login-page .greeter-card,
+.gop-login-page .trend-card {
+    border: 1px solid rgba(212, 175, 55, .30) !important;
+    border-radius: 14px !important;
+    box-shadow: 0 12px 30px rgba(0, 0, 0, .35);
+}
+.gop-login-page .stat-box {
+    border: 1px solid rgba(255, 255, 255, .07);
+    border-radius: 10px;
+    background: rgba(0, 0, 0, .28);
+    padding: 12px;
+}
+.gop-login-page .briefs-section ul li { line-height: 1.8; }
+.gop-login-page .donate-btn,
+.gop-login-page .buy-code-btn {
+    border-radius: 999px !important;
+    padding: 9px 18px !important;
+}
+.gop-login-page .auth-link {
+    text-decoration: underline;
+    text-underline-offset: 3px;
+}
+@media (max-width: 992px) {
+    .gop-login-page .auth-card { margin: 0 auto; max-width: 460px; }
+}
+
+/* ------------------- LANDING DECLUTTER ------------------- */
+/* Remove duplicate stat/world panels and two extra hostess cards */
+.gop-landing-page .gop-hide-section,
+.gop-landing-page .gop-hide-card {
+    display: none !important;
+}
+
+/* Generous breathing room between the remaining sections */
+.gop-landing-page .container.mb-5 {
+    margin-bottom: 80px !important;
+}
+
+/* Flatten big panels — no heavy boxes, content reads as one flow */
+.gop-landing-page .game-overview-panel,
+.gop-landing-page .hostess-command-panel,
+.gop-landing-page .intel-panel,
+.gop-landing-page .quick-start-panel {
+    border: 0 !important;
+    box-shadow: none !important;
+    background: transparent !important;
+    padding: 0 !important;
+}
+
+/* Light, borderless surfaces for the smaller cards */
+.gop-landing-page .card.bg-dark,
+.gop-landing-page .hostess-system-card,
+.gop-landing-page .intel-card,
+.gop-landing-page .feature-card {
+    border: 0 !important;
+    box-shadow: none !important;
+    background: rgba(255, 255, 255, .025) !important;
+    border-radius: 12px !important;
+}
+
+.gop-landing-page .hostess-system-card:hover,
+.gop-landing-page .intel-card:hover,
+.gop-landing-page .feature-card:hover {
+    background: rgba(212, 175, 55, .07) !important;
+    transform: translateY(-2px);
+}
+
+/* Quieter section labels */
+.gop-landing-page .section-kicker {
+    font-size: .72rem;
+    letter-spacing: 1.5px;
+    opacity: .85;
+}
+
+/* Play-intro becomes a calm text action instead of another box */
+.gop-landing-page .btn-play-intro {
+    background: transparent !important;
+    border: 0 !important;
+    box-shadow: none !important;
+    color: #cfd8cf !important;
+    text-decoration: underline;
+    text-underline-offset: 4px;
+    text-decoration-color: rgba(212, 175, 55, .5);
+}
+.gop-landing-page .btn-play-intro:hover { color: #f5d76e !important; }
+
+/* ------------------- FULL-WIDTH LAYOUT ------------------- */
+/* No sidebar on public pages — reclaim the 250px reserved for it */
+html[dir] body.gop-public .wrapper .content-wrapper.content-wrapper,
+html[dir] body.gop-public .wrapper .main-header.main-header,
+html[dir] body.gop-public .wrapper .main-footer.main-footer,
+html[dir] body:has(.gop-landing-page) .wrapper .content-wrapper.content-wrapper,
+html[dir] body:has(.gop-login-page) .wrapper .content-wrapper.content-wrapper,
+html[dir] body:has(.gop-landing-page) .wrapper .main-header.main-header,
+html[dir] body:has(.gop-login-page) .wrapper .main-header.main-header,
+html[dir] body:has(.gop-landing-page) .wrapper .main-footer.main-footer,
+html[dir] body:has(.gop-login-page) .wrapper .main-footer.main-footer {
+    margin-right: 0 !important;
+    margin-left: 0 !important;
+    margin-top: 0 !important;
+}
+
+/* No sidebar on public pages in either direction */
+html body.gop-public .main-sidebar.main-sidebar,
+html body:has(.gop-landing-page) .main-sidebar.main-sidebar,
+html body:has(.gop-login-page) .main-sidebar.main-sidebar {
+    display: none !important;
+}
+
+/* Logical alignment: follows dir=rtl / dir=ltr automatically */
+.gop-landing-page .hero-content .row > .col-lg-7,
+.gop-landing-page .hero-title,
+.gop-landing-page .hero-subtitle,
+.gop-landing-page .cash-prize-box,
+.gop-login-page .auth-card {
+    text-align: start !important;
+}
+
+/* Use the whole viewport instead of Bootstrap's 1140px cap */
+.gop-landing-page .container,
+.gop-landing-page .hero-content,
+.gop-login-page .container {
+    max-width: 100% !important;
+    width: 100% !important;
+    padding-left: 4% !important;
+    padding-right: 4% !important;
+}
+
+/* If the welcome image is absent, let the hero text use the full row */
+.gop-landing-page .hero-content .row > .col-lg-5:not(:has(img)) {
+    display: none !important;
+}
+.gop-landing-page .hero-content .row > .col-lg-7 {
+    flex: 0 0 100% !important;
+    max-width: 100% !important;
+}
+.gop-landing-page .hero-title,
+.gop-landing-page .hero-subtitle {
+    max-width: 980px;
+}
+
+/* Balance the two-column login grid on wide screens */
+.gop-login-page .row > .col-lg-7 { padding-left: 2%; }
+.gop-login-page .row > .col-lg-5 { padding-right: 2%; }

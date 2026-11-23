@@ -24,7 +24,7 @@
                 {% if current_user.is_authenticated %}
                     {{ current_user.username }}
                 {% else %}
-                    Admin
+                    {{ _('مدير') if get_locale() == 'ar' else 'Admin' }}
                 {% endif %}
             </a>
             <div class="dropdown-menu dropdown-menu-lg dropdown-menu-right">

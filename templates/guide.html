@@ -115,10 +115,10 @@
                 </h3>
                 <p class="text-light">{{ _('الثروة داخل اللعبة تأتي من الإنتاج والتجارة، وليس فقط السرقة.') }}</p>
 
-                <h5 class="text-success mt-3"><i class="fas fa-industry mr-1"></i> {{ _('المصانع (Factory)') }}</h5>
+                <h5 class="text-success mt-3"><i class="fas fa-industry mr-1"></i> {{ _('المصانع') if get_locale() == 'ar' else 'Factories' }}</h5>
                 <p class="text-muted small">{{ _('امتلك مصانع لإنتاج الأسلحة، الدروع، والمركبات. يمكنك بيع إنتاجك في السوق للاعبين الآخرين.') }}</p>
 
-                <h5 class="text-success mt-3"><i class="fas fa-seedling mr-1"></i> {{ _('المزارع (Farms)') }}</h5>
+                <h5 class="text-success mt-3"><i class="fas fa-seedling mr-1"></i> {{ _('المزارع') if get_locale() == 'ar' else 'Farms' }}</h5>
                 <p class="text-muted small">{{ _('ازرع الممنوعات والموارد الأولية اللازمة للمصانع. المزارع تتطلب رعاية وحماية من السرقة.') }}</p>
                 
                 <h5 class="text-info mt-3"><i class="fas fa-chart-line mr-1"></i> {{ _('بورصة الحارة') }}</h5>
@@ -138,7 +138,7 @@
                 <a href="{{ url_for('black_market.index') }}" class="btn btn-sm btn-outline-warning mb-3"><i class="fas fa-play mr-1"></i> {{ _('جرّب الآن — السوق السوداء') }}</a>
                 <ul class="text-muted">
                     <li class="mb-2"><strong class="text-warning">{{ _('شراء الأسلحة:') }}</strong> {{ _('احصل على أحدث الأسلحة والدروع لزيادة قوتك الهجومية والدفاعية.') }}</li>
-                    <li class="mb-2"><strong class="text-warning">{{ _('المزادات (Auctions):') }}</strong> {{ _('زايد على عناصر نادرة ومميزة يطرحها لاعبون آخرون أو النظام.') }}</li>
+                    <li class="mb-2"><strong class="text-warning">{{ _('المزادات:') if get_locale() == 'ar' else 'Auctions:' }}</strong> {{ _('زايد على عناصر نادرة ومميزة يطرحها لاعبون آخرون أو النظام.') }}</li>
                     <li class="mb-2"><strong class="text-warning">{{ _('تجارة الممنوعات:') }}</strong> {{ _('بيع وشراء المواد المحظورة لتحقيق أرباح سريعة.') }}</li>
                 </ul>
             </div>
@@ -206,20 +206,20 @@
                     <div class="col-md-6">
                         <ul class="list-group list-group-flush bg-transparent">
                             <li class="list-group-item bg-transparent text-light px-0">
-                                <strong class="text-danger">{{ _('القوة (Strength):') }}</strong> {{ _('تحدد قوة ضرباتك في المعارك.') }}
+                                <strong class="text-danger">{{ _('القوة:') if get_locale() == 'ar' else 'Strength:' }}</strong> {{ _('تحدد قوة ضرباتك في المعارك.') }}
                             </li>
                             <li class="list-group-item bg-transparent text-light px-0">
-                                <strong class="text-info">{{ _('الدفاع (Defense):') }}</strong> {{ _('يقلل الضرر الذي تتلقاه.') }}
+                                <strong class="text-info">{{ _('الدفاع:') if get_locale() == 'ar' else 'Defense:' }}</strong> {{ _('يقلل الضرر الذي تتلقاه.') }}
                             </li>
                         </ul>
                     </div>
                     <div class="col-md-6">
                         <ul class="list-group list-group-flush bg-transparent">
                             <li class="list-group-item bg-transparent text-light px-0">
-                                <strong class="text-warning">{{ _('السرعة (Speed):') }}</strong> {{ _('تزيد فرصتك في إصابة الخصم وتفادي ضرباته.') }}
+                                <strong class="text-warning">{{ _('السرعة:') if get_locale() == 'ar' else 'Speed:' }}</strong> {{ _('تزيد فرصتك في إصابة الخصم وتفادي ضرباته.') }}
                             </li>
                             <li class="list-group-item bg-transparent text-light px-0">
-                                <strong class="text-success">{{ _('الذكاء (Intellect):') }}</strong> {{ _('مهم للجرائم الإلكترونية والإدارة.') }}
+                                <strong class="text-success">{{ _('الذكاء:') if get_locale() == 'ar' else 'Intellect:' }}</strong> {{ _('مهم للجرائم الإلكترونية والإدارة.') }}
                             </li>
                         </ul>
                     </div>

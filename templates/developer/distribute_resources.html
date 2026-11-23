@@ -14,12 +14,12 @@
                         <label class="text-gold">{{ _('الفئة المستهدفة') }}</label>
                         <select name="target_type" id="target_type" class="form-control form-control-luxury" onchange="toggleUserId()">
                             <option value="all">{{ _('جميع اللاعبين') }}</option>
-                            <option value="user_id">{{ _('لاعب محدد (ID)') }}</option>
+                            <option value="user_id">{{ _('لاعب محدد') }}</option>
                         </select>
                     </div>
 
                     <div class="form-group mb-4" id="user_id_group" style="display: none;">
-                        <label class="text-gold">{{ _('معرف اللاعب (User ID)') }}</label>
+                        <label class="text-gold">{{ _('معرف اللاعب') }}</label>
                         <input type="number" name="user_id" class="form-control form-control-luxury" placeholder="e.g. 1">
                     </div>
 

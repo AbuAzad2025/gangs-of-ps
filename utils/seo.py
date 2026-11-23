@@ -39,7 +39,7 @@ class SEOManager:
     def keywords(self):
         # Enhanced keywords for better visibility on Google and YouTube
         default_keywords = _(
-            "عصابات فلسطين, Gangs of Palestine, لعبة مافيا, لعبة عصابات, حرب العصابات, لعبة استراتيجية, "
+            "عصابات فلسطين, Gangs of Palestine, لعبة مافيا, لعبة عصابات, حرب العصابات, لعبة استراتيجية,"
             "العاب استراتيجية, لعبة RPG, لعبة اونلاين, لعبة متصفح, العاب متصفح, العاب عربية, لعبة عربية, "
             "فلسطين, القدس, غزة, رام الله, نابلس, الخليل, جنين, Mafia Game, Gang Wars, Online RPG, "
             "Browser Game, Strategy Game, Multiplayer, PvP, Clan Wars, Guilds, Alliances, "

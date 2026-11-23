@@ -785,7 +785,7 @@ def roulette_spin():
 
         trigger_hostess_reaction(current_user, winnings, True)
         message = _(
-            'الكرة وقفت على %(num)s (%(col)s). مبروك! ربحت %(win)s!',
+            'الكرة وقفت على %(num)s. مبروك! ربحت %(win)s!',
             num=landing,
             col=color,
             win=winnings)
@@ -817,7 +817,7 @@ def roulette_spin():
         if not saved:
             trigger_hostess_reaction(current_user, bet_amount, False)
             message = _(
-                'الكرة وقفت على %(num)s (%(col)s). حظاً أوفر!',
+                'الكرة وقفت على %(num)s. حظاً أوفر!',
                 num=landing,
                 col=color)
             flash(message, 'danger')

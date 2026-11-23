@@ -51,7 +51,7 @@
                                 <div class="col-md-4 mb-3">
                                     {% set lim_val = (configs|selectattr('key','equalto','market_enable_limit_orders')|map(attribute='value')|list) %}
                                     {% set limit_enabled = (lim_val and lim_val[0] == 'true') %}
-                                    <label class="font-weight-bold">{{ _('تفعيل أوامر الحد (Limit)') }}</label>
+                                    <label class="font-weight-bold">{{ _('تفعيل أوامر الحد') }}</label>
                                     <div class="custom-control custom-switch">
                                         <input type="hidden" name="market_enable_limit_orders" value="false">
                                         <input type="checkbox" class="custom-control-input" id="market_enable_limit_orders" name="market_enable_limit_orders" value="true" {% if limit_enabled %}checked{% endif %}>
@@ -63,7 +63,7 @@
                             <div class="row">
                                 <div class="col-md-4 mb-3">
                                     {% set min_buy_val = (configs|selectattr('key','equalto','market_spot_min_buy_usd')|map(attribute='value')|list) %}
-                                    <label class="font-weight-bold">{{ _('أقل مبلغ شراء سبوت (USD)') }}</label>
+                                    <label class="font-weight-bold">{{ _('أقل مبلغ شراء سبوت') }}</label>
                                     <input type="number" min="0" step="1" class="form-control bg-dark text-white border-secondary" name="market_spot_min_buy_usd" value="{{ min_buy_val[0] if min_buy_val else '10' }}">
                                     <small class="text-muted">{{ _('أقل مبلغ شراء فوري لتفادي السبام') }}</small>
                                 </div>
@@ -86,7 +86,7 @@
                                     {% set intel_val = (configs|selectattr('key','equalto','market_intel_cost')|map(attribute='value')|list) %}
                                     <label class="font-weight-bold">{{ _('تكلفة شراء المعلومة') }}</label>
                                     <input type="number" min="0" step="1" class="form-control bg-dark text-white border-secondary" name="market_intel_cost" value="{{ intel_val[0] if intel_val else '500' }}">
-                                    <small class="text-muted">{{ _('تكلفة خدمة المعلومات الداخلية (Insider Intel)') }}</small>
+                                    <small class="text-muted">{{ _('تكلفة خدمة المعلومات الداخلية') }}</small>
                                 </div>
                             </div>
                         </div>
@@ -96,8 +96,8 @@
                         <table class="table table-dark table-hover border border-secondary">
                             <thead>
                                 <tr class="bg-secondary text-dark">
-                                    <th style="width: 30%">{{ _('الإعداد (Key)') }}</th>
-                                    <th style="width: 70%">{{ _('القيمة (Value)') }}</th>
+                                    <th style="width: 30%">{{ _('الإعداد') }}</th>
+                                    <th style="width: 70%">{{ _('القيمة') }}</th>
                                 </tr>
                             </thead>
                             <tbody>

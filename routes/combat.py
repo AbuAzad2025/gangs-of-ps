@@ -489,7 +489,7 @@ def attack(target_id):
                             current_user.id, {
                                 'bullets': bullets_looted}, 'combat_loot_win', auto_commit=False, expected_version=None)
                         loot_msg = _(
-                            ' ووجدت في جيوبه %(bullets)s رصاصة!',
+                            'ووجدت في جيوبه %(bullets)s رصاصة!',
                             bullets=bullets_looted)
 
         exp_gain = 100 if is_war else 50
@@ -536,7 +536,7 @@ def attack(target_id):
             wa_link = f"https://wa.me/?text={share_text}"
             flash(
                 _(
-                    'مبروك! وصلت للمستوى %(level)s! '
+                    'مبروك! وصلت للمستوى %(level)s!'
                     '<a href="%(url)s" target="_blank" class="btn btn-sm btn-success ml-2">'
                     '<i class="fab fa-whatsapp"></i> شارك</a>',
                     level=current_user.level,
@@ -824,9 +824,9 @@ def attack(target_id):
         msg += loot_msg
 
         if is_berserk:
-            msg += " " + _('😡 حالة هيجان (Berserk)!')
+            msg += " " + _('😡 حالة هيجان!')
         if is_crit:
-            msg += " " + _('🎯 ضربة حرجة (Critical Hit)!')
+            msg += " " + _('🎯 ضربة حرجة!')
         if is_dodge:
             msg += " " + _('الخصم حاول يتفادى الضربة لكنك جبت أجله!')
 

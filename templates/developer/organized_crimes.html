@@ -27,7 +27,7 @@
                     <tr style="animation: fadeInUp 0.5s ease backwards; animation-delay: {{ loop.index0 * 0.05 }}s;">
                         <td><span class="text-muted">{{ crime.id }}</span></td>
                         <td>
-                            <strong class="text-gold">{{ crime.name }}</strong>
+                            <strong class="text-gold">{{ _(crime.name) }}</strong>
                         </td>
                         <td>
                             {% if crime.image %}
@@ -44,7 +44,7 @@
                         <td>
                             <small class="text-success font-weight-bold">${{ "{:,}".format(crime.money_reward_min) }}-{{ "{:,}".format(crime.money_reward_max) }}</small>
                             <br/>
-                            <small class="text-info">{{ crime.exp_reward }} EXP</small>
+                            <small class="text-info">{{ crime.exp_reward }} {{ _('خبرة') if get_locale() == 'ar' else 'EXP' }}</small>
                         </td>
                         <td>
                             <span class="badge bg-info">{{ crime.cooldown_hours }} {{ _('ساعة') }}</span>
@@ -140,7 +140,7 @@
                                         </div>
                                     </div>
                                     <div class="form-group">
-                                        <label class="text-gold">{{ _('علاوات حسب الدور (JSON)') }}</label>
+                                        <label class="text-gold">{{ _('علاوات حسب الدور') }}</label>
                                         <textarea name="role_bonuses_json" class="form-control form-control-sm" rows="4" placeholder='{"Hacker": {"money_pct": 10, "exp_bonus": 3, "rank_points": 2}}'>{{ reqs.get('role_bonuses', {}) | tojson }}</textarea>
                                         <small class="text-muted d-block mt-1">{{ _('أدخل خريطة بالأدوار وقيم علاواتها. الحقول المدعومة: money_pct، exp_bonus، rank_points') }}</small>
                                     </div>
