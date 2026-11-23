@@ -148,26 +148,18 @@
                     </div>
                 </div>
                 
-                <!-- Yasmin Welcome Image -->
+                <!-- Hostess quick preview (single mention) -->
                 <div class="col-lg-5 d-none d-lg-block position-relative">
-                     {% if jasmin %}
-                    <div class="yasmin-welcome-container text-center animate__animated animate__fadeInUp">
-                        <img src="{{ url_for('static', filename='images/' + jasmin.image_path) }}" 
-                             alt="{% if get_locale() == 'ar' %}{{ jasmin.name }}{% else %}Yasmin{% endif %}" 
+                    <div class="yasmin-welcome-container text-center">
+                        <img src="{{ url_for('static', filename='images/hostesses/sarah.jpg') }}"
+                             alt="Sarah AI"
                              class="img-fluid rounded-lg shadow-lg border-gold glow-effect"
-                             style="max-height: 320px; object-fit: cover; border: 2px solid #d4af37;">
+                             style="max-height: 260px; object-fit: cover; border: 2px solid #d4af37;">
                         <div class="bg-dark border border-gold p-3 rounded mt-3 position-relative mx-4 shadow-lg">
-                            <h4 class="text-gold mb-1">{% if get_locale() == 'ar' %}{{ jasmin.name }}{% else %}Yasmin{% endif %}</h4>
-                            <p class="text-white small mb-0">
-                                {% if get_locale() == 'ar' %}
-                                    "أهلاً فيك. أنا ياسمين، واجهة اللعبة. بدّك خطة بداية سريعة ولا نحدد هدفك اليوم؟"
-                                {% else %}
-                                    "Welcome. I’m Yasmin, your front desk guide. Want a quick start plan or a goal-based route for today?"
-                                {% endif %}
-                            </p>
+                            <h4 class="text-gold mb-1">{{ _('سارة') }}</h4>
+                            <p class="text-white small mb-0">{{ _('تُعيد اللاعب إلى التوازن عندما ينهار الضغط، وتضع خطة تعافي آمنة بدل الهروب العشوائي.') }}</p>
                         </div>
                     </div>
-                    {% endif %}
                 </div>
             </div>
 
@@ -275,14 +267,14 @@
                             <img src="{{ url_for('static', filename='images/hostesses/jasmin.jpg') }}" alt="Jasmin AI" onerror="this.onerror=null; this.src='{{ url_for('static', filename='images/hostesses/default_hostess.jpg') }}';">
                         </div>
                         <div class="hostess-system-body">
-                            <span class="hostess-role-badge">{{ _('استقبال') }}</span>
-                            <h3>{{ _('ياسمين') }}</h3>
-                            <p>{{ _('تفتح اللعبة بخبرة فاخرة، تشرح أول خطوة، وتبني إحساس اللاعب بأن العالم جاهز له من اللحظة الأولى.') }}</p>
-                            <ul>
-                                <li>{{ _('دخول سلس') }}</li>
-                                <li>{{ _('خطة أول يوم') }}</li>
-                                <li>{{ _('هوية أنيقة') }}</li>
-                            </ul>
+                            <span class="hostess-role-badge">{{ _('حظ') }}</span>
+                            <h3>{{ _('روبي') }}</h3>
+                                <p>{{ _('توازن الرهان والحدود، وتمنع اللاعب من الانزلاق إلى الخسارة المدمرة عبر ضوابط ذكية.') }}</p>
+                                <ul>
+                                    <li>{{ _('الرهان المنضبط') }}</li>
+                                    <li>{{ _('تحديد الخسارة') }}</li>
+                                    <li>{{ _('سيطرة نفسية') }}</li>
+                                </ul>
                         </div>
                     </div>
                 </div>
