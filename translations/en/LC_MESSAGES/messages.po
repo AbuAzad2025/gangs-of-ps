@@ -21596,6 +21596,15 @@ msgstr "Welcome to Gangs of Palestine. I am Jasmine, your guide today. Let us ar
 msgid "شاهد من خسر المعركة وشارك في سجلات العصابات."
 msgstr "See who lost the battle and join the gang records."
 
+msgid "سيناريوهات السطو والنهب."
+msgstr "Heist and Looting Scenarios."
+
+msgid "آخر أخبار الشارع."
+msgstr "Latest Street News."
+
+msgid "تعرف على أقوى التحالفات."
+msgstr "Discover the Strongest Alliances."
+
 #~ msgid "تم إضافة %(amount)s ماسة للمستخدم بنجاح."
 #~ msgstr "%(amount)s diamonds added to user successfully."
 
