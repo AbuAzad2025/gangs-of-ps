@@ -343,50 +343,6 @@
         </div>
     </div>
 
-    <!-- Story Section -->
-    <div class="container mb-4">
-        <div class="row align-items-center">
-            <div class="col-md-6 mb-4 mb-md-0">
-                <h2 class="text-gold font-weight-bold mb-3">{{ _('القصة: صراع البقاء') }}</h2>
-                <div class="text-light lead lead-story">
-                    <p>
-                        {{ _('في أزقة المخيمات وشوارع المدن القديمة، حيث القانون هو قانون القوة...') }}
-                        {{ _('بدأت رحلتك كشاب طموح يبحث عن لقمة العيش، لكن الظروف قادتك إلى عالم الجريمة المظلم.') }}
-                        {{ _('من رام الله إلى نابلس، ومن الخليل إلى جنين، تتصارع العائلات والعصابات للسيطرة على الموارد والنفوذ.') }}
-                        <span class="text-gold font-weight-bold">{{ _('المال، السلاح، والاحترام') }}</span> {{ _('هي العملة الوحيدة هنا.') }}
-                        <br>
-                        <i class="fas fa-skull text-danger mt-2"></i> {{ _('الخيار لك.. والموت يتربص بك عند كل زاوية.') }}
-                    </p>
-                </div>
-            </div>
-            <div class="col-md-6">
-                <!-- Top Players Leaderboard Preview -->
-                <div class="card bg-dark border-gold">
-                    <div class="card-header border-bottom border-secondary bg-transparent">
-                        <h5 class="mb-0 text-gold"><i class="fas fa-crown mr-2"></i> {{ _('أقوى الزعماء') }}</h5>
-                    </div>
-                    <div class="card-body p-0">
-                        <table class="table table-dark table-striped mb-0">
-                            <tbody>
-                                {% for player in top_players %}
-                                <tr>
-                                    <td class="pl-4">
-                                        <span class="badge badge-warning mr-2">{{ loop.index }}</span>
-                                        <img src="{{ url_for('static', filename='images/avatars/' + (player.avatar if player.avatar else 'default.png')) }}" class="img-circle elevation-1 avatar-30" alt="User" onerror="this.src='{{ url_for('static', filename='images/avatars/default.png') }}'">
-                                        <span class="font-weight-bold ml-2">{{ player.username }}</span>
-                                    </td>
-                                    <td class="text-right pr-4">
-                                        <span class="badge badge-light">{{ _('مستوى') }} {{ player.level }}</span>
-                                    </td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
 
     <div class="container mb-4">
         <div class="row">
