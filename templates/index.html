@@ -135,17 +135,7 @@
                         </div>
                     </div>
                     
-                    <div class="mt-4 text-center text-lg-right">
-                        <p class="text-white-50 mb-3">{{ _('ساعدنا في تطوير اللعبة لتبقى الأفضل!') }}</p>
-                        <div class="d-flex justify-content-center justify-content-lg-start gap-2 flex-wrap">
-                            <button type="button" class="donate-btn border-0 m-1" data-toggle="modal" data-target="#donationModal">
-                                <i class="fas fa-heart mr-2"></i> {{ _('تبرع للمشروع') }}
-                            </button>
-                            <button type="button" class="buy-code-btn border-0 m-1" data-toggle="modal" data-target="#buyCodeModal">
-                                <i class="fas fa-rocket mr-2"></i> {{ _('ابدأ مشروعك الخاص') }}
-                            </button>
-                        </div>
-                    </div>
+
                 </div>
                 
                 <!-- Hostess quick preview (single mention) -->
@@ -602,6 +592,20 @@
         </div>
     </div>
 </div>
+
+    <!-- Support strip (moved from hero to footer area) -->
+    <div class="container mb-4">
+        <div class="d-flex flex-wrap justify-content-center align-items-center gap-2 py-3 border-top border-secondary">
+            <span class="text-white-50 small mr-3">{{ _('ساعدنا في تطوير اللعبة لتبقى الأفضل!') }}</span>
+            <button type="button" class="donate-btn border-0 m-1" data-toggle="modal" data-target="#donationModal">
+                <i class="fas fa-heart mr-2"></i> {{ _('تبرع للمشروع') }}
+            </button>
+            <button type="button" class="buy-code-btn border-0 m-1" data-toggle="modal" data-target="#buyCodeModal">
+                <i class="fas fa-rocket mr-2"></i> {{ _('ابدأ مشروعك الخاص') }}
+            </button>
+        </div>
+    </div>
+
 {% endblock %}
 
 {% block scripts %}
