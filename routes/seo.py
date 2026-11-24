@@ -209,6 +209,8 @@ def sitemap():
         pages_by_loc[abs_loc] = item
 
     add_page(url_for("main.index"), changefreq="daily", priority="1.0")
+    add_page(url_for("main.play_en"), changefreq="weekly", priority="0.9")
+    add_page(url_for("main.play_ar"), changefreq="weekly", priority="0.9")
     add_page(url_for("main.guide"), changefreq="monthly", priority="0.7")
     add_page(url_for("main.organized_crimes"), changefreq="daily", priority="0.9")
     add_page(url_for("main.trend"), changefreq="daily", priority="0.8")

@@ -1,0 +1,86 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="gop-landing-page">
+<!-- Hero -->
+<div class="landing-hero position-relative overflow-hidden">
+  <div class="hero-bg-pattern"></div>
+  <div class="hero-content container">
+    <div class="row">
+      <div class="col-lg-12 text-center">
+        <h1 class="hero-title gold-text-gradient display-4 fw-bold">
+          <i class="fas fa-khanda mr-3"></i> Gangs of Palestine
+        </h1>
+        <p class="hero-subtitle lead mb-4">
+          A free Arabic mafia strategy browser game with a <strong>live multilingual chat</strong>.
+          Build your empire, run gangs, trade in the market, and talk to players from the Middle East —
+          in Arabic or English, right in your browser.
+        </p>
+        <div class="d-flex justify-content-center flex-wrap gap-2">
+          <a href="{{ url_for('main.register') }}" class="btn btn-hero btn-hero-primary m-1">
+            <i class="fas fa-user-plus mr-2"></i> Play for free
+          </a>
+          <a href="{{ url_for('main.chat_lobby') }}" class="btn btn-hero btn-hero-secondary m-1">
+            <i class="fas fa-comments mr-2"></i> Explore the chat
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Chat highlight -->
+<div class="container mb-5">
+  <div class="row justify-content-center mb-4">
+    <div class="col-lg-9 text-center">
+      <h2 class="gold-text-gradient fw-bold">Live chat, built into the game</h2>
+      <p class="lead text-light">
+        Not just a game — a social world. Meet players in real time across multiple rooms.
+      </p>
+    </div>
+  </div>
+  <div class="row g-4">
+    <div class="col-md-4">
+      <div class="feature-card h-100 text-center">
+        <div class="feature-icon"><i class="fas fa-comments"></i></div>
+        <h3 class="feature-title">Public & private rooms</h3>
+        <p class="feature-text">General, beginners, trade, and VIP rooms. Send private messages and meet new players.</p>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="feature-card h-100 text-center">
+        <div class="feature-icon"><i class="fas fa-language"></i></div>
+        <h3 class="feature-title">Arabic & English</h3>
+        <p class="feature-text">A truly bilingual chat — switch language instantly. RTL for Arabic, LTR for English.</p>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="feature-card h-100 text-center">
+        <div class="feature-icon"><i class="fas fa-paperclip"></i></div>
+        <h3 class="feature-title">Rich messages</h3>
+        <p class="feature-text">Emojis, image and file attachments, and camera photos shared safely in chat.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Features -->
+<div class="container mb-5">
+  <div class="row g-4">
+    <div class="col-md-3"><div class="feature-card h-100 text-center"><div class="feature-icon"><i class="fas fa-users-cog"></i></div><h3 class="feature-title">Gangs</h3><p class="feature-text">Found a gang, recruit members and fight for territory.</p></div></div>
+    <div class="col-md-3"><div class="feature-card h-100 text-center"><div class="feature-icon"><i class="fas fa-chart-line"></i></div><h3 class="feature-title">Trading academy</h3><p class="feature-text">Learn to trade with a safe in-game stock market simulator.</p></div></div>
+    <div class="col-md-3"><div class="feature-card h-100 text-center"><div class="feature-icon"><i class="fas fa-robot"></i></div><h3 class="feature-title">AI hostesses</h3><p class="feature-text">Four specialized AI companions guide you through the game.</p></div></div>
+    <div class="col-md-3"><div class="feature-card h-100 text-center"><div class="feature-icon"><i class="fas fa-mobile-alt"></i></div><h3 class="feature-title">Play anywhere</h3><p class="feature-text">No download. Works on desktop and mobile as a PWA.</p></div></div>
+  </div>
+</div>
+
+<!-- CTA -->
+<div class="container mb-5">
+  <div class="cta-banner text-center py-5">
+    <h2 class="fw-bold mb-3">Ready to join the streets?</h2>
+    <p class="lead text-light mb-4">Free, instant, bilingual. Start your empire today.</p>
+    <a href="{{ url_for('main.register') }}" class="btn btn-luxury-gold btn-lg px-5"><i class="fas fa-user-plus mr-2"></i> Create free account</a>
+  </div>
+</div>
+</div>
+{% endblock %}

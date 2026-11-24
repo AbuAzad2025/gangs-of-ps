@@ -380,3 +380,115 @@ def index():
 @bp.route('/:')
 def index_colon():
     return redirect(url_for('main.index'), code=301)
+
+
+# ---------------------------------------------------------------------------
+# Public discovery pages (SEO) — target international / English audiences and
+# people looking for an Arabic chat + mafia strategy game. These pages are
+# static, indexable, and link into the REAL in-game chat (chat_lobby).
+# ---------------------------------------------------------------------------
+
+@bp.route('/play')
+@bp.route('/en/play')
+def play_en():
+    """English discovery page for international players."""
+    from extensions import seo_manager
+    seo_manager.set(
+        title="Gangs of Palestine — Free Arabic Mafia Browser Game with Live Chat",
+        description=(
+            "Play Gangs of Palestine free in your browser. An Arabic mafia "
+            "strategy RPG with live multilingual chat (Arabic & English), "
+            "gang wars, a virtual trading academy and AI hostesses. No "
+            "download, works on mobile and desktop."
+        ),
+        keywords=(
+            "Arabic mafia game, Palestine mafia game, gangs of Palestine, "
+            "live chat game, multilingual chat game, browser RPG, mafia "
+            "strategy game, free browser game, Arabic online game, "
+            "gang simulation, trading simulator game, AI hostess game"
+        ),
+        robots="index,follow,max-image-preview:large,max-snippet:-1",
+        schema={
+            "@context": "https://schema.org",
+            "@graph": [
+                {
+                    "@type": "WebPage",
+                    "@id": request.base_url + "#webpage",
+                    "url": request.base_url,
+                    "name": "Gangs of Palestine — Free Arabic Mafia Browser Game with Live Chat",
+                    "inLanguage": "en",
+                    "description": (
+                        "Free Arabic mafia strategy browser game with live "
+                        "multilingual chat, gang wars, trading academy and AI hostesses."
+                    ),
+                },
+                {
+                    "@type": "FAQPage",
+                    "@id": request.base_url + "#faq",
+                    "mainEntity": [
+                        {
+                            "@type": "Question",
+                            "name": "What is Gangs of Palestine?",
+                            "acceptedAnswer": {
+                                "@type": "Answer",
+                                "text": (
+                                    "It is a free Arabic mafia strategy browser game. "
+                                    "Start from nothing, build an empire through crimes, "
+                                    "trade, gangs and territory control."
+                                ),
+                            },
+                        },
+                        {
+                            "@type": "Question",
+                            "name": "Does the game have live chat?",
+                            "acceptedAnswer": {
+                                "@type": "Answer",
+                                "text": (
+                                    "Yes. It has a real-time chat hub with public, "
+                                    "private, VIP and stranger rooms, supporting both "
+                                    "Arabic and English."
+                                ),
+                            },
+                        },
+                        {
+                            "@type": "Question",
+                            "name": "Is it free and does it need a download?",
+                            "acceptedAnswer": {
+                                "@type": "Answer",
+                                "text": (
+                                    "Yes, it is completely free and runs directly in "
+                                    "the browser. You can also install it as a PWA on mobile."
+                                ),
+                            },
+                        },
+                    ],
+                },
+            ],
+        },
+    )
+    seo_manager.add_breadcrumb("Home", url_for('main.index'))
+    seo_manager.add_breadcrumb("Play", request.base_url)
+    return render_template('discover_en.html', hide_sidebar=True)
+
+
+@bp.route('/ar/play')
+def play_ar():
+    """Arabic discovery page targeting Arabic ' mafia game / chat' searches."""
+    from extensions import seo_manager
+    seo_manager.set(
+        title="عصابات فلسطين — لعبة مافيا عربية مجانية مع دردشة مباشرة",
+        description=(
+            "العب عصابات فلسطين مجاناً في المتصفح: لعبة مافيا عربية استراتيجية "
+            "بها دردشة مباشرة ثنائية اللغة، حروب عصابات، أكاديمية تداول، ومضيفات "
+            "ذكاء اصطناعي. بدون تحميل، تعمل على الجوال والكمبيوتر."
+        ),
+        keywords=(
+            "لعبة مافيا عربية, لعبة عصابات, عصابات فلسطين, دردشة عربية, "
+            "شات عربي, لعبة متصفح, لعبة استراتيجية عربية, لعبة تداول, "
+            "محاكاة تداول, لعبة عصابات مجانية"
+        ),
+        robots="index,follow,max-image-preview:large,max-snippet:-1",
+    )
+    seo_manager.add_breadcrumb("الرئيسية", url_for('main.index'))
+    seo_manager.add_breadcrumb("العب الآن", request.base_url)
+    return render_template('discover_ar.html', hide_sidebar=True)

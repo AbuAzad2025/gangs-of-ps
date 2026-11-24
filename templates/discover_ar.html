@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="gop-landing-page">
+<div class="landing-hero position-relative overflow-hidden">
+  <div class="hero-bg-pattern"></div>
+  <div class="hero-content container">
+    <div class="row">
+      <div class="col-lg-12 text-center">
+        <h1 class="hero-title gold-text-gradient display-4 fw-bold">
+          <i class="fas fa-khanda mr-3"></i> عصابات فلسطين
+        </h1>
+        <p class="hero-subtitle lead mb-4">
+          لعبة مافيا عربية استراتيجية مجانية على المتصفح مع <strong>دردشة مباشرة ثنائية اللغة</strong>.
+         ابنِ إمبراطوريتك، كوّن عصابات، تاجر في السوق، وتعرف على لاعبين من الوطن العربي — بالعربية أو الإنجليزية، مباشرة من متصفحك.
+        </p>
+        <div class="d-flex justify-content-center flex-wrap gap-2">
+          <a href="{{ url_for('main.register') }}" class="btn btn-hero btn-hero-primary m-1">
+            <i class="fas fa-user-plus mr-2"></i> العب مجاناً
+          </a>
+          <a href="{{ url_for('main.chat_lobby') }}" class="btn btn-hero btn-hero-secondary m-1">
+            <i class="fas fa-comments mr-2"></i> استكشف الدردشة
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="container mb-5">
+  <div class="row justify-content-center mb-4">
+    <div class="col-lg-9 text-center">
+      <h2 class="gold-text-gradient fw-bold">دردشة مباشرة داخل اللعبة</h2>
+      <p class="lead text-light">ليست مجرد لعبة — بل عالم اجتماعي. تعرف على اللاعبين في الوقت الحقيقي عبر غرف متعددة.</p>
+    </div>
+  </div>
+  <div class="row g-4">
+    <div class="col-md-4"><div class="feature-card h-100 text-center"><div class="feature-icon"><i class="fas fa-comments"></i></div><h3 class="feature-title">غرف عامة وخاصة</h3><p class="feature-text">غرف عامة ومبتدئين وتجارة وVIP. رسائل خاصة وتعارف مع لاعبين جدد.</p></div></div>
+    <div class="col-md-4"><div class="feature-card h-100 text-center"><div class="feature-icon"><i class="fas fa-language"></i></div><h3 class="feature-title">عربي وإنجليزي</h3><p class="feature-text">دردشة ثنائية اللغة حقيقية — تبديل فوري، RTL للعربية وLTR للإنجليزية.</p></div></div>
+    <div class="col-md-4"><div class="feature-card h-100 text-center"><div class="feature-icon"><i class="fas fa-paperclip"></i></div><h3 class="feature-title">رسائل غنية</h3><p class="feature-text">إيموجي، مرفقات صور وملفات، وكاميرا — بمشاركة آمنة داخل الدردشة.</p></div></div>
+  </div>
+</div>
+
+<div class="container mb-5">
+  <div class="row g-4">
+    <div class="col-md-3"><div class="feature-card h-100 text-center"><div class="feature-icon"><i class="fas fa-users-cog"></i></div><h3 class="feature-title">العصابات</h3><p class="feature-text">أسّس عصابتك، اجمع الأعضاء، وقاتل للسيطرة على المناطق.</p></div></div>
+    <div class="col-md-3"><div class="feature-card h-100 text-center"><div class="feature-icon"><i class="fas fa-chart-line"></i></div><h3 class="feature-title">أكاديمية التداول</h3><p class="feature-text">تعلّم التداول بمحاكاة بورصة آمنة داخل اللعبة.</p></div></div>
+    <div class="col-md-3"><div class="feature-card h-100 text-center"><div class="feature-icon"><i class="fas fa-robot"></i></div><h3 class="feature-title">مضيفات ذكية</h3><p class="feature-text">أربع مضيفات ذكاء اصطناعي متخصصات يساعدنك في رحلتك.</p></div></div>
+    <div class="col-md-3"><div class="feature-card h-100 text-center"><div class="feature-icon"><i class="fas fa-mobile-alt"></i></div><h3 class="feature-title">العب في أي مكان</h3><p class="feature-text">بدون تحميل — يعمل على الجوال والكمبيوتر كتطبيق PWA.</p></div></div>
+  </div>
+</div>
+
+<div class="container mb-5">
+  <div class="cta-banner text-center py-5">
+    <h2 class="fw-bold mb-3">جاهز لتدخل الشارع؟</h2>
+    <p class="lead text-light mb-4">مجاني، فوري، ثنائي اللغة. ابدأ إمبراطوريتك اليوم.</p>
+    <a href="{{ url_for('main.register') }}" class="btn btn-luxury-gold btn-lg px-5"><i class="fas fa-user-plus mr-2"></i> أنشئ حساباً مجانياً</a>
+  </div>
+</div>
+</div>
+{% endblock %}
