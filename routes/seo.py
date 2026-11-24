@@ -77,6 +77,14 @@ def google_verification_file():
     return response
 
 
+@bp.route('/2aa6b346bec040a394229620d0692295.txt')
+def indexnow_key_file():
+    """Serve IndexNow verification key at domain root (no physical file)."""
+    response = make_response('2aa6b346bec040a394229620d0692295')
+    response.headers['Content-Type'] = 'text/plain; charset=utf-8'
+    return response
+
+
 @bp.route('/sitemap.xsl')
 @cache.cached(timeout=86400)
 def sitemap_xsl():
