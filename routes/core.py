@@ -11,7 +11,7 @@ from flask_login import current_user
 from flask_babel import gettext as _
 from datetime import datetime, timedelta, timezone
 from sqlalchemy import func, or_
-from extensions import db, seo_manager, cache
+from extensions import db, seo_manager, cache, limiter
 from models.user import User
 from models.combat import CombatLog
 from models.hostess import Hostess
@@ -134,6 +134,7 @@ def game_overview():
 
 
 @bp.route('/api/health')
+@limiter.exempt
 def health_check():
     """Simple operational health endpoint for production monitoring."""
     try:
@@ -160,6 +161,7 @@ def health_check():
 
 
 @bp.route('/tiktok-promo')
+@limiter.exempt
 def tiktok_promo():
     """Renders a special animated page for recording TikTok promos."""
     return render_template('promo_tiktok.html')
@@ -211,6 +213,7 @@ def set_language(lang):
 
 
 @bp.route('/')
+@limiter.exempt
 def index():
     """Landing Page."""
     if current_user.is_authenticated:
@@ -343,12 +346,14 @@ def index_colon():
 # ---------------------------------------------------------------------------
 
 @bp.route('/en/play')
+@limiter.exempt
 def play_en_alias():
     """Legacy alias — canonicalized to /play to avoid duplicate content."""
     return redirect(url_for('main.play_en'), code=301)
 
 
 @bp.route('/play')
+@limiter.exempt
 def play_en():
     """English discovery page for international players."""
     from extensions import seo_manager
@@ -436,6 +441,7 @@ def play_en():
 
 
 @bp.route('/ar/play')
+@limiter.exempt
 def play_ar():
     """Arabic discovery page targeting Arabic ' mafia game / chat' searches."""
     from extensions import seo_manager

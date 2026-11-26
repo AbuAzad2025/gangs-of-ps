@@ -870,7 +870,7 @@ def edit_profile():
 
 
 @bp.route('/leaderboard')
-@limiter.limit("20 per minute")
+@limiter.exempt
 @cache.cached(timeout=300, make_cache_key=locale_cache_key('leaderboard'))
 def leaderboard():
     try:
@@ -1710,6 +1710,7 @@ def chat_room(room_name):
 
 
 @bp.route('/chat/lobby')
+@limiter.exempt
 def chat_lobby():
     # SEO
     from extensions import seo_manager

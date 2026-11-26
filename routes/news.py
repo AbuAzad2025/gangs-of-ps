@@ -7,7 +7,7 @@ bp = Blueprint('news', __name__, url_prefix='/news')
 
 
 @bp.route('/')
-@limiter.limit("20 per minute")
+@limiter.exempt
 @cache.cached(timeout=300, make_cache_key=locale_cache_key('news_index'))
 def index():
     # SEO
@@ -25,7 +25,7 @@ def index():
 
 
 @bp.route('/<int:id>')
-@limiter.limit("20 per minute")
+@limiter.exempt
 @cache.cached(timeout=300, make_cache_key=locale_cache_key('news_detail'))
 def detail(id):
     announcement = db.session.get(Announcement, id)

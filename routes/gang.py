@@ -733,7 +733,7 @@ def broadcast_invite_all():
 
 
 @bp.route('/view/<int:gang_id>')
-@limiter.limit("20 per minute")
+@limiter.exempt
 def view(gang_id):
     from extensions import seo_manager
 

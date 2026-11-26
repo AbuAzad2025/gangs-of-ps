@@ -1,10 +1,11 @@
 from flask import Blueprint, make_response, url_for, request
-from extensions import cache
+from extensions import cache, limiter
 
 bp = Blueprint('seo', __name__)
 
 
 @bp.route('/robots.txt')
+@limiter.exempt
 @cache.cached(timeout=3600)
 def robots():
     """
@@ -66,6 +67,7 @@ def robots():
 
 
 @bp.route('/google8a1714ed6e039773.html')
+@limiter.exempt
 def google_verification_file():
     """Serve Google Search Console's HTML verification token at the domain root.
 
@@ -78,6 +80,7 @@ def google_verification_file():
 
 
 @bp.route('/2aa6b346bec040a394229620d0692295.txt')
+@limiter.exempt
 def indexnow_key_file():
     """Serve IndexNow verification key at domain root (no physical file)."""
     response = make_response('2aa6b346bec040a394229620d0692295')
@@ -86,6 +89,7 @@ def indexnow_key_file():
 
 
 @bp.route('/sitemap.xsl')
+@limiter.exempt
 @cache.cached(timeout=86400)
 def sitemap_xsl():
     """Styled XML Sitemap."""
@@ -134,6 +138,7 @@ def sitemap_xsl():
 
 
 @bp.route('/sitemap.xml')
+@limiter.exempt
 @cache.cached(timeout=3600)
 def sitemap():
     """Serve sitemap.xml for search engines."""

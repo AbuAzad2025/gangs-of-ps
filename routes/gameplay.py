@@ -62,7 +62,7 @@ def _config_int(key, default, minimum=None):
 
 
 @bp.route('/organized_crimes')
-@limiter.limit("30 per minute")
+@limiter.exempt
 def organized_crimes():
     from extensions import seo_manager
 
@@ -788,6 +788,7 @@ def season():
 
 
 @bp.route('/guide')
+@limiter.exempt
 def guide():
     from extensions import seo_manager
     seo_manager.set(

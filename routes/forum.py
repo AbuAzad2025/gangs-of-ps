@@ -43,7 +43,7 @@ def _iso(dt) -> Optional[str]:
 
 
 @bp.route('/')
-@limiter.limit("30 per minute")
+@limiter.exempt
 def index():
     categories = (
         ForumCategory.query.order_by(ForumCategory.order).limit(20).all()
@@ -66,6 +66,7 @@ def index():
 
 
 @bp.route('/category/<int:id>')
+@limiter.exempt
 def category(id):
     category = ForumCategory.query.get_or_404(id)
 
@@ -106,7 +107,8 @@ def category(id):
 
 
 @bp.route('/topic/<int:id>', methods=['GET', 'POST'])
-@limiter.limit("30 per minute")
+# Crawlers may read topics freely; keep anti-spam protection on replies only.
+@limiter.limit("30 per minute", methods=["POST"])
 def topic(id):
     topic = db.session.get(ForumTopic, id)
     if not topic:
