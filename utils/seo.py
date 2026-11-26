@@ -156,7 +156,8 @@ class SEOManager:
             image=None,
             type=None,
             schema=None,
-            robots=None):
+            robots=None,
+            hreflang=None):
         """
         Helper to set multiple properties at once.
         """
@@ -174,6 +175,16 @@ class SEOManager:
             self.schema = schema
         if robots:
             self.robots = robots
+        if hreflang is not None:
+            self.hreflang = hreflang
+
+    @property
+    def hreflang(self):
+        return g.get('seo_hreflang')
+
+    @hreflang.setter
+    def hreflang(self, value):
+        g.seo_hreflang = value
 
     @property
     def breadcrumbs(self):
@@ -233,6 +244,7 @@ class SEOManager:
             "fbclid",
             "ref",
             "next",
+            "sort",
         }
         args = request.args.to_dict(flat=False)
         for k in list(args.keys()):
@@ -251,6 +263,13 @@ class SEOManager:
         return f'<link rel="canonical" href="{href}">'
 
     def render_hreflang(self):
+        custom = g.get('seo_hreflang')
+        if custom:
+            return "".join(
+                f'<link rel="alternate" hreflang="{html_escape(code, quote=True)}" '
+                f'href="{html_escape(url, quote=True)}">'
+                for code, url in custom.items()
+            )
         langs = current_app.config.get('LANGUAGES', ['ar', 'en'])
         ignored_params = {
             "utm_source",
@@ -262,6 +281,7 @@ class SEOManager:
             "fbclid",
             "ref",
             "next",
+            "sort",
         }
         base_args = request.args.to_dict(flat=False)
         for k in list(base_args.keys()):

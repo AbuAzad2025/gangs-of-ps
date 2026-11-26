@@ -342,12 +342,22 @@ def index_colon():
 # static, indexable, and link into the REAL in-game chat (chat_lobby).
 # ---------------------------------------------------------------------------
 
-@bp.route('/play')
 @bp.route('/en/play')
+def play_en_alias():
+    """Legacy alias — canonicalized to /play to avoid duplicate content."""
+    return redirect(url_for('main.play_en'), code=301)
+
+
+@bp.route('/play')
 def play_en():
     """English discovery page for international players."""
     from extensions import seo_manager
     seo_manager.set(
+        hreflang={
+            "x-default": url_for('main.play_en', _external=True),
+            "en": url_for('main.play_en', _external=True),
+            "ar": url_for('main.play_ar', _external=True),
+        },
         title="Gangs of Palestine — Free Arabic Mafia Browser Game with Live Chat",
         description=(
             "Play Gangs of Palestine free in your browser. An Arabic mafia "
@@ -430,6 +440,11 @@ def play_ar():
     """Arabic discovery page targeting Arabic ' mafia game / chat' searches."""
     from extensions import seo_manager
     seo_manager.set(
+        hreflang={
+            "x-default": url_for('main.play_en', _external=True),
+            "en": url_for('main.play_en', _external=True),
+            "ar": url_for('main.play_ar', _external=True),
+        },
         title="عصابات فلسطين — لعبة مافيا عربية مجانية مع دردشة مباشرة",
         description=(
             "العب عصابات فلسطين مجاناً في المتصفح: لعبة مافيا عربية استراتيجية "
