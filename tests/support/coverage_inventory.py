@@ -15,7 +15,7 @@ ROOT = Path(__file__).resolve().parents[2]
 
 SCOPE_DIRS = ("routes", "services", "models", "utils", "forms", "admin")
 SCOPE_FILES = ("factory.py", "extensions.py", "config.py")
-SKIP_PARTS = {"/migrations/", "/tests/", "/scripts/", "/instance/", "/.venv/", "/venv/"}
+SKIP_PARTS = {"/migrations/", "/tests/", "/scripts/", "/.local/", "/instance/", "/.venv/", "/venv/"}
 
 
 def iter_scope_files() -> list[Path]:

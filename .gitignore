@@ -57,3 +57,7 @@ build/
 # Never commit or push this file.
 HANDOFF.md
 .handoff/
+
+# Local-only development / QA scripts — never pushed online, never deployed.
+# Production releases must not contain these.
+.local/
