@@ -308,52 +308,6 @@ def index():
                         ),
                     },
                 },
-                {
-                    "@type": "FAQPage",
-                    "@id": f"{request.base_url}#faq",
-                    "mainEntity": [
-                        {
-                            "@type": "Question",
-                            "name": "ما هي لعبة عصابات فلسطين؟",
-                            "acceptedAnswer": {
-                                "@type": "Answer",
-                                "text": faq_ar_1,
-                            },
-                        },
-                        {
-                            "@type": "Question",
-                            "name": "هل اللعبة مجانية وهل تحتاج تحميل؟",
-                            "acceptedAnswer": {
-                                "@type": "Answer",
-                                "text": faq_ar_2,
-                            },
-                        },
-                        {
-                            "@type": "Question",
-                            "name": "هل يوجد شات ودردشة عربية داخل اللعبة؟",
-                            "acceptedAnswer": {
-                                "@type": "Answer",
-                                "text": faq_ar_3,
-                            },
-                        },
-                        {
-                            "@type": "Question",
-                            "name": "ما المدن الفلسطينية الموجودة داخل اللعبة؟",
-                            "acceptedAnswer": {
-                                "@type": "Answer",
-                                "text": faq_ar_4,
-                            },
-                        },
-                        {
-                            "@type": "Question",
-                            "name": "Is Gangs of Palestine an Arabic mafia browser game?",
-                            "acceptedAnswer": {
-                                "@type": "Answer",
-                                "text": faq_en_1,
-                            },
-                        },
-                    ],
-                },
             ],
         },
     )

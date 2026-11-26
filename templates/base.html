@@ -59,14 +59,6 @@
             "@type": "Person",
             "name": "Yasmin",
             "description": "The intelligent AI Hostess and guide of Gangs of Palestine, created by Azad Company."
-          },
-          "trailer": {
-            "@type": "VideoObject",
-            "name": "Gangs of Palestine Official Trailer",
-            "description": "Join the strongest Arab mafia strategy game. Build your empire in Palestine.",
-            "thumbnailUrl": {{ url_for('static', filename='images/azad_logo_white_on_dark.png', _external=True)|tojson }},
-            "uploadDate": "2024-01-01T08:00:00+02:00",
-            "embedUrl": "https://www.youtube.com/embed/placeholder"
           }
         },
         {
@@ -74,7 +66,7 @@
           "@id": {{ (request.url_root.rstrip('/') ~ '#organization')|tojson }},
           "name": "Azad Company",
           "url": {{ request.url_root|tojson }},
-          "logo": {{ url_for('static', filename='adminlte/img/user2-160x160.jpg', _external=True)|tojson }},
+          "logo": {{ url_for('static', filename='images/azad_logo_white_on_dark.png', _external=True)|tojson }},
           "sameAs": {{ [facebook_link, twitter_link, instagram_link]|tojson }}
         },
         {
@@ -109,9 +101,7 @@
     <link rel="manifest" href="{{ url_for('static', filename='manifest.json') }}">
     <meta name="theme-color" content="#1a1a1a">
     <meta name="format-detection" content="telephone=no">
-    <link rel="alternate" hreflang="ar" href="{{ request.url_root.rstrip('/') }}?lang=ar" />
-    <link rel="alternate" hreflang="en" href="{{ request.url_root.rstrip('/') }}?lang=en" />
-    <link rel="alternate" hreflang="x-default" href="{{ request.url_root.rstrip('/') }}" />
+    {# hreflang tags are emitted once by seo.render_hreflang() above — do not duplicate here. #}
 
     {% if get_locale() == 'ar' %}
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800&family=Reem+Kufi:wght@400;500;600;700&family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
