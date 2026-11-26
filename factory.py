@@ -47,8 +47,15 @@ def create_app(config_class=Config):
         for maintenance_db in ("postgres", "template1"):
             maintenance_url = url.set(database=maintenance_db)
             try:
-                conn = psycopg2.connect(
+                # libpq does not understand SQLAlchemy's "+psycopg2" driver
+                # suffix — strip it before handing the DSN to psycopg2.
+                dsn = re.sub(
+                    r'^postgresql\+psycopg2://',
+                    'postgresql://',
                     maintenance_url.render_as_string(hide_password=False),
+                )
+                conn = psycopg2.connect(
+                    dsn,
                     connect_timeout=int(os.environ.get("PG_CONNECT_TIMEOUT", "5") or 5),
                 )
                 break
