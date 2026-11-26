@@ -664,15 +664,6 @@ def create_app(config_class=Config):
                 discord_link=SystemConfig.get_value(
                     "discord_invite_link",
                     app.config.get("DISCORD_INVITE_LINK")),
-                facebook_link=SystemConfig.get_value(
-                    "facebook_link",
-                    app.config.get("FACEBOOK_LINK")),
-                twitter_link=SystemConfig.get_value(
-                    "twitter_link",
-                    app.config.get("TWITTER_LINK")),
-                instagram_link=SystemConfig.get_value(
-                    "instagram_link",
-                    app.config.get("INSTAGRAM_LINK")),
                 developer_whatsapp=SystemConfig.get_value(
                     "support_whatsapp_number", SUPPORT_WHATSAPP_NUMBER),
                 developer_whatsapp_display=(
@@ -684,9 +675,6 @@ def create_app(config_class=Config):
         except Exception:
             return dict(
                 discord_link=app.config.get("DISCORD_INVITE_LINK"),
-                facebook_link=app.config.get("FACEBOOK_LINK"),
-                twitter_link=app.config.get("TWITTER_LINK"),
-                instagram_link=app.config.get("INSTAGRAM_LINK"),
                 developer_whatsapp=SUPPORT_WHATSAPP_NUMBER,
                 developer_whatsapp_display=SUPPORT_WHATSAPP_DISPLAY,
                 developer_iban=DEVELOPER_IBAN

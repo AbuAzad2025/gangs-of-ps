@@ -96,14 +96,11 @@ class Config:
     BABEL_TRANSLATION_DIRECTORIES = 'translations'
 
     # Social Media Configuration
+    # NOTE: Facebook / X / Instagram profile links were removed on 2026-11-26
+    # because no verified official accounts exist. Do not re-add placeholder
+    # profiles — they mislead users and search engines.
     DISCORD_INVITE_LINK = os.environ.get(
         'DISCORD_INVITE_LINK') or 'https://discord.gg/actHePygND'
-    FACEBOOK_LINK = os.environ.get(
-        'FACEBOOK_LINK') or 'https://facebook.com/GangsOfPalestine'
-    TWITTER_LINK = os.environ.get(
-        'TWITTER_LINK') or 'https://twitter.com/GangsOfPS'
-    INSTAGRAM_LINK = os.environ.get(
-        'INSTAGRAM_LINK') or 'https://instagram.com/GangsOfPS'
 
     # AI Configuration
     OPENAI_API_KEY = os.environ.get('OPENAI_API_KEY')

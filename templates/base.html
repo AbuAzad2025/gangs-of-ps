@@ -66,8 +66,7 @@
           "@id": {{ (request.url_root.rstrip('/') ~ '#organization')|tojson }},
           "name": "Azad Company",
           "url": {{ request.url_root|tojson }},
-          "logo": {{ url_for('static', filename='images/azad_logo_white_on_dark.png', _external=True)|tojson }},
-          "sameAs": {{ [facebook_link, twitter_link, instagram_link]|tojson }}
+          "logo": {{ url_for('static', filename='images/azad_logo_white_on_dark.png', _external=True)|tojson }}
         },
         {
           "@type": "WebSite",
@@ -706,12 +705,7 @@
                 <p class="text-muted mb-4 lh-1-8">
                     {{ _('عش حياة الجريمة، وسيطر على الشوارع، وكن الزعيم الأقوى في فلسطين. اللعبة الاستراتيجية الأولى من نوعها التي تجمع بين الإثارة والتحدي.') }}
                 </p>
-                <div class="footer-social">
-                    <a href="{{ facebook_link }}" target="_blank" title="Facebook"><i class="fab fa-facebook-f"></i></a>
-                    <a href="{{ twitter_link }}" target="_blank" title="X (Twitter)"><i class="fab fa-twitter"></i></a>
-                    <a href="{{ instagram_link }}" target="_blank" title="Instagram"><i class="fab fa-instagram"></i></a>
-
-                </div>
+                {# Social profile links removed 2026-11-26: no verified official accounts. #}
             </div>
 
             <!-- Quick Links -->
